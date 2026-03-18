@@ -1,0 +1,874 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Last War Titanium Alloy Calculator</title>
+    <style>
+      :root {
+        --bg: #081019;
+        --panel: #111c28;
+        --panel-2: #162434;
+        --line: #2b3d51;
+        --text: #e4edf7;
+        --muted: #91a4b8;
+        --accent: #74c0fc;
+        --accent-2: #4dabf7;
+        --ok: #51cf66;
+        --warn: #ff922b;
+      }
+
+      * {
+        box-sizing: border-box;
+      }
+
+      body {
+        margin: 0;
+        min-height: 100vh;
+        font-family: "Segoe UI", Tahoma, sans-serif;
+        color: var(--text);
+        background:
+          radial-gradient(
+            circle at top,
+            rgba(116, 192, 252, 0.18),
+            transparent 28%
+          ),
+          linear-gradient(180deg, #09111a 0%, #05090e 100%);
+      }
+
+      .page {
+        max-width: 980px;
+        margin: 0 auto;
+        padding: 24px 16px 40px;
+      }
+
+      .hero,
+      .card {
+        background: linear-gradient(
+          180deg,
+          var(--panel) 0%,
+          var(--panel-2) 100%
+        );
+        border: 1px solid var(--line);
+        border-radius: 16px;
+        box-shadow: 0 18px 50px rgba(0, 0, 0, 0.18);
+      }
+
+      .hero {
+        padding: 22px;
+        margin-bottom: 16px;
+      }
+
+      h1 {
+        margin: 0;
+        font-size: clamp(1.35rem, 4vw, 2.3rem);
+        color: var(--accent);
+        letter-spacing: 0.03em;
+      }
+
+      .sub {
+        margin-top: 8px;
+        color: var(--muted);
+        font-size: 0.96rem;
+        line-height: 1.5;
+      }
+
+      .layout {
+        display: grid;
+        grid-template-columns: minmax(280px, 340px) 1fr;
+        gap: 16px;
+      }
+
+      @media (max-width: 800px) {
+        .layout {
+          grid-template-columns: 1fr;
+        }
+      }
+
+      .card {
+        padding: 18px;
+      }
+
+      .card-title {
+        margin: 0 0 14px;
+        color: var(--accent);
+        font-size: 0.82rem;
+        text-transform: uppercase;
+        letter-spacing: 0.12em;
+      }
+
+      .field {
+        margin-bottom: 14px;
+      }
+
+      .field:last-child {
+        margin-bottom: 0;
+      }
+
+      .field-group {
+        margin-top: 18px;
+        padding-top: 18px;
+        border-top: 1px solid var(--line);
+      }
+
+      label {
+        display: block;
+        margin-bottom: 6px;
+        color: var(--muted);
+        font-size: 0.78rem;
+        text-transform: uppercase;
+        letter-spacing: 0.08em;
+      }
+
+      input,
+      select {
+        width: 100%;
+        padding: 11px 12px;
+        border: 1px solid var(--line);
+        border-radius: 10px;
+        background: #0a141f;
+        color: var(--text);
+        font-size: 0.98rem;
+      }
+
+      .summary {
+        display: grid;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 12px;
+        margin-bottom: 14px;
+      }
+
+      @media (max-width: 520px) {
+        .summary {
+          grid-template-columns: 1fr;
+        }
+      }
+
+      .tile {
+        background: rgba(8, 16, 25, 0.65);
+        border: 1px solid var(--line);
+        border-radius: 14px;
+        padding: 14px;
+      }
+
+      .tile-key {
+        color: var(--muted);
+        font-size: 0.72rem;
+        text-transform: uppercase;
+        letter-spacing: 0.08em;
+      }
+
+      .tile-value {
+        margin-top: 6px;
+        font-size: 1.45rem;
+        font-weight: 800;
+        line-height: 1.15;
+      }
+
+      .ok {
+        color: var(--ok);
+      }
+
+      .warn {
+        color: var(--warn);
+      }
+
+      .details {
+        background: rgba(8, 16, 25, 0.65);
+        border: 1px solid var(--line);
+        border-radius: 14px;
+        overflow: hidden;
+      }
+
+      .row {
+        display: grid;
+        grid-template-columns: 1fr auto;
+        gap: 10px;
+        padding: 12px 14px;
+        border-top: 1px solid var(--line);
+      }
+
+      .row:first-child {
+        border-top: none;
+      }
+
+      .row-key {
+        color: var(--muted);
+      }
+
+      .row-value {
+        font-weight: 700;
+      }
+
+      .table-wrap {
+        margin-top: 16px;
+        overflow-x: auto;
+        border: 1px solid var(--line);
+        border-radius: 14px;
+      }
+
+      table {
+        width: 100%;
+        border-collapse: collapse;
+        min-width: 420px;
+        background: rgba(8, 16, 25, 0.65);
+      }
+
+      th,
+      td {
+        padding: 10px 12px;
+        border-top: 1px solid var(--line);
+        text-align: left;
+      }
+
+      th {
+        border-top: none;
+        color: var(--muted);
+        font-size: 0.72rem;
+        text-transform: uppercase;
+        letter-spacing: 0.08em;
+        background: #0d1722;
+      }
+
+      td:last-child,
+      th:last-child {
+        text-align: right;
+      }
+
+      tr.active td {
+        background: rgba(116, 192, 252, 0.12);
+      }
+
+      .footnote {
+        margin-top: 12px;
+        color: var(--muted);
+        font-size: 0.82rem;
+        line-height: 1.5;
+      }
+
+      .mine-list {
+        display: grid;
+        gap: 10px;
+      }
+
+      .mine-row {
+        display: grid;
+        grid-template-columns: minmax(0, 1fr) auto;
+        gap: 10px;
+        align-items: end;
+      }
+
+      .mine-output {
+        min-width: 92px;
+        padding: 11px 12px;
+        border: 1px solid var(--line);
+        border-radius: 10px;
+        background: #0a141f;
+        color: var(--accent);
+        font-weight: 700;
+        text-align: right;
+      }
+
+      .mine-total {
+        margin-top: 12px;
+        padding: 12px 14px;
+        border: 1px solid var(--line);
+        border-radius: 12px;
+        background: rgba(8, 16, 25, 0.65);
+      }
+
+      .mine-total-key {
+        color: var(--muted);
+        font-size: 0.72rem;
+        text-transform: uppercase;
+        letter-spacing: 0.08em;
+      }
+
+      .mine-total-value {
+        margin-top: 6px;
+        font-size: 1.2rem;
+        font-weight: 800;
+        color: var(--accent);
+      }
+    </style>
+  </head>
+  <body>
+    <div class="page">
+      <section class="hero">
+        <h1>Last War Titanium Alloy Calculator</h1>
+        <div class="sub">
+          Choose your current furnace level and enter your current titanium
+          alloy. The calculator shows exactly how much titanium you need for the
+          next level and how much more you still need.
+        </div>
+      </section>
+
+      <section class="layout">
+        <div class="card">
+          <h2 class="card-title">Inputs</h2>
+          <div class="field">
+            <label for="currentLevel">Current Furnace Level</label>
+            <select id="currentLevel"></select>
+          </div>
+          <div class="field">
+            <label for="currentTitanium">Current Titanium Alloy</label>
+            <input
+              id="currentTitanium"
+              type="number"
+              min="0"
+              step="1"
+              value="0"
+            />
+          </div>
+          <div class="field">
+            <label for="allianceTechSelect"
+              >Reduced RSS required for building construction</label
+            >
+            <select id="allianceTechSelect"></select>
+          </div>
+          <div class="field">
+            <label for="timeZoneSelect">Timezone</label>
+            <select id="timeZoneSelect"></select>
+          </div>
+
+          <div class="field-group">
+            <h2 class="card-title">Coal Mines</h2>
+            <div class="mine-list" id="mineList"></div>
+            <div class="mine-total">
+              <div class="mine-total-key">Total Output Per Hour</div>
+              <div class="mine-total-value" id="totalMineOutput">0</div>
+            </div>
+          </div>
+        </div>
+
+        <div class="card">
+          <h2 class="card-title">Next Upgrade</h2>
+          <div class="summary">
+            <div class="tile">
+              <div class="tile-key">Next Level</div>
+              <div class="tile-value" id="nextLevelValue">Lv 2</div>
+            </div>
+            <div class="tile">
+              <div class="tile-key">Titanium Required</div>
+              <div class="tile-value" id="requiredValue">11.20k</div>
+            </div>
+            <div class="tile">
+              <div class="tile-key">Current Titanium</div>
+              <div class="tile-value" id="ownedValue">0</div>
+            </div>
+            <div class="tile">
+              <div class="tile-key">Still Needed</div>
+              <div class="tile-value warn" id="deficitValue">11.20k</div>
+            </div>
+            <div class="tile">
+              <div class="tile-key">Estimated Time</div>
+              <div class="tile-value" id="etaValue">No output</div>
+            </div>
+            <div class="tile">
+              <div class="tile-key">Upgrade Ready At</div>
+              <div class="tile-value" id="readyAtValue">No output</div>
+            </div>
+            <div class="tile">
+              <div class="tile-key">Current Time</div>
+              <div class="tile-value" id="currentTimeValue">-</div>
+            </div>
+          </div>
+
+          <div class="details">
+            <div class="row">
+              <div class="row-key">Upgrade Path</div>
+              <div class="row-value" id="pathValue">Level 1 -> Level 2</div>
+            </div>
+            <div class="row">
+              <div class="row-key">Status</div>
+              <div class="row-value" id="statusValue">
+                Need more titanium alloy
+              </div>
+            </div>
+            <div class="row">
+              <div class="row-key">Mine Output Used</div>
+              <div class="row-value" id="mineRateValue">0/hr</div>
+            </div>
+            <div class="row">
+              <div class="row-key">Timezone Used</div>
+              <div class="row-value" id="timeZoneValue">Local</div>
+            </div>
+          </div>
+
+          <div class="table-wrap">
+            <table>
+              <thead>
+                <tr>
+                  <th>Upgrade</th>
+                  <th>Titanium Alloy</th>
+                </tr>
+              </thead>
+              <tbody id="costTableBody"></tbody>
+            </table>
+          </div>
+
+          <div class="footnote">
+            Source values loaded from your provided level table for Levels 1
+            through 30.
+          </div>
+        </div>
+      </section>
+    </div>
+
+    <script>
+      const titaniumCosts = [
+        { level: 1, titanium: 2800 },
+        { level: 2, titanium: 11200 },
+        { level: 3, titanium: 22400 },
+        { level: 4, titanium: 44800 },
+        { level: 5, titanium: 89600 },
+        { level: 6, titanium: 125400 },
+        { level: 7, titanium: 163100 },
+        { level: 8, titanium: 195700 },
+        { level: 9, titanium: 234800 },
+        { level: 10, titanium: 281800 },
+        { level: 11, titanium: 338100 },
+        { level: 12, titanium: 405800 },
+        { level: 13, titanium: 486900 },
+        { level: 14, titanium: 584300 },
+        { level: 15, titanium: 771300 },
+        { level: 16, titanium: 771300 },
+        { level: 17, titanium: 848400 },
+        { level: 18, titanium: 933300 },
+        { level: 19, titanium: 1030000 },
+        { level: 20, titanium: 1130000 },
+        { level: 21, titanium: 1240000 },
+        { level: 22, titanium: 1370000 },
+        { level: 23, titanium: 1500000 },
+        { level: 24, titanium: 1650000 },
+        { level: 25, titanium: 1820000 },
+        { level: 26, titanium: 2160000 },
+        { level: 27, titanium: 2510000 },
+        { level: 28, titanium: 2860000 },
+        { level: 29, titanium: 3460000 },
+        { level: 30, titanium: 4320000 },
+      ];
+
+      const coalMineOutputs = [
+        { level: 1, output: 720 },
+        { level: 2, output: 1440 },
+        { level: 3, output: 2160 },
+        { level: 4, output: 2880 },
+        { level: 5, output: 3600 },
+        { level: 6, output: 4320 },
+        { level: 7, output: 5040 },
+        { level: 8, output: 5760 },
+        { level: 9, output: 6480 },
+        { level: 10, output: 7200 },
+        { level: 11, output: 7920 },
+        { level: 12, output: 8640 },
+        { level: 13, output: 9360 },
+        { level: 14, output: 10080 },
+        { level: 15, output: 10800 },
+        { level: 16, output: 11520 },
+        { level: 17, output: 12240 },
+        { level: 18, output: 12960 },
+        { level: 19, output: 13680 },
+        { level: 20, output: 14400 },
+        { level: 21, output: 15120 },
+        { level: 22, output: 15840 },
+        { level: 23, output: 16560 },
+        { level: 24, output: 17280 },
+        { level: 25, output: 18000 },
+        { level: 26, output: 18720 },
+        { level: 27, output: 19440 },
+        { level: 28, output: 20160 },
+        { level: 29, output: 20880 },
+        { level: 30, output: 21600 },
+      ];
+
+      const currentLevelInput = document.getElementById("currentLevel");
+      const currentTitaniumInput = document.getElementById("currentTitanium");
+      const nextLevelValue = document.getElementById("nextLevelValue");
+      const requiredValue = document.getElementById("requiredValue");
+      const ownedValue = document.getElementById("ownedValue");
+      const deficitValue = document.getElementById("deficitValue");
+      const etaValue = document.getElementById("etaValue");
+      const readyAtValue = document.getElementById("readyAtValue");
+      const pathValue = document.getElementById("pathValue");
+      const statusValue = document.getElementById("statusValue");
+      const mineRateValue = document.getElementById("mineRateValue");
+      const timeZoneValue = document.getElementById("timeZoneValue");
+      const currentTimeValue = document.getElementById("currentTimeValue");
+      const costTableBody = document.getElementById("costTableBody");
+      const mineList = document.getElementById("mineList");
+      const totalMineOutput = document.getElementById("totalMineOutput");
+      const timeZoneSelect = document.getElementById("timeZoneSelect");
+      const allianceTechSelect = document.getElementById("allianceTechSelect");
+      const STORAGE_KEY = "lastWarFurnaceCalcStateV1";
+
+      const commonTimeZones = [
+        "UTC",
+        "America/New_York",
+        "America/Chicago",
+        "America/Denver",
+        "America/Los_Angeles",
+        "America/Phoenix",
+        "America/Toronto",
+        "America/Sao_Paulo",
+        "Europe/London",
+        "Europe/Paris",
+        "Europe/Berlin",
+        "Europe/Athens",
+        "Africa/Johannesburg",
+        "Asia/Dubai",
+        "Asia/Kolkata",
+        "Asia/Singapore",
+        "Asia/Shanghai",
+        "Asia/Tokyo",
+        "Australia/Perth",
+        "Australia/Sydney",
+        "Pacific/Auckland",
+      ];
+
+      function formatTitanium(value) {
+        return Math.round(Number(value) || 0).toLocaleString();
+      }
+
+      function formatTimeFromHours(hours) {
+        if (!Number.isFinite(hours)) {
+          return "No output";
+        }
+
+        if (hours <= 0) {
+          return "Ready now";
+        }
+
+        const totalMinutes = Math.round(hours * 60);
+        const days = Math.floor(totalMinutes / 1440);
+        const remainingMinutes = totalMinutes % 1440;
+        const wholeHours = Math.floor(remainingMinutes / 60);
+        const minutes = remainingMinutes % 60;
+
+        if (days > 0) {
+          return `${days}d ${wholeHours}h`;
+        }
+        if (wholeHours > 0) {
+          return `${wholeHours}h ${minutes}m`;
+        }
+        return `${minutes}m`;
+      }
+
+      function formatReadyAt(hours, timeZone) {
+        if (!Number.isFinite(hours)) {
+          return "No output";
+        }
+
+        if (hours <= 0) {
+          return "Now";
+        }
+
+        const targetDate = new Date(Date.now() + hours * 3600 * 1000);
+        return new Intl.DateTimeFormat(undefined, {
+          timeZone,
+          month: "short",
+          day: "numeric",
+          hour: "numeric",
+          minute: "2-digit",
+          hour12: true,
+        }).format(targetDate);
+      }
+
+      function formatCurrentTime(timeZone) {
+        return new Intl.DateTimeFormat(undefined, {
+          timeZone,
+          month: "short",
+          day: "numeric",
+          hour: "numeric",
+          minute: "2-digit",
+          second: "2-digit",
+          hour12: true,
+        }).format(new Date());
+      }
+
+      function updateCurrentTimeDisplay() {
+        const selectedTimeZone = timeZoneSelect.value || "UTC";
+        try {
+          currentTimeValue.textContent = formatCurrentTime(selectedTimeZone);
+        } catch {
+          currentTimeValue.textContent = "Unavailable";
+        }
+      }
+
+      function buildTimeZoneOptions() {
+        const detectedTimeZone =
+          Intl.DateTimeFormat().resolvedOptions().timeZone || "UTC";
+        const zoneList = commonTimeZones.includes(detectedTimeZone)
+          ? commonTimeZones
+          : [detectedTimeZone, ...commonTimeZones];
+
+        timeZoneSelect.innerHTML = zoneList
+          .map((zone) => `<option value="${zone}">${zone}</option>`)
+          .join("");
+        timeZoneSelect.value = detectedTimeZone;
+      }
+
+      function buildLevelOptions() {
+        currentLevelInput.innerHTML = "";
+        for (let level = 1; level < titaniumCosts.length; level += 1) {
+          const option = new Option(`Level ${level}`, String(level));
+          currentLevelInput.appendChild(option);
+        }
+        currentLevelInput.value = "1";
+      }
+
+      function buildAllianceTechOptions() {
+        allianceTechSelect.innerHTML = Array.from(
+          { length: 201 },
+          (_, index) => {
+            const pct = (index * 0.5).toFixed(1);
+            return `<option value="${pct}">${pct}%</option>`;
+          },
+        ).join("");
+        allianceTechSelect.value = "0.0";
+      }
+
+      function buildMineSelectors() {
+        const options = coalMineOutputs
+          .map(
+            (row) => `<option value="${row.level}">Level ${row.level}</option>`,
+          )
+          .join("");
+
+        mineList.innerHTML = Array.from(
+          { length: 5 },
+          (_, index) => `
+        <div class="mine-row">
+          <div>
+            <label for="mineLevel${index + 1}">Coal Mine ${index + 1}</label>
+            <select id="mineLevel${index + 1}" data-mine-index="${index + 1}">
+              <option value="0">Not set</option>
+              ${options}
+            </select>
+          </div>
+          <div class="mine-output" id="mineOutput${index + 1}">0/hr</div>
+        </div>
+      `,
+        ).join("");
+
+        Array.from(mineList.querySelectorAll("select")).forEach((select) => {
+          select.addEventListener("change", updateMineOutput);
+        });
+      }
+
+      function getMineOutputForLevel(level) {
+        return coalMineOutputs.find((row) => row.level === level)?.output || 0;
+      }
+
+      function updateMineOutput() {
+        let totalOutput = 0;
+
+        for (let index = 1; index <= 5; index += 1) {
+          const select = document.getElementById(`mineLevel${index}`);
+          const outputBox = document.getElementById(`mineOutput${index}`);
+          const level = Number(select.value);
+          const output = getMineOutputForLevel(level);
+          totalOutput += output;
+          outputBox.textContent = `${formatTitanium(output)}/hr`;
+        }
+
+        totalMineOutput.textContent = `${formatTitanium(totalOutput)}/hr`;
+        updateCalculator();
+      }
+
+      function getTotalMineOutput() {
+        let totalOutput = 0;
+        for (let index = 1; index <= 5; index += 1) {
+          const select = document.getElementById(`mineLevel${index}`);
+          totalOutput += getMineOutputForLevel(Number(select.value));
+        }
+        return totalOutput;
+      }
+
+      function buildTable() {
+        costTableBody.innerHTML = titaniumCosts
+          .slice(0, titaniumCosts.length - 1)
+          .map(
+            (row) => `
+          <tr data-level="${row.level}">
+            <td>Level ${row.level} -> Level ${row.level + 1}</td>
+            <td>${formatTitanium(row.titanium)}</td>
+          </tr>
+        `,
+          )
+          .join("");
+      }
+
+      function saveState() {
+        try {
+          const mineLevels = [];
+          for (let index = 1; index <= 5; index += 1) {
+            const select = document.getElementById(`mineLevel${index}`);
+            mineLevels.push(Number(select?.value || 0));
+          }
+
+          const state = {
+            currentLevel: Number(currentLevelInput.value || 1),
+            currentTitanium: Number(currentTitaniumInput.value || 0),
+            timeZone: timeZoneSelect.value,
+            allianceTech: Number(allianceTechSelect.value || 0),
+            mineLevels,
+          };
+
+          localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
+        } catch {
+          // Ignore storage errors (private mode / disabled storage)
+        }
+      }
+
+      function loadSavedState() {
+        try {
+          const raw = localStorage.getItem(STORAGE_KEY);
+          if (!raw) return;
+
+          const state = JSON.parse(raw);
+
+          if (
+            state.currentLevel &&
+            currentLevelInput.querySelector(
+              `option[value="${state.currentLevel}"]`,
+            )
+          ) {
+            currentLevelInput.value = String(state.currentLevel);
+          }
+
+          if (Number.isFinite(Number(state.currentTitanium))) {
+            currentTitaniumInput.value = String(
+              Math.max(0, Number(state.currentTitanium)),
+            );
+          }
+
+          if (state.timeZone) {
+            if (
+              !timeZoneSelect.querySelector(`option[value="${state.timeZone}"]`)
+            ) {
+              timeZoneSelect.appendChild(
+                new Option(state.timeZone, state.timeZone),
+              );
+            }
+            timeZoneSelect.value = state.timeZone;
+          }
+
+          if (Number.isFinite(Number(state.allianceTech))) {
+            const savedTech = Number(state.allianceTech).toFixed(1);
+            if (
+              allianceTechSelect.querySelector(`option[value="${savedTech}"]`)
+            ) {
+              allianceTechSelect.value = savedTech;
+            }
+          }
+
+          if (Array.isArray(state.mineLevels)) {
+            for (let index = 1; index <= 5; index += 1) {
+              const savedLevel = Number(state.mineLevels[index - 1] || 0);
+              const select = document.getElementById(`mineLevel${index}`);
+              if (
+                select &&
+                select.querySelector(`option[value="${savedLevel}"]`)
+              ) {
+                select.value = String(savedLevel);
+              }
+            }
+          }
+        } catch {
+          // Ignore malformed or inaccessible stored state
+        }
+      }
+
+      function updateCalculator() {
+        const currentLevel = Number(currentLevelInput.value);
+        const currentTitanium = Math.max(
+          0,
+          Number(currentTitaniumInput.value) || 0,
+        );
+        const nextUpgrade = titaniumCosts.find(
+          (row) => row.level === currentLevel,
+        );
+
+        if (!nextUpgrade) {
+          nextLevelValue.textContent = "Max";
+          requiredValue.textContent = "0";
+          ownedValue.textContent = formatTitanium(currentTitanium);
+          deficitValue.textContent = "0";
+          deficitValue.className = "tile-value ok";
+          etaValue.textContent = "-";
+          readyAtValue.textContent = "-";
+          pathValue.textContent = "Maximum configured level reached";
+          statusValue.textContent = "No higher level in this table";
+          mineRateValue.textContent = `${formatTitanium(getTotalMineOutput())}/hr`;
+          timeZoneValue.textContent = timeZoneSelect.value;
+          updateCurrentTimeDisplay();
+          return;
+        }
+
+        const allianceTechPct = Number(allianceTechSelect.value || 0);
+        const requiredTitanium = Math.max(
+          0,
+          Math.round(nextUpgrade.titanium * (1 - allianceTechPct / 100)),
+        );
+        const remainingTitanium = Math.max(
+          0,
+          requiredTitanium - currentTitanium,
+        );
+        const ready = remainingTitanium === 0;
+        const totalOutputPerHour = getTotalMineOutput();
+        const estimatedHours = ready
+          ? 0
+          : totalOutputPerHour > 0
+            ? remainingTitanium / totalOutputPerHour
+            : Infinity;
+        const selectedTimeZone = timeZoneSelect.value;
+
+        nextLevelValue.textContent = `Lv ${currentLevel + 1}`;
+        requiredValue.textContent = formatTitanium(requiredTitanium);
+        ownedValue.textContent = formatTitanium(currentTitanium);
+        deficitValue.textContent = formatTitanium(remainingTitanium);
+        deficitValue.className = `tile-value ${ready ? "ok" : "warn"}`;
+        etaValue.textContent = formatTimeFromHours(estimatedHours);
+        etaValue.className = `tile-value ${ready ? "ok" : totalOutputPerHour > 0 ? "" : "warn"}`;
+        readyAtValue.textContent = formatReadyAt(
+          estimatedHours,
+          selectedTimeZone,
+        );
+        readyAtValue.className = `tile-value ${ready ? "ok" : totalOutputPerHour > 0 ? "" : "warn"}`;
+        pathValue.textContent = `Level ${currentLevel} -> Level ${currentLevel + 1}`;
+        statusValue.textContent = ready
+          ? "You already have enough titanium alloy"
+          : "Need more titanium alloy";
+        mineRateValue.textContent = `${formatTitanium(totalOutputPerHour)}/hr`;
+        timeZoneValue.textContent = selectedTimeZone;
+        updateCurrentTimeDisplay();
+
+        Array.from(costTableBody.querySelectorAll("tr")).forEach((row) => {
+          row.classList.toggle(
+            "active",
+            Number(row.dataset.level) === currentLevel,
+          );
+        });
+
+        saveState();
+      }
+
+      buildLevelOptions();
+      buildTimeZoneOptions();
+      buildAllianceTechOptions();
+      buildMineSelectors();
+      loadSavedState();
+      buildTable();
+      updateCalculator();
+      updateMineOutput();
+      updateCurrentTimeDisplay();
+      setInterval(updateCurrentTimeDisplay, 1000);
+
+      currentLevelInput.addEventListener("change", updateCalculator);
+      currentTitaniumInput.addEventListener("input", updateCalculator);
+      timeZoneSelect.addEventListener("change", updateCalculator);
+      allianceTechSelect.addEventListener("change", updateMineOutput);
+    </script>
+  </body>
+</html>
