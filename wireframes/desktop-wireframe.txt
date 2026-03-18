@@ -1,0 +1,22 @@
+LAST WAR FURNACE CALCULATOR - DESKTOP WIREFRAME
+===============================================
+
++----------------------------------------------------------------------------------+
+| [Language Dropdown]                                                              |
++----------------------------------------------------------------------------------+
+| Hero: Title + subtitle                                                           |
++----------------------------------------------------------------------------------+
+| LEFT COLUMN (Inputs)                 | RIGHT COLUMN (Results)                    |
+|--------------------------------------|-------------------------------------------|
+| Current Furnace Level [select]       | [Tile] Next Level                         |
+| Current Titanium Alloy [input]       | [Tile] Titanium Required                  |
+| RSS Reduction [select]               | [Tile] Current Titanium                   |
+| Timezone [select]                    | [Tile] Still Needed                       |
+|                                      | [Tile] Estimated Time                     |
+| Coal Mine 1 [select] [rate/hr]       | [Tile] Current Time                       |
+| Coal Mine 2 [select] [rate/hr]       | [Tile - full width] Upgrade Ready At      |
+| Coal Mine 3 [select] [rate/hr]       |-------------------------------------------|
+| Coal Mine 4 [select] [rate/hr]       | Details rows: path, status, output, zone  |
+| Coal Mine 5 [select] [rate/hr]       |-------------------------------------------|
+| Total Mine Output [value/hr]         | Cost Table: Level | Titanium Alloy        |
++----------------------------------------------------------------------------------+
