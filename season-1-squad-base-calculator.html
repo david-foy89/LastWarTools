@@ -3,7 +3,7 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Last War Optoelectronic Lab Calculator</title>
+    <title>Last War Season 1 Squad Base Calculator</title>
     <link rel="stylesheet" href="last-war-furnace-upgrade-calculator.css" />
     <script src="page-nav-dropdown.js" defer></script>
   </head>
@@ -35,7 +35,7 @@
             >
           </div>
         </details>
-        <details class="page-nav-dropdown" name="season-nav">
+        <details class="page-nav-dropdown active" name="season-nav">
           <summary class="page-link page-nav-dropdown-toggle">
             Season 1 Calculators
           </summary>
@@ -43,7 +43,9 @@
             <a href="virus-research-institute-calculator.html" class="page-link"
               >Virus Research Institute</a
             >
-            <a href="season-1-squad-base-calculator.html" class="page-link"
+            <a
+              href="season-1-squad-base-calculator.html"
+              class="page-link active"
               >Season 1 Squad Base</a
             >
           </div>
@@ -75,14 +77,12 @@
             >
           </div>
         </details>
-        <details class="page-nav-dropdown active" name="season-nav">
+        <details class="page-nav-dropdown" name="season-nav">
           <summary class="page-link page-nav-dropdown-toggle">
             Season 4 Calculators
           </summary>
           <div class="page-nav-dropdown-menu">
-            <a
-              href="optoelectronic-lab-calculator.html"
-              class="page-link active"
+            <a href="optoelectronic-lab-calculator.html" class="page-link"
               >Optoelectronic Lab</a
             >
             <a href="protectors-field-s4-calculator.html" class="page-link"
@@ -112,11 +112,12 @@
       </nav>
 
       <section class="hero">
-        <h1>Optoelectronic Lab Calculator</h1>
+        <h1>Season 1 Squad Base Calculator</h1>
         <div class="sub">
-          Choose your current Optoelectronic Lab level and enter your current
-          quartz. The calculator shows how much quartz you still need for the
-          next level and when your Quartz Workshops will cover the gap.
+          Choose your current Season 1 Squad Base level, enter your current
+          Immune Protein and Mutant Crystals, and set your Protein Farm levels.
+          The calculator shows what you still need for the next upgrade and the
+          Immune Protein readiness time based on your farm output.
         </div>
       </section>
 
@@ -125,33 +126,44 @@
           <div class="field-group">
             <h2 class="card-title">Quick Start</h2>
             <ol class="helper-list">
+              <li>Set your current Season 1 Squad Base level and next goal.</li>
               <li>
-                Set your current Optoelectronic Lab level and target level.
+                Enter current Immune Protein and Mutant Crystals to see
+                remaining costs.
               </li>
               <li>
-                Enter current Quartz and apply any reduction bonus you use.
-              </li>
-              <li>
-                Set Quartz Workshop levels and timezone to estimate upgrade
-                readiness.
+                Set Protein Farm levels, reduction, and timezone to estimate
+                ready time.
               </li>
             </ol>
           </div>
 
           <h2 class="card-title">Inputs</h2>
           <div class="field">
-            <label for="currentLevel">Current Optoelectronic Lab Level</label>
+            <label for="currentLevel">Current Squad Base Level</label>
             <select id="currentLevel"></select>
           </div>
-          <div class="field">
-            <label for="currentQuartz">Current Quartz</label>
-            <input
-              id="currentQuartz"
-              type="number"
-              min="0"
-              step="1"
-              value="0"
-            />
+          <div class="dual-field-grid">
+            <div class="field">
+              <label for="currentImmuneProtein">Current Immune Protein</label>
+              <input
+                id="currentImmuneProtein"
+                type="number"
+                min="0"
+                step="1"
+                value="0"
+              />
+            </div>
+            <div class="field">
+              <label for="currentMutantCrystals">Current Mutant Crystals</label>
+              <input
+                id="currentMutantCrystals"
+                type="number"
+                min="0"
+                step="1"
+                value="0"
+              />
+            </div>
           </div>
           <div class="field">
             <label for="allianceTechSelect"
@@ -165,11 +177,13 @@
           </div>
 
           <div class="field-group">
-            <h2 class="card-title">Quartz Workshops</h2>
+            <h2 class="card-title">Resource Income</h2>
             <div class="mine-list" id="mineList"></div>
             <div class="mine-total">
-              <div class="mine-total-key">Total Quartz Output Per Hour</div>
-              <div class="mine-total-value" id="totalMineOutput">0</div>
+              <div class="mine-total-key">
+                Total Protein Farm Output Per Hour
+              </div>
+              <div class="mine-total-value" id="totalMineOutput">0/hr</div>
             </div>
           </div>
         </div>
@@ -182,16 +196,36 @@
               <div class="tile-value" id="nextLevelValue">Lv 2</div>
             </div>
             <div class="tile">
-              <div class="tile-key">Quartz Required</div>
-              <div class="tile-value" id="requiredValue">700</div>
+              <div class="tile-key">Immune Protein Required</div>
+              <div class="tile-value" id="requiredImmuneProteinValue">
+                14,790
+              </div>
             </div>
             <div class="tile">
-              <div class="tile-key">Current Quartz</div>
-              <div class="tile-value" id="ownedValue">0</div>
+              <div class="tile-key">Mutant Crystals Required</div>
+              <div class="tile-value" id="requiredMutantCrystalsValue">
+                7,900
+              </div>
             </div>
             <div class="tile">
-              <div class="tile-key">Still Needed</div>
-              <div class="tile-value warn" id="deficitValue">700</div>
+              <div class="tile-key">Current Immune Protein</div>
+              <div class="tile-value" id="ownedImmuneProteinValue">0</div>
+            </div>
+            <div class="tile">
+              <div class="tile-key">Current Mutant Crystals</div>
+              <div class="tile-value" id="ownedMutantCrystalsValue">0</div>
+            </div>
+            <div class="tile">
+              <div class="tile-key">Immune Protein Still Needed</div>
+              <div class="tile-value warn" id="deficitImmuneProteinValue">
+                14,790
+              </div>
+            </div>
+            <div class="tile">
+              <div class="tile-key">Mutant Crystals Still Needed</div>
+              <div class="tile-value warn" id="deficitMutantCrystalsValue">
+                7,900
+              </div>
             </div>
             <div class="tile">
               <div class="tile-key">Estimated Time</div>
@@ -210,75 +244,225 @@
           <div class="details">
             <div class="row">
               <div class="row-key">Upgrade Path</div>
-              <div class="row-value" id="pathValue">Level 1 -> Level 2</div>
+              <div class="row-value" id="pathValue">Level 1 -&gt; Level 2</div>
             </div>
             <div class="row">
               <div class="row-key">Status</div>
-              <div class="row-value" id="statusValue">Need more quartz</div>
+              <div class="row-value" id="statusValue">
+                Need more Immune Protein and Mutant Crystals
+              </div>
             </div>
             <div class="row">
-              <div class="row-key">Quartz Workshop Output Used</div>
-              <div class="row-value" id="mineRateValue">0/hr</div>
+              <div class="row-key">Protein Farm Output Used</div>
+              <div class="row-value" id="proteinRateValue">0/hr</div>
             </div>
             <div class="row">
               <div class="row-key">Timezone Used</div>
-              <div class="row-value" id="timeZoneValue">Local</div>
+              <div class="row-value" id="timeZoneValue">UTC</div>
             </div>
           </div>
 
           <div class="table-wrap">
-            <label for="costLevelSelect">Level / Quartz</label>
+            <label for="costLevelSelect"
+              >Level / Immune Protein / Mutant Crystals</label
+            >
             <select id="costLevelSelect"></select>
           </div>
 
           <div class="footnote">
-            Source values use the Optoelectronic Lab quartz costs and Quartz
-            Workshop output table from Cpt Hedgehog for levels 1 through 35.
+            Source values use the Season 1 Tank Base table from Cpt Hedgehog for
+            levels 1 through 30. Protein Farm output values are used for Immune
+            Protein ETA.
           </div>
         </div>
       </section>
     </div>
 
     <script>
-      const quartzCosts = [
-        { level: 1, quartz: 0 },
-        { level: 2, quartz: 11200 },
-        { level: 3, quartz: 22400 },
-        { level: 4, quartz: 44800 },
-        { level: 5, quartz: 89600 },
-        { level: 6, quartz: 125400 },
-        { level: 7, quartz: 163100 },
-        { level: 8, quartz: 195700 },
-        { level: 9, quartz: 234800 },
-        { level: 10, quartz: 281800 },
-        { level: 11, quartz: 338100 },
-        { level: 12, quartz: 405800 },
-        { level: 13, quartz: 486900 },
-        { level: 14, quartz: 584300 },
-        { level: 15, quartz: 701200 },
-        { level: 16, quartz: 771300 },
-        { level: 17, quartz: 848400 },
-        { level: 18, quartz: 933300 },
-        { level: 19, quartz: 1030000 },
-        { level: 20, quartz: 1120000 },
-        { level: 21, quartz: 1240000 },
-        { level: 22, quartz: 1370000 },
-        { level: 23, quartz: 1460000 },
-        { level: 24, quartz: 1570000 },
-        { level: 25, quartz: 1820000 },
-        { level: 26, quartz: 2050000 },
-        { level: 27, quartz: 2250000 },
-        { level: 28, quartz: 2470000 },
-        { level: 29, quartz: 2870000 },
-        { level: 30, quartz: 3130000 },
-        { level: 31, quartz: 3230000 },
-        { level: 32, quartz: 3330000 },
-        { level: 33, quartz: 3430000 },
-        { level: 34, quartz: 3480000 },
-        { level: 35, quartz: 3630000 },
+      const squadBaseCosts = [
+        {
+          level: 1,
+          immuneProtein: 4200,
+          mutantCrystals: 4200,
+          time: "00:00:06",
+        },
+        {
+          level: 2,
+          immuneProtein: 14790,
+          mutantCrystals: 7900,
+          time: "00:18:45",
+        },
+        {
+          level: 3,
+          immuneProtein: 31580,
+          mutantCrystals: 15790,
+          time: "00:28:08",
+        },
+        {
+          level: 4,
+          immuneProtein: 63170,
+          mutantCrystals: 31580,
+          time: "00:42:12",
+        },
+        {
+          level: 5,
+          immuneProtein: 126340,
+          mutantCrystals: 63170,
+          time: "01:03:17",
+        },
+        {
+          level: 6,
+          immuneProtein: 176910,
+          mutantCrystals: 94750,
+          time: "01:34:56",
+        },
+        {
+          level: 7,
+          immuneProtein: 229920,
+          mutantCrystals: 142130,
+          time: "02:22:23",
+        },
+        {
+          level: 8,
+          immuneProtein: 275890,
+          mutantCrystals: 213190,
+          time: "03:33:35",
+        },
+        {
+          level: 9,
+          immuneProtein: 331070,
+          mutantCrystals: 319790,
+          time: "05:20:22",
+        },
+        {
+          level: 10,
+          immuneProtein: 397340,
+          mutantCrystals: 479680,
+          time: "08:00:33",
+        },
+        {
+          level: 11,
+          immuneProtein: 475500,
+          mutantCrystals: 526220,
+          time: "08:48:36",
+        },
+        {
+          level: 12,
+          immuneProtein: 570600,
+          mutantCrystals: 578910,
+          time: "09:41:28",
+        },
+        {
+          level: 13,
+          immuneProtein: 684750,
+          mutantCrystals: 636750,
+          time: "10:39:37",
+        },
+        {
+          level: 14,
+          immuneProtein: 835410,
+          mutantCrystals: 712080,
+          time: "11:43:34",
+        },
+        {
+          level: 15,
+          immuneProtein: 1020000,
+          mutantCrystals: 783280,
+          time: "12:53:56",
+        },
+        {
+          level: 16,
+          immuneProtein: 1410000,
+          mutantCrystals: 861580,
+          time: "14:11:19",
+        },
+        {
+          level: 17,
+          immuneProtein: 1150000,
+          mutantCrystals: 947180,
+          time: "15:36:27",
+        },
+        {
+          level: 18,
+          immuneProtein: 1310000,
+          mutantCrystals: 1050000,
+          time: "17:10:06",
+        },
+        {
+          level: 19,
+          immuneProtein: 1490000,
+          mutantCrystals: 1150000,
+          time: "18:53:06",
+        },
+        {
+          level: 20,
+          immuneProtein: 1570000,
+          mutantCrystals: 1270000,
+          time: "20:46:25",
+        },
+        {
+          level: 21,
+          immuneProtein: 1770000,
+          mutantCrystals: 1250000,
+          time: "22:51:03",
+        },
+        {
+          level: 22,
+          immuneProtein: 1890000,
+          mutantCrystals: 1360000,
+          time: "1d 01:08:09",
+        },
+        {
+          level: 23,
+          immuneProtein: 2090000,
+          mutantCrystals: 1460000,
+          time: "1d 03:38:58",
+        },
+        {
+          level: 24,
+          immuneProtein: 2300000,
+          mutantCrystals: 1460000,
+          time: "1d 06:24:52",
+        },
+        {
+          level: 25,
+          immuneProtein: 2510000,
+          mutantCrystals: 1560000,
+          time: "1d 09:27:21",
+        },
+        {
+          level: 26,
+          immuneProtein: 2730000,
+          mutantCrystals: 1660000,
+          time: "1d 12:48:05",
+        },
+        {
+          level: 27,
+          immuneProtein: 2810000,
+          mutantCrystals: 1680000,
+          time: "1d 16:28:54",
+        },
+        {
+          level: 28,
+          immuneProtein: 2990000,
+          mutantCrystals: 1780000,
+          time: "1d 20:31:47",
+        },
+        {
+          level: 29,
+          immuneProtein: 3020000,
+          mutantCrystals: 1880000,
+          time: "2d 00:58:58",
+        },
+        {
+          level: 30,
+          immuneProtein: 3250000,
+          mutantCrystals: 1990000,
+          time: "2d 05:52:51",
+        },
       ];
 
-      const quartzWorkshopOutputs = [
+      const proteinFarmOutputs = [
         { level: 1, output: 720 },
         { level: 2, output: 1440 },
         { level: 3, output: 2160 },
@@ -309,35 +493,50 @@
         { level: 28, output: 20160 },
         { level: 29, output: 20880 },
         { level: 30, output: 21600 },
-        { level: 31, output: 22320 },
-        { level: 32, output: 23040 },
-        { level: 33, output: 23760 },
-        { level: 34, output: 24480 },
-        { level: 35, output: 25200 },
       ];
 
       const currentLevelInput = document.getElementById("currentLevel");
-      const currentQuartzInput = document.getElementById("currentQuartz");
+      const currentImmuneProteinInput = document.getElementById(
+        "currentImmuneProtein",
+      );
+      const currentMutantCrystalsInput = document.getElementById(
+        "currentMutantCrystals",
+      );
       const nextLevelValue = document.getElementById("nextLevelValue");
-      const requiredValue = document.getElementById("requiredValue");
-      const ownedValue = document.getElementById("ownedValue");
-      const deficitValue = document.getElementById("deficitValue");
+      const requiredImmuneProteinValue = document.getElementById(
+        "requiredImmuneProteinValue",
+      );
+      const requiredMutantCrystalsValue = document.getElementById(
+        "requiredMutantCrystalsValue",
+      );
+      const ownedImmuneProteinValue = document.getElementById(
+        "ownedImmuneProteinValue",
+      );
+      const ownedMutantCrystalsValue = document.getElementById(
+        "ownedMutantCrystalsValue",
+      );
+      const deficitImmuneProteinValue = document.getElementById(
+        "deficitImmuneProteinValue",
+      );
+      const deficitMutantCrystalsValue = document.getElementById(
+        "deficitMutantCrystalsValue",
+      );
       const etaValue = document.getElementById("etaValue");
       const readyAtValue = document.getElementById("readyAtValue");
       const pathValue = document.getElementById("pathValue");
       const statusValue = document.getElementById("statusValue");
-      const mineRateValue = document.getElementById("mineRateValue");
+      const proteinRateValue = document.getElementById("proteinRateValue");
       const timeZoneValue = document.getElementById("timeZoneValue");
       const currentTimeValue = document.getElementById("currentTimeValue");
       const costLevelSelect = document.getElementById("costLevelSelect");
-      const mineList = document.getElementById("mineList");
-      const totalMineOutput = document.getElementById("totalMineOutput");
       const timeZoneSelect = document.getElementById("timeZoneSelect");
       const allianceTechSelect = document.getElementById("allianceTechSelect");
       const languageSelect = document.getElementById("languageSelect");
-      const STORAGE_KEY = "lastWarOptoelectronicLabCalcStateV1";
-      let lastCalcSignature = "";
+      const mineList = document.getElementById("mineList");
+      const totalMineOutput = document.getElementById("totalMineOutput");
+      const STORAGE_KEY = "lastWarSeason1SquadBaseCalcStateV1";
       let lockedReadyAtTimestampMs = null;
+      let lastCalcSignature = "";
       let preferredLanguage = "en";
 
       const languageOptions = [
@@ -557,7 +756,7 @@
 
       function buildLevelOptions() {
         currentLevelInput.innerHTML = "";
-        for (let level = 1; level <= quartzCosts.length; level += 1) {
+        for (let level = 1; level <= squadBaseCosts.length; level += 1) {
           const option = new Option(`Level ${level}`, String(level));
           currentLevelInput.appendChild(option);
         }
@@ -576,78 +775,81 @@
       }
 
       function buildMineSelectors() {
-        const options = quartzWorkshopOutputs
+        const options = proteinFarmOutputs
           .map(
             (row) => `<option value="${row.level}">Level ${row.level}</option>`,
           )
           .join("");
 
-        mineList.innerHTML = Array.from(
-          { length: 5 },
-          (_, index) => `
-        <div class="mine-row">
-          <div>
-            <label for="mineLevel${index + 1}">Quartz Workshop ${index + 1}</label>
-            <select id="mineLevel${index + 1}" data-mine-index="${index + 1}">
-              <option value="0">Not set</option>
-              ${options}
-            </select>
-          </div>
-          <div class="mine-output" id="mineOutput${index + 1}">0/hr</div>
-        </div>
-      `,
-        ).join("");
+        mineList.innerHTML = Array.from({ length: 5 }, (_, index) => {
+          const number = index + 1;
+          return `
+            <div class="mine-row">
+              <div>
+                <label for="mineLevel${number}">Protein Farm ${number}</label>
+                <select id="mineLevel${number}">
+                  <option value="0">Not set</option>
+                  ${options}
+                </select>
+              </div>
+              <div class="mine-output" id="mineOutput${number}">0/hr</div>
+            </div>
+          `;
+        }).join("");
 
-        Array.from(mineList.querySelectorAll("select")).forEach((select) => {
-          select.addEventListener("change", updateMineOutput);
-        });
+        for (let index = 1; index <= 5; index += 1) {
+          document
+            .getElementById(`mineLevel${index}`)
+            .addEventListener("change", updateMineOutput);
+        }
       }
 
       function getMineOutputForLevel(level) {
         return (
-          quartzWorkshopOutputs.find((row) => row.level === level)?.output || 0
+          proteinFarmOutputs.find((row) => row.level === level)?.output || 0
         );
       }
 
-      function updateMineOutput() {
-        let totalOutput = 0;
-
-        for (let index = 1; index <= 5; index += 1) {
-          const select = document.getElementById(`mineLevel${index}`);
-          const outputBox = document.getElementById(`mineOutput${index}`);
-          const level = Number(select.value);
-          const output = getMineOutputForLevel(level);
-          totalOutput += output;
-          outputBox.textContent = `${formatResource(output)}/hr`;
-        }
-
-        totalMineOutput.textContent = `${formatResource(totalOutput)}/hr`;
-        updateCalculator();
-      }
-
       function getTotalMineOutput() {
-        let totalOutput = 0;
+        let total = 0;
         for (let index = 1; index <= 5; index += 1) {
-          const select = document.getElementById(`mineLevel${index}`);
-          totalOutput += getMineOutputForLevel(Number(select.value));
+          total += getMineOutputForLevel(
+            Number(document.getElementById(`mineLevel${index}`)?.value || 0),
+          );
         }
-        return totalOutput;
+        return total;
       }
 
       function getMineLevelsSignature() {
         const levels = [];
         for (let index = 1; index <= 5; index += 1) {
-          const select = document.getElementById(`mineLevel${index}`);
-          levels.push(Number(select?.value || 0));
+          levels.push(
+            Number(document.getElementById(`mineLevel${index}`)?.value || 0),
+          );
         }
         return levels.join(",");
       }
 
+      function updateMineOutput() {
+        let total = 0;
+        for (let index = 1; index <= 5; index += 1) {
+          const level = Number(
+            document.getElementById(`mineLevel${index}`)?.value || 0,
+          );
+          const output = getMineOutputForLevel(level);
+          total += output;
+          document.getElementById(`mineOutput${index}`).textContent =
+            `${formatResource(output)}/hr`;
+        }
+        totalMineOutput.textContent = `${formatResource(total)}/hr`;
+        updateCalculator();
+      }
+
       function buildTable() {
-        costLevelSelect.innerHTML = quartzCosts
+        costLevelSelect.innerHTML = squadBaseCosts
           .map(
             (row) =>
-              `<option value="${row.level}">Level ${row.level} - ${formatResource(row.quartz)}</option>`,
+              `<option value="${row.level}">Level ${row.level} - Immune Protein ${formatResource(row.immuneProtein)} - Mutant Crystals ${formatResource(row.mutantCrystals)}</option>`,
           )
           .join("");
       }
@@ -656,24 +858,31 @@
         try {
           const mineLevels = [];
           for (let index = 1; index <= 5; index += 1) {
-            const select = document.getElementById(`mineLevel${index}`);
-            mineLevels.push(Number(select?.value || 0));
+            mineLevels.push(
+              Number(document.getElementById(`mineLevel${index}`)?.value || 0),
+            );
           }
 
-          const state = {
-            currentLevel: Number(currentLevelInput.value || 1),
-            currentQuartz: Number(currentQuartzInput.value || 0),
-            timeZone: timeZoneSelect.value,
-            allianceTech: Number(allianceTechSelect.value || 0),
-            language: languageSelect.value,
-            mineLevels,
-            lockedReadyAtTimestampMs,
-            lastCalcSignature,
-          };
-
-          localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
+          localStorage.setItem(
+            STORAGE_KEY,
+            JSON.stringify({
+              currentLevel: Number(currentLevelInput.value || 1),
+              currentImmuneProtein: Number(
+                currentImmuneProteinInput.value || 0,
+              ),
+              currentMutantCrystals: Number(
+                currentMutantCrystalsInput.value || 0,
+              ),
+              timeZone: timeZoneSelect.value,
+              allianceTech: Number(allianceTechSelect.value || 0),
+              language: languageSelect.value,
+              mineLevels,
+              lockedReadyAtTimestampMs,
+              lastCalcSignature,
+            }),
+          );
         } catch {
-          // Ignore storage errors (private mode / disabled storage)
+          // Ignore storage errors
         }
       }
 
@@ -693,9 +902,15 @@
             currentLevelInput.value = String(state.currentLevel);
           }
 
-          if (Number.isFinite(Number(state.currentQuartz))) {
-            currentQuartzInput.value = String(
-              Math.max(0, Number(state.currentQuartz)),
+          if (Number.isFinite(Number(state.currentImmuneProtein))) {
+            currentImmuneProteinInput.value = String(
+              Math.max(0, Number(state.currentImmuneProtein)),
+            );
+          }
+
+          if (Number.isFinite(Number(state.currentMutantCrystals))) {
+            currentMutantCrystalsInput.value = String(
+              Math.max(0, Number(state.currentMutantCrystals)),
             );
           }
 
@@ -753,58 +968,89 @@
       }
 
       function updateCalculator() {
-        const currentLevel = Number(currentLevelInput.value);
-        const currentQuartz = Math.max(
+        const currentLevel = Number(currentLevelInput.value || 1);
+        const currentImmuneProtein = Math.max(
           0,
-          Number(currentQuartzInput.value) || 0,
+          Number(currentImmuneProteinInput.value) || 0,
         );
-        const nextUpgrade = quartzCosts.find(
+        const currentMutantCrystals = Math.max(
+          0,
+          Number(currentMutantCrystalsInput.value) || 0,
+        );
+        const proteinIncome = getTotalMineOutput();
+        const nextUpgrade = squadBaseCosts.find(
           (row) => row.level === currentLevel + 1,
         );
 
         if (!nextUpgrade) {
           nextLevelValue.textContent = "Max";
-          requiredValue.textContent = "0";
-          ownedValue.textContent = formatResource(currentQuartz);
-          deficitValue.textContent = "0";
-          deficitValue.className = "tile-value ok";
+          requiredImmuneProteinValue.textContent = "0";
+          requiredMutantCrystalsValue.textContent = "0";
+          ownedImmuneProteinValue.textContent =
+            formatResource(currentImmuneProtein);
+          ownedMutantCrystalsValue.textContent = formatResource(
+            currentMutantCrystals,
+          );
+          deficitImmuneProteinValue.textContent = "0";
+          deficitImmuneProteinValue.className = "tile-value ok";
+          deficitMutantCrystalsValue.textContent = "0";
+          deficitMutantCrystalsValue.className = "tile-value ok";
           etaValue.textContent = "-";
           readyAtValue.textContent = "-";
           pathValue.textContent = "Maximum configured level reached";
           statusValue.textContent = "No higher level in this table";
-          mineRateValue.textContent = `${formatResource(getTotalMineOutput())}/hr`;
+          proteinRateValue.textContent = `${formatResource(proteinIncome)}/hr`;
           timeZoneValue.textContent = timeZoneSelect.value;
           costLevelSelect.value = String(
-            quartzCosts[quartzCosts.length - 1].level,
+            squadBaseCosts[squadBaseCosts.length - 1].level,
           );
           updateCurrentTimeDisplay();
+          saveState();
           return;
         }
 
         const allianceTechPct = Number(allianceTechSelect.value || 0);
-        const requiredQuartz = Math.max(
+        const requiredImmuneProtein = Math.max(
           0,
-          Math.round(nextUpgrade.quartz * (1 - allianceTechPct / 100)),
+          Math.round(nextUpgrade.immuneProtein * (1 - allianceTechPct / 100)),
         );
-        const remainingQuartz = Math.max(0, requiredQuartz - currentQuartz);
-        const ready = remainingQuartz === 0;
-        const totalOutputPerHour = getTotalMineOutput();
-        const estimatedHours = ready
-          ? 0
-          : totalOutputPerHour > 0
-            ? remainingQuartz / totalOutputPerHour
-            : Infinity;
+        const requiredMutantCrystals = Math.max(
+          0,
+          Math.round(nextUpgrade.mutantCrystals * (1 - allianceTechPct / 100)),
+        );
+        const remainingImmuneProtein = Math.max(
+          0,
+          requiredImmuneProtein - currentImmuneProtein,
+        );
+        const remainingMutantCrystals = Math.max(
+          0,
+          requiredMutantCrystals - currentMutantCrystals,
+        );
+        const ready =
+          remainingImmuneProtein === 0 && remainingMutantCrystals === 0;
+        const proteinHours =
+          remainingImmuneProtein === 0
+            ? 0
+            : proteinIncome > 0
+              ? remainingImmuneProtein / proteinIncome
+              : Infinity;
+        const estimatedHours = ready ? 0 : proteinHours;
         const selectedTimeZone = timeZoneSelect.value;
+        const hasRate = remainingImmuneProtein === 0 || proteinIncome > 0;
+        const proteinReadyButCrystalsMissing =
+          remainingImmuneProtein === 0 && remainingMutantCrystals > 0;
 
         const calcSignature = [
           currentLevel,
-          currentQuartz,
-          allianceTechPct,
+          currentImmuneProtein,
+          currentMutantCrystals,
           getMineLevelsSignature(),
+          proteinIncome,
+          allianceTechPct,
         ].join("|");
 
         if (calcSignature !== lastCalcSignature) {
-          if (!ready && Number.isFinite(estimatedHours)) {
+          if (!ready && hasRate && Number.isFinite(estimatedHours)) {
             lockedReadyAtTimestampMs =
               Date.now() + estimatedHours * 3600 * 1000;
           } else {
@@ -814,26 +1060,49 @@
         }
 
         nextLevelValue.textContent = `Lv ${currentLevel + 1}`;
-        requiredValue.textContent = formatResource(requiredQuartz);
-        ownedValue.textContent = formatResource(currentQuartz);
-        deficitValue.textContent = formatResource(remainingQuartz);
-        deficitValue.className = `tile-value ${ready ? "ok" : "warn"}`;
-        etaValue.textContent = formatTimeFromHours(estimatedHours);
-        etaValue.className = `tile-value ${ready ? "ok" : totalOutputPerHour > 0 ? "" : "warn"}`;
+        requiredImmuneProteinValue.textContent = formatResource(
+          requiredImmuneProtein,
+        );
+        requiredMutantCrystalsValue.textContent = formatResource(
+          requiredMutantCrystals,
+        );
+        ownedImmuneProteinValue.textContent =
+          formatResource(currentImmuneProtein);
+        ownedMutantCrystalsValue.textContent = formatResource(
+          currentMutantCrystals,
+        );
+        deficitImmuneProteinValue.textContent = formatResource(
+          remainingImmuneProtein,
+        );
+        deficitImmuneProteinValue.className = `tile-value ${remainingImmuneProtein === 0 ? "ok" : "warn"}`;
+        deficitMutantCrystalsValue.textContent = formatResource(
+          remainingMutantCrystals,
+        );
+        deficitMutantCrystalsValue.className = `tile-value ${remainingMutantCrystals === 0 ? "ok" : "warn"}`;
+        etaValue.textContent = proteinReadyButCrystalsMissing
+          ? "Mutant Crystals missing"
+          : formatTimeFromHours(estimatedHours);
+        etaValue.className = `tile-value ${ready ? "ok" : hasRate ? "" : "warn"}`;
         readyAtValue.textContent = ready
           ? "Now"
-          : Number.isFinite(lockedReadyAtTimestampMs)
-            ? formatReadyAtFromTimestamp(
-                lockedReadyAtTimestampMs,
-                selectedTimeZone,
-              )
-            : formatReadyAt(estimatedHours, selectedTimeZone);
-        readyAtValue.className = `tile-value ${ready ? "ok" : totalOutputPerHour > 0 ? "" : "warn"}`;
+          : proteinReadyButCrystalsMissing
+            ? "Need Mutant Crystals"
+            : Number.isFinite(lockedReadyAtTimestampMs)
+              ? formatReadyAtFromTimestamp(
+                  lockedReadyAtTimestampMs,
+                  selectedTimeZone,
+                )
+              : formatReadyAt(estimatedHours, selectedTimeZone);
+        readyAtValue.className = `tile-value ${ready ? "ok" : hasRate ? "" : "warn"}`;
         pathValue.textContent = `Level ${currentLevel} -> Level ${currentLevel + 1}`;
         statusValue.textContent = ready
-          ? "You already have enough quartz"
-          : "Need more quartz";
-        mineRateValue.textContent = `${formatResource(totalOutputPerHour)}/hr`;
+          ? "You already have enough resources"
+          : remainingMutantCrystals > 0 && remainingImmuneProtein > 0
+            ? "Need more Immune Protein and Mutant Crystals"
+            : remainingMutantCrystals > 0
+              ? "Need more Mutant Crystals"
+              : "Need more Immune Protein";
+        proteinRateValue.textContent = `${formatResource(proteinIncome)}/hr`;
         timeZoneValue.textContent = selectedTimeZone;
         costLevelSelect.value = String(nextUpgrade.level);
         updateCurrentTimeDisplay();
@@ -856,7 +1125,8 @@
       setInterval(updateCurrentTimeDisplay, 1000);
 
       currentLevelInput.addEventListener("change", updateCalculator);
-      currentQuartzInput.addEventListener("input", updateCalculator);
+      currentImmuneProteinInput.addEventListener("input", updateCalculator);
+      currentMutantCrystalsInput.addEventListener("input", updateCalculator);
       timeZoneSelect.addEventListener("change", updateCalculator);
       allianceTechSelect.addEventListener("change", updateMineOutput);
       languageSelect.addEventListener("change", () => {
