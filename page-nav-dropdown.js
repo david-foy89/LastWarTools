@@ -1,11 +1,9 @@
 (function () {
-  function initSeasonDropdowns() {
+  function initPageDropdowns() {
     const nav = document.querySelector('.page-nav');
     if (!nav) return;
 
-    const dropdowns = Array.from(
-      nav.querySelectorAll('details.page-nav-dropdown[name="season-nav"]'),
-    );
+    const dropdowns = Array.from(nav.querySelectorAll('details.page-nav-dropdown'));
 
     if (dropdowns.length === 0) return;
 
@@ -44,8 +42,8 @@
   }
 
   if (document.readyState === 'loading') {
-    document.addEventListener('DOMContentLoaded', initSeasonDropdowns);
+    document.addEventListener('DOMContentLoaded', initPageDropdowns);
   } else {
-    initSeasonDropdowns();
+    initPageDropdowns();
   }
 })();

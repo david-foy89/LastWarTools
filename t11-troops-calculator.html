@@ -1,0 +1,625 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Last War T11 Troops Calculator</title>
+    <link rel="stylesheet" href="last-war-furnace-upgrade-calculator.css" />
+    <script src="page-nav-dropdown.js" defer></script>
+  </head>
+  <body>
+    <div class="page">
+      <div class="page-top-controls">
+        <div class="logo-control">
+          <img src="media/lwst.png" alt="LWST logo" class="site-logo" />
+        </div>
+        <div class="language-control">
+          <label for="languageSelect">Language</label>
+          <select id="languageSelect"></select>
+        </div>
+      </div>
+      <div id="google_translate_element" class="hidden-translate"></div>
+
+      <nav class="page-nav" aria-label="Calculator pages">
+        <a href="hq-upgrade-calculator.html" class="page-link">HQ Upgrade</a>
+        <details class="page-nav-dropdown active" name="troop-nav">
+          <summary class="page-link page-nav-dropdown-toggle">
+            Troop Calculators
+          </summary>
+          <div class="page-nav-dropdown-menu">
+            <a href="t10-troops-calculator.html" class="page-link"
+              >T10 Troops</a
+            >
+            <a href="t11-troops-calculator.html" class="page-link active"
+              >T11 Troops</a
+            >
+          </div>
+        </details>
+        <details class="page-nav-dropdown" name="season-nav">
+          <summary class="page-link page-nav-dropdown-toggle">
+            Season 2 Calculators
+          </summary>
+          <div class="page-nav-dropdown-menu">
+            <a href="last-war-furnace-upgrade-calculator.html" class="page-link"
+              >Furnace Calculator</a
+            >
+            <a href="season-2-tank-center-calculator.html" class="page-link"
+              >Season 2 Squad Base</a
+            >
+          </div>
+        </details>
+        <details class="page-nav-dropdown" name="season-nav">
+          <summary class="page-link page-nav-dropdown-toggle">
+            Season 3 Calculators
+          </summary>
+          <div class="page-nav-dropdown-menu">
+            <a href="curse-research-lab-calculator.html" class="page-link"
+              >Curse Research Lab</a
+            >
+            <a href="altar-calculator.html" class="page-link">Altar</a>
+            <a href="protectors-field-calculator.html" class="page-link"
+              >Protectors Field</a
+            >
+          </div>
+        </details>
+        <details class="page-nav-dropdown" name="season-nav">
+          <summary class="page-link page-nav-dropdown-toggle">
+            Season 4 Calculators
+          </summary>
+          <div class="page-nav-dropdown-menu">
+            <a href="optoelectronic-lab-calculator.html" class="page-link"
+              >Optoelectronic Lab</a
+            >
+            <a href="protectors-field-s4-calculator.html" class="page-link"
+              >Protector's Field S4</a
+            >
+            <a href="lighthouse-s4-calculator.html" class="page-link"
+              >Lighthouse S4</a
+            >
+          </div>
+        </details>
+        <details class="page-nav-dropdown" name="season-nav">
+          <summary class="page-link page-nav-dropdown-toggle">
+            Season 5 Calculators
+          </summary>
+          <div class="page-nav-dropdown-menu">
+            <a href="caffeine-institute-calculator.html" class="page-link"
+              >Caffeine Institute</a
+            >
+            <a href="protectors-field-s5-calculator.html" class="page-link"
+              >Protector's Field S5</a
+            >
+            <a href="season-5-squad-base-calculator.html" class="page-link"
+              >Season 5 Squad Base</a
+            >
+          </div>
+        </details>
+      </nav>
+
+      <section class="hero">
+        <h1>T11 Troops Calculator</h1>
+        <div class="sub">
+          Track the remaining Armament Research required for T11 troops in the
+          Armament Institute. Mark any research branches you have already
+          completed and the calculator will total the exact remaining published
+          costs for Armament Materials, Armament Cores, and Oil.
+        </div>
+      </section>
+
+      <section class="layout">
+        <div class="card">
+          <h2 class="card-title">Research Status</h2>
+          <div class="field-group">
+            <h2 class="card-title">Quick Start</h2>
+            <ol class="helper-list">
+              <li>Check each research item you have already finished.</li>
+              <li>
+                Leave incomplete branches unchecked to count their full
+                published total.
+              </li>
+              <li>
+                Use the stage reference table on the right if you need the
+                per-band costs while planning progress.
+              </li>
+            </ol>
+          </div>
+
+          <div class="field-group">
+            <h2 class="card-title">Research Items</h2>
+            <div class="planner-breakdown" id="researchChecklist"></div>
+          </div>
+
+          <div class="field-group">
+            <h2 class="card-title">Quick Actions</h2>
+            <div class="button-row">
+              <button
+                id="markAllNeededButton"
+                type="button"
+                class="action-button"
+              >
+                Mark Nothing Complete
+              </button>
+              <button
+                id="markResearchDoneButton"
+                type="button"
+                class="action-button"
+              >
+                Mark Research Complete
+              </button>
+              <button
+                id="markEverythingDoneButton"
+                type="button"
+                class="action-button"
+              >
+                Mark Everything Complete
+              </button>
+            </div>
+          </div>
+
+          <div class="field-group">
+            <h2 class="card-title">Resources</h2>
+            <div class="planner-breakdown">
+              <div class="planner-breakdown-row">
+                <div>
+                  <div class="planner-breakdown-title">Armament Materials</div>
+                  <div class="planner-breakdown-meta">
+                    From Restricted Area Training, VIP Store, Alliance Store and
+                    paid packs.
+                  </div>
+                </div>
+              </div>
+              <div class="planner-breakdown-row">
+                <div>
+                  <div class="planner-breakdown-title">Armament Core</div>
+                  <div class="planner-breakdown-meta">
+                    From Restricted Area Training, VIP Store, Alliance Store and
+                    paid packs.
+                  </div>
+                </div>
+              </div>
+              <div class="planner-breakdown-row">
+                <div>
+                  <div class="planner-breakdown-title">Oil</div>
+                  <div class="planner-breakdown-meta">
+                    From Oil Wells, Secret Tasks, Events, and other seasonal
+                    sources.
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="card">
+          <h2 class="card-title">Remaining Totals</h2>
+          <div class="summary">
+            <div class="tile">
+              <div class="tile-key">Armament Materials</div>
+              <div class="tile-value" id="materialsValue">6,650,000</div>
+            </div>
+            <div class="tile">
+              <div class="tile-key">Armament Cores</div>
+              <div class="tile-value" id="coresValue">3,300</div>
+            </div>
+            <div class="tile">
+              <div class="tile-key">Oil</div>
+              <div class="tile-value" id="oilValue">6,000,000</div>
+            </div>
+            <div class="tile">
+              <div class="tile-key">Remaining Items</div>
+              <div class="tile-value" id="remainingItemsValue">5</div>
+            </div>
+          </div>
+
+          <div class="details">
+            <div class="row">
+              <div class="row-key">Status</div>
+              <div class="row-value" id="statusValue">
+                All T11 research costs still remaining
+              </div>
+            </div>
+            <div class="row">
+              <div class="row-key">Next Recommended Focus</div>
+              <div class="row-value" id="focusValue">Helmet</div>
+            </div>
+            <div class="row">
+              <div class="row-key">Published Total</div>
+              <div class="row-value">6.65M Materials | 3300 Cores | 6M Oil</div>
+            </div>
+            <div class="row">
+              <div class="row-key">Notes</div>
+              <div class="row-value">
+                Unlock cost is a final one-time requirement after the four
+                research branches.
+              </div>
+            </div>
+          </div>
+
+          <div class="planner-overview" id="plannerOverview">
+            <strong>Next step:</strong> Finish Helmet research first unless you
+            already have it done.
+          </div>
+
+          <h3 class="planner-subheading">Remaining Breakdown</h3>
+          <div class="planner-breakdown" id="remainingBreakdown"></div>
+
+          <h3 class="planner-subheading">Stage Cost Reference</h3>
+          <div class="table-wrap">
+            <table>
+              <thead>
+                <tr>
+                  <th>Research</th>
+                  <th>0% - 49%</th>
+                  <th>50% - 99%</th>
+                  <th>99% - 100%</th>
+                  <th>Total 0% - 100%</th>
+                </tr>
+              </thead>
+              <tbody id="referenceTableBody"></tbody>
+            </table>
+          </div>
+
+          <div class="footnote">
+            Source values follow the published T11 Armament Research chart.
+            Research costs scale by stage, with the final 99% to 100% step
+            requiring Oil and Armament Cores. Unlock is a separate final cost
+            after the four research branches.
+          </div>
+        </div>
+      </section>
+    </div>
+
+    <script>
+      const t11Research = [
+        {
+          id: "helmet",
+          name: "Helmet",
+          totals: { materials: 694000, cores: 255, oil: 1200000 },
+          stageCosts: {
+            early: "6K Materials | 10 Cores",
+            mid: "8K Materials | 15 Cores",
+            final: "15 Cores | 1.2M Oil",
+            total: "694K Materials | 255 Cores | 1.2M Oil",
+          },
+        },
+        {
+          id: "body-armor",
+          name: "Body Armor",
+          totals: { materials: 1100000, cores: 455, oil: 1200000 },
+          stageCosts: {
+            early: "10K Materials | 20 Cores",
+            mid: "12K Materials | 25 Cores",
+            final: "25 Cores | 1.2M Oil",
+            total: "1.1M Materials | 455 Cores | 1.2M Oil",
+          },
+        },
+        {
+          id: "accessories",
+          name: "Accessories",
+          totals: { materials: 1800000, cores: 710, oil: 1200000 },
+          stageCosts: {
+            early: "16K Materials | 30 Cores",
+            mid: "20K Materials | 40 Cores",
+            final: "40 Cores | 1.2M Oil",
+            total: "1.8M Materials | 710 Cores | 1.2M Oil",
+          },
+        },
+        {
+          id: "weapon",
+          name: "Weapon",
+          totals: { materials: 3000000, cores: 1680, oil: 1200000 },
+          stageCosts: {
+            early: "30K Materials | 40 Cores",
+            mid: "30K Materials | 40 Cores",
+            final: "40 Cores | 1.2M Oil",
+            total: "3.0M Materials | 1680 Cores | 1.2M Oil",
+          },
+        },
+        {
+          id: "unlock",
+          name: "Final Unlock",
+          totals: { materials: 120000, cores: 200, oil: 1200000 },
+          stageCosts: {
+            early: "120K Materials",
+            mid: "200 Cores",
+            final: "1.2M Oil",
+            total: "120K Materials | 200 Cores | 1.2M Oil",
+          },
+        },
+      ];
+
+      const STORAGE_KEY = "lastWarT11TroopsCalcStateV1";
+      const researchChecklist = document.getElementById("researchChecklist");
+      const remainingBreakdown = document.getElementById("remainingBreakdown");
+      const referenceTableBody = document.getElementById("referenceTableBody");
+      const materialsValue = document.getElementById("materialsValue");
+      const coresValue = document.getElementById("coresValue");
+      const oilValue = document.getElementById("oilValue");
+      const remainingItemsValue = document.getElementById(
+        "remainingItemsValue",
+      );
+      const statusValue = document.getElementById("statusValue");
+      const focusValue = document.getElementById("focusValue");
+      const plannerOverview = document.getElementById("plannerOverview");
+      const markAllNeededButton = document.getElementById(
+        "markAllNeededButton",
+      );
+      const markResearchDoneButton = document.getElementById(
+        "markResearchDoneButton",
+      );
+      const markEverythingDoneButton = document.getElementById(
+        "markEverythingDoneButton",
+      );
+      const languageSelect = document.getElementById("languageSelect");
+      let preferredLanguage = "en";
+
+      const languageOptions = [
+        { code: "en", label: "English" },
+        { code: "es", label: "Spanish" },
+        { code: "fr", label: "French" },
+        { code: "de", label: "German" },
+        { code: "it", label: "Italian" },
+        { code: "pt", label: "Portuguese" },
+        { code: "ru", label: "Russian" },
+        { code: "uk", label: "Ukrainian" },
+        { code: "pl", label: "Polish" },
+        { code: "tr", label: "Turkish" },
+        { code: "ar", label: "Arabic" },
+        { code: "fa", label: "Persian" },
+        { code: "he", label: "Hebrew" },
+        { code: "hi", label: "Hindi" },
+        { code: "bn", label: "Bengali" },
+        { code: "ur", label: "Urdu" },
+        { code: "th", label: "Thai" },
+        { code: "vi", label: "Vietnamese" },
+        { code: "id", label: "Indonesian" },
+        { code: "ms", label: "Malay" },
+        { code: "fil", label: "Filipino" },
+        { code: "ja", label: "Japanese" },
+        { code: "ko", label: "Korean" },
+        { code: "zh-CN", label: "Chinese (Simplified)" },
+        { code: "zh-TW", label: "Chinese (Traditional)" },
+      ];
+
+      function formatNumber(value) {
+        return Math.round(Number(value) || 0).toLocaleString();
+      }
+
+      function buildLanguageOptions() {
+        languageSelect.innerHTML = languageOptions
+          .map((lang) => `<option value="${lang.code}">${lang.label}</option>`)
+          .join("");
+        languageSelect.value = preferredLanguage;
+      }
+
+      function applyGoogleLanguage(languageCode, retries = 25) {
+        const combo = document.querySelector(".goog-te-combo");
+        if (!combo) {
+          if (retries > 0) {
+            setTimeout(
+              () => applyGoogleLanguage(languageCode, retries - 1),
+              200,
+            );
+          }
+          return;
+        }
+
+        combo.value = languageCode;
+        combo.dispatchEvent(new Event("change"));
+      }
+
+      function loadGoogleTranslateScript() {
+        if (window.google && window.google.translate) {
+          window.googleTranslateElementInit();
+          return;
+        }
+
+        const script = document.createElement("script");
+        script.src =
+          "https://translate.google.com/translate_a/element.js?cb=googleTranslateElementInit";
+        script.async = true;
+        document.body.appendChild(script);
+      }
+
+      window.googleTranslateElementInit =
+        function googleTranslateElementInit() {
+          new window.google.translate.TranslateElement(
+            {
+              pageLanguage: "en",
+              autoDisplay: false,
+            },
+            "google_translate_element",
+          );
+
+          applyGoogleLanguage(preferredLanguage);
+        };
+
+      function buildChecklist() {
+        researchChecklist.innerHTML = t11Research
+          .map(
+            (item) => `
+            <div class="planner-breakdown-row">
+              <div>
+                <div class="planner-breakdown-title">${item.name}</div>
+                <div class="planner-breakdown-meta">${item.stageCosts.total}</div>
+              </div>
+              <div>
+                <label class="toggle-field" for="done-${item.id}">
+                  <input id="done-${item.id}" type="checkbox" />
+                  <span>Completed</span>
+                </label>
+              </div>
+            </div>
+          `,
+          )
+          .join("");
+
+        t11Research.forEach((item) => {
+          document
+            .getElementById(`done-${item.id}`)
+            .addEventListener("change", updateCalculator);
+        });
+      }
+
+      function buildReferenceTable() {
+        referenceTableBody.innerHTML = t11Research
+          .map(
+            (item) => `
+            <tr>
+              <td>${item.name}</td>
+              <td>${item.stageCosts.early}</td>
+              <td>${item.stageCosts.mid}</td>
+              <td>${item.stageCosts.final}</td>
+              <td>${item.stageCosts.total}</td>
+            </tr>
+          `,
+          )
+          .join("");
+      }
+
+      function saveState() {
+        try {
+          const state = {};
+          t11Research.forEach((item) => {
+            state[item.id] = document.getElementById(`done-${item.id}`).checked;
+          });
+          state.language = languageSelect.value;
+          localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
+        } catch {}
+      }
+
+      function loadState() {
+        try {
+          const raw = localStorage.getItem(STORAGE_KEY);
+          if (!raw) {
+            return;
+          }
+
+          const state = JSON.parse(raw);
+          if (
+            state.language &&
+            languageOptions.some((option) => option.code === state.language)
+          ) {
+            preferredLanguage = state.language;
+            languageSelect.value = state.language;
+          }
+
+          t11Research.forEach((item) => {
+            document.getElementById(`done-${item.id}`).checked = Boolean(
+              state[item.id],
+            );
+          });
+        } catch {}
+      }
+
+      function setCompletionState(ids, completed) {
+        t11Research.forEach((item) => {
+          document.getElementById(`done-${item.id}`).checked = ids.includes(
+            item.id,
+          )
+            ? completed
+            : false;
+        });
+        updateCalculator();
+      }
+
+      function updateCalculator() {
+        const totals = { materials: 0, cores: 0, oil: 0 };
+        const remainingItems = [];
+
+        t11Research.forEach((item) => {
+          const isDone = document.getElementById(`done-${item.id}`).checked;
+          if (!isDone) {
+            totals.materials += item.totals.materials;
+            totals.cores += item.totals.cores;
+            totals.oil += item.totals.oil;
+            remainingItems.push(item);
+          }
+        });
+
+        materialsValue.textContent = formatNumber(totals.materials);
+        coresValue.textContent = formatNumber(totals.cores);
+        oilValue.textContent = formatNumber(totals.oil);
+        remainingItemsValue.textContent = String(remainingItems.length);
+
+        if (remainingItems.length === 0) {
+          statusValue.textContent = "All T11 Armament Research complete";
+          focusValue.textContent = "Done";
+          plannerOverview.innerHTML =
+            "<strong>Complete:</strong> Every published T11 research cost has been marked finished.";
+        } else {
+          const nextItem = remainingItems[0];
+          statusValue.textContent =
+            remainingItems.length === t11Research.length
+              ? "All T11 research costs still remaining"
+              : `${remainingItems.length} T11 items still remaining`;
+          focusValue.textContent = nextItem.name;
+          plannerOverview.innerHTML = `<strong>Next step:</strong> ${nextItem.name} is the next unchecked item in your T11 plan.`;
+        }
+
+        remainingBreakdown.innerHTML = remainingItems
+          .map(
+            (item) => `
+            <div class="planner-breakdown-row">
+              <div>
+                <div class="planner-breakdown-title">${item.name}</div>
+                <div class="planner-breakdown-meta">${item.stageCosts.total}</div>
+              </div>
+              <div class="planner-breakdown-costs">
+                <div class="planner-breakdown-cost">
+                  <span class="label">Materials</span>
+                  <span class="value">${formatNumber(item.totals.materials)}</span>
+                </div>
+                <div class="planner-breakdown-cost">
+                  <span class="label">Cores</span>
+                  <span class="value">${formatNumber(item.totals.cores)}</span>
+                </div>
+                <div class="planner-breakdown-cost">
+                  <span class="label">Oil</span>
+                  <span class="value">${formatNumber(item.totals.oil)}</span>
+                </div>
+              </div>
+            </div>
+          `,
+          )
+          .join("");
+
+        if (remainingItems.length === 0) {
+          remainingBreakdown.innerHTML =
+            '<div class="planner-empty">Nothing remaining. All T11 costs are cleared.</div>';
+        }
+
+        saveState();
+      }
+
+      buildLanguageOptions();
+      buildChecklist();
+      buildReferenceTable();
+      loadState();
+      buildLanguageOptions();
+      updateCalculator();
+      loadGoogleTranslateScript();
+
+      markAllNeededButton.addEventListener("click", () => {
+        setCompletionState([], false);
+      });
+      markResearchDoneButton.addEventListener("click", () => {
+        setCompletionState(
+          ["helmet", "body-armor", "accessories", "weapon"],
+          true,
+        );
+      });
+      markEverythingDoneButton.addEventListener("click", () => {
+        setCompletionState(
+          ["helmet", "body-armor", "accessories", "weapon", "unlock"],
+          true,
+        );
+      });
+      languageSelect.addEventListener("change", () => {
+        preferredLanguage = languageSelect.value;
+        applyGoogleLanguage(preferredLanguage);
+        saveState();
+      });
+    </script>
+  </body>
+</html>

@@ -1,0 +1,2085 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Last War T10 Troops Calculator</title>
+    <link rel="stylesheet" href="last-war-furnace-upgrade-calculator.css" />
+    <script src="page-nav-dropdown.js" defer></script>
+  </head>
+  <body>
+    <div class="page">
+      <div class="page-top-controls">
+        <div class="logo-control">
+          <img src="media/lwst.png" alt="LWST logo" class="site-logo" />
+        </div>
+        <div class="language-control">
+          <label for="languageSelect">Language</label>
+          <select id="languageSelect"></select>
+        </div>
+      </div>
+      <div id="google_translate_element" class="hidden-translate"></div>
+
+      <nav class="page-nav" aria-label="Calculator pages">
+        <a href="hq-upgrade-calculator.html" class="page-link">HQ Upgrade</a>
+        <details class="page-nav-dropdown active" name="troop-nav">
+          <summary class="page-link page-nav-dropdown-toggle">
+            Troop Calculators
+          </summary>
+          <div class="page-nav-dropdown-menu">
+            <a href="t10-troops-calculator.html" class="page-link active"
+              >T10 Troops</a
+            >
+            <a href="t11-troops-calculator.html" class="page-link"
+              >T11 Troops</a
+            >
+          </div>
+        </details>
+        <details class="page-nav-dropdown" name="season-nav">
+          <summary class="page-link page-nav-dropdown-toggle">
+            Season 2 Calculators
+          </summary>
+          <div class="page-nav-dropdown-menu">
+            <a href="last-war-furnace-upgrade-calculator.html" class="page-link"
+              >Furnace Calculator</a
+            >
+            <a href="season-2-tank-center-calculator.html" class="page-link"
+              >Season 2 Squad Base</a
+            >
+          </div>
+        </details>
+        <details class="page-nav-dropdown" name="season-nav">
+          <summary class="page-link page-nav-dropdown-toggle">
+            Season 3 Calculators
+          </summary>
+          <div class="page-nav-dropdown-menu">
+            <a href="curse-research-lab-calculator.html" class="page-link"
+              >Curse Research Lab</a
+            >
+            <a href="altar-calculator.html" class="page-link">Altar</a>
+            <a href="protectors-field-calculator.html" class="page-link"
+              >Protectors Field</a
+            >
+          </div>
+        </details>
+        <details class="page-nav-dropdown" name="season-nav">
+          <summary class="page-link page-nav-dropdown-toggle">
+            Season 4 Calculators
+          </summary>
+          <div class="page-nav-dropdown-menu">
+            <a href="optoelectronic-lab-calculator.html" class="page-link"
+              >Optoelectronic Lab</a
+            >
+            <a href="protectors-field-s4-calculator.html" class="page-link"
+              >Protector's Field S4</a
+            >
+            <a href="lighthouse-s4-calculator.html" class="page-link"
+              >Lighthouse S4</a
+            >
+          </div>
+        </details>
+        <details class="page-nav-dropdown" name="season-nav">
+          <summary class="page-link page-nav-dropdown-toggle">
+            Season 5 Calculators
+          </summary>
+          <div class="page-nav-dropdown-menu">
+            <a href="caffeine-institute-calculator.html" class="page-link"
+              >Caffeine Institute</a
+            >
+            <a href="protectors-field-s5-calculator.html" class="page-link"
+              >Protector's Field S5</a
+            >
+            <a href="season-5-squad-base-calculator.html" class="page-link"
+              >Season 5 Squad Base</a
+            >
+          </div>
+        </details>
+      </nav>
+
+      <section class="hero">
+        <h1>T10 Troops Calculator</h1>
+        <div class="sub">
+          Plan the full Special Forces path to T10 troops. Set your current and
+          target research levels, choose whether to total full target costs or
+          only remaining costs, and apply a resource reduction for alliance tech
+          or profession bonuses. The planner automatically includes prerequisite
+          levels needed to reach Unit X.
+        </div>
+      </section>
+
+      <section class="layout">
+        <div class="card">
+          <h2 class="card-title">Planner Controls</h2>
+          <div class="field">
+            <label for="modeSelect">Calculation Mode</label>
+            <select id="modeSelect">
+              <option value="remaining">Resources for remaining levels</option>
+              <option value="reach">Resources to reach levels from 0</option>
+            </select>
+          </div>
+          <div class="field">
+            <label for="reductionSelect">Resource Reduction (%)</label>
+            <select id="reductionSelect"></select>
+          </div>
+          <div class="field-group">
+            <h2 class="card-title">Quick Start</h2>
+            <ol class="helper-list">
+              <li>
+                Use <strong>Plan Full T10 Path</strong> for the shortest route
+                to Unit X.
+              </li>
+              <li>
+                Enter only the research levels you have already completed.
+              </li>
+              <li>
+                Use the focus filters below if you want to hide unrelated rows.
+              </li>
+            </ol>
+          </div>
+          <div class="field-group">
+            <h2 class="card-title">Quick Actions</h2>
+            <div class="button-row">
+              <button id="planT10Button" type="button" class="action-button">
+                Plan Full T10 Path
+              </button>
+              <button id="planTier3Button" type="button" class="action-button">
+                Plan Tier III Boosts
+              </button>
+              <button id="setAllMaxButton" type="button" class="action-button">
+                Set All Targets To Max
+              </button>
+              <button
+                id="clearTargetsButton"
+                type="button"
+                class="action-button"
+              >
+                Clear Targets
+              </button>
+              <button
+                id="resetCurrentButton"
+                type="button"
+                class="action-button"
+              >
+                Reset Current Levels
+              </button>
+            </div>
+          </div>
+          <div class="field-group">
+            <h2 class="card-title">Focus View</h2>
+            <div class="field">
+              <label for="searchInput">Find Research</label>
+              <input
+                id="searchInput"
+                type="search"
+                placeholder="Search Unit X, Morale, HP Boost, Advanced Protection..."
+              />
+            </div>
+            <label class="toggle-field" for="plannedOnlyToggle">
+              <input id="plannedOnlyToggle" type="checkbox" />
+              <span>Show only research included in this plan</span>
+            </label>
+          </div>
+          <div class="field-group">
+            <h2 class="card-title">Notes</h2>
+            <div class="footnote">
+              This page uses the T10 Special Forces research data from Cpt
+              Hedgehog. Totals include prerequisite levels automatically when a
+              selected target requires them.
+            </div>
+          </div>
+        </div>
+
+        <div class="card">
+          <h2 class="card-title">Plan Summary</h2>
+          <div class="summary">
+            <div class="tile">
+              <div class="tile-key">Total Iron</div>
+              <div class="tile-value" id="totalIronValue">0</div>
+            </div>
+            <div class="tile">
+              <div class="tile-key">Total Food</div>
+              <div class="tile-value" id="totalFoodValue">0</div>
+            </div>
+            <div class="tile">
+              <div class="tile-key">Total Gold</div>
+              <div class="tile-value" id="totalGoldValue">0</div>
+            </div>
+            <div class="tile">
+              <div class="tile-key">Total Valor</div>
+              <div class="tile-value" id="totalValorValue">0</div>
+            </div>
+            <div class="tile">
+              <div class="tile-key">Current Progress</div>
+              <div class="tile-value" id="currentProgressValue">0%</div>
+            </div>
+            <div class="tile">
+              <div class="tile-key">Planned Progress</div>
+              <div class="tile-value" id="plannedProgressValue">0%</div>
+            </div>
+            <div class="tile">
+              <div class="tile-key">Planned Elements</div>
+              <div class="tile-value" id="plannedElementsValue">0</div>
+            </div>
+            <div class="tile">
+              <div class="tile-key">Auto-Included Prereqs</div>
+              <div class="tile-value" id="autoIncludedValue">0</div>
+            </div>
+          </div>
+
+          <div class="details">
+            <div class="row">
+              <div class="row-key">Status</div>
+              <div class="row-value" id="statusValue">
+                Planning full T10 path to Unit X
+              </div>
+            </div>
+            <div class="row">
+              <div class="row-key">Calculation Mode</div>
+              <div class="row-value" id="modeValue">Remaining levels</div>
+            </div>
+            <div class="row">
+              <div class="row-key">Reduction Applied</div>
+              <div class="row-value" id="reductionValue">0%</div>
+            </div>
+            <div class="row">
+              <div class="row-key">Highest Planned Goal</div>
+              <div class="row-value" id="goalValue">Unit X Lv 1</div>
+            </div>
+          </div>
+
+          <div class="planner-overview" id="plannerOverview">
+            <strong>Next step:</strong> Start with a preset or set your own
+            targets.
+          </div>
+
+          <h3 class="planner-subheading">Included Research</h3>
+          <div class="planner-breakdown" id="breakdownList"></div>
+          <div class="planner-empty" id="breakdownEmpty">
+            No research is included yet. Choose a preset or set a target level.
+          </div>
+
+          <h3 class="planner-subheading">Research Planner</h3>
+          <div class="planner-sections" id="plannerSections"></div>
+        </div>
+      </section>
+    </div>
+
+    <script>
+      const treeRows = [
+        {
+          id: "row-1",
+          title: "Opening Boosts",
+          elements: [
+            {
+              id: "hp-boost-1",
+              name: "HP Boost I",
+              maxLevel: 4,
+              levels: [
+                {
+                  level: 1,
+                  iron: 916100,
+                  food: 916100,
+                  gold: 2700000,
+                  valor: 240,
+                  requirements: [],
+                },
+                {
+                  level: 2,
+                  iron: 916100,
+                  food: 916100,
+                  gold: 2700000,
+                  valor: 240,
+                  requirements: [],
+                },
+                {
+                  level: 3,
+                  iron: 916100,
+                  food: 916100,
+                  gold: 2700000,
+                  valor: 240,
+                  requirements: [],
+                },
+                {
+                  level: 4,
+                  iron: 1300000,
+                  food: 1300000,
+                  gold: 3800000,
+                  valor: 280,
+                  requirements: [],
+                },
+              ],
+            },
+            {
+              id: "attack-boost-1",
+              name: "Attack Boost I",
+              maxLevel: 4,
+              levels: [
+                {
+                  level: 1,
+                  iron: 916100,
+                  food: 916100,
+                  gold: 2700000,
+                  valor: 240,
+                  requirements: [],
+                },
+                {
+                  level: 2,
+                  iron: 916100,
+                  food: 916100,
+                  gold: 2700000,
+                  valor: 240,
+                  requirements: [],
+                },
+                {
+                  level: 3,
+                  iron: 916100,
+                  food: 916100,
+                  gold: 2700000,
+                  valor: 240,
+                  requirements: [],
+                },
+                {
+                  level: 4,
+                  iron: 1300000,
+                  food: 1300000,
+                  gold: 3800000,
+                  valor: 280,
+                  requirements: [],
+                },
+              ],
+            },
+            {
+              id: "defense-boost-1",
+              name: "Defense Boost I",
+              maxLevel: 4,
+              levels: [
+                {
+                  level: 1,
+                  iron: 916100,
+                  food: 916100,
+                  gold: 2700000,
+                  valor: 240,
+                  requirements: [],
+                },
+                {
+                  level: 2,
+                  iron: 916100,
+                  food: 916100,
+                  gold: 2700000,
+                  valor: 240,
+                  requirements: [],
+                },
+                {
+                  level: 3,
+                  iron: 916100,
+                  food: 916100,
+                  gold: 2700000,
+                  valor: 240,
+                  requirements: [],
+                },
+                {
+                  level: 4,
+                  iron: 1300000,
+                  food: 1300000,
+                  gold: 3800000,
+                  valor: 280,
+                  requirements: [],
+                },
+              ],
+            },
+          ],
+        },
+        {
+          id: "row-2",
+          title: "Protection Gate",
+          elements: [
+            {
+              id: "advanced-protection-1",
+              name: "Advanced Protection I",
+              maxLevel: 4,
+              levels: [
+                {
+                  level: 1,
+                  iron: 2300000,
+                  food: 2300000,
+                  gold: 6900000,
+                  valor: 320,
+                  requirements: [
+                    { elementId: "hp-boost-1", minLevel: 1 },
+                    { elementId: "attack-boost-1", minLevel: 1 },
+                    { elementId: "defense-boost-1", minLevel: 1 },
+                  ],
+                },
+                {
+                  level: 2,
+                  iron: 2900000,
+                  food: 2900000,
+                  gold: 8900000,
+                  valor: 400,
+                  requirements: [
+                    { elementId: "hp-boost-1", minLevel: 2 },
+                    { elementId: "attack-boost-1", minLevel: 2 },
+                    { elementId: "defense-boost-1", minLevel: 2 },
+                  ],
+                },
+                {
+                  level: 3,
+                  iron: 2900000,
+                  food: 2900000,
+                  gold: 8900000,
+                  valor: 400,
+                  requirements: [
+                    { elementId: "hp-boost-1", minLevel: 3 },
+                    { elementId: "attack-boost-1", minLevel: 3 },
+                    { elementId: "defense-boost-1", minLevel: 3 },
+                  ],
+                },
+                {
+                  level: 4,
+                  iron: 5100000,
+                  food: 5100000,
+                  gold: 15500000,
+                  valor: 520,
+                  requirements: [
+                    { elementId: "hp-boost-1", minLevel: 4 },
+                    { elementId: "attack-boost-1", minLevel: 4 },
+                    { elementId: "defense-boost-1", minLevel: 4 },
+                  ],
+                },
+              ],
+            },
+          ],
+        },
+        {
+          id: "row-3",
+          title: "Training VII",
+          elements: [
+            {
+              id: "defense-training-7",
+              name: "Defense Training VII",
+              maxLevel: 4,
+              levels: [
+                {
+                  level: 1,
+                  iron: 2900000,
+                  food: 2900000,
+                  gold: 8900000,
+                  valor: 400,
+                  requirements: [
+                    { elementId: "advanced-protection-1", minLevel: 1 },
+                  ],
+                },
+                {
+                  level: 2,
+                  iron: 2900000,
+                  food: 2900000,
+                  gold: 8900000,
+                  valor: 400,
+                  requirements: [
+                    { elementId: "advanced-protection-1", minLevel: 2 },
+                  ],
+                },
+                {
+                  level: 3,
+                  iron: 5100000,
+                  food: 5100000,
+                  gold: 15500000,
+                  valor: 520,
+                  requirements: [
+                    { elementId: "advanced-protection-1", minLevel: 3 },
+                  ],
+                },
+                {
+                  level: 4,
+                  iron: 5100000,
+                  food: 5100000,
+                  gold: 15500000,
+                  valor: 520,
+                  requirements: [
+                    { elementId: "advanced-protection-1", minLevel: 4 },
+                  ],
+                },
+              ],
+            },
+            {
+              id: "weapon-training-7",
+              name: "Weapon Training VII",
+              maxLevel: 4,
+              levels: [
+                {
+                  level: 1,
+                  iron: 2900000,
+                  food: 2900000,
+                  gold: 8900000,
+                  valor: 400,
+                  requirements: [
+                    { elementId: "advanced-protection-1", minLevel: 1 },
+                  ],
+                },
+                {
+                  level: 2,
+                  iron: 2900000,
+                  food: 2900000,
+                  gold: 8900000,
+                  valor: 400,
+                  requirements: [
+                    { elementId: "advanced-protection-1", minLevel: 2 },
+                  ],
+                },
+                {
+                  level: 3,
+                  iron: 5100000,
+                  food: 5100000,
+                  gold: 15500000,
+                  valor: 520,
+                  requirements: [
+                    { elementId: "advanced-protection-1", minLevel: 3 },
+                  ],
+                },
+                {
+                  level: 4,
+                  iron: 5100000,
+                  food: 5100000,
+                  gold: 15500000,
+                  valor: 520,
+                  requirements: [
+                    { elementId: "advanced-protection-1", minLevel: 4 },
+                  ],
+                },
+              ],
+            },
+            {
+              id: "advanced-armor-7",
+              name: "Advanced Armor VII",
+              maxLevel: 4,
+              levels: [
+                {
+                  level: 1,
+                  iron: 2900000,
+                  food: 2900000,
+                  gold: 8900000,
+                  valor: 400,
+                  requirements: [
+                    { elementId: "advanced-protection-1", minLevel: 1 },
+                  ],
+                },
+                {
+                  level: 2,
+                  iron: 2900000,
+                  food: 2900000,
+                  gold: 8900000,
+                  valor: 400,
+                  requirements: [
+                    { elementId: "advanced-protection-1", minLevel: 2 },
+                  ],
+                },
+                {
+                  level: 3,
+                  iron: 5100000,
+                  food: 5100000,
+                  gold: 15500000,
+                  valor: 520,
+                  requirements: [
+                    { elementId: "advanced-protection-1", minLevel: 3 },
+                  ],
+                },
+                {
+                  level: 4,
+                  iron: 5100000,
+                  food: 5100000,
+                  gold: 15500000,
+                  valor: 520,
+                  requirements: [
+                    { elementId: "advanced-protection-1", minLevel: 4 },
+                  ],
+                },
+              ],
+            },
+          ],
+        },
+        {
+          id: "row-4",
+          title: "Support Unlocks",
+          elements: [
+            {
+              id: "focused-training-1",
+              name: "Focused Training I",
+              maxLevel: 1,
+              levels: [
+                {
+                  level: 1,
+                  iron: 5100000,
+                  food: 5100000,
+                  gold: 15500000,
+                  valor: 520,
+                  requirements: [
+                    { elementId: "defense-training-7", minLevel: 4 },
+                    { elementId: "weapon-training-7", minLevel: 4 },
+                    { elementId: "advanced-armor-7", minLevel: 4 },
+                  ],
+                },
+              ],
+            },
+            {
+              id: "barracks-expansion-1",
+              name: "Barracks Expansion I",
+              maxLevel: 1,
+              levels: [
+                {
+                  level: 1,
+                  iron: 5100000,
+                  food: 5100000,
+                  gold: 15500000,
+                  valor: 520,
+                  requirements: [
+                    { elementId: "defense-training-7", minLevel: 4 },
+                    { elementId: "weapon-training-7", minLevel: 4 },
+                    { elementId: "advanced-armor-7", minLevel: 4 },
+                  ],
+                },
+              ],
+            },
+          ],
+        },
+        {
+          id: "row-5",
+          title: "Boost Tier II",
+          elements: [
+            {
+              id: "hp-boost-2",
+              name: "HP Boost II",
+              maxLevel: 3,
+              levels: [
+                {
+                  level: 1,
+                  iron: 11100000,
+                  food: 11100000,
+                  gold: 33600000,
+                  valor: 800,
+                  requirements: [
+                    { elementId: "focused-training-1", minLevel: 1 },
+                    { elementId: "barracks-expansion-1", minLevel: 1 },
+                  ],
+                },
+                {
+                  level: 2,
+                  iron: 11100000,
+                  food: 11100000,
+                  gold: 33600000,
+                  valor: 800,
+                  requirements: [],
+                },
+                {
+                  level: 3,
+                  iron: 11100000,
+                  food: 11100000,
+                  gold: 33600000,
+                  valor: 800,
+                  requirements: [],
+                },
+              ],
+            },
+            {
+              id: "attack-boost-2",
+              name: "Attack Boost II",
+              maxLevel: 3,
+              levels: [
+                {
+                  level: 1,
+                  iron: 11100000,
+                  food: 11100000,
+                  gold: 33600000,
+                  valor: 800,
+                  requirements: [
+                    { elementId: "focused-training-1", minLevel: 1 },
+                    { elementId: "barracks-expansion-1", minLevel: 1 },
+                  ],
+                },
+                {
+                  level: 2,
+                  iron: 11100000,
+                  food: 11100000,
+                  gold: 33600000,
+                  valor: 800,
+                  requirements: [],
+                },
+                {
+                  level: 3,
+                  iron: 11100000,
+                  food: 11100000,
+                  gold: 33600000,
+                  valor: 800,
+                  requirements: [],
+                },
+              ],
+            },
+            {
+              id: "defense-boost-2",
+              name: "Defense Boost II",
+              maxLevel: 3,
+              levels: [
+                {
+                  level: 1,
+                  iron: 11100000,
+                  food: 11100000,
+                  gold: 33600000,
+                  valor: 800,
+                  requirements: [
+                    { elementId: "focused-training-1", minLevel: 1 },
+                    { elementId: "barracks-expansion-1", minLevel: 1 },
+                  ],
+                },
+                {
+                  level: 2,
+                  iron: 11100000,
+                  food: 11100000,
+                  gold: 33600000,
+                  valor: 800,
+                  requirements: [],
+                },
+                {
+                  level: 3,
+                  iron: 11100000,
+                  food: 11100000,
+                  gold: 33600000,
+                  valor: 800,
+                  requirements: [],
+                },
+              ],
+            },
+          ],
+        },
+        {
+          id: "row-6",
+          title: "Morale Gate",
+          elements: [
+            {
+              id: "morale",
+              name: "Morale",
+              maxLevel: 3,
+              levels: [
+                {
+                  level: 1,
+                  iron: 15600000,
+                  food: 15600000,
+                  gold: 47100000,
+                  valor: 960,
+                  requirements: [
+                    { elementId: "hp-boost-2", minLevel: 1 },
+                    { elementId: "attack-boost-2", minLevel: 1 },
+                    { elementId: "defense-boost-2", minLevel: 1 },
+                  ],
+                },
+                {
+                  level: 2,
+                  iron: 20400000,
+                  food: 20400000,
+                  gold: 61300000,
+                  valor: 1120,
+                  requirements: [],
+                },
+                {
+                  level: 3,
+                  iron: 20400000,
+                  food: 20400000,
+                  gold: 61300000,
+                  valor: 1120,
+                  requirements: [],
+                },
+              ],
+            },
+          ],
+        },
+        {
+          id: "row-7",
+          title: "Training VIII",
+          elements: [
+            {
+              id: "defense-training-8",
+              name: "Defense Training VIII",
+              maxLevel: 3,
+              levels: [
+                {
+                  level: 1,
+                  iron: 20100000,
+                  food: 20100000,
+                  gold: 60300000,
+                  valor: 1120,
+                  requirements: [{ elementId: "morale", minLevel: 1 }],
+                },
+                {
+                  level: 2,
+                  iron: 25500000,
+                  food: 25500000,
+                  gold: 76600000,
+                  valor: 1280,
+                  requirements: [{ elementId: "morale", minLevel: 2 }],
+                },
+                {
+                  level: 3,
+                  iron: 25500000,
+                  food: 25500000,
+                  gold: 76600000,
+                  valor: 1280,
+                  requirements: [{ elementId: "morale", minLevel: 3 }],
+                },
+              ],
+            },
+            {
+              id: "weapon-training-8",
+              name: "Weapon Training VIII",
+              maxLevel: 3,
+              levels: [
+                {
+                  level: 1,
+                  iron: 20100000,
+                  food: 20100000,
+                  gold: 60300000,
+                  valor: 1120,
+                  requirements: [{ elementId: "morale", minLevel: 1 }],
+                },
+                {
+                  level: 2,
+                  iron: 25500000,
+                  food: 25500000,
+                  gold: 76600000,
+                  valor: 1280,
+                  requirements: [{ elementId: "morale", minLevel: 2 }],
+                },
+                {
+                  level: 3,
+                  iron: 25500000,
+                  food: 25500000,
+                  gold: 76600000,
+                  valor: 1280,
+                  requirements: [{ elementId: "morale", minLevel: 3 }],
+                },
+              ],
+            },
+            {
+              id: "advanced-armor-8",
+              name: "Advanced Armor VIII",
+              maxLevel: 3,
+              levels: [
+                {
+                  level: 1,
+                  iron: 20100000,
+                  food: 20100000,
+                  gold: 60300000,
+                  valor: 1120,
+                  requirements: [{ elementId: "morale", minLevel: 1 }],
+                },
+                {
+                  level: 2,
+                  iron: 25500000,
+                  food: 25500000,
+                  gold: 76600000,
+                  valor: 1280,
+                  requirements: [{ elementId: "morale", minLevel: 2 }],
+                },
+                {
+                  level: 3,
+                  iron: 25500000,
+                  food: 25500000,
+                  gold: 76600000,
+                  valor: 1280,
+                  requirements: [{ elementId: "morale", minLevel: 3 }],
+                },
+              ],
+            },
+          ],
+        },
+        {
+          id: "row-8",
+          title: "Medical Unlocks",
+          elements: [
+            {
+              id: "rapid-field-dressing-1",
+              name: "Rapid Field Dressing I",
+              maxLevel: 1,
+              levels: [
+                {
+                  level: 1,
+                  iron: 25500000,
+                  food: 25500000,
+                  gold: 76600000,
+                  valor: 1280,
+                  requirements: [
+                    { elementId: "defense-training-8", minLevel: 3 },
+                    { elementId: "weapon-training-8", minLevel: 3 },
+                    { elementId: "advanced-armor-8", minLevel: 3 },
+                  ],
+                },
+              ],
+            },
+            {
+              id: "infirmary-expansion-1",
+              name: "Infirmary Expansion I",
+              maxLevel: 1,
+              levels: [
+                {
+                  level: 1,
+                  iron: 25500000,
+                  food: 25500000,
+                  gold: 76600000,
+                  valor: 1280,
+                  requirements: [
+                    { elementId: "defense-training-8", minLevel: 3 },
+                    { elementId: "weapon-training-8", minLevel: 3 },
+                    { elementId: "advanced-armor-8", minLevel: 3 },
+                  ],
+                },
+              ],
+            },
+          ],
+        },
+        {
+          id: "row-9",
+          title: "Advanced Protection",
+          elements: [
+            {
+              id: "advanced-protection",
+              name: "Advanced Protection",
+              maxLevel: 10,
+              levels: [
+                {
+                  level: 1,
+                  iron: 25500000,
+                  food: 25500000,
+                  gold: 76600000,
+                  valor: 1280,
+                  requirements: [
+                    { elementId: "rapid-field-dressing-1", minLevel: 1 },
+                    { elementId: "infirmary-expansion-1", minLevel: 1 },
+                  ],
+                },
+                {
+                  level: 2,
+                  iron: 54200000,
+                  food: 54200000,
+                  gold: 162700000,
+                  valor: 1600,
+                  requirements: [
+                    { elementId: "rapid-field-dressing-1", minLevel: 1 },
+                    { elementId: "infirmary-expansion-1", minLevel: 1 },
+                  ],
+                },
+                {
+                  level: 3,
+                  iron: 54200000,
+                  food: 54200000,
+                  gold: 162700000,
+                  valor: 1600,
+                  requirements: [
+                    { elementId: "rapid-field-dressing-1", minLevel: 1 },
+                    { elementId: "infirmary-expansion-1", minLevel: 1 },
+                  ],
+                },
+                {
+                  level: 4,
+                  iron: 54200000,
+                  food: 54200000,
+                  gold: 162700000,
+                  valor: 1600,
+                  requirements: [
+                    { elementId: "rapid-field-dressing-1", minLevel: 1 },
+                    { elementId: "infirmary-expansion-1", minLevel: 1 },
+                  ],
+                },
+                {
+                  level: 5,
+                  iron: 75900000,
+                  food: 75900000,
+                  gold: 227700000,
+                  valor: 1800,
+                  requirements: [
+                    { elementId: "rapid-field-dressing-1", minLevel: 1 },
+                    { elementId: "infirmary-expansion-1", minLevel: 1 },
+                  ],
+                },
+                {
+                  level: 6,
+                  iron: 75900000,
+                  food: 75900000,
+                  gold: 227700000,
+                  valor: 1800,
+                  requirements: [
+                    { elementId: "rapid-field-dressing-1", minLevel: 1 },
+                    { elementId: "infirmary-expansion-1", minLevel: 1 },
+                  ],
+                },
+                {
+                  level: 7,
+                  iron: 75900000,
+                  food: 75900000,
+                  gold: 227700000,
+                  valor: 1800,
+                  requirements: [
+                    { elementId: "rapid-field-dressing-1", minLevel: 1 },
+                    { elementId: "infirmary-expansion-1", minLevel: 1 },
+                  ],
+                },
+                {
+                  level: 8,
+                  iron: 98700000,
+                  food: 98700000,
+                  gold: 296000000,
+                  valor: 2000,
+                  requirements: [
+                    { elementId: "rapid-field-dressing-1", minLevel: 1 },
+                    { elementId: "infirmary-expansion-1", minLevel: 1 },
+                  ],
+                },
+                {
+                  level: 9,
+                  iron: 98700000,
+                  food: 98700000,
+                  gold: 296000000,
+                  valor: 2000,
+                  requirements: [
+                    { elementId: "rapid-field-dressing-1", minLevel: 1 },
+                    { elementId: "infirmary-expansion-1", minLevel: 1 },
+                  ],
+                },
+                {
+                  level: 10,
+                  iron: 138100000,
+                  food: 138100000,
+                  gold: 414600000,
+                  valor: 2200,
+                  requirements: [
+                    { elementId: "rapid-field-dressing-1", minLevel: 1 },
+                    { elementId: "infirmary-expansion-1", minLevel: 1 },
+                  ],
+                },
+              ],
+            },
+          ],
+        },
+        {
+          id: "row-10",
+          title: "Boost Tier III",
+          elements: [
+            {
+              id: "hp-boost-3",
+              name: "HP Boost III",
+              maxLevel: 10,
+              levels: [
+                {
+                  level: 1,
+                  iron: 31900000,
+                  food: 31900000,
+                  gold: 95700000,
+                  valor: 1440,
+                  requirements: [
+                    { elementId: "advanced-protection", minLevel: 1 },
+                  ],
+                },
+                {
+                  level: 2,
+                  iron: 54200000,
+                  food: 54200000,
+                  gold: 162700000,
+                  valor: 1600,
+                  requirements: [
+                    { elementId: "advanced-protection", minLevel: 2 },
+                  ],
+                },
+                {
+                  level: 3,
+                  iron: 54200000,
+                  food: 54200000,
+                  gold: 162700000,
+                  valor: 1600,
+                  requirements: [
+                    { elementId: "advanced-protection", minLevel: 3 },
+                  ],
+                },
+                {
+                  level: 4,
+                  iron: 75900000,
+                  food: 75900000,
+                  gold: 227700000,
+                  valor: 1800,
+                  requirements: [
+                    { elementId: "advanced-protection", minLevel: 4 },
+                  ],
+                },
+                {
+                  level: 5,
+                  iron: 75900000,
+                  food: 75900000,
+                  gold: 227700000,
+                  valor: 1800,
+                  requirements: [
+                    { elementId: "advanced-protection", minLevel: 5 },
+                  ],
+                },
+                {
+                  level: 6,
+                  iron: 98700000,
+                  food: 98700000,
+                  gold: 296000000,
+                  valor: 2000,
+                  requirements: [
+                    { elementId: "advanced-protection", minLevel: 6 },
+                  ],
+                },
+                {
+                  level: 7,
+                  iron: 98700000,
+                  food: 98700000,
+                  gold: 296000000,
+                  valor: 2000,
+                  requirements: [
+                    { elementId: "advanced-protection", minLevel: 7 },
+                  ],
+                },
+                {
+                  level: 8,
+                  iron: 138100000,
+                  food: 138100000,
+                  gold: 414600000,
+                  valor: 2200,
+                  requirements: [
+                    { elementId: "advanced-protection", minLevel: 8 },
+                  ],
+                },
+                {
+                  level: 9,
+                  iron: 138100000,
+                  food: 138100000,
+                  gold: 414600000,
+                  valor: 2200,
+                  requirements: [
+                    { elementId: "advanced-protection", minLevel: 9 },
+                  ],
+                },
+                {
+                  level: 10,
+                  iron: 193400000,
+                  food: 193400000,
+                  gold: 580300000,
+                  valor: 2400,
+                  requirements: [
+                    { elementId: "advanced-protection", minLevel: 10 },
+                  ],
+                },
+              ],
+            },
+            {
+              id: "attack-boost-3",
+              name: "Attack Boost III",
+              maxLevel: 10,
+              levels: [
+                {
+                  level: 1,
+                  iron: 31900000,
+                  food: 31900000,
+                  gold: 95700000,
+                  valor: 1440,
+                  requirements: [
+                    { elementId: "advanced-protection", minLevel: 1 },
+                  ],
+                },
+                {
+                  level: 2,
+                  iron: 54200000,
+                  food: 54200000,
+                  gold: 162700000,
+                  valor: 1600,
+                  requirements: [
+                    { elementId: "advanced-protection", minLevel: 2 },
+                  ],
+                },
+                {
+                  level: 3,
+                  iron: 54200000,
+                  food: 54200000,
+                  gold: 162700000,
+                  valor: 1600,
+                  requirements: [
+                    { elementId: "advanced-protection", minLevel: 3 },
+                  ],
+                },
+                {
+                  level: 4,
+                  iron: 75900000,
+                  food: 75900000,
+                  gold: 227700000,
+                  valor: 1800,
+                  requirements: [
+                    { elementId: "advanced-protection", minLevel: 4 },
+                  ],
+                },
+                {
+                  level: 5,
+                  iron: 75900000,
+                  food: 75900000,
+                  gold: 227700000,
+                  valor: 1800,
+                  requirements: [
+                    { elementId: "advanced-protection", minLevel: 5 },
+                  ],
+                },
+                {
+                  level: 6,
+                  iron: 98700000,
+                  food: 98700000,
+                  gold: 296000000,
+                  valor: 2000,
+                  requirements: [
+                    { elementId: "advanced-protection", minLevel: 6 },
+                  ],
+                },
+                {
+                  level: 7,
+                  iron: 98700000,
+                  food: 98700000,
+                  gold: 296000000,
+                  valor: 2000,
+                  requirements: [
+                    { elementId: "advanced-protection", minLevel: 7 },
+                  ],
+                },
+                {
+                  level: 8,
+                  iron: 138100000,
+                  food: 138100000,
+                  gold: 414600000,
+                  valor: 2200,
+                  requirements: [
+                    { elementId: "advanced-protection", minLevel: 8 },
+                  ],
+                },
+                {
+                  level: 9,
+                  iron: 138100000,
+                  food: 138100000,
+                  gold: 414600000,
+                  valor: 2200,
+                  requirements: [
+                    { elementId: "advanced-protection", minLevel: 9 },
+                  ],
+                },
+                {
+                  level: 10,
+                  iron: 193400000,
+                  food: 193400000,
+                  gold: 580300000,
+                  valor: 2400,
+                  requirements: [
+                    { elementId: "advanced-protection", minLevel: 10 },
+                  ],
+                },
+              ],
+            },
+            {
+              id: "defense-boost-3",
+              name: "Defense Boost III",
+              maxLevel: 10,
+              levels: [
+                {
+                  level: 1,
+                  iron: 31900000,
+                  food: 31900000,
+                  gold: 95700000,
+                  valor: 1440,
+                  requirements: [
+                    { elementId: "advanced-protection", minLevel: 1 },
+                  ],
+                },
+                {
+                  level: 2,
+                  iron: 54200000,
+                  food: 54200000,
+                  gold: 162700000,
+                  valor: 1600,
+                  requirements: [
+                    { elementId: "advanced-protection", minLevel: 2 },
+                  ],
+                },
+                {
+                  level: 3,
+                  iron: 54200000,
+                  food: 54200000,
+                  gold: 162700000,
+                  valor: 1600,
+                  requirements: [
+                    { elementId: "advanced-protection", minLevel: 3 },
+                  ],
+                },
+                {
+                  level: 4,
+                  iron: 75900000,
+                  food: 75900000,
+                  gold: 227700000,
+                  valor: 1800,
+                  requirements: [
+                    { elementId: "advanced-protection", minLevel: 4 },
+                  ],
+                },
+                {
+                  level: 5,
+                  iron: 75900000,
+                  food: 75900000,
+                  gold: 227700000,
+                  valor: 1800,
+                  requirements: [
+                    { elementId: "advanced-protection", minLevel: 5 },
+                  ],
+                },
+                {
+                  level: 6,
+                  iron: 98700000,
+                  food: 98700000,
+                  gold: 296000000,
+                  valor: 2000,
+                  requirements: [
+                    { elementId: "advanced-protection", minLevel: 6 },
+                  ],
+                },
+                {
+                  level: 7,
+                  iron: 98700000,
+                  food: 98700000,
+                  gold: 296000000,
+                  valor: 2000,
+                  requirements: [
+                    { elementId: "advanced-protection", minLevel: 7 },
+                  ],
+                },
+                {
+                  level: 8,
+                  iron: 138100000,
+                  food: 138100000,
+                  gold: 414600000,
+                  valor: 2200,
+                  requirements: [
+                    { elementId: "advanced-protection", minLevel: 8 },
+                  ],
+                },
+                {
+                  level: 9,
+                  iron: 138100000,
+                  food: 138100000,
+                  gold: 414600000,
+                  valor: 2200,
+                  requirements: [
+                    { elementId: "advanced-protection", minLevel: 9 },
+                  ],
+                },
+                {
+                  level: 10,
+                  iron: 193400000,
+                  food: 193400000,
+                  gold: 580300000,
+                  valor: 2400,
+                  requirements: [
+                    { elementId: "advanced-protection", minLevel: 10 },
+                  ],
+                },
+              ],
+            },
+          ],
+        },
+        {
+          id: "row-11",
+          title: "T10 Unlock",
+          elements: [
+            {
+              id: "unit-x",
+              name: "Unit X",
+              maxLevel: 1,
+              levels: [
+                {
+                  level: 1,
+                  iron: 193400000,
+                  food: 193400000,
+                  gold: 580300000,
+                  valor: 2400,
+                  requirements: [
+                    { elementId: "hp-boost-3", minLevel: 10 },
+                    { elementId: "attack-boost-3", minLevel: 10 },
+                    { elementId: "defense-boost-3", minLevel: 10 },
+                  ],
+                },
+              ],
+            },
+          ],
+        },
+      ];
+
+      const STORAGE_KEY = "lastWarT10TroopsCalcStateV1";
+      const resourceKeys = ["iron", "food", "gold", "valor"];
+      const allElements = treeRows.flatMap((row) => row.elements);
+      const elementMap = new Map(
+        allElements.map((element) => [element.id, element]),
+      );
+      const plannerSections = document.getElementById("plannerSections");
+      const breakdownList = document.getElementById("breakdownList");
+      const totalIronValue = document.getElementById("totalIronValue");
+      const totalFoodValue = document.getElementById("totalFoodValue");
+      const totalGoldValue = document.getElementById("totalGoldValue");
+      const totalValorValue = document.getElementById("totalValorValue");
+      const currentProgressValue = document.getElementById(
+        "currentProgressValue",
+      );
+      const plannedProgressValue = document.getElementById(
+        "plannedProgressValue",
+      );
+      const plannedElementsValue = document.getElementById(
+        "plannedElementsValue",
+      );
+      const autoIncludedValue = document.getElementById("autoIncludedValue");
+      const statusValue = document.getElementById("statusValue");
+      const modeValue = document.getElementById("modeValue");
+      const reductionValue = document.getElementById("reductionValue");
+      const goalValue = document.getElementById("goalValue");
+      const modeSelect = document.getElementById("modeSelect");
+      const reductionSelect = document.getElementById("reductionSelect");
+      const languageSelect = document.getElementById("languageSelect");
+      const searchInput = document.getElementById("searchInput");
+      const plannedOnlyToggle = document.getElementById("plannedOnlyToggle");
+      const plannerOverview = document.getElementById("plannerOverview");
+      const breakdownEmpty = document.getElementById("breakdownEmpty");
+      const planT10Button = document.getElementById("planT10Button");
+      const planTier3Button = document.getElementById("planTier3Button");
+      const setAllMaxButton = document.getElementById("setAllMaxButton");
+      const clearTargetsButton = document.getElementById("clearTargetsButton");
+      const resetCurrentButton = document.getElementById("resetCurrentButton");
+      let preferredLanguage = "en";
+
+      const languageOptions = [
+        { code: "en", label: "English" },
+        { code: "es", label: "Spanish" },
+        { code: "fr", label: "French" },
+        { code: "de", label: "German" },
+        { code: "it", label: "Italian" },
+        { code: "pt", label: "Portuguese" },
+        { code: "ru", label: "Russian" },
+        { code: "uk", label: "Ukrainian" },
+        { code: "pl", label: "Polish" },
+        { code: "tr", label: "Turkish" },
+        { code: "ar", label: "Arabic" },
+        { code: "fa", label: "Persian" },
+        { code: "he", label: "Hebrew" },
+        { code: "hi", label: "Hindi" },
+        { code: "bn", label: "Bengali" },
+        { code: "ur", label: "Urdu" },
+        { code: "th", label: "Thai" },
+        { code: "vi", label: "Vietnamese" },
+        { code: "id", label: "Indonesian" },
+        { code: "ms", label: "Malay" },
+        { code: "fil", label: "Filipino" },
+        { code: "ja", label: "Japanese" },
+        { code: "ko", label: "Korean" },
+        { code: "zh-CN", label: "Chinese (Simplified)" },
+        { code: "zh-TW", label: "Chinese (Traditional)" },
+        { code: "el", label: "Greek" },
+        { code: "nl", label: "Dutch" },
+        { code: "sv", label: "Swedish" },
+        { code: "da", label: "Danish" },
+        { code: "fi", label: "Finnish" },
+        { code: "no", label: "Norwegian" },
+        { code: "cs", label: "Czech" },
+        { code: "ro", label: "Romanian" },
+        { code: "hu", label: "Hungarian" },
+        { code: "sk", label: "Slovak" },
+        { code: "bg", label: "Bulgarian" },
+        { code: "hr", label: "Croatian" },
+        { code: "sr", label: "Serbian" },
+        { code: "sl", label: "Slovenian" },
+        { code: "lt", label: "Lithuanian" },
+        { code: "lv", label: "Latvian" },
+        { code: "et", label: "Estonian" },
+      ];
+
+      function formatNumber(value) {
+        return Math.round(Number(value) || 0).toLocaleString();
+      }
+
+      function normalizeText(value) {
+        return String(value || "")
+          .trim()
+          .toLowerCase();
+      }
+
+      function buildReductionOptions() {
+        reductionSelect.innerHTML = Array.from({ length: 201 }, (_, index) => {
+          const pct = (index * 0.5).toFixed(1);
+          return `<option value="${pct}">${pct}%</option>`;
+        }).join("");
+        reductionSelect.value = "0.0";
+      }
+
+      function buildLanguageOptions() {
+        languageSelect.innerHTML = languageOptions
+          .map((lang) => `<option value="${lang.code}">${lang.label}</option>`)
+          .join("");
+        languageSelect.value = preferredLanguage;
+      }
+
+      function applyGoogleLanguage(languageCode, retries = 25) {
+        const combo = document.querySelector(".goog-te-combo");
+        if (!combo) {
+          if (retries > 0) {
+            setTimeout(
+              () => applyGoogleLanguage(languageCode, retries - 1),
+              200,
+            );
+          }
+          return;
+        }
+
+        combo.value = languageCode;
+        combo.dispatchEvent(new Event("change"));
+      }
+
+      function loadGoogleTranslateScript() {
+        if (window.google && window.google.translate) {
+          window.googleTranslateElementInit();
+          return;
+        }
+
+        const script = document.createElement("script");
+        script.src =
+          "https://translate.google.com/translate_a/element.js?cb=googleTranslateElementInit";
+        script.async = true;
+        document.body.appendChild(script);
+      }
+
+      window.googleTranslateElementInit =
+        function googleTranslateElementInit() {
+          new window.google.translate.TranslateElement(
+            {
+              pageLanguage: "en",
+              autoDisplay: false,
+            },
+            "google_translate_element",
+          );
+
+          applyGoogleLanguage(preferredLanguage);
+        };
+
+      function getDefaultState() {
+        const state = {
+          mode: "remaining",
+          reduction: 0,
+          language: preferredLanguage,
+          search: "",
+          plannedOnly: false,
+          currentLevels: {},
+          targetLevels: {},
+        };
+
+        allElements.forEach((element) => {
+          state.currentLevels[element.id] = 0;
+          state.targetLevels[element.id] = 0;
+        });
+
+        state.targetLevels["unit-x"] = 1;
+        return state;
+      }
+
+      function getCurrentInputs() {
+        const currentLevels = {};
+        const targetLevels = {};
+
+        allElements.forEach((element) => {
+          const currentInput = document.getElementById(`current-${element.id}`);
+          const targetInput = document.getElementById(`target-${element.id}`);
+          const currentValue = Math.max(
+            0,
+            Math.min(element.maxLevel, Number(currentInput.value) || 0),
+          );
+          const targetValue = Math.max(
+            currentValue,
+            Math.min(element.maxLevel, Number(targetInput.value) || 0),
+          );
+
+          currentInput.value = String(currentValue);
+          targetInput.value = String(targetValue);
+          currentLevels[element.id] = currentValue;
+          targetLevels[element.id] = targetValue;
+        });
+
+        return { currentLevels, targetLevels };
+      }
+
+      function computeEffectiveTargets(targetLevels) {
+        const effectiveTargets = { ...targetLevels };
+        let changed = true;
+
+        while (changed) {
+          changed = false;
+
+          allElements.forEach((element) => {
+            const desiredLevel = effectiveTargets[element.id] || 0;
+            for (let level = 1; level <= desiredLevel; level += 1) {
+              const requirements = element.levels[level - 1].requirements || [];
+              requirements.forEach((requirement) => {
+                if (
+                  (effectiveTargets[requirement.elementId] || 0) <
+                  requirement.minLevel
+                ) {
+                  effectiveTargets[requirement.elementId] =
+                    requirement.minLevel;
+                  changed = true;
+                }
+              });
+            }
+          });
+        }
+
+        return effectiveTargets;
+      }
+
+      function sumCostsForRange(
+        element,
+        startLevel,
+        endLevel,
+        reductionMultiplier,
+      ) {
+        const totals = { iron: 0, food: 0, gold: 0, valor: 0 };
+        for (let level = startLevel + 1; level <= endLevel; level += 1) {
+          const levelData = element.levels[level - 1];
+          resourceKeys.forEach((key) => {
+            totals[key] += Math.round(levelData[key] * reductionMultiplier);
+          });
+        }
+        return totals;
+      }
+
+      function addTotals(base, addition) {
+        resourceKeys.forEach((key) => {
+          base[key] += addition[key];
+        });
+      }
+
+      function totalLevels(levelMap) {
+        return allElements.reduce(
+          (sum, element) => sum + (levelMap[element.id] || 0),
+          0,
+        );
+      }
+
+      function maximumLevels() {
+        return allElements.reduce((sum, element) => sum + element.maxLevel, 0);
+      }
+
+      function saveState() {
+        try {
+          const { currentLevels, targetLevels } = getCurrentInputs();
+          localStorage.setItem(
+            STORAGE_KEY,
+            JSON.stringify({
+              mode: modeSelect.value,
+              reduction: Number(reductionSelect.value || 0),
+              language: languageSelect.value,
+              search: searchInput.value,
+              plannedOnly: plannedOnlyToggle.checked,
+              currentLevels,
+              targetLevels,
+            }),
+          );
+        } catch {}
+      }
+
+      function applyState(state) {
+        modeSelect.value = state.mode || "remaining";
+        reductionSelect.value = Number(state.reduction || 0).toFixed(1);
+
+        if (
+          state.language &&
+          languageOptions.some((option) => option.code === state.language)
+        ) {
+          preferredLanguage = state.language;
+          languageSelect.value = state.language;
+        }
+
+        searchInput.value = state.search || "";
+        plannedOnlyToggle.checked = Boolean(state.plannedOnly);
+
+        allElements.forEach((element) => {
+          const currentInput = document.getElementById(`current-${element.id}`);
+          const targetInput = document.getElementById(`target-${element.id}`);
+          currentInput.value = String(
+            Math.max(
+              0,
+              Math.min(
+                element.maxLevel,
+                Number(state.currentLevels?.[element.id] || 0),
+              ),
+            ),
+          );
+          targetInput.value = String(
+            Math.max(
+              0,
+              Math.min(
+                element.maxLevel,
+                Number(state.targetLevels?.[element.id] || 0),
+              ),
+            ),
+          );
+        });
+      }
+
+      function loadState() {
+        try {
+          const raw = localStorage.getItem(STORAGE_KEY);
+          if (!raw) {
+            applyState(getDefaultState());
+            return;
+          }
+          applyState({ ...getDefaultState(), ...JSON.parse(raw) });
+        } catch {
+          applyState(getDefaultState());
+        }
+      }
+
+      function buildPlanner() {
+        plannerSections.innerHTML = treeRows
+          .map(
+            (row) => `
+            <section class="planner-section" id="section-${row.id}">
+              <h3 class="planner-section-title">${row.title}</h3>
+              <div class="planner-grid">
+                ${row.elements
+                  .map(
+                    (element) => `
+                    <article class="planner-item" id="card-${element.id}" data-row-id="${row.id}" data-name="${element.name.toLowerCase()}">
+                      <div class="planner-item-header">
+                        <h4 class="planner-item-title">${element.name}</h4>
+                        <div class="planner-item-max">Max Lv ${element.maxLevel}</div>
+                      </div>
+                      <div class="planner-level-grid">
+                        <div class="field">
+                          <label for="current-${element.id}">Current Level</label>
+                          <input id="current-${element.id}" type="number" min="0" max="${element.maxLevel}" step="1" value="0" />
+                        </div>
+                        <div class="field">
+                          <label for="target-${element.id}">Target Level</label>
+                          <input id="target-${element.id}" type="number" min="0" max="${element.maxLevel}" step="1" value="0" />
+                        </div>
+                      </div>
+                      <div class="planner-chip-row">
+                        <div class="planner-chip" id="selected-${element.id}">Not directly selected</div>
+                        <div class="planner-chip" id="effective-${element.id}">Effective target Lv 0</div>
+                        <div class="planner-chip" id="delta-${element.id}">0 levels planned</div>
+                      </div>
+                      <div class="planner-costs">
+                        <div class="planner-cost">
+                          <div class="planner-cost-key">Iron</div>
+                          <div class="planner-cost-value" id="iron-${element.id}">0</div>
+                        </div>
+                        <div class="planner-cost">
+                          <div class="planner-cost-key">Food</div>
+                          <div class="planner-cost-value" id="food-${element.id}">0</div>
+                        </div>
+                        <div class="planner-cost">
+                          <div class="planner-cost-key">Gold</div>
+                          <div class="planner-cost-value" id="gold-${element.id}">0</div>
+                        </div>
+                        <div class="planner-cost">
+                          <div class="planner-cost-key">Valor</div>
+                          <div class="planner-cost-value" id="valor-${element.id}">0</div>
+                        </div>
+                      </div>
+                      <div class="planner-note" id="note-${element.id}"></div>
+                    </article>
+                  `,
+                  )
+                  .join("")}
+              </div>
+            </section>
+          `,
+          )
+          .join("");
+
+        allElements.forEach((element) => {
+          document
+            .getElementById(`current-${element.id}`)
+            .addEventListener("input", updateCalculator);
+          document
+            .getElementById(`target-${element.id}`)
+            .addEventListener("input", updateCalculator);
+        });
+      }
+
+      function setAllTargetsToMax() {
+        allElements.forEach((element) => {
+          document.getElementById(`target-${element.id}`).value = String(
+            element.maxLevel,
+          );
+        });
+        updateCalculator();
+      }
+
+      function clearTargets() {
+        allElements.forEach((element) => {
+          const currentValue =
+            Number(document.getElementById(`current-${element.id}`).value) || 0;
+          document.getElementById(`target-${element.id}`).value =
+            String(currentValue);
+        });
+        updateCalculator();
+      }
+
+      function resetCurrentLevels() {
+        allElements.forEach((element) => {
+          document.getElementById(`current-${element.id}`).value = "0";
+        });
+        updateCalculator();
+      }
+
+      function planT10Path() {
+        allElements.forEach((element) => {
+          document.getElementById(`target-${element.id}`).value = "0";
+        });
+        document.getElementById("target-unit-x").value = "1";
+        updateCalculator();
+      }
+
+      function planTier3Boosts() {
+        allElements.forEach((element) => {
+          document.getElementById(`target-${element.id}`).value = "0";
+        });
+        document.getElementById("target-hp-boost-3").value = "10";
+        document.getElementById("target-attack-boost-3").value = "10";
+        document.getElementById("target-defense-boost-3").value = "10";
+        updateCalculator();
+      }
+
+      function updateCalculator() {
+        const { currentLevels, targetLevels } = getCurrentInputs();
+        const effectiveTargets = computeEffectiveTargets(targetLevels);
+        const searchTerm = normalizeText(searchInput.value);
+        const plannedOnly = plannedOnlyToggle.checked;
+        const reductionMultiplier =
+          1 - Number(reductionSelect.value || 0) / 100;
+        const mode = modeSelect.value;
+        const totals = { iron: 0, food: 0, gold: 0, valor: 0 };
+        const breakdownRows = [];
+        let plannedElements = 0;
+        let autoIncluded = 0;
+        let nextStep = null;
+        const visibleCountsByRow = {};
+
+        allElements.forEach((element) => {
+          const currentLevel = currentLevels[element.id] || 0;
+          const targetLevel = targetLevels[element.id] || 0;
+          const effectiveLevel = Math.max(
+            effectiveTargets[element.id] || 0,
+            currentLevel,
+          );
+          const startLevel = mode === "reach" ? 0 : currentLevel;
+          const levelDelta = Math.max(0, effectiveLevel - startLevel);
+          const itemTotals = sumCostsForRange(
+            element,
+            startLevel,
+            effectiveLevel,
+            reductionMultiplier,
+          );
+          const card = document.getElementById(`card-${element.id}`);
+          const note = document.getElementById(`note-${element.id}`);
+          const selectedChip = document.getElementById(
+            `selected-${element.id}`,
+          );
+          const effectiveChip = document.getElementById(
+            `effective-${element.id}`,
+          );
+          const deltaChip = document.getElementById(`delta-${element.id}`);
+          const rowId = card.dataset.rowId;
+          const isIncluded = effectiveLevel > 0 || currentLevel > 0;
+          const isDirectlySelected = targetLevel > 0;
+          const matchesSearch =
+            searchTerm.length === 0 || card.dataset.name.includes(searchTerm);
+          const isVisible = (!plannedOnly || isIncluded) && matchesSearch;
+
+          resourceKeys.forEach((key) => {
+            document.getElementById(`${key}-${element.id}`).textContent =
+              formatNumber(itemTotals[key]);
+          });
+
+          selectedChip.className = "planner-chip";
+          if (isDirectlySelected) {
+            selectedChip.textContent = `Selected Lv ${targetLevel}`;
+            selectedChip.classList.add("ok");
+          } else {
+            selectedChip.textContent = "Not directly selected";
+          }
+
+          effectiveChip.textContent = `Effective target Lv ${effectiveLevel}`;
+          deltaChip.textContent = `${levelDelta} levels counted`;
+          effectiveChip.className = "planner-chip";
+          deltaChip.className =
+            `planner-chip ${levelDelta === 0 ? "ok" : ""}`.trim();
+          card.className = "planner-item";
+
+          if (isDirectlySelected) {
+            card.classList.add("selected");
+          }
+
+          if (isIncluded) {
+            plannedElements += 1;
+          }
+
+          if (effectiveLevel > targetLevel) {
+            autoIncluded += 1;
+            card.classList.add("needs-support");
+            effectiveChip.classList.add("warn");
+            note.textContent = `Auto-included prerequisite support. Your selected target is Lv ${targetLevel}, but the plan requires Lv ${effectiveLevel}.`;
+          } else if (effectiveLevel > 0 && currentLevel >= effectiveLevel) {
+            card.classList.add("done");
+            effectiveChip.classList.add("ok");
+            note.textContent =
+              "Already at or above the effective target for this step.";
+          } else if (effectiveLevel > 0) {
+            note.textContent = "Included in the current plan.";
+          } else {
+            note.textContent = "Not included in the current plan.";
+          }
+
+          if (!nextStep && effectiveLevel > currentLevel) {
+            nextStep = {
+              name: element.name,
+              effectiveLevel,
+              targetLevel,
+              autoIncluded: effectiveLevel > targetLevel,
+            };
+            card.classList.add("primary");
+          }
+
+          card.classList.toggle("planner-hidden", !isVisible);
+          if (isVisible) {
+            visibleCountsByRow[rowId] = (visibleCountsByRow[rowId] || 0) + 1;
+          }
+
+          addTotals(totals, itemTotals);
+
+          if (isIncluded) {
+            breakdownRows.push({
+              name: element.name,
+              currentLevel,
+              targetLevel,
+              effectiveLevel,
+              autoIncluded: effectiveLevel > targetLevel,
+              totals: itemTotals,
+            });
+          }
+        });
+
+        treeRows.forEach((row) => {
+          const section = document.getElementById(`section-${row.id}`);
+          section.classList.toggle(
+            "planner-hidden",
+            (visibleCountsByRow[row.id] || 0) === 0,
+          );
+        });
+
+        totalIronValue.textContent = formatNumber(totals.iron);
+        totalFoodValue.textContent = formatNumber(totals.food);
+        totalGoldValue.textContent = formatNumber(totals.gold);
+        totalValorValue.textContent = formatNumber(totals.valor);
+        currentProgressValue.textContent = `${Math.round((totalLevels(currentLevels) / maximumLevels()) * 100)}%`;
+        plannedProgressValue.textContent = `${Math.round((totalLevels(effectiveTargets) / maximumLevels()) * 100)}%`;
+        plannedElementsValue.textContent = String(plannedElements);
+        autoIncludedValue.textContent = String(autoIncluded);
+        modeValue.textContent =
+          mode === "reach" ? "Reach levels from 0" : "Remaining levels";
+        reductionValue.textContent = `${Number(reductionSelect.value || 0).toFixed(1)}%`;
+
+        const highestGoal = breakdownRows
+          .filter((row) => row.effectiveLevel > 0)
+          .sort((left, right) => right.effectiveLevel - left.effectiveLevel)[0];
+        goalValue.textContent = highestGoal
+          ? `${highestGoal.name} Lv ${highestGoal.effectiveLevel}`
+          : "No target selected";
+
+        if (!nextStep && breakdownRows.length === 0) {
+          plannerOverview.innerHTML =
+            "<strong>Next step:</strong> Choose a preset or set at least one target level to build a plan.";
+        } else if (!nextStep) {
+          plannerOverview.innerHTML =
+            "<strong>Plan ready:</strong> Your current levels already satisfy every included target.";
+        } else {
+          plannerOverview.innerHTML = nextStep.autoIncluded
+            ? `<strong>Next step:</strong> ${nextStep.name} needs to reach Lv ${nextStep.effectiveLevel}. This step was auto-included because it supports another selected target.`
+            : `<strong>Next step:</strong> ${nextStep.name} needs to reach Lv ${nextStep.effectiveLevel}. Your direct target for this research is Lv ${nextStep.targetLevel}.`;
+        }
+
+        if ((effectiveTargets["unit-x"] || 0) > 0) {
+          statusValue.textContent =
+            autoIncluded > 0
+              ? `Planning T10 path with ${autoIncluded} auto-included prerequisite ${autoIncluded === 1 ? "step" : "steps"}`
+              : "Planning full T10 path to Unit X";
+        } else if (plannedElements > 0) {
+          statusValue.textContent =
+            autoIncluded > 0
+              ? `Planning custom path with ${autoIncluded} auto-included prerequisite ${autoIncluded === 1 ? "step" : "steps"}`
+              : "Planning custom Special Forces path";
+        } else {
+          statusValue.textContent = "No research selected";
+        }
+
+        breakdownList.innerHTML = breakdownRows
+          .map(
+            (row) => `
+            <div class="planner-breakdown-row">
+              <div>
+                <div class="planner-breakdown-title">${row.name}</div>
+                <div class="planner-breakdown-meta">
+                  Current Lv ${row.currentLevel} | Selected Lv ${row.targetLevel} | Effective Lv ${row.effectiveLevel}${row.autoIncluded ? " | Auto-included prerequisite" : ""}
+                </div>
+              </div>
+              <div class="planner-breakdown-costs">
+                ${resourceKeys
+                  .map(
+                    (key) => `
+                    <div class="planner-breakdown-cost">
+                      <span class="label">${key}</span>
+                      <span class="value">${formatNumber(row.totals[key])}</span>
+                    </div>
+                  `,
+                  )
+                  .join("")}
+              </div>
+            </div>
+          `,
+          )
+          .join("");
+
+        breakdownEmpty.classList.toggle(
+          "planner-hidden",
+          breakdownRows.length > 0,
+        );
+
+        saveState();
+      }
+
+      buildReductionOptions();
+      buildLanguageOptions();
+      buildPlanner();
+      loadState();
+      buildLanguageOptions();
+      updateCalculator();
+      loadGoogleTranslateScript();
+
+      modeSelect.addEventListener("change", updateCalculator);
+      reductionSelect.addEventListener("change", updateCalculator);
+      searchInput.addEventListener("input", updateCalculator);
+      plannedOnlyToggle.addEventListener("change", updateCalculator);
+      planT10Button.addEventListener("click", planT10Path);
+      planTier3Button.addEventListener("click", planTier3Boosts);
+      setAllMaxButton.addEventListener("click", setAllTargetsToMax);
+      clearTargetsButton.addEventListener("click", clearTargets);
+      resetCurrentButton.addEventListener("click", resetCurrentLevels);
+      languageSelect.addEventListener("change", () => {
+        preferredLanguage = languageSelect.value;
+        applyGoogleLanguage(preferredLanguage);
+        saveState();
+      });
+    </script>
+  </body>
+</html>
