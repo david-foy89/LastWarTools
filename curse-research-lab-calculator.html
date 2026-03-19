@@ -3,7 +3,7 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Last War Titanium Alloy Calculator</title>
+    <title>Last War Curse Research Lab Calculator</title>
     <link rel="stylesheet" href="last-war-furnace-upgrade-calculator.css" />
   </head>
   <body>
@@ -21,14 +21,12 @@
 
       <nav class="page-nav" aria-label="Calculator pages">
         <a href="hq-upgrade-calculator.html" class="page-link">HQ Upgrade</a>
-        <details class="page-nav-dropdown active">
+        <details class="page-nav-dropdown">
           <summary class="page-link page-nav-dropdown-toggle">
             Season 2 Calculators
           </summary>
           <div class="page-nav-dropdown-menu">
-            <a
-              href="last-war-furnace-upgrade-calculator.html"
-              class="page-link active"
+            <a href="last-war-furnace-upgrade-calculator.html" class="page-link"
               >Furnace Calculator</a
             >
             <a href="season-2-tank-center-calculator.html" class="page-link"
@@ -36,12 +34,14 @@
             >
           </div>
         </details>
-        <details class="page-nav-dropdown">
+        <details class="page-nav-dropdown active">
           <summary class="page-link page-nav-dropdown-toggle">
             Season 3 Calculators
           </summary>
           <div class="page-nav-dropdown-menu">
-            <a href="curse-research-lab-calculator.html" class="page-link"
+            <a
+              href="curse-research-lab-calculator.html"
+              class="page-link active"
               >Curse Research Lab</a
             >
             <a href="altar-calculator.html" class="page-link">Altar</a>
@@ -53,11 +53,12 @@
       </nav>
 
       <section class="hero">
-        <h1>Last War Titanium Alloy Calculator</h1>
+        <h1>Curse Research Lab Calculator</h1>
         <div class="sub">
-          Choose your current furnace level and enter your current titanium
-          alloy. The calculator shows exactly how much titanium you need for the
-          next level and how much more you still need.
+          Choose your current Curse Research Lab level and enter your current
+          sacred water. The calculator shows how much sacred water you still
+          need for the next level and when your Blessing Fountains will cover
+          the gap.
         </div>
       </section>
 
@@ -65,13 +66,13 @@
         <div class="card">
           <h2 class="card-title">Inputs</h2>
           <div class="field">
-            <label for="currentLevel">Current Furnace Level</label>
+            <label for="currentLevel">Current Curse Research Lab Level</label>
             <select id="currentLevel"></select>
           </div>
           <div class="field">
-            <label for="currentTitanium">Current Titanium</label>
+            <label for="currentSacredWater">Current Sacred Water</label>
             <input
-              id="currentTitanium"
+              id="currentSacredWater"
               type="number"
               min="0"
               step="1"
@@ -90,11 +91,11 @@
           </div>
 
           <div class="field-group">
-            <h2 class="card-title">Titanium Alloy Factories</h2>
+            <h2 class="card-title">Blessing Fountains</h2>
             <div class="mine-list" id="mineList"></div>
             <div class="mine-total">
               <div class="mine-total-key">
-                Total Titanium Alloy Factory Output Per Hour
+                Total Sacred Water Output Per Hour
               </div>
               <div class="mine-total-value" id="totalMineOutput">0</div>
             </div>
@@ -109,16 +110,16 @@
               <div class="tile-value" id="nextLevelValue">Lv 2</div>
             </div>
             <div class="tile">
-              <div class="tile-key">Titanium Required</div>
-              <div class="tile-value" id="requiredValue">11.20k</div>
+              <div class="tile-key">Sacred Water Required</div>
+              <div class="tile-value" id="requiredValue">700</div>
             </div>
             <div class="tile">
-              <div class="tile-key">Current Titanium</div>
+              <div class="tile-key">Current Sacred Water</div>
               <div class="tile-value" id="ownedValue">0</div>
             </div>
             <div class="tile">
               <div class="tile-key">Still Needed</div>
-              <div class="tile-value warn" id="deficitValue">11.20k</div>
+              <div class="tile-value warn" id="deficitValue">700</div>
             </div>
             <div class="tile">
               <div class="tile-key">Estimated Time</div>
@@ -142,11 +143,11 @@
             <div class="row">
               <div class="row-key">Status</div>
               <div class="row-value" id="statusValue">
-                Need more titanium alloy
+                Need more sacred water
               </div>
             </div>
             <div class="row">
-              <div class="row-key">Titanium Alloy Factory Output Used</div>
+              <div class="row-key">Blessing Fountain Output Used</div>
               <div class="row-value" id="mineRateValue">0/hr</div>
             </div>
             <div class="row">
@@ -156,53 +157,53 @@
           </div>
 
           <div class="table-wrap">
-            <label for="costLevelSelect">Level / Titanium Alloy</label>
+            <label for="costLevelSelect">Level / Sacred Water</label>
             <select id="costLevelSelect"></select>
           </div>
 
           <div class="footnote">
-            Source values loaded from your provided level table for Levels 1
-            through 30.
+            Source values use the Curse Research Lab sacred water costs and
+            Blessing Fountain output table from Cpt Hedgehog.
           </div>
         </div>
       </section>
     </div>
 
     <script>
-      const titaniumCosts = [
-        { level: 1, titanium: 2800 },
-        { level: 2, titanium: 11200 },
-        { level: 3, titanium: 22400 },
-        { level: 4, titanium: 44800 },
-        { level: 5, titanium: 89600 },
-        { level: 6, titanium: 125400 },
-        { level: 7, titanium: 163100 },
-        { level: 8, titanium: 195700 },
-        { level: 9, titanium: 234800 },
-        { level: 10, titanium: 281800 },
-        { level: 11, titanium: 338100 },
-        { level: 12, titanium: 405800 },
-        { level: 13, titanium: 486900 },
-        { level: 14, titanium: 584300 },
-        { level: 15, titanium: 701200 },
-        { level: 16, titanium: 771300 },
-        { level: 17, titanium: 848400 },
-        { level: 18, titanium: 933300 },
-        { level: 19, titanium: 1030000 },
-        { level: 20, titanium: 1130000 },
-        { level: 21, titanium: 1240000 },
-        { level: 22, titanium: 1370000 },
-        { level: 23, titanium: 1500000 },
-        { level: 24, titanium: 1650000 },
-        { level: 25, titanium: 1820000 },
-        { level: 26, titanium: 2160000 },
-        { level: 27, titanium: 2510000 },
-        { level: 28, titanium: 2860000 },
-        { level: 29, titanium: 3460000 },
-        { level: 30, titanium: 4320000 },
+      const sacredWaterCosts = [
+        { level: 1, sacredWater: 700 },
+        { level: 2, sacredWater: 11200 },
+        { level: 3, sacredWater: 22400 },
+        { level: 4, sacredWater: 44800 },
+        { level: 5, sacredWater: 89600 },
+        { level: 6, sacredWater: 125400 },
+        { level: 7, sacredWater: 163100 },
+        { level: 8, sacredWater: 195700 },
+        { level: 9, sacredWater: 234800 },
+        { level: 10, sacredWater: 281800 },
+        { level: 11, sacredWater: 338100 },
+        { level: 12, sacredWater: 405800 },
+        { level: 13, sacredWater: 486900 },
+        { level: 14, sacredWater: 584300 },
+        { level: 15, sacredWater: 700200 },
+        { level: 16, sacredWater: 771300 },
+        { level: 17, sacredWater: 848400 },
+        { level: 18, sacredWater: 933300 },
+        { level: 19, sacredWater: 1030000 },
+        { level: 20, sacredWater: 1130000 },
+        { level: 21, sacredWater: 1240000 },
+        { level: 22, sacredWater: 1370000 },
+        { level: 23, sacredWater: 1500000 },
+        { level: 24, sacredWater: 1650000 },
+        { level: 25, sacredWater: 1820000 },
+        { level: 26, sacredWater: 2160000 },
+        { level: 27, sacredWater: 2510000 },
+        { level: 28, sacredWater: 2860000 },
+        { level: 29, sacredWater: 3460000 },
+        { level: 30, sacredWater: 4320000 },
       ];
 
-      const coalMineOutputs = [
+      const blessingFountainOutputs = [
         { level: 1, output: 720 },
         { level: 2, output: 1440 },
         { level: 3, output: 2160 },
@@ -236,7 +237,8 @@
       ];
 
       const currentLevelInput = document.getElementById("currentLevel");
-      const currentTitaniumInput = document.getElementById("currentTitanium");
+      const currentSacredWaterInput =
+        document.getElementById("currentSacredWater");
       const nextLevelValue = document.getElementById("nextLevelValue");
       const requiredValue = document.getElementById("requiredValue");
       const ownedValue = document.getElementById("ownedValue");
@@ -254,7 +256,7 @@
       const timeZoneSelect = document.getElementById("timeZoneSelect");
       const allianceTechSelect = document.getElementById("allianceTechSelect");
       const languageSelect = document.getElementById("languageSelect");
-      const STORAGE_KEY = "lastWarFurnaceCalcStateV1";
+      const STORAGE_KEY = "lastWarCurseResearchLabCalcStateV1";
       let lastCalcSignature = "";
       let lockedReadyAtTimestampMs = null;
       let preferredLanguage = "en";
@@ -328,7 +330,7 @@
         "Pacific/Auckland",
       ];
 
-      function formatTitanium(value) {
+      function formatResource(value) {
         return Math.round(Number(value) || 0).toLocaleString();
       }
 
@@ -476,7 +478,7 @@
 
       function buildLevelOptions() {
         currentLevelInput.innerHTML = "";
-        for (let level = 1; level <= titaniumCosts.length; level += 1) {
+        for (let level = 1; level <= sacredWaterCosts.length; level += 1) {
           const option = new Option(`Level ${level}`, String(level));
           currentLevelInput.appendChild(option);
         }
@@ -495,7 +497,7 @@
       }
 
       function buildMineSelectors() {
-        const options = coalMineOutputs
+        const options = blessingFountainOutputs
           .map(
             (row) => `<option value="${row.level}">Level ${row.level}</option>`,
           )
@@ -506,7 +508,7 @@
           (_, index) => `
         <div class="mine-row">
           <div>
-            <label for="mineLevel${index + 1}">Titanium Alloy Factory ${index + 1}</label>
+            <label for="mineLevel${index + 1}">Blessing Fountain ${index + 1}</label>
             <select id="mineLevel${index + 1}" data-mine-index="${index + 1}">
               <option value="0">Not set</option>
               ${options}
@@ -523,7 +525,10 @@
       }
 
       function getMineOutputForLevel(level) {
-        return coalMineOutputs.find((row) => row.level === level)?.output || 0;
+        return (
+          blessingFountainOutputs.find((row) => row.level === level)?.output ||
+          0
+        );
       }
 
       function updateMineOutput() {
@@ -535,10 +540,10 @@
           const level = Number(select.value);
           const output = getMineOutputForLevel(level);
           totalOutput += output;
-          outputBox.textContent = `${formatTitanium(output)}/hr`;
+          outputBox.textContent = `${formatResource(output)}/hr`;
         }
 
-        totalMineOutput.textContent = `${formatTitanium(totalOutput)}/hr`;
+        totalMineOutput.textContent = `${formatResource(totalOutput)}/hr`;
         updateCalculator();
       }
 
@@ -561,10 +566,10 @@
       }
 
       function buildTable() {
-        costLevelSelect.innerHTML = titaniumCosts
+        costLevelSelect.innerHTML = sacredWaterCosts
           .map(
             (row) =>
-              `<option value="${row.level}">Level ${row.level} - ${formatTitanium(row.titanium)}</option>`,
+              `<option value="${row.level}">Level ${row.level} - ${formatResource(row.sacredWater)}</option>`,
           )
           .join("");
       }
@@ -579,7 +584,7 @@
 
           const state = {
             currentLevel: Number(currentLevelInput.value || 1),
-            currentTitanium: Number(currentTitaniumInput.value || 0),
+            currentSacredWater: Number(currentSacredWaterInput.value || 0),
             timeZone: timeZoneSelect.value,
             allianceTech: Number(allianceTechSelect.value || 0),
             language: languageSelect.value,
@@ -610,9 +615,9 @@
             currentLevelInput.value = String(state.currentLevel);
           }
 
-          if (Number.isFinite(Number(state.currentTitanium))) {
-            currentTitaniumInput.value = String(
-              Math.max(0, Number(state.currentTitanium)),
+          if (Number.isFinite(Number(state.currentSacredWater))) {
+            currentSacredWaterInput.value = String(
+              Math.max(0, Number(state.currentSacredWater)),
             );
           }
 
@@ -671,55 +676,54 @@
 
       function updateCalculator() {
         const currentLevel = Number(currentLevelInput.value);
-        const currentTitanium = Math.max(
+        const currentSacredWater = Math.max(
           0,
-          Number(currentTitaniumInput.value) || 0,
+          Number(currentSacredWaterInput.value) || 0,
         );
-        const nextUpgrade = titaniumCosts.find(
+        const nextUpgrade = sacredWaterCosts.find(
           (row) => row.level === currentLevel + 1,
         );
 
         if (!nextUpgrade) {
           nextLevelValue.textContent = "Max";
           requiredValue.textContent = "0";
-          ownedValue.textContent = formatTitanium(currentTitanium);
+          ownedValue.textContent = formatResource(currentSacredWater);
           deficitValue.textContent = "0";
           deficitValue.className = "tile-value ok";
           etaValue.textContent = "-";
           readyAtValue.textContent = "-";
           pathValue.textContent = "Maximum configured level reached";
           statusValue.textContent = "No higher level in this table";
-          mineRateValue.textContent = `${formatTitanium(getTotalMineOutput())}/hr`;
+          mineRateValue.textContent = `${formatResource(getTotalMineOutput())}/hr`;
           timeZoneValue.textContent = timeZoneSelect.value;
           costLevelSelect.value = String(
-            titaniumCosts[titaniumCosts.length - 1].level,
+            sacredWaterCosts[sacredWaterCosts.length - 1].level,
           );
           updateCurrentTimeDisplay();
           return;
         }
 
         const allianceTechPct = Number(allianceTechSelect.value || 0);
-        const requiredTitanium = Math.max(
+        const requiredSacredWater = Math.max(
           0,
-          Math.round(nextUpgrade.titanium * (1 - allianceTechPct / 100)),
+          Math.round(nextUpgrade.sacredWater * (1 - allianceTechPct / 100)),
         );
-        const remainingTitanium = Math.max(
+        const remainingSacredWater = Math.max(
           0,
-          requiredTitanium - currentTitanium,
+          requiredSacredWater - currentSacredWater,
         );
-        const ready = remainingTitanium === 0;
+        const ready = remainingSacredWater === 0;
         const totalOutputPerHour = getTotalMineOutput();
         const estimatedHours = ready
           ? 0
           : totalOutputPerHour > 0
-            ? remainingTitanium / totalOutputPerHour
+            ? remainingSacredWater / totalOutputPerHour
             : Infinity;
         const selectedTimeZone = timeZoneSelect.value;
 
-        // Lock the ready-at time until values that affect the calculation change.
         const calcSignature = [
           currentLevel,
-          currentTitanium,
+          currentSacredWater,
           allianceTechPct,
           getMineLevelsSignature(),
         ].join("|");
@@ -735,9 +739,9 @@
         }
 
         nextLevelValue.textContent = `Lv ${currentLevel + 1}`;
-        requiredValue.textContent = formatTitanium(requiredTitanium);
-        ownedValue.textContent = formatTitanium(currentTitanium);
-        deficitValue.textContent = formatTitanium(remainingTitanium);
+        requiredValue.textContent = formatResource(requiredSacredWater);
+        ownedValue.textContent = formatResource(currentSacredWater);
+        deficitValue.textContent = formatResource(remainingSacredWater);
         deficitValue.className = `tile-value ${ready ? "ok" : "warn"}`;
         etaValue.textContent = formatTimeFromHours(estimatedHours);
         etaValue.className = `tile-value ${ready ? "ok" : totalOutputPerHour > 0 ? "" : "warn"}`;
@@ -752,9 +756,9 @@
         readyAtValue.className = `tile-value ${ready ? "ok" : totalOutputPerHour > 0 ? "" : "warn"}`;
         pathValue.textContent = `Level ${currentLevel} -> Level ${currentLevel + 1}`;
         statusValue.textContent = ready
-          ? "You already have enough titanium alloy"
-          : "Need more titanium alloy";
-        mineRateValue.textContent = `${formatTitanium(totalOutputPerHour)}/hr`;
+          ? "You already have enough sacred water"
+          : "Need more sacred water";
+        mineRateValue.textContent = `${formatResource(totalOutputPerHour)}/hr`;
         timeZoneValue.textContent = selectedTimeZone;
         costLevelSelect.value = String(nextUpgrade.level);
         updateCurrentTimeDisplay();
@@ -777,7 +781,7 @@
       setInterval(updateCurrentTimeDisplay, 1000);
 
       currentLevelInput.addEventListener("change", updateCalculator);
-      currentTitaniumInput.addEventListener("input", updateCalculator);
+      currentSacredWaterInput.addEventListener("input", updateCalculator);
       timeZoneSelect.addEventListener("change", updateCalculator);
       allianceTechSelect.addEventListener("change", updateMineOutput);
       languageSelect.addEventListener("change", () => {

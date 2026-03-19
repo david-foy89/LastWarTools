@@ -1,0 +1,1068 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Last War Protectors Field Calculator</title>
+    <link rel="stylesheet" href="last-war-furnace-upgrade-calculator.css" />
+  </head>
+  <body>
+    <div class="page">
+      <div class="page-top-controls">
+        <div class="logo-control">
+          <img src="media/lwst.png" alt="LWST logo" class="site-logo" />
+        </div>
+        <div class="language-control">
+          <label for="languageSelect">Language</label>
+          <select id="languageSelect"></select>
+        </div>
+      </div>
+      <div id="google_translate_element" class="hidden-translate"></div>
+
+      <nav class="page-nav" aria-label="Calculator pages">
+        <a href="hq-upgrade-calculator.html" class="page-link">HQ Upgrade</a>
+        <details class="page-nav-dropdown">
+          <summary class="page-link page-nav-dropdown-toggle">
+            Season 2 Calculators
+          </summary>
+          <div class="page-nav-dropdown-menu">
+            <a href="last-war-furnace-upgrade-calculator.html" class="page-link"
+              >Furnace Calculator</a
+            >
+            <a href="season-2-tank-center-calculator.html" class="page-link"
+              >Season 2 Squad Base</a
+            >
+          </div>
+        </details>
+        <details class="page-nav-dropdown active">
+          <summary class="page-link page-nav-dropdown-toggle">
+            Season 3 Calculators
+          </summary>
+          <div class="page-nav-dropdown-menu">
+            <a href="curse-research-lab-calculator.html" class="page-link"
+              >Curse Research Lab</a
+            >
+            <a href="altar-calculator.html" class="page-link">Altar</a>
+            <a href="protectors-field-calculator.html" class="page-link active"
+              >Protectors Field</a
+            >
+          </div>
+        </details>
+      </nav>
+
+      <section class="hero">
+        <h1>Protectors Field Calculator</h1>
+        <div class="sub">
+          Choose your current Protectors Field level and enter your current
+          resources. The calculator shows what you need for the next level.
+        </div>
+      </section>
+
+      <section class="layout">
+        <div class="card">
+          <h2 class="card-title">Inputs</h2>
+          <div class="field">
+            <label for="currentLevel">Current Protectors Field Level</label>
+            <select id="currentLevel"></select>
+          </div>
+          <div class="dual-field-grid">
+            <div class="field">
+              <label for="currentFood">Current Food</label>
+              <input
+                id="currentFood"
+                type="number"
+                min="0"
+                step="1"
+                value="0"
+              />
+            </div>
+            <div class="field">
+              <label for="currentIron">Current Iron</label>
+              <input
+                id="currentIron"
+                type="number"
+                min="0"
+                step="1"
+                value="0"
+              />
+            </div>
+          </div>
+          <div class="dual-field-grid">
+            <div class="field">
+              <label for="currentMithril">Current Mithril</label>
+              <input
+                id="currentMithril"
+                type="number"
+                min="0"
+                step="1"
+                value="0"
+              />
+            </div>
+            <div class="field">
+              <label for="currentSacredWater">Current Sacred Water</label>
+              <input
+                id="currentSacredWater"
+                type="number"
+                min="0"
+                step="1"
+                value="0"
+              />
+            </div>
+          </div>
+          <div class="field-group">
+            <h2 class="card-title">Blessing Fountains</h2>
+            <div class="mine-list" id="mineList"></div>
+            <div class="mine-total">
+              <div class="mine-total-key">
+                Total Sacred Water Output Per Hour
+              </div>
+              <div class="mine-total-value" id="totalMineOutput">0</div>
+            </div>
+          </div>
+          <div class="field-group">
+            <h2 class="card-title">Food Mines</h2>
+            <div class="mine-list" id="foodMineList"></div>
+            <div class="mine-total">
+              <div class="mine-total-key">Total Food Output Per Hour</div>
+              <div class="mine-total-value" id="totalFoodMineOutput">0</div>
+            </div>
+          </div>
+          <div class="field-group">
+            <h2 class="card-title">Iron Mines</h2>
+            <div class="mine-list" id="ironMineList"></div>
+            <div class="mine-total">
+              <div class="mine-total-key">Total Iron Output Per Hour</div>
+              <div class="mine-total-value" id="totalIronMineOutput">0</div>
+            </div>
+          </div>
+        </div>
+
+        <div class="card">
+          <h2 class="card-title">Next Upgrade</h2>
+          <div class="summary">
+            <div class="tile">
+              <div class="tile-key">Next Level</div>
+              <div class="tile-value" id="nextLevelValue">Lv 2</div>
+            </div>
+            <div class="tile">
+              <div class="tile-key">Food Required</div>
+              <div class="tile-value" id="requiredFood">8.40k</div>
+            </div>
+            <div class="tile">
+              <div class="tile-key">Current Food</div>
+              <div class="tile-value" id="ownedFood">0</div>
+            </div>
+            <div class="tile">
+              <div class="tile-key">Food Needed</div>
+              <div class="tile-value warn" id="deficitFood">8.40k</div>
+            </div>
+            <div class="tile">
+              <div class="tile-key">Iron Required</div>
+              <div class="tile-value" id="requiredIron">18.50k</div>
+            </div>
+            <div class="tile">
+              <div class="tile-key">Current Iron</div>
+              <div class="tile-value" id="ownedIron">0</div>
+            </div>
+            <div class="tile">
+              <div class="tile-key">Iron Needed</div>
+              <div class="tile-value warn" id="deficitIron">18.50k</div>
+            </div>
+            <div class="tile">
+              <div class="tile-key">Mithril Required</div>
+              <div class="tile-value" id="requiredMithril">-</div>
+            </div>
+            <div class="tile">
+              <div class="tile-key">Current Mithril</div>
+              <div class="tile-value" id="ownedMithril">0</div>
+            </div>
+            <div class="tile">
+              <div class="tile-key">Mithril Needed</div>
+              <div class="tile-value warn" id="deficitMithril">-</div>
+            </div>
+            <div class="tile">
+              <div class="tile-key">Sacred Water Required</div>
+              <div class="tile-value" id="requiredSacredWater">-</div>
+            </div>
+            <div class="tile">
+              <div class="tile-key">Current Sacred Water</div>
+              <div class="tile-value" id="ownedSacredWater">0</div>
+            </div>
+            <div class="tile">
+              <div class="tile-key">Sacred Water Needed</div>
+              <div class="tile-value warn" id="deficitSacredWater">-</div>
+            </div>
+            <div class="tile">
+              <div class="tile-key">Food Estimated Time</div>
+              <div class="tile-value" id="foodEtaValue">-</div>
+            </div>
+            <div class="tile">
+              <div class="tile-key">Iron Estimated Time</div>
+              <div class="tile-value" id="ironEtaValue">-</div>
+            </div>
+            <div class="tile">
+              <div class="tile-key">Sacred Water Estimated Time</div>
+              <div class="tile-value" id="etaValue">No output</div>
+            </div>
+          </div>
+
+          <div class="details">
+            <div class="row">
+              <div class="row-key">Upgrade Path</div>
+              <div class="row-value" id="pathValue">Level 1 -> Level 2</div>
+            </div>
+            <div class="row">
+              <div class="row-key">Resource Status</div>
+              <div class="row-value" id="statusValue">
+                Check resources above
+              </div>
+            </div>
+            <div class="row">
+              <div class="row-key">Blessing Fountain Output Used</div>
+              <div class="row-value" id="mineRateValue">0/hr</div>
+            </div>
+            <div class="row">
+              <div class="row-key">Food Mine Output Used</div>
+              <div class="row-value" id="foodMineRateValue">0/hr</div>
+            </div>
+            <div class="row">
+              <div class="row-key">Iron Mine Output Used</div>
+              <div class="row-value" id="ironMineRateValue">0/hr</div>
+            </div>
+          </div>
+
+          <div class="table-wrap">
+            <label for="costLevelSelect">Level / Resources</label>
+            <select id="costLevelSelect"></select>
+          </div>
+
+          <div class="footnote">
+            Source values use the Protectors Field upgrade table from Cpt
+            Hedgehog for levels 1 through 35. Levels 1-10 use Food and Iron;
+            levels 11+ use Mithril and Sacred Water.
+          </div>
+        </div>
+      </section>
+    </div>
+
+    <script>
+      const protectorsFieldCosts = [
+        { level: 1, food: 3880, iron: 4250 },
+        { level: 2, food: 8400, iron: 18500 },
+        { level: 3, food: 16800, iron: 37000 },
+        { level: 4, food: 33600, iron: 73900 },
+        { level: 5, food: 67200, iron: 147800 },
+        { level: 6, food: 100800, iron: 207000 },
+        { level: 7, food: 140390, iron: 269100 },
+        { level: 8, food: 226800, iron: 323100 },
+        { level: 9, food: 340200, iron: 387500 },
+        { level: 10, food: 510300, iron: 465000 },
+        { level: 11, mithril: 561300, sacredWater: 557900 },
+        { level: 12, mithril: 617500, sacredWater: 669500 },
+        { level: 13, mithril: 679200, sacredWater: 803400 },
+        { level: 14, mithril: 747100, sacredWater: 964100 },
+        { level: 15, mithril: 821800, sacredWater: 1160000 },
+        { level: 16, mithril: 904000, sacredWater: 1240000 },
+        { level: 17, mithril: 994400, sacredWater: 1360000 },
+        { level: 18, mithril: 1090000, sacredWater: 1470000 },
+        { level: 19, mithril: 1200000, sacredWater: 1580000 },
+        { level: 20, mithril: 1320000, sacredWater: 1860000 },
+        { level: 21, mithril: 1390000, sacredWater: 2030000 },
+        { level: 22, mithril: 1460000, sacredWater: 2150000 },
+        { level: 23, mithril: 1470000, sacredWater: 2370000 },
+        { level: 24, mithril: 1610000, sacredWater: 2710000 },
+        { level: 25, mithril: 1580000, sacredWater: 2940000 },
+        { level: 26, mithril: 1770000, sacredWater: 3150000 },
+        { level: 27, mithril: 1860000, sacredWater: 3310000 },
+        { level: 28, mithril: 1920000, sacredWater: 3390000 },
+        { level: 29, mithril: 2030000, sacredWater: 3620000 },
+        { level: 30, mithril: 2150000, sacredWater: 3730000 },
+        { level: 31, mithril: 2350000, sacredWater: 4000000 },
+        { level: 32, mithril: 2590000, sacredWater: 4240000 },
+        { level: 33, mithril: 0, sacredWater: 0 },
+        { level: 34, mithril: 0, sacredWater: 0 },
+        { level: 35, mithril: 0, sacredWater: 0 },
+      ];
+
+      const blessingFountainOutputs = [
+        { level: 1, output: 720 },
+        { level: 2, output: 1440 },
+        { level: 3, output: 2160 },
+        { level: 4, output: 2880 },
+        { level: 5, output: 3600 },
+        { level: 6, output: 4320 },
+        { level: 7, output: 5040 },
+        { level: 8, output: 5760 },
+        { level: 9, output: 6480 },
+        { level: 10, output: 7200 },
+        { level: 11, output: 7920 },
+        { level: 12, output: 8640 },
+        { level: 13, output: 9360 },
+        { level: 14, output: 10080 },
+        { level: 15, output: 10800 },
+        { level: 16, output: 11520 },
+        { level: 17, output: 12240 },
+        { level: 18, output: 12960 },
+        { level: 19, output: 13680 },
+        { level: 20, output: 14400 },
+        { level: 21, output: 15120 },
+        { level: 22, output: 15840 },
+        { level: 23, output: 16560 },
+        { level: 24, output: 17280 },
+        { level: 25, output: 18000 },
+        { level: 26, output: 18720 },
+        { level: 27, output: 19440 },
+        { level: 28, output: 20160 },
+        { level: 29, output: 20880 },
+        { level: 30, output: 21600 },
+      ];
+
+      const foodMineOutputs = [
+        { level: 1, output: 1800 },
+        { level: 2, output: 3600 },
+        { level: 3, output: 5400 },
+        { level: 4, output: 7200 },
+        { level: 5, output: 9000 },
+        { level: 6, output: 10800 },
+        { level: 7, output: 12600 },
+        { level: 8, output: 14400 },
+        { level: 9, output: 16200 },
+        { level: 10, output: 18000 },
+        { level: 11, output: 19800 },
+        { level: 12, output: 21600 },
+        { level: 13, output: 23400 },
+        { level: 14, output: 25200 },
+        { level: 15, output: 27000 },
+        { level: 16, output: 28800 },
+        { level: 17, output: 30600 },
+        { level: 18, output: 32400 },
+        { level: 19, output: 34200 },
+        { level: 20, output: 36000 },
+        { level: 21, output: 37800 },
+        { level: 22, output: 39600 },
+        { level: 23, output: 41400 },
+        { level: 24, output: 43200 },
+        { level: 25, output: 45000 },
+        { level: 26, output: 46800 },
+        { level: 27, output: 48600 },
+        { level: 28, output: 50400 },
+        { level: 29, output: 52200 },
+        { level: 30, output: 54000 },
+      ];
+
+      const ironMineOutputs = [
+        { level: 1, output: 1800 },
+        { level: 2, output: 3600 },
+        { level: 3, output: 5400 },
+        { level: 4, output: 7200 },
+        { level: 5, output: 9000 },
+        { level: 6, output: 10800 },
+        { level: 7, output: 12600 },
+        { level: 8, output: 14400 },
+        { level: 9, output: 16200 },
+        { level: 10, output: 18000 },
+        { level: 11, output: 19800 },
+        { level: 12, output: 21600 },
+        { level: 13, output: 23400 },
+        { level: 14, output: 25200 },
+        { level: 15, output: 27000 },
+        { level: 16, output: 28800 },
+        { level: 17, output: 30600 },
+        { level: 18, output: 32400 },
+        { level: 19, output: 34200 },
+        { level: 20, output: 36000 },
+        { level: 21, output: 37800 },
+        { level: 22, output: 39600 },
+        { level: 23, output: 41400 },
+        { level: 24, output: 43200 },
+        { level: 25, output: 45000 },
+        { level: 26, output: 46800 },
+        { level: 27, output: 48600 },
+        { level: 28, output: 50400 },
+        { level: 29, output: 52200 },
+        { level: 30, output: 54000 },
+      ];
+
+      const currentLevelInput = document.getElementById("currentLevel");
+      const currentFoodInput = document.getElementById("currentFood");
+      const currentIronInput = document.getElementById("currentIron");
+      const currentMithrilInput = document.getElementById("currentMithril");
+      const currentSacredWaterInput =
+        document.getElementById("currentSacredWater");
+      const nextLevelValue = document.getElementById("nextLevelValue");
+      const requiredFood = document.getElementById("requiredFood");
+      const ownedFood = document.getElementById("ownedFood");
+      const deficitFood = document.getElementById("deficitFood");
+      const requiredIron = document.getElementById("requiredIron");
+      const ownedIron = document.getElementById("ownedIron");
+      const deficitIron = document.getElementById("deficitIron");
+      const requiredMithril = document.getElementById("requiredMithril");
+      const ownedMithril = document.getElementById("ownedMithril");
+      const deficitMithril = document.getElementById("deficitMithril");
+      const requiredSacredWater = document.getElementById(
+        "requiredSacredWater",
+      );
+      const ownedSacredWater = document.getElementById("ownedSacredWater");
+      const deficitSacredWater = document.getElementById("deficitSacredWater");
+      const pathValue = document.getElementById("pathValue");
+      const statusValue = document.getElementById("statusValue");
+      const costLevelSelect = document.getElementById("costLevelSelect");
+      const languageSelect = document.getElementById("languageSelect");
+      const mineList = document.getElementById("mineList");
+      const totalMineOutput = document.getElementById("totalMineOutput");
+      const etaValue = document.getElementById("etaValue");
+      const mineRateValue = document.getElementById("mineRateValue");
+      const foodMineList = document.getElementById("foodMineList");
+      const totalFoodMineOutput = document.getElementById(
+        "totalFoodMineOutput",
+      );
+      const foodEtaValue = document.getElementById("foodEtaValue");
+      const foodMineRateValue = document.getElementById("foodMineRateValue");
+      const ironMineList = document.getElementById("ironMineList");
+      const totalIronMineOutput = document.getElementById(
+        "totalIronMineOutput",
+      );
+      const ironEtaValue = document.getElementById("ironEtaValue");
+      const ironMineRateValue = document.getElementById("ironMineRateValue");
+      const STORAGE_KEY = "lastWarProtectorsFieldCalcStateV1";
+      let preferredLanguage = "en";
+
+      const languageOptions = [
+        { code: "en", label: "English" },
+        { code: "es", label: "Spanish" },
+        { code: "fr", label: "French" },
+        { code: "de", label: "German" },
+        { code: "it", label: "Italian" },
+        { code: "pt", label: "Portuguese" },
+        { code: "ru", label: "Russian" },
+        { code: "uk", label: "Ukrainian" },
+        { code: "pl", label: "Polish" },
+        { code: "tr", label: "Turkish" },
+        { code: "ar", label: "Arabic" },
+        { code: "fa", label: "Persian" },
+        { code: "he", label: "Hebrew" },
+        { code: "hi", label: "Hindi" },
+        { code: "bn", label: "Bengali" },
+        { code: "ur", label: "Urdu" },
+        { code: "th", label: "Thai" },
+        { code: "vi", label: "Vietnamese" },
+        { code: "id", label: "Indonesian" },
+        { code: "ms", label: "Malay" },
+        { code: "fil", label: "Filipino" },
+        { code: "ja", label: "Japanese" },
+        { code: "ko", label: "Korean" },
+        { code: "zh-CN", label: "Chinese (Simplified)" },
+        { code: "zh-TW", label: "Chinese (Traditional)" },
+        { code: "el", label: "Greek" },
+        { code: "nl", label: "Dutch" },
+        { code: "sv", label: "Swedish" },
+        { code: "da", label: "Danish" },
+        { code: "fi", label: "Finnish" },
+        { code: "no", label: "Norwegian" },
+        { code: "cs", label: "Czech" },
+        { code: "ro", label: "Romanian" },
+        { code: "hu", label: "Hungarian" },
+        { code: "sk", label: "Slovak" },
+        { code: "bg", label: "Bulgarian" },
+        { code: "hr", label: "Croatian" },
+        { code: "sr", label: "Serbian" },
+        { code: "sl", label: "Slovenian" },
+        { code: "lt", label: "Lithuanian" },
+        { code: "lv", label: "Latvian" },
+        { code: "et", label: "Estonian" },
+      ];
+
+      function formatResource(value) {
+        return Math.round(Number(value) || 0).toLocaleString();
+      }
+
+      function buildLanguageOptions() {
+        languageSelect.innerHTML = languageOptions
+          .map((lang) => `<option value="${lang.code}">${lang.label}</option>`)
+          .join("");
+        languageSelect.value = preferredLanguage;
+      }
+
+      function applyGoogleLanguage(languageCode, retries = 25) {
+        const combo = document.querySelector(".goog-te-combo");
+        if (!combo) {
+          if (retries > 0) {
+            setTimeout(
+              () => applyGoogleLanguage(languageCode, retries - 1),
+              200,
+            );
+          }
+          return;
+        }
+
+        combo.value = languageCode;
+        combo.dispatchEvent(new Event("change"));
+      }
+
+      function loadGoogleTranslateScript() {
+        if (window.google && window.google.translate) {
+          window.googleTranslateElementInit();
+          return;
+        }
+
+        const script = document.createElement("script");
+        script.src =
+          "https://translate.google.com/translate_a/element.js?cb=googleTranslateElementInit";
+        script.async = true;
+        document.body.appendChild(script);
+      }
+
+      window.googleTranslateElementInit =
+        function googleTranslateElementInit() {
+          new window.google.translate.TranslateElement(
+            {
+              pageLanguage: "en",
+              autoDisplay: false,
+            },
+            "google_translate_element",
+          );
+
+          applyGoogleLanguage(preferredLanguage);
+        };
+
+      function buildMineSelectors() {
+        const options = blessingFountainOutputs
+          .map(
+            (row) => `<option value="${row.level}">Level ${row.level}</option>`,
+          )
+          .join("");
+
+        mineList.innerHTML = Array.from(
+          { length: 5 },
+          (_, index) => `
+        <div class="mine-row">
+          <div>
+            <label for="mineLevel${index + 1}">Blessing Fountain ${index + 1}</label>
+            <select id="mineLevel${index + 1}" data-mine-index="${index + 1}">
+              <option value="0">Not set</option>
+              ${options}
+            </select>
+          </div>
+          <div class="mine-output" id="mineOutput${index + 1}">0/hr</div>
+        </div>
+      `,
+        ).join("");
+
+        Array.from(mineList.querySelectorAll("select")).forEach((select) => {
+          select.addEventListener("change", updateMineOutput);
+        });
+      }
+
+      function getMineOutputForLevel(level) {
+        return (
+          blessingFountainOutputs.find((row) => row.level === level)?.output ||
+          0
+        );
+      }
+
+      function updateMineOutput() {
+        let totalOutput = 0;
+
+        for (let index = 1; index <= 5; index += 1) {
+          const select = document.getElementById(`mineLevel${index}`);
+          const outputBox = document.getElementById(`mineOutput${index}`);
+          const level = Number(select.value);
+          const output = getMineOutputForLevel(level);
+          totalOutput += output;
+          outputBox.textContent = `${formatResource(output)}/hr`;
+        }
+
+        totalMineOutput.textContent = `${formatResource(totalOutput)}/hr`;
+        updateCalculator();
+      }
+
+      function buildFoodMineSelectors() {
+        const options = foodMineOutputs
+          .map(
+            (row) => `<option value="${row.level}">Level ${row.level}</option>`,
+          )
+          .join("");
+
+        foodMineList.innerHTML = Array.from(
+          { length: 5 },
+          (_, index) => `
+        <div class="mine-row">
+          <div>
+            <label for="foodMineLevel${index + 1}">Food Mine ${index + 1}</label>
+            <select id="foodMineLevel${index + 1}" data-mine-index="${index + 1}">
+              <option value="0">Not set</option>
+              ${options}
+            </select>
+          </div>
+          <div class="mine-output" id="foodMineOutput${index + 1}">0/hr</div>
+        </div>
+      `,
+        ).join("");
+
+        Array.from(foodMineList.querySelectorAll("select")).forEach(
+          (select) => {
+            select.addEventListener("change", updateFoodMineOutput);
+          },
+        );
+      }
+
+      function getFoodMineOutputForLevel(level) {
+        return foodMineOutputs.find((row) => row.level === level)?.output || 0;
+      }
+
+      function updateFoodMineOutput() {
+        let totalOutput = 0;
+
+        for (let index = 1; index <= 5; index += 1) {
+          const select = document.getElementById(`foodMineLevel${index}`);
+          const outputBox = document.getElementById(`foodMineOutput${index}`);
+          const level = Number(select.value);
+          const output = getFoodMineOutputForLevel(level);
+          totalOutput += output;
+          outputBox.textContent = `${formatResource(output)}/hr`;
+        }
+
+        totalFoodMineOutput.textContent = `${formatResource(totalOutput)}/hr`;
+        updateCalculator();
+      }
+
+      function buildIronMineSelectors() {
+        const options = ironMineOutputs
+          .map(
+            (row) => `<option value="${row.level}">Level ${row.level}</option>`,
+          )
+          .join("");
+
+        ironMineList.innerHTML = Array.from(
+          { length: 5 },
+          (_, index) => `
+        <div class="mine-row">
+          <div>
+            <label for="ironMineLevel${index + 1}">Iron Mine ${index + 1}</label>
+            <select id="ironMineLevel${index + 1}" data-mine-index="${index + 1}">
+              <option value="0">Not set</option>
+              ${options}
+            </select>
+          </div>
+          <div class="mine-output" id="ironMineOutput${index + 1}">0/hr</div>
+        </div>
+      `,
+        ).join("");
+
+        Array.from(ironMineList.querySelectorAll("select")).forEach(
+          (select) => {
+            select.addEventListener("change", updateIronMineOutput);
+          },
+        );
+      }
+
+      function getIronMineOutputForLevel(level) {
+        return ironMineOutputs.find((row) => row.level === level)?.output || 0;
+      }
+
+      function updateIronMineOutput() {
+        let totalOutput = 0;
+
+        for (let index = 1; index <= 5; index += 1) {
+          const select = document.getElementById(`ironMineLevel${index}`);
+          const outputBox = document.getElementById(`ironMineOutput${index}`);
+          const level = Number(select.value);
+          const output = getIronMineOutputForLevel(level);
+          totalOutput += output;
+          outputBox.textContent = `${formatResource(output)}/hr`;
+        }
+
+        totalIronMineOutput.textContent = `${formatResource(totalOutput)}/hr`;
+        updateCalculator();
+      }
+
+      function buildLevelOptions() {
+        currentLevelInput.innerHTML = "";
+        for (let level = 1; level <= protectorsFieldCosts.length; level += 1) {
+          const option = new Option(`Level ${level}`, String(level));
+          currentLevelInput.appendChild(option);
+        }
+        currentLevelInput.value = "1";
+      }
+
+      function buildTable() {
+        costLevelSelect.innerHTML = protectorsFieldCosts
+          .map((row) => {
+            const desc = row.food
+              ? `${formatResource(row.food)} Food, ${formatResource(row.iron)} Iron`
+              : row.mithril
+                ? `${formatResource(row.mithril)} Mithril, ${formatResource(row.sacredWater)} Sacred Water`
+                : "No data";
+            return `<option value="${row.level}">Level ${row.level} - ${desc}</option>`;
+          })
+          .join("");
+      }
+
+      function saveState() {
+        try {
+          const fountainLevels = [];
+          for (let index = 1; index <= 5; index += 1) {
+            const select = document.getElementById(`mineLevel${index}`);
+            if (select) {
+              fountainLevels.push(Number(select.value || 0));
+            }
+          }
+
+          const foodMineLevels = [];
+          for (let index = 1; index <= 5; index += 1) {
+            const select = document.getElementById(`foodMineLevel${index}`);
+            if (select) {
+              foodMineLevels.push(Number(select.value || 0));
+            }
+          }
+
+          const ironMineLevels = [];
+          for (let index = 1; index <= 5; index += 1) {
+            const select = document.getElementById(`ironMineLevel${index}`);
+            if (select) {
+              ironMineLevels.push(Number(select.value || 0));
+            }
+          }
+
+          const state = {
+            currentLevel: Number(currentLevelInput.value || 1),
+            currentFood: Number(currentFoodInput.value || 0),
+            currentIron: Number(currentIronInput.value || 0),
+            currentMithril: Number(currentMithrilInput.value || 0),
+            currentSacredWater: Number(currentSacredWaterInput.value || 0),
+            fountainLevels: fountainLevels,
+            foodMineLevels: foodMineLevels,
+            ironMineLevels: ironMineLevels,
+            language: languageSelect.value,
+          };
+
+          localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
+        } catch {
+          // Ignore storage errors
+        }
+      }
+
+      function loadSavedState() {
+        try {
+          const raw = localStorage.getItem(STORAGE_KEY);
+          if (!raw) return;
+
+          const state = JSON.parse(raw);
+
+          if (
+            state.currentLevel &&
+            currentLevelInput.querySelector(
+              `option[value="${state.currentLevel}"]`,
+            )
+          ) {
+            currentLevelInput.value = String(state.currentLevel);
+          }
+
+          if (Number.isFinite(Number(state.currentFood))) {
+            currentFoodInput.value = String(
+              Math.max(0, Number(state.currentFood)),
+            );
+          }
+
+          if (Number.isFinite(Number(state.currentIron))) {
+            currentIronInput.value = String(
+              Math.max(0, Number(state.currentIron)),
+            );
+          }
+
+          if (Number.isFinite(Number(state.currentMithril))) {
+            currentMithrilInput.value = String(
+              Math.max(0, Number(state.currentMithril)),
+            );
+          }
+
+          if (Number.isFinite(Number(state.currentSacredWater))) {
+            currentSacredWaterInput.value = String(
+              Math.max(0, Number(state.currentSacredWater)),
+            );
+          }
+
+          if (
+            Array.isArray(state.fountainLevels) &&
+            state.fountainLevels.length > 0
+          ) {
+            setTimeout(() => {
+              for (
+                let index = 0;
+                index < state.fountainLevels.length;
+                index += 1
+              ) {
+                const select = document.getElementById(`mineLevel${index + 1}`);
+                if (select) {
+                  select.value = String(state.fountainLevels[index]);
+                }
+              }
+              updateMineOutput();
+            }, 0);
+          }
+
+          if (
+            Array.isArray(state.foodMineLevels) &&
+            state.foodMineLevels.length > 0
+          ) {
+            setTimeout(() => {
+              for (
+                let index = 0;
+                index < state.foodMineLevels.length;
+                index += 1
+              ) {
+                const select = document.getElementById(
+                  `foodMineLevel${index + 1}`,
+                );
+                if (select) {
+                  select.value = String(state.foodMineLevels[index]);
+                }
+              }
+              updateFoodMineOutput();
+            }, 0);
+          }
+
+          if (
+            Array.isArray(state.ironMineLevels) &&
+            state.ironMineLevels.length > 0
+          ) {
+            setTimeout(() => {
+              for (
+                let index = 0;
+                index < state.ironMineLevels.length;
+                index += 1
+              ) {
+                const select = document.getElementById(
+                  `ironMineLevel${index + 1}`,
+                );
+                if (select) {
+                  select.value = String(state.ironMineLevels[index]);
+                }
+              }
+              updateIronMineOutput();
+            }, 0);
+          }
+
+          if (
+            state.language &&
+            languageOptions.some((lang) => lang.code === state.language)
+          ) {
+            preferredLanguage = state.language;
+            languageSelect.value = state.language;
+          }
+        } catch {
+          // Ignore malformed stored state
+        }
+      }
+
+      function updateCalculator() {
+        const currentLevel = Number(currentLevelInput.value);
+        const curFood = Math.max(0, Number(currentFoodInput.value) || 0);
+        const curIron = Math.max(0, Number(currentIronInput.value) || 0);
+        const curMith = Math.max(0, Number(currentMithrilInput.value) || 0);
+        const curSW = Math.max(0, Number(currentSacredWaterInput.value) || 0);
+        const nextUpgrade = protectorsFieldCosts.find(
+          (row) => row.level === currentLevel + 1,
+        );
+
+        // Calculate total fountain output
+        let totalFountainOutput = 0;
+        for (let index = 1; index <= 5; index += 1) {
+          const select = document.getElementById(`mineLevel${index}`);
+          if (select) {
+            const level = Number(select.value);
+            totalFountainOutput += getMineOutputForLevel(level);
+          }
+        }
+
+        // Calculate total food mine output
+        let totalFoodMineOutputValue = 0;
+        for (let index = 1; index <= 5; index += 1) {
+          const select = document.getElementById(`foodMineLevel${index}`);
+          if (select) {
+            const level = Number(select.value);
+            totalFoodMineOutputValue += getFoodMineOutputForLevel(level);
+          }
+        }
+
+        // Calculate total iron mine output
+        let totalIronMineOutputValue = 0;
+        for (let index = 1; index <= 5; index += 1) {
+          const select = document.getElementById(`ironMineLevel${index}`);
+          if (select) {
+            const level = Number(select.value);
+            totalIronMineOutputValue += getIronMineOutputForLevel(level);
+          }
+        }
+
+        if (!nextUpgrade) {
+          nextLevelValue.textContent = "Max";
+          requiredFood.textContent = "0";
+          ownedFood.textContent = formatResource(curFood);
+          deficitFood.textContent = "0";
+          deficitFood.className = "tile-value ok";
+          requiredIron.textContent = "0";
+          ownedIron.textContent = formatResource(curIron);
+          deficitIron.textContent = "0";
+          deficitIron.className = "tile-value ok";
+          requiredMithril.textContent = "-";
+          ownedMithril.textContent = "0";
+          deficitMithril.textContent = "-";
+          deficitMithril.className = "tile-value";
+          requiredSacredWater.textContent = "-";
+          ownedSacredWater.textContent = "0";
+          deficitSacredWater.textContent = "-";
+          deficitSacredWater.className = "tile-value";
+          foodEtaValue.textContent = "-";
+          ironEtaValue.textContent = "-";
+          etaValue.textContent = "-";
+          foodMineRateValue.textContent = "0/hr";
+          ironMineRateValue.textContent = "0/hr";
+          mineRateValue.textContent = "0/hr";
+          pathValue.textContent = "Maximum level reached";
+          statusValue.textContent = "No higher level";
+          costLevelSelect.value = String(
+            protectorsFieldCosts[protectorsFieldCosts.length - 1].level,
+          );
+          return;
+        }
+
+        const isFoodLevel = nextUpgrade.food !== undefined;
+        let statusText = "Check resources above";
+
+        if (isFoodLevel) {
+          const needFood = Math.max(0, nextUpgrade.food - curFood);
+          const needIron = Math.max(0, nextUpgrade.iron - curIron);
+          const foodReady = needFood === 0;
+          const ironReady = needIron === 0;
+
+          // Calculate ETA for Food
+          let foodEtaText = "-";
+          if (totalFoodMineOutputValue > 0 && needFood > 0) {
+            const hoursNeeded = needFood / totalFoodMineOutputValue;
+            const hours = Math.floor(hoursNeeded);
+            const minutes = Math.round((hoursNeeded - hours) * 60);
+            foodEtaText = `${hours}h ${minutes}m`;
+          } else if (needFood === 0) {
+            foodEtaText = "Ready now";
+          } else if (totalFoodMineOutputValue === 0 && needFood > 0) {
+            foodEtaText = "No output";
+          }
+
+          // Calculate ETA for Iron
+          let ironEtaText = "-";
+          if (totalIronMineOutputValue > 0 && needIron > 0) {
+            const hoursNeeded = needIron / totalIronMineOutputValue;
+            const hours = Math.floor(hoursNeeded);
+            const minutes = Math.round((hoursNeeded - hours) * 60);
+            ironEtaText = `${hours}h ${minutes}m`;
+          } else if (needIron === 0) {
+            ironEtaText = "Ready now";
+          } else if (totalIronMineOutputValue === 0 && needIron > 0) {
+            ironEtaText = "No output";
+          }
+
+          requiredFood.textContent = formatResource(nextUpgrade.food);
+          ownedFood.textContent = formatResource(curFood);
+          deficitFood.textContent = formatResource(needFood);
+          deficitFood.className = `tile-value ${foodReady ? "ok" : "warn"}`;
+          requiredIron.textContent = formatResource(nextUpgrade.iron);
+          ownedIron.textContent = formatResource(curIron);
+          deficitIron.textContent = formatResource(needIron);
+          deficitIron.className = `tile-value ${ironReady ? "ok" : "warn"}`;
+          requiredMithril.textContent = "-";
+          ownedMithril.textContent = "-";
+          deficitMithril.textContent = "-";
+          deficitMithril.className = "tile-value";
+          requiredSacredWater.textContent = "-";
+          ownedSacredWater.textContent = "-";
+          deficitSacredWater.textContent = "-";
+          deficitSacredWater.className = "tile-value";
+          foodEtaValue.textContent = foodEtaText;
+          ironEtaValue.textContent = ironEtaText;
+          etaValue.textContent = "-";
+          foodMineRateValue.textContent = `${formatResource(totalFoodMineOutputValue)}/hr`;
+          ironMineRateValue.textContent = `${formatResource(totalIronMineOutputValue)}/hr`;
+          mineRateValue.textContent = "0/hr";
+
+          statusText =
+            foodReady && ironReady
+              ? "Have all resources"
+              : "Need more resources";
+        } else {
+          const needMith = Math.max(0, nextUpgrade.mithril - curMith);
+          const needSW = Math.max(0, nextUpgrade.sacredWater - curSW);
+          const mithReady = needMith === 0;
+          const swReady = needSW === 0;
+
+          // Calculate ETA for Sacred Water
+          let etaText = "No output";
+          if (totalFountainOutput > 0 && needSW > 0) {
+            const hoursNeeded = needSW / totalFountainOutput;
+            const hours = Math.floor(hoursNeeded);
+            const minutes = Math.round((hoursNeeded - hours) * 60);
+            etaText = `${hours}h ${minutes}m`;
+          } else if (needSW === 0) {
+            etaText = "Ready now";
+          }
+
+          requiredFood.textContent = "-";
+          ownedFood.textContent = "-";
+          deficitFood.textContent = "-";
+          deficitFood.className = "tile-value";
+          requiredIron.textContent = "-";
+          ownedIron.textContent = "-";
+          deficitIron.textContent = "-";
+          deficitIron.className = "tile-value";
+          requiredMithril.textContent = formatResource(nextUpgrade.mithril);
+          ownedMithril.textContent = formatResource(curMith);
+          deficitMithril.textContent = formatResource(needMith);
+          deficitMithril.className = `tile-value ${mithReady ? "ok" : "warn"}`;
+          requiredSacredWater.textContent = formatResource(
+            nextUpgrade.sacredWater,
+          );
+          ownedSacredWater.textContent = formatResource(curSW);
+          deficitSacredWater.textContent = formatResource(needSW);
+          deficitSacredWater.className = `tile-value ${swReady ? "ok" : "warn"}`;
+          foodEtaValue.textContent = "-";
+          ironEtaValue.textContent = "-";
+          etaValue.textContent = etaText;
+          foodMineRateValue.textContent = "0/hr";
+          ironMineRateValue.textContent = "0/hr";
+          mineRateValue.textContent = `${formatResource(totalFountainOutput)}/hr`;
+
+          statusText =
+            mithReady && swReady ? "Have all resources" : "Need more resources";
+        }
+
+        nextLevelValue.textContent = `Lv ${currentLevel + 1}`;
+        pathValue.textContent = `Level ${currentLevel} -> Level ${currentLevel + 1}`;
+        statusValue.textContent = statusText;
+        costLevelSelect.value = String(nextUpgrade.level);
+
+        saveState();
+      }
+
+      buildLevelOptions();
+      buildLanguageOptions();
+      buildMineSelectors();
+      buildFoodMineSelectors();
+      buildIronMineSelectors();
+      buildTable();
+      loadSavedState();
+      updateCalculator();
+      loadGoogleTranslateScript();
+
+      currentLevelInput.addEventListener("change", updateCalculator);
+      currentFoodInput.addEventListener("input", updateCalculator);
+      currentIronInput.addEventListener("input", updateCalculator);
+      currentMithrilInput.addEventListener("input", updateCalculator);
+      currentSacredWaterInput.addEventListener("input", updateCalculator);
+      languageSelect.addEventListener("change", () => {
+        preferredLanguage = languageSelect.value;
+        applyGoogleLanguage(preferredLanguage);
+        saveState();
+      });
+    </script>
+  </body>
+</html>

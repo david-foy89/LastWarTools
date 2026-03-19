@@ -1,0 +1,629 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Last War Altar Calculator</title>
+    <link rel="stylesheet" href="last-war-furnace-upgrade-calculator.css" />
+  </head>
+  <body>
+    <div class="page">
+      <div class="page-top-controls">
+        <div class="logo-control">
+          <img src="media/lwst.png" alt="LWST logo" class="site-logo" />
+        </div>
+        <div class="language-control">
+          <label for="languageSelect">Language</label>
+          <select id="languageSelect"></select>
+        </div>
+      </div>
+      <div id="google_translate_element" class="hidden-translate"></div>
+
+      <nav class="page-nav" aria-label="Calculator pages">
+        <a href="hq-upgrade-calculator.html" class="page-link">HQ Upgrade</a>
+        <details class="page-nav-dropdown">
+          <summary class="page-link page-nav-dropdown-toggle">
+            Season 2 Calculators
+          </summary>
+          <div class="page-nav-dropdown-menu">
+            <a href="last-war-furnace-upgrade-calculator.html" class="page-link"
+              >Furnace Calculator</a
+            >
+            <a href="season-2-tank-center-calculator.html" class="page-link"
+              >Season 2 Squad Base</a
+            >
+          </div>
+        </details>
+        <details class="page-nav-dropdown active">
+          <summary class="page-link page-nav-dropdown-toggle">
+            Season 3 Calculators
+          </summary>
+          <div class="page-nav-dropdown-menu">
+            <a href="curse-research-lab-calculator.html" class="page-link"
+              >Curse Research Lab</a
+            >
+            <a href="altar-calculator.html" class="page-link active">Altar</a>
+            <a href="protectors-field-calculator.html" class="page-link"
+              >Protectors Field</a
+            >
+          </div>
+        </details>
+      </nav>
+
+      <section class="hero">
+        <h1>Altar Calculator</h1>
+        <div class="sub">
+          Choose your current Altar level and enter your current mithril and
+          sacred water. The calculator shows exactly what you need for the next
+          level.
+        </div>
+      </section>
+
+      <section class="layout">
+        <div class="card">
+          <h2 class="card-title">Inputs</h2>
+          <div class="field">
+            <label for="currentLevel">Current Altar Level</label>
+            <select id="currentLevel"></select>
+          </div>
+          <div class="dual-field-grid">
+            <div class="field">
+              <label for="currentMithril">Current Mithril</label>
+              <input
+                id="currentMithril"
+                type="number"
+                min="0"
+                step="1"
+                value="0"
+              />
+            </div>
+            <div class="field">
+              <label for="currentSacredWater">Current Sacred Water</label>
+              <input
+                id="currentSacredWater"
+                type="number"
+                min="0"
+                step="1"
+                value="0"
+              />
+            </div>
+          </div>
+          <div class="field-group">
+            <h2 class="card-title">Blessing Fountains</h2>
+            <div class="mine-list" id="mineList"></div>
+            <div class="mine-total">
+              <div class="mine-total-key">
+                Total Sacred Water Output Per Hour
+              </div>
+              <div class="mine-total-value" id="totalMineOutput">0</div>
+            </div>
+          </div>
+        </div>
+
+        <div class="card">
+          <h2 class="card-title">Next Upgrade</h2>
+          <div class="summary">
+            <div class="tile">
+              <div class="tile-key">Next Level</div>
+              <div class="tile-value" id="nextLevelValue">Lv 2</div>
+            </div>
+            <div class="tile">
+              <div class="tile-key">Mithril Required</div>
+              <div class="tile-value" id="requiredMithril">8.40k</div>
+            </div>
+            <div class="tile">
+              <div class="tile-key">Current Mithril</div>
+              <div class="tile-value" id="ownedMithril">0</div>
+            </div>
+            <div class="tile">
+              <div class="tile-key">Mithril Needed</div>
+              <div class="tile-value warn" id="deficitMithril">8.40k</div>
+            </div>
+            <div class="tile">
+              <div class="tile-key">Sacred Water Required</div>
+              <div class="tile-value" id="requiredSacredWater">18.50k</div>
+            </div>
+            <div class="tile">
+              <div class="tile-key">Current Sacred Water</div>
+              <div class="tile-value" id="ownedSacredWater">0</div>
+            </div>
+            <div class="tile">
+              <div class="tile-key">Sacred Water Needed</div>
+              <div class="tile-value warn" id="deficitSacredWater">18.50k</div>
+            </div>
+            <div class="tile">
+              <div class="tile-key">Estimated Time</div>
+              <div class="tile-value" id="etaValue">No output</div>
+            </div>
+            <div class="tile">
+              <div class="tile-key">Build Time</div>
+              <div class="tile-value" id="buildTimeValue">00:18:45</div>
+            </div>
+          </div>
+
+          <div class="details">
+            <div class="row">
+              <div class="row-key">Upgrade Path</div>
+              <div class="row-value" id="pathValue">Level 1 -> Level 2</div>
+            </div>
+            <div class="row">
+              <div class="row-key">Mithril Status</div>
+              <div class="row-value" id="statusMithril">Need more mithril</div>
+            </div>
+            <div class="row">
+              <div class="row-key">Sacred Water Status</div>
+              <div class="row-value" id="statusSacredWater">
+                Need more sacred water
+              </div>
+            </div>
+            <div class="row">
+              <div class="row-key">Blessing Fountain Output Used</div>
+              <div class="row-value" id="mineRateValue">0/hr</div>
+            </div>
+          </div>
+
+          <div class="table-wrap">
+            <label for="costLevelSelect">Level / Resources</label>
+            <select id="costLevelSelect"></select>
+          </div>
+
+          <div class="footnote">
+            Source values use the Altar upgrade table from Cpt Hedgehog for
+            levels 1 through 35.
+          </div>
+        </div>
+      </section>
+    </div>
+
+    <script>
+      const altarCosts = [
+        { level: 1, mithril: 4720, sacredWater: 5170 },
+        { level: 2, mithril: 8400, sacredWater: 18500 },
+        { level: 3, mithril: 16800, sacredWater: 37000 },
+        { level: 4, mithril: 33600, sacredWater: 73900 },
+        { level: 5, mithril: 67200, sacredWater: 147800 },
+        { level: 6, mithril: 100800, sacredWater: 207000 },
+        { level: 7, mithril: 151200, sacredWater: 269100 },
+        { level: 8, mithril: 226800, sacredWater: 322900 },
+        { level: 9, mithril: 340200, sacredWater: 387500 },
+        { level: 10, mithril: 510300, sacredWater: 465000 },
+        { level: 11, mithril: 561300, sacredWater: 557900 },
+        { level: 12, mithril: 617500, sacredWater: 669500 },
+        { level: 13, mithril: 679200, sacredWater: 803400 },
+        { level: 14, mithril: 747100, sacredWater: 964100 },
+        { level: 15, mithril: 821800, sacredWater: 1160000 },
+        { level: 16, mithril: 904000, sacredWater: 1270000 },
+        { level: 17, mithril: 994400, sacredWater: 1400000 },
+        { level: 18, mithril: 1090000, sacredWater: 1540000 },
+        { level: 19, mithril: 1120000, sacredWater: 1690000 },
+        { level: 20, mithril: 1240000, sacredWater: 1860000 },
+        { level: 21, mithril: 1350000, sacredWater: 2050000 },
+        { level: 22, mithril: 1350000, sacredWater: 2250000 },
+        { level: 23, mithril: 1460000, sacredWater: 2480000 },
+        { level: 24, mithril: 1570000, sacredWater: 2730000 },
+        { level: 25, mithril: 1580000, sacredWater: 3000000 },
+        { level: 26, mithril: 1690000, sacredWater: 3150000 },
+        { level: 27, mithril: 1860000, sacredWater: 3310000 },
+        { level: 28, mithril: 1920000, sacredWater: 3470000 },
+        { level: 29, mithril: 2050000, sacredWater: 3650000 },
+        { level: 30, mithril: 2160000, sacredWater: 3830000 },
+        { level: 31, mithril: 2460000, sacredWater: 4070000 },
+        { level: 32, mithril: 2570000, sacredWater: 4210000 },
+        { level: 33, mithril: 2810000, sacredWater: 4440000 },
+        { level: 34, mithril: 3040000, sacredWater: 4680000 },
+        { level: 35, mithril: 3270000, sacredWater: 5030000 },
+      ];
+
+      const blessingFountainOutputs = [
+        { level: 1, output: 720 },
+        { level: 2, output: 1440 },
+        { level: 3, output: 2160 },
+        { level: 4, output: 2880 },
+        { level: 5, output: 3600 },
+        { level: 6, output: 4320 },
+        { level: 7, output: 5040 },
+        { level: 8, output: 5760 },
+        { level: 9, output: 6480 },
+        { level: 10, output: 7200 },
+        { level: 11, output: 7920 },
+        { level: 12, output: 8640 },
+        { level: 13, output: 9360 },
+        { level: 14, output: 10080 },
+        { level: 15, output: 10800 },
+        { level: 16, output: 11520 },
+        { level: 17, output: 12240 },
+        { level: 18, output: 12960 },
+        { level: 19, output: 13680 },
+        { level: 20, output: 14400 },
+        { level: 21, output: 15120 },
+        { level: 22, output: 15840 },
+        { level: 23, output: 16560 },
+        { level: 24, output: 17280 },
+        { level: 25, output: 18000 },
+        { level: 26, output: 18720 },
+        { level: 27, output: 19440 },
+        { level: 28, output: 20160 },
+        { level: 29, output: 20880 },
+        { level: 30, output: 21600 },
+      ];
+
+      const currentLevelInput = document.getElementById("currentLevel");
+      const currentMithrilInput = document.getElementById("currentMithril");
+      const currentSacredWaterInput =
+        document.getElementById("currentSacredWater");
+      const nextLevelValue = document.getElementById("nextLevelValue");
+      const requiredMithril = document.getElementById("requiredMithril");
+      const ownedMithril = document.getElementById("ownedMithril");
+      const deficitMithril = document.getElementById("deficitMithril");
+      const requiredSacredWater = document.getElementById(
+        "requiredSacredWater",
+      );
+      const ownedSacredWater = document.getElementById("ownedSacredWater");
+      const deficitSacredWater = document.getElementById("deficitSacredWater");
+      const buildTimeValue = document.getElementById("buildTimeValue");
+      const pathValue = document.getElementById("pathValue");
+      const statusMithril = document.getElementById("statusMithril");
+      const statusSacredWater = document.getElementById("statusSacredWater");
+      const costLevelSelect = document.getElementById("costLevelSelect");
+      const languageSelect = document.getElementById("languageSelect");
+      const mineList = document.getElementById("mineList");
+      const totalMineOutput = document.getElementById("totalMineOutput");
+      const etaValue = document.getElementById("etaValue");
+      const mineRateValue = document.getElementById("mineRateValue");
+      const STORAGE_KEY = "lastWarAltarCalcStateV1";
+      let preferredLanguage = "en";
+
+      const languageOptions = [
+        { code: "en", label: "English" },
+        { code: "es", label: "Spanish" },
+        { code: "fr", label: "French" },
+        { code: "de", label: "German" },
+        { code: "it", label: "Italian" },
+        { code: "pt", label: "Portuguese" },
+        { code: "ru", label: "Russian" },
+        { code: "uk", label: "Ukrainian" },
+        { code: "pl", label: "Polish" },
+        { code: "tr", label: "Turkish" },
+        { code: "ar", label: "Arabic" },
+        { code: "fa", label: "Persian" },
+        { code: "he", label: "Hebrew" },
+        { code: "hi", label: "Hindi" },
+        { code: "bn", label: "Bengali" },
+        { code: "ur", label: "Urdu" },
+        { code: "th", label: "Thai" },
+        { code: "vi", label: "Vietnamese" },
+        { code: "id", label: "Indonesian" },
+        { code: "ms", label: "Malay" },
+        { code: "fil", label: "Filipino" },
+        { code: "ja", label: "Japanese" },
+        { code: "ko", label: "Korean" },
+        { code: "zh-CN", label: "Chinese (Simplified)" },
+        { code: "zh-TW", label: "Chinese (Traditional)" },
+        { code: "el", label: "Greek" },
+        { code: "nl", label: "Dutch" },
+        { code: "sv", label: "Swedish" },
+        { code: "da", label: "Danish" },
+        { code: "fi", label: "Finnish" },
+        { code: "no", label: "Norwegian" },
+        { code: "cs", label: "Czech" },
+        { code: "ro", label: "Romanian" },
+        { code: "hu", label: "Hungarian" },
+        { code: "sk", label: "Slovak" },
+        { code: "bg", label: "Bulgarian" },
+        { code: "hr", label: "Croatian" },
+        { code: "sr", label: "Serbian" },
+        { code: "sl", label: "Slovenian" },
+        { code: "lt", label: "Lithuanian" },
+        { code: "lv", label: "Latvian" },
+        { code: "et", label: "Estonian" },
+      ];
+
+      function formatResource(value) {
+        return Math.round(Number(value) || 0).toLocaleString();
+      }
+
+      function buildLanguageOptions() {
+        languageSelect.innerHTML = languageOptions
+          .map((lang) => `<option value="${lang.code}">${lang.label}</option>`)
+          .join("");
+        languageSelect.value = preferredLanguage;
+      }
+
+      function applyGoogleLanguage(languageCode, retries = 25) {
+        const combo = document.querySelector(".goog-te-combo");
+        if (!combo) {
+          if (retries > 0) {
+            setTimeout(
+              () => applyGoogleLanguage(languageCode, retries - 1),
+              200,
+            );
+          }
+          return;
+        }
+
+        combo.value = languageCode;
+        combo.dispatchEvent(new Event("change"));
+      }
+
+      function loadGoogleTranslateScript() {
+        if (window.google && window.google.translate) {
+          window.googleTranslateElementInit();
+          return;
+        }
+
+        const script = document.createElement("script");
+        script.src =
+          "https://translate.google.com/translate_a/element.js?cb=googleTranslateElementInit";
+        script.async = true;
+        document.body.appendChild(script);
+      }
+
+      window.googleTranslateElementInit =
+        function googleTranslateElementInit() {
+          new window.google.translate.TranslateElement(
+            {
+              pageLanguage: "en",
+              autoDisplay: false,
+            },
+            "google_translate_element",
+          );
+
+          applyGoogleLanguage(preferredLanguage);
+        };
+
+      function buildMineSelectors() {
+        const options = blessingFountainOutputs
+          .map(
+            (row) => `<option value="${row.level}">Level ${row.level}</option>`,
+          )
+          .join("");
+
+        mineList.innerHTML = Array.from(
+          { length: 5 },
+          (_, index) => `
+        <div class="mine-row">
+          <div>
+            <label for="mineLevel${index + 1}">Blessing Fountain ${index + 1}</label>
+            <select id="mineLevel${index + 1}" data-mine-index="${index + 1}">
+              <option value="0">Not set</option>
+              ${options}
+            </select>
+          </div>
+          <div class="mine-output" id="mineOutput${index + 1}">0/hr</div>
+        </div>
+      `,
+        ).join("");
+
+        Array.from(mineList.querySelectorAll("select")).forEach((select) => {
+          select.addEventListener("change", updateMineOutput);
+        });
+      }
+
+      function getMineOutputForLevel(level) {
+        return (
+          blessingFountainOutputs.find((row) => row.level === level)?.output ||
+          0
+        );
+      }
+
+      function updateMineOutput() {
+        let totalOutput = 0;
+
+        for (let index = 1; index <= 5; index += 1) {
+          const select = document.getElementById(`mineLevel${index}`);
+          const outputBox = document.getElementById(`mineOutput${index}`);
+          const level = Number(select.value);
+          const output = getMineOutputForLevel(level);
+          totalOutput += output;
+          outputBox.textContent = `${formatResource(output)}/hr`;
+        }
+
+        totalMineOutput.textContent = `${formatResource(totalOutput)}/hr`;
+        updateCalculator();
+      }
+
+      function buildLevelOptions() {
+        currentLevelInput.innerHTML = "";
+        for (let level = 1; level <= altarCosts.length; level += 1) {
+          const option = new Option(`Level ${level}`, String(level));
+          currentLevelInput.appendChild(option);
+        }
+        currentLevelInput.value = "1";
+      }
+
+      function buildTable() {
+        costLevelSelect.innerHTML = altarCosts
+          .map(
+            (row) =>
+              `<option value="${row.level}">Level ${row.level} - ${formatResource(row.mithril)} Mithril, ${formatResource(row.sacredWater)} Sacred Water</option>`,
+          )
+          .join("");
+      }
+
+      function saveState() {
+        try {
+          const fountainLevels = [];
+          for (let index = 1; index <= 5; index += 1) {
+            const select = document.getElementById(`mineLevel${index}`);
+            if (select) {
+              fountainLevels.push(Number(select.value || 0));
+            }
+          }
+
+          const state = {
+            currentLevel: Number(currentLevelInput.value || 1),
+            currentMithril: Number(currentMithrilInput.value || 0),
+            currentSacredWater: Number(currentSacredWaterInput.value || 0),
+            fountainLevels: fountainLevels,
+            language: languageSelect.value,
+          };
+
+          localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
+        } catch {
+          // Ignore storage errors
+        }
+      }
+
+      function loadSavedState() {
+        try {
+          const raw = localStorage.getItem(STORAGE_KEY);
+          if (!raw) return;
+
+          const state = JSON.parse(raw);
+
+          if (
+            state.currentLevel &&
+            currentLevelInput.querySelector(
+              `option[value="${state.currentLevel}"]`,
+            )
+          ) {
+            currentLevelInput.value = String(state.currentLevel);
+          }
+
+          if (Number.isFinite(Number(state.currentMithril))) {
+            currentMithrilInput.value = String(
+              Math.max(0, Number(state.currentMithril)),
+            );
+          }
+
+          if (Number.isFinite(Number(state.currentSacredWater))) {
+            currentSacredWaterInput.value = String(
+              Math.max(0, Number(state.currentSacredWater)),
+            );
+          }
+
+          if (
+            Array.isArray(state.fountainLevels) &&
+            state.fountainLevels.length > 0
+          ) {
+            setTimeout(() => {
+              for (
+                let index = 0;
+                index < state.fountainLevels.length;
+                index += 1
+              ) {
+                const select = document.getElementById(`mineLevel${index + 1}`);
+                if (select) {
+                  select.value = String(state.fountainLevels[index]);
+                }
+              }
+              updateMineOutput();
+            }, 0);
+          }
+
+          if (
+            state.language &&
+            languageOptions.some((lang) => lang.code === state.language)
+          ) {
+            preferredLanguage = state.language;
+            languageSelect.value = state.language;
+          }
+        } catch {
+          // Ignore malformed stored state
+        }
+      }
+
+      function updateCalculator() {
+        const currentLevel = Number(currentLevelInput.value);
+        const currentMith = Math.max(0, Number(currentMithrilInput.value) || 0);
+        const currentSW = Math.max(
+          0,
+          Number(currentSacredWaterInput.value) || 0,
+        );
+        const nextUpgrade = altarCosts.find(
+          (row) => row.level === currentLevel + 1,
+        );
+
+        // Calculate total fountain output
+        let totalFountainOutput = 0;
+        for (let index = 1; index <= 5; index += 1) {
+          const select = document.getElementById(`mineLevel${index}`);
+          if (select) {
+            const level = Number(select.value);
+            totalFountainOutput += getMineOutputForLevel(level);
+          }
+        }
+
+        if (!nextUpgrade) {
+          nextLevelValue.textContent = "Max";
+          requiredMithril.textContent = "0";
+          ownedMithril.textContent = formatResource(currentMith);
+          deficitMithril.textContent = "0";
+          deficitMithril.className = "tile-value ok";
+          requiredSacredWater.textContent = "0";
+          ownedSacredWater.textContent = formatResource(currentSW);
+          deficitSacredWater.textContent = "0";
+          deficitSacredWater.className = "tile-value ok";
+          buildTimeValue.textContent = "-";
+          etaValue.textContent = "-";
+          mineRateValue.textContent = "0/hr";
+          pathValue.textContent = "Maximum level reached";
+          statusMithril.textContent = "No higher level";
+          statusSacredWater.textContent = "No higher level";
+          costLevelSelect.value = String(
+            altarCosts[altarCosts.length - 1].level,
+          );
+          return;
+        }
+
+        const needMithril = Math.max(0, nextUpgrade.mithril - currentMith);
+        const needSW = Math.max(0, nextUpgrade.sacredWater - currentSW);
+        const mithrilReady = needMithril === 0;
+        const swReady = needSW === 0;
+
+        // Calculate ETA for Sacred Water
+        let etaText = "No output";
+        if (totalFountainOutput > 0 && needSW > 0) {
+          const hoursNeeded = needSW / totalFountainOutput;
+          const hours = Math.floor(hoursNeeded);
+          const minutes = Math.round((hoursNeeded - hours) * 60);
+          etaText = `${hours}h ${minutes}m`;
+        } else if (needSW === 0) {
+          etaText = "Ready now";
+        }
+
+        nextLevelValue.textContent = `Lv ${currentLevel + 1}`;
+        requiredMithril.textContent = formatResource(nextUpgrade.mithril);
+        ownedMithril.textContent = formatResource(currentMith);
+        deficitMithril.textContent = formatResource(needMithril);
+        deficitMithril.className = `tile-value ${mithrilReady ? "ok" : "warn"}`;
+        requiredSacredWater.textContent = formatResource(
+          nextUpgrade.sacredWater,
+        );
+        ownedSacredWater.textContent = formatResource(currentSW);
+        deficitSacredWater.textContent = formatResource(needSW);
+        deficitSacredWater.className = `tile-value ${swReady ? "ok" : "warn"}`;
+        buildTimeValue.textContent = "-";
+        etaValue.textContent = etaText;
+        mineRateValue.textContent = `${formatResource(totalFountainOutput)}/hr`;
+        pathValue.textContent = `Level ${currentLevel} -> Level ${currentLevel + 1}`;
+        statusMithril.textContent = mithrilReady
+          ? "Have enough mithril"
+          : "Need more mithril";
+        statusSacredWater.textContent = swReady
+          ? "Have enough sacred water"
+          : "Need more sacred water";
+        costLevelSelect.value = String(nextUpgrade.level);
+
+        saveState();
+      }
+
+      buildLevelOptions();
+      buildLanguageOptions();
+      buildMineSelectors();
+      buildTable();
+      loadSavedState();
+      updateCalculator();
+      loadGoogleTranslateScript();
+
+      currentLevelInput.addEventListener("change", updateCalculator);
+      currentMithrilInput.addEventListener("input", updateCalculator);
+      currentSacredWaterInput.addEventListener("input", updateCalculator);
+      languageSelect.addEventListener("change", () => {
+        preferredLanguage = languageSelect.value;
+        applyGoogleLanguage(preferredLanguage);
+        saveState();
+      });
+    </script>
+  </body>
+</html>
