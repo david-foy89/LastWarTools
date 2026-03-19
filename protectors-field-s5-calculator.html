@@ -1,0 +1,1199 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Last War Season 5 Protector's Field Calculator</title>
+    <link rel="stylesheet" href="last-war-furnace-upgrade-calculator.css" />
+    <script src="page-nav-dropdown.js" defer></script>
+  </head>
+  <body>
+    <div class="page">
+      <div class="page-top-controls">
+        <div class="logo-control">
+          <img src="media/lwst.png" alt="LWST logo" class="site-logo" />
+        </div>
+        <div class="language-control">
+          <label for="languageSelect">Language</label>
+          <select id="languageSelect"></select>
+        </div>
+      </div>
+      <div id="google_translate_element" class="hidden-translate"></div>
+
+      <nav class="page-nav" aria-label="Calculator pages">
+        <a href="hq-upgrade-calculator.html" class="page-link">HQ Upgrade</a>
+        <details class="page-nav-dropdown" name="season-nav">
+          <summary class="page-link page-nav-dropdown-toggle">
+            Season 2 Calculators
+          </summary>
+          <div class="page-nav-dropdown-menu">
+            <a href="last-war-furnace-upgrade-calculator.html" class="page-link"
+              >Furnace Calculator</a
+            >
+            <a href="season-2-tank-center-calculator.html" class="page-link"
+              >Season 2 Squad Base</a
+            >
+          </div>
+        </details>
+        <details class="page-nav-dropdown" name="season-nav">
+          <summary class="page-link page-nav-dropdown-toggle">
+            Season 3 Calculators
+          </summary>
+          <div class="page-nav-dropdown-menu">
+            <a href="curse-research-lab-calculator.html" class="page-link"
+              >Curse Research Lab</a
+            >
+            <a href="altar-calculator.html" class="page-link">Altar</a>
+            <a href="protectors-field-calculator.html" class="page-link"
+              >Protectors Field</a
+            >
+          </div>
+        </details>
+        <details class="page-nav-dropdown" name="season-nav">
+          <summary class="page-link page-nav-dropdown-toggle">
+            Season 4 Calculators
+          </summary>
+          <div class="page-nav-dropdown-menu">
+            <a href="optoelectronic-lab-calculator.html" class="page-link"
+              >Optoelectronic Lab</a
+            >
+            <a href="protectors-field-s4-calculator.html" class="page-link"
+              >Protector's Field S4</a
+            >
+            <a href="lighthouse-s4-calculator.html" class="page-link"
+              >Lighthouse S4</a
+            >
+          </div>
+        </details>
+        <details class="page-nav-dropdown active" name="season-nav">
+          <summary class="page-link page-nav-dropdown-toggle">
+            Season 5 Calculators
+          </summary>
+          <div class="page-nav-dropdown-menu">
+            <a href="caffeine-institute-calculator.html" class="page-link"
+              >Caffeine Institute</a
+            >
+            <a
+              href="protectors-field-s5-calculator.html"
+              class="page-link active"
+              >Protector's Field S5</a
+            >
+            <a href="season-5-squad-base-calculator.html" class="page-link"
+              >Season 5 Squad Base</a
+            >
+          </div>
+        </details>
+      </nav>
+
+      <section class="hero">
+        <h1>Season 5 Protector's Field Calculator</h1>
+        <div class="sub">
+          Choose your current Season 5 Protector's Field level and enter your
+          current Coffee Bean, Food, and Iron. The calculator shows what you
+          still need for the next level and estimates when your Season 5 and
+          standard production buildings will cover the gap.
+        </div>
+      </section>
+
+      <section class="layout">
+        <div class="card">
+          <h2 class="card-title">Inputs</h2>
+          <div class="field">
+            <label for="currentLevel">Current Protector's Field Level</label>
+            <select id="currentLevel"></select>
+          </div>
+          <div class="field">
+            <label for="currentCoffeeBean">Current Coffee Bean</label>
+            <input
+              id="currentCoffeeBean"
+              type="number"
+              min="0"
+              step="1"
+              value="0"
+            />
+          </div>
+          <div class="dual-field-grid">
+            <div class="field">
+              <label for="currentFood">Current Food</label>
+              <input
+                id="currentFood"
+                type="number"
+                min="0"
+                step="1"
+                value="0"
+              />
+            </div>
+            <div class="field">
+              <label for="currentIron">Current Iron</label>
+              <input
+                id="currentIron"
+                type="number"
+                min="0"
+                step="1"
+                value="0"
+              />
+            </div>
+          </div>
+          <div class="field">
+            <label for="allianceTechSelect"
+              >Reduced RSS required for building construction</label
+            >
+            <select id="allianceTechSelect"></select>
+          </div>
+          <div class="field">
+            <label for="timeZoneSelect">Timezone</label>
+            <select id="timeZoneSelect"></select>
+          </div>
+
+          <div class="field-group">
+            <h2 class="card-title">Coffee Factories</h2>
+            <div class="mine-list" id="mineList"></div>
+            <div class="mine-total">
+              <div class="mine-total-key">
+                Total Coffee Bean Output Per Hour
+              </div>
+              <div class="mine-total-value" id="totalMineOutput">0</div>
+            </div>
+          </div>
+          <div class="field-group">
+            <h2 class="card-title">Food Mines</h2>
+            <div class="mine-list" id="foodMineList"></div>
+            <div class="mine-total">
+              <div class="mine-total-key">Total Food Output Per Hour</div>
+              <div class="mine-total-value" id="totalFoodMineOutput">0</div>
+            </div>
+          </div>
+          <div class="field-group">
+            <h2 class="card-title">Iron Mines</h2>
+            <div class="mine-list" id="ironMineList"></div>
+            <div class="mine-total">
+              <div class="mine-total-key">Total Iron Output Per Hour</div>
+              <div class="mine-total-value" id="totalIronMineOutput">0</div>
+            </div>
+          </div>
+        </div>
+
+        <div class="card">
+          <h2 class="card-title">Next Upgrade</h2>
+          <div class="summary">
+            <div class="tile">
+              <div class="tile-key">Next Level</div>
+              <div class="tile-value" id="nextLevelValue">Lv 2</div>
+            </div>
+            <div class="tile">
+              <div class="tile-key">Coffee Bean Required</div>
+              <div class="tile-value" id="requiredCoffeeBeanValue">0</div>
+            </div>
+            <div class="tile">
+              <div class="tile-key">Current Coffee Bean</div>
+              <div class="tile-value" id="ownedCoffeeBeanValue">0</div>
+            </div>
+            <div class="tile">
+              <div class="tile-key">Coffee Bean Needed</div>
+              <div class="tile-value ok" id="deficitCoffeeBeanValue">0</div>
+            </div>
+            <div class="tile">
+              <div class="tile-key">Food Required</div>
+              <div class="tile-value" id="requiredFoodValue">42,000</div>
+            </div>
+            <div class="tile">
+              <div class="tile-key">Current Food</div>
+              <div class="tile-value" id="ownedFoodValue">0</div>
+            </div>
+            <div class="tile">
+              <div class="tile-key">Food Needed</div>
+              <div class="tile-value warn" id="deficitFoodValue">42,000</div>
+            </div>
+            <div class="tile">
+              <div class="tile-key">Iron Required</div>
+              <div class="tile-value" id="requiredIronValue">42,000</div>
+            </div>
+            <div class="tile">
+              <div class="tile-key">Current Iron</div>
+              <div class="tile-value" id="ownedIronValue">0</div>
+            </div>
+            <div class="tile">
+              <div class="tile-key">Iron Needed</div>
+              <div class="tile-value warn" id="deficitIronValue">42,000</div>
+            </div>
+            <div class="tile">
+              <div class="tile-key">Coffee Bean ETA</div>
+              <div class="tile-value" id="coffeeBeanEtaValue">
+                No coffee bean needed
+              </div>
+            </div>
+            <div class="tile">
+              <div class="tile-key">Food ETA</div>
+              <div class="tile-value" id="foodEtaValue">No food needed</div>
+            </div>
+            <div class="tile">
+              <div class="tile-key">Iron ETA</div>
+              <div class="tile-value" id="ironEtaValue">No iron needed</div>
+            </div>
+            <div class="tile">
+              <div class="tile-key">Current Time</div>
+              <div class="tile-value" id="currentTimeValue">-</div>
+            </div>
+            <div class="tile tile-full">
+              <div class="tile-key">Coffee Bean Ready At</div>
+              <div class="tile-value" id="readyAtValue">
+                No coffee bean needed
+              </div>
+            </div>
+          </div>
+
+          <div class="details">
+            <div class="row">
+              <div class="row-key">Upgrade Path</div>
+              <div class="row-value" id="pathValue">Level 1 -> Level 2</div>
+            </div>
+            <div class="row">
+              <div class="row-key">Status</div>
+              <div class="row-value" id="statusValue">Need more resources</div>
+            </div>
+            <div class="row">
+              <div class="row-key">Coffee Factory Output Used</div>
+              <div class="row-value" id="mineRateValue">0/hr</div>
+            </div>
+            <div class="row">
+              <div class="row-key">Food Mine Output Used</div>
+              <div class="row-value" id="foodMineRateValue">0/hr</div>
+            </div>
+            <div class="row">
+              <div class="row-key">Iron Mine Output Used</div>
+              <div class="row-value" id="ironMineRateValue">0/hr</div>
+            </div>
+            <div class="row">
+              <div class="row-key">Timezone Used</div>
+              <div class="row-value" id="timeZoneValue">Local</div>
+            </div>
+          </div>
+
+          <div class="table-wrap">
+            <label for="costLevelSelect"
+              >Level / Coffee Bean / Food / Iron</label
+            >
+            <select id="costLevelSelect"></select>
+          </div>
+
+          <div class="footnote">
+            Source values use the Season 5 Protector's Field table from Cpt
+            Hedgehog for levels 1 through 29. Coffee Bean ETA uses Coffee
+            Factory hourly output values.
+          </div>
+        </div>
+      </section>
+    </div>
+
+    <script>
+      const protectorsFieldS5Costs = [
+        { level: 1, coffeeBean: 0, food: 0, iron: 0 },
+        { level: 2, coffeeBean: 0, food: 42000, iron: 42000 },
+        { level: 3, coffeeBean: 0, food: 84000, iron: 84000 },
+        { level: 4, coffeeBean: 0, food: 168000, iron: 168000 },
+        { level: 5, coffeeBean: 0, food: 336000, iron: 336000 },
+        { level: 6, coffeeBean: 0, food: 470400, iron: 470400 },
+        { level: 7, coffeeBean: 0, food: 611500, iron: 611500 },
+        { level: 8, coffeeBean: 0, food: 733800, iron: 733800 },
+        { level: 9, coffeeBean: 0, food: 880600, iron: 880600 },
+        { level: 10, coffeeBean: 0, food: 1000000, iron: 1000000 },
+        { level: 11, coffeeBean: 5800, food: 0, iron: 0 },
+        { level: 12, coffeeBean: 23100, food: 0, iron: 0 },
+        { level: 13, coffeeBean: 46100, food: 0, iron: 0 },
+        { level: 14, coffeeBean: 92200, food: 0, iron: 0 },
+        { level: 15, coffeeBean: 166000, food: 0, iron: 0 },
+        { level: 16, coffeeBean: 298800, food: 0, iron: 0 },
+        { level: 17, coffeeBean: 448300, food: 0, iron: 0 },
+        { level: 18, coffeeBean: 672400, food: 0, iron: 0 },
+        { level: 19, coffeeBean: 1010000, food: 0, iron: 0 },
+        { level: 20, coffeeBean: 1410000, food: 0, iron: 0 },
+        { level: 21, coffeeBean: 2120000, food: 0, iron: 0 },
+        { level: 22, coffeeBean: 2710000, food: 0, iron: 0 },
+        { level: 23, coffeeBean: 3540000, food: 0, iron: 0 },
+        { level: 24, coffeeBean: 4590000, food: 0, iron: 0 },
+        { level: 25, coffeeBean: 5530000, food: 0, iron: 0 },
+        { level: 26, coffeeBean: 6590000, food: 0, iron: 0 },
+        { level: 27, coffeeBean: 8040000, food: 0, iron: 0 },
+        { level: 28, coffeeBean: 9650000, food: 0, iron: 0 },
+        { level: 29, coffeeBean: 11530000, food: 0, iron: 0 },
+      ];
+
+      const coffeeFactoryOutputs = Array.from({ length: 30 }, (_, index) => ({
+        level: index + 1,
+        output: (index + 1) * 720,
+      }));
+      const foodMineOutputs = Array.from({ length: 30 }, (_, index) => ({
+        level: index + 1,
+        output: (index + 1) * 1800,
+      }));
+      const ironMineOutputs = Array.from({ length: 30 }, (_, index) => ({
+        level: index + 1,
+        output: (index + 1) * 1800,
+      }));
+
+      const currentLevelInput = document.getElementById("currentLevel");
+      const currentCoffeeBeanInput =
+        document.getElementById("currentCoffeeBean");
+      const currentFoodInput = document.getElementById("currentFood");
+      const currentIronInput = document.getElementById("currentIron");
+      const nextLevelValue = document.getElementById("nextLevelValue");
+      const requiredCoffeeBeanValue = document.getElementById(
+        "requiredCoffeeBeanValue",
+      );
+      const ownedCoffeeBeanValue = document.getElementById(
+        "ownedCoffeeBeanValue",
+      );
+      const deficitCoffeeBeanValue = document.getElementById(
+        "deficitCoffeeBeanValue",
+      );
+      const requiredFoodValue = document.getElementById("requiredFoodValue");
+      const ownedFoodValue = document.getElementById("ownedFoodValue");
+      const deficitFoodValue = document.getElementById("deficitFoodValue");
+      const requiredIronValue = document.getElementById("requiredIronValue");
+      const ownedIronValue = document.getElementById("ownedIronValue");
+      const deficitIronValue = document.getElementById("deficitIronValue");
+      const coffeeBeanEtaValue = document.getElementById("coffeeBeanEtaValue");
+      const foodEtaValue = document.getElementById("foodEtaValue");
+      const ironEtaValue = document.getElementById("ironEtaValue");
+      const readyAtValue = document.getElementById("readyAtValue");
+      const pathValue = document.getElementById("pathValue");
+      const statusValue = document.getElementById("statusValue");
+      const mineRateValue = document.getElementById("mineRateValue");
+      const foodMineRateValue = document.getElementById("foodMineRateValue");
+      const ironMineRateValue = document.getElementById("ironMineRateValue");
+      const timeZoneValue = document.getElementById("timeZoneValue");
+      const currentTimeValue = document.getElementById("currentTimeValue");
+      const costLevelSelect = document.getElementById("costLevelSelect");
+      const mineList = document.getElementById("mineList");
+      const totalMineOutput = document.getElementById("totalMineOutput");
+      const foodMineList = document.getElementById("foodMineList");
+      const totalFoodMineOutput = document.getElementById(
+        "totalFoodMineOutput",
+      );
+      const ironMineList = document.getElementById("ironMineList");
+      const totalIronMineOutput = document.getElementById(
+        "totalIronMineOutput",
+      );
+      const timeZoneSelect = document.getElementById("timeZoneSelect");
+      const allianceTechSelect = document.getElementById("allianceTechSelect");
+      const languageSelect = document.getElementById("languageSelect");
+      const STORAGE_KEY = "lastWarProtectorsFieldS5CalcStateV1";
+      let lastCalcSignature = "";
+      let lockedReadyAtTimestampMs = null;
+      let preferredLanguage = "en";
+
+      const languageOptions = [
+        { code: "en", label: "English" },
+        { code: "es", label: "Spanish" },
+        { code: "fr", label: "French" },
+        { code: "de", label: "German" },
+        { code: "it", label: "Italian" },
+        { code: "pt", label: "Portuguese" },
+        { code: "ru", label: "Russian" },
+        { code: "uk", label: "Ukrainian" },
+        { code: "pl", label: "Polish" },
+        { code: "tr", label: "Turkish" },
+        { code: "ar", label: "Arabic" },
+        { code: "fa", label: "Persian" },
+        { code: "he", label: "Hebrew" },
+        { code: "hi", label: "Hindi" },
+        { code: "bn", label: "Bengali" },
+        { code: "ur", label: "Urdu" },
+        { code: "th", label: "Thai" },
+        { code: "vi", label: "Vietnamese" },
+        { code: "id", label: "Indonesian" },
+        { code: "ms", label: "Malay" },
+        { code: "fil", label: "Filipino" },
+        { code: "ja", label: "Japanese" },
+        { code: "ko", label: "Korean" },
+        { code: "zh-CN", label: "Chinese (Simplified)" },
+        { code: "zh-TW", label: "Chinese (Traditional)" },
+        { code: "el", label: "Greek" },
+        { code: "nl", label: "Dutch" },
+        { code: "sv", label: "Swedish" },
+        { code: "da", label: "Danish" },
+        { code: "fi", label: "Finnish" },
+        { code: "no", label: "Norwegian" },
+        { code: "cs", label: "Czech" },
+        { code: "ro", label: "Romanian" },
+        { code: "hu", label: "Hungarian" },
+        { code: "sk", label: "Slovak" },
+        { code: "bg", label: "Bulgarian" },
+        { code: "hr", label: "Croatian" },
+        { code: "sr", label: "Serbian" },
+        { code: "sl", label: "Slovenian" },
+        { code: "lt", label: "Lithuanian" },
+        { code: "lv", label: "Latvian" },
+        { code: "et", label: "Estonian" },
+      ];
+
+      const commonTimeZones = [
+        "UTC",
+        "America/New_York",
+        "America/Chicago",
+        "America/Denver",
+        "America/Los_Angeles",
+        "America/Phoenix",
+        "America/Toronto",
+        "America/Sao_Paulo",
+        "Europe/London",
+        "Europe/Paris",
+        "Europe/Berlin",
+        "Europe/Athens",
+        "Africa/Johannesburg",
+        "Asia/Dubai",
+        "Asia/Kolkata",
+        "Asia/Singapore",
+        "Asia/Shanghai",
+        "Asia/Tokyo",
+        "Australia/Perth",
+        "Australia/Sydney",
+        "Pacific/Auckland",
+      ];
+
+      function formatResource(value) {
+        return Math.round(Number(value) || 0).toLocaleString();
+      }
+
+      function formatTimeFromHours(hours) {
+        if (!Number.isFinite(hours)) {
+          return "No output";
+        }
+        if (hours <= 0) {
+          return "Ready now";
+        }
+
+        const totalMinutes = Math.round(hours * 60);
+        const days = Math.floor(totalMinutes / 1440);
+        const remainingMinutes = totalMinutes % 1440;
+        const wholeHours = Math.floor(remainingMinutes / 60);
+        const minutes = remainingMinutes % 60;
+
+        if (days > 0) {
+          return `${days}d ${wholeHours}h`;
+        }
+        if (wholeHours > 0) {
+          return `${wholeHours}h ${minutes}m`;
+        }
+        return `${minutes}m`;
+      }
+
+      function formatReadyAtFromTimestamp(timestampMs, timeZone) {
+        if (!Number.isFinite(timestampMs)) {
+          return "No output";
+        }
+
+        return new Intl.DateTimeFormat(undefined, {
+          timeZone,
+          month: "short",
+          day: "numeric",
+          hour: "numeric",
+          minute: "2-digit",
+          hour12: true,
+        }).format(new Date(timestampMs));
+      }
+
+      function formatCurrentTime(timeZone) {
+        return new Intl.DateTimeFormat(undefined, {
+          timeZone,
+          month: "short",
+          day: "numeric",
+          hour: "numeric",
+          minute: "2-digit",
+          second: "2-digit",
+          hour12: true,
+        }).format(new Date());
+      }
+
+      function updateCurrentTimeDisplay() {
+        const selectedTimeZone = timeZoneSelect.value || "UTC";
+        try {
+          currentTimeValue.textContent = formatCurrentTime(selectedTimeZone);
+        } catch {
+          currentTimeValue.textContent = "Unavailable";
+        }
+      }
+
+      function buildTimeZoneOptions() {
+        const detectedTimeZone =
+          Intl.DateTimeFormat().resolvedOptions().timeZone || "UTC";
+        const zoneList = commonTimeZones.includes(detectedTimeZone)
+          ? commonTimeZones
+          : [detectedTimeZone, ...commonTimeZones];
+
+        timeZoneSelect.innerHTML = zoneList
+          .map((zone) => `<option value="${zone}">${zone}</option>`)
+          .join("");
+        timeZoneSelect.value = detectedTimeZone;
+      }
+
+      function buildLanguageOptions() {
+        languageSelect.innerHTML = languageOptions
+          .map((lang) => `<option value="${lang.code}">${lang.label}</option>`)
+          .join("");
+        languageSelect.value = preferredLanguage;
+      }
+
+      function applyGoogleLanguage(languageCode, retries = 25) {
+        const combo = document.querySelector(".goog-te-combo");
+        if (!combo) {
+          if (retries > 0) {
+            setTimeout(
+              () => applyGoogleLanguage(languageCode, retries - 1),
+              200,
+            );
+          }
+          return;
+        }
+
+        combo.value = languageCode;
+        combo.dispatchEvent(new Event("change"));
+      }
+
+      function loadGoogleTranslateScript() {
+        if (window.google && window.google.translate) {
+          window.googleTranslateElementInit();
+          return;
+        }
+
+        const script = document.createElement("script");
+        script.src =
+          "https://translate.google.com/translate_a/element.js?cb=googleTranslateElementInit";
+        script.async = true;
+        document.body.appendChild(script);
+      }
+
+      window.googleTranslateElementInit =
+        function googleTranslateElementInit() {
+          new window.google.translate.TranslateElement(
+            {
+              pageLanguage: "en",
+              autoDisplay: false,
+            },
+            "google_translate_element",
+          );
+
+          applyGoogleLanguage(preferredLanguage);
+        };
+
+      function buildLevelOptions() {
+        currentLevelInput.innerHTML = "";
+        for (
+          let level = 1;
+          level <= protectorsFieldS5Costs.length;
+          level += 1
+        ) {
+          currentLevelInput.appendChild(
+            new Option(`Level ${level}`, String(level)),
+          );
+        }
+        currentLevelInput.value = "1";
+      }
+
+      function buildAllianceTechOptions() {
+        allianceTechSelect.innerHTML = Array.from(
+          { length: 201 },
+          (_, index) => {
+            const pct = (index * 0.5).toFixed(1);
+            return `<option value="${pct}">${pct}%</option>`;
+          },
+        ).join("");
+        allianceTechSelect.value = "0.0";
+      }
+
+      function buildFactorySelectors() {
+        const options = coffeeFactoryOutputs
+          .map(
+            (row) => `<option value="${row.level}">Level ${row.level}</option>`,
+          )
+          .join("");
+
+        mineList.innerHTML = Array.from(
+          { length: 5 },
+          (_, index) => `
+        <div class="mine-row">
+          <div>
+            <label for="mineLevel${index + 1}">Coffee Factory ${index + 1}</label>
+            <select id="mineLevel${index + 1}">
+              <option value="0">Not set</option>
+              ${options}
+            </select>
+          </div>
+          <div class="mine-output" id="mineOutput${index + 1}">0/hr</div>
+        </div>
+      `,
+        ).join("");
+
+        Array.from(mineList.querySelectorAll("select")).forEach((select) => {
+          select.addEventListener("change", updateFactoryOutput);
+        });
+      }
+
+      function buildFoodMineSelectors() {
+        const options = foodMineOutputs
+          .map(
+            (row) => `<option value="${row.level}">Level ${row.level}</option>`,
+          )
+          .join("");
+
+        foodMineList.innerHTML = Array.from(
+          { length: 5 },
+          (_, index) => `
+        <div class="mine-row">
+          <div>
+            <label for="foodMineLevel${index + 1}">Food Mine ${index + 1}</label>
+            <select id="foodMineLevel${index + 1}">
+              <option value="0">Not set</option>
+              ${options}
+            </select>
+          </div>
+          <div class="mine-output" id="foodMineOutput${index + 1}">0/hr</div>
+        </div>
+      `,
+        ).join("");
+
+        Array.from(foodMineList.querySelectorAll("select")).forEach(
+          (select) => {
+            select.addEventListener("change", updateFoodMineOutput);
+          },
+        );
+      }
+
+      function buildIronMineSelectors() {
+        const options = ironMineOutputs
+          .map(
+            (row) => `<option value="${row.level}">Level ${row.level}</option>`,
+          )
+          .join("");
+
+        ironMineList.innerHTML = Array.from(
+          { length: 5 },
+          (_, index) => `
+        <div class="mine-row">
+          <div>
+            <label for="ironMineLevel${index + 1}">Iron Mine ${index + 1}</label>
+            <select id="ironMineLevel${index + 1}">
+              <option value="0">Not set</option>
+              ${options}
+            </select>
+          </div>
+          <div class="mine-output" id="ironMineOutput${index + 1}">0/hr</div>
+        </div>
+      `,
+        ).join("");
+
+        Array.from(ironMineList.querySelectorAll("select")).forEach(
+          (select) => {
+            select.addEventListener("change", updateIronMineOutput);
+          },
+        );
+      }
+
+      function getFactoryOutputForLevel(level) {
+        return (
+          coffeeFactoryOutputs.find((row) => row.level === level)?.output || 0
+        );
+      }
+
+      function getFoodMineOutputForLevel(level) {
+        return foodMineOutputs.find((row) => row.level === level)?.output || 0;
+      }
+
+      function getIronMineOutputForLevel(level) {
+        return ironMineOutputs.find((row) => row.level === level)?.output || 0;
+      }
+
+      function updateFactoryOutput() {
+        let totalOutput = 0;
+        for (let index = 1; index <= 5; index += 1) {
+          const output = getFactoryOutputForLevel(
+            Number(document.getElementById(`mineLevel${index}`).value),
+          );
+          totalOutput += output;
+          document.getElementById(`mineOutput${index}`).textContent =
+            `${formatResource(output)}/hr`;
+        }
+        totalMineOutput.textContent = `${formatResource(totalOutput)}/hr`;
+        updateCalculator();
+      }
+
+      function updateFoodMineOutput() {
+        let totalOutput = 0;
+        for (let index = 1; index <= 5; index += 1) {
+          const output = getFoodMineOutputForLevel(
+            Number(document.getElementById(`foodMineLevel${index}`).value),
+          );
+          totalOutput += output;
+          document.getElementById(`foodMineOutput${index}`).textContent =
+            `${formatResource(output)}/hr`;
+        }
+        totalFoodMineOutput.textContent = `${formatResource(totalOutput)}/hr`;
+        updateCalculator();
+      }
+
+      function updateIronMineOutput() {
+        let totalOutput = 0;
+        for (let index = 1; index <= 5; index += 1) {
+          const output = getIronMineOutputForLevel(
+            Number(document.getElementById(`ironMineLevel${index}`).value),
+          );
+          totalOutput += output;
+          document.getElementById(`ironMineOutput${index}`).textContent =
+            `${formatResource(output)}/hr`;
+        }
+        totalIronMineOutput.textContent = `${formatResource(totalOutput)}/hr`;
+        updateCalculator();
+      }
+
+      function getTotalFactoryOutput() {
+        let totalOutput = 0;
+        for (let index = 1; index <= 5; index += 1) {
+          totalOutput += getFactoryOutputForLevel(
+            Number(document.getElementById(`mineLevel${index}`).value),
+          );
+        }
+        return totalOutput;
+      }
+
+      function getTotalFoodMineOutput() {
+        let totalOutput = 0;
+        for (let index = 1; index <= 5; index += 1) {
+          totalOutput += getFoodMineOutputForLevel(
+            Number(document.getElementById(`foodMineLevel${index}`).value),
+          );
+        }
+        return totalOutput;
+      }
+
+      function getTotalIronMineOutput() {
+        let totalOutput = 0;
+        for (let index = 1; index <= 5; index += 1) {
+          totalOutput += getIronMineOutputForLevel(
+            Number(document.getElementById(`ironMineLevel${index}`).value),
+          );
+        }
+        return totalOutput;
+      }
+
+      function getFactoryLevelsSignature() {
+        const levels = [];
+        for (let index = 1; index <= 5; index += 1) {
+          levels.push(
+            Number(document.getElementById(`mineLevel${index}`)?.value || 0),
+          );
+        }
+        return levels.join(",");
+      }
+
+      function getFoodMineLevelsSignature() {
+        const levels = [];
+        for (let index = 1; index <= 5; index += 1) {
+          levels.push(
+            Number(
+              document.getElementById(`foodMineLevel${index}`)?.value || 0,
+            ),
+          );
+        }
+        return levels.join(",");
+      }
+
+      function getIronMineLevelsSignature() {
+        const levels = [];
+        for (let index = 1; index <= 5; index += 1) {
+          levels.push(
+            Number(
+              document.getElementById(`ironMineLevel${index}`)?.value || 0,
+            ),
+          );
+        }
+        return levels.join(",");
+      }
+
+      function buildTable() {
+        costLevelSelect.innerHTML = protectorsFieldS5Costs
+          .map((row) => {
+            const parts = [];
+            if (row.coffeeBean > 0) {
+              parts.push(`Coffee Bean ${formatResource(row.coffeeBean)}`);
+            }
+            if (row.food > 0) {
+              parts.push(`Food ${formatResource(row.food)}`);
+            }
+            if (row.iron > 0) {
+              parts.push(`Iron ${formatResource(row.iron)}`);
+            }
+            if (parts.length === 0) {
+              parts.push("No resource cost");
+            }
+            return `<option value="${row.level}">Level ${row.level} - ${parts.join(" / ")}</option>`;
+          })
+          .join("");
+      }
+
+      function saveState() {
+        try {
+          const mineLevels = [];
+          const foodMineLevels = [];
+          const ironMineLevels = [];
+          for (let index = 1; index <= 5; index += 1) {
+            mineLevels.push(
+              Number(document.getElementById(`mineLevel${index}`)?.value || 0),
+            );
+            foodMineLevels.push(
+              Number(
+                document.getElementById(`foodMineLevel${index}`)?.value || 0,
+              ),
+            );
+            ironMineLevels.push(
+              Number(
+                document.getElementById(`ironMineLevel${index}`)?.value || 0,
+              ),
+            );
+          }
+
+          localStorage.setItem(
+            STORAGE_KEY,
+            JSON.stringify({
+              currentLevel: Number(currentLevelInput.value || 1),
+              currentCoffeeBean: Number(currentCoffeeBeanInput.value || 0),
+              currentFood: Number(currentFoodInput.value || 0),
+              currentIron: Number(currentIronInput.value || 0),
+              timeZone: timeZoneSelect.value,
+              allianceTech: Number(allianceTechSelect.value || 0),
+              language: languageSelect.value,
+              mineLevels,
+              foodMineLevels,
+              ironMineLevels,
+              lockedReadyAtTimestampMs,
+              lastCalcSignature,
+            }),
+          );
+        } catch {}
+      }
+
+      function loadSavedState() {
+        try {
+          const raw = localStorage.getItem(STORAGE_KEY);
+          if (!raw) {
+            return;
+          }
+
+          const state = JSON.parse(raw);
+
+          if (
+            state.currentLevel &&
+            currentLevelInput.querySelector(
+              `option[value="${state.currentLevel}"]`,
+            )
+          ) {
+            currentLevelInput.value = String(state.currentLevel);
+          }
+
+          if (Number.isFinite(Number(state.currentCoffeeBean))) {
+            currentCoffeeBeanInput.value = String(
+              Math.max(0, Number(state.currentCoffeeBean)),
+            );
+          }
+
+          if (Number.isFinite(Number(state.currentFood))) {
+            currentFoodInput.value = String(
+              Math.max(0, Number(state.currentFood)),
+            );
+          }
+
+          if (Number.isFinite(Number(state.currentIron))) {
+            currentIronInput.value = String(
+              Math.max(0, Number(state.currentIron)),
+            );
+          }
+
+          if (state.timeZone) {
+            if (
+              !timeZoneSelect.querySelector(`option[value="${state.timeZone}"]`)
+            ) {
+              timeZoneSelect.appendChild(
+                new Option(state.timeZone, state.timeZone),
+              );
+            }
+            timeZoneSelect.value = state.timeZone;
+          }
+
+          if (
+            state.language &&
+            languageOptions.some((lang) => lang.code === state.language)
+          ) {
+            preferredLanguage = state.language;
+            languageSelect.value = state.language;
+          }
+
+          if (Number.isFinite(Number(state.allianceTech))) {
+            const savedTech = Number(state.allianceTech).toFixed(1);
+            if (
+              allianceTechSelect.querySelector(`option[value="${savedTech}"]`)
+            ) {
+              allianceTechSelect.value = savedTech;
+            }
+          }
+
+          if (Array.isArray(state.mineLevels)) {
+            for (let index = 1; index <= 5; index += 1) {
+              const savedLevel = Number(state.mineLevels[index - 1] || 0);
+              const select = document.getElementById(`mineLevel${index}`);
+              if (
+                select &&
+                select.querySelector(`option[value="${savedLevel}"]`)
+              ) {
+                select.value = String(savedLevel);
+              }
+            }
+          }
+
+          if (Array.isArray(state.foodMineLevels)) {
+            for (let index = 1; index <= 5; index += 1) {
+              const savedLevel = Number(state.foodMineLevels[index - 1] || 0);
+              const select = document.getElementById(`foodMineLevel${index}`);
+              if (
+                select &&
+                select.querySelector(`option[value="${savedLevel}"]`)
+              ) {
+                select.value = String(savedLevel);
+              }
+            }
+          }
+
+          if (Array.isArray(state.ironMineLevels)) {
+            for (let index = 1; index <= 5; index += 1) {
+              const savedLevel = Number(state.ironMineLevels[index - 1] || 0);
+              const select = document.getElementById(`ironMineLevel${index}`);
+              if (
+                select &&
+                select.querySelector(`option[value="${savedLevel}"]`)
+              ) {
+                select.value = String(savedLevel);
+              }
+            }
+          }
+
+          if (Number.isFinite(Number(state.lockedReadyAtTimestampMs))) {
+            lockedReadyAtTimestampMs = Number(state.lockedReadyAtTimestampMs);
+          }
+
+          if (typeof state.lastCalcSignature === "string") {
+            lastCalcSignature = state.lastCalcSignature;
+          }
+        } catch {}
+      }
+
+      function updateCalculator() {
+        const currentLevel = Number(currentLevelInput.value);
+        const currentCoffeeBean = Math.max(
+          0,
+          Number(currentCoffeeBeanInput.value) || 0,
+        );
+        const currentFood = Math.max(0, Number(currentFoodInput.value) || 0);
+        const currentIron = Math.max(0, Number(currentIronInput.value) || 0);
+        const nextUpgrade = protectorsFieldS5Costs.find(
+          (row) => row.level === currentLevel + 1,
+        );
+
+        if (!nextUpgrade) {
+          nextLevelValue.textContent = "Max";
+          requiredCoffeeBeanValue.textContent = "0";
+          ownedCoffeeBeanValue.textContent = formatResource(currentCoffeeBean);
+          deficitCoffeeBeanValue.textContent = "0";
+          deficitCoffeeBeanValue.className = "tile-value ok";
+          requiredFoodValue.textContent = "0";
+          ownedFoodValue.textContent = formatResource(currentFood);
+          deficitFoodValue.textContent = "0";
+          deficitFoodValue.className = "tile-value ok";
+          requiredIronValue.textContent = "0";
+          ownedIronValue.textContent = formatResource(currentIron);
+          deficitIronValue.textContent = "0";
+          deficitIronValue.className = "tile-value ok";
+          coffeeBeanEtaValue.textContent = "-";
+          foodEtaValue.textContent = "-";
+          ironEtaValue.textContent = "-";
+          readyAtValue.textContent = "-";
+          pathValue.textContent = "Maximum configured level reached";
+          statusValue.textContent = "No higher level in this table";
+          mineRateValue.textContent = `${formatResource(getTotalFactoryOutput())}/hr`;
+          foodMineRateValue.textContent = `${formatResource(getTotalFoodMineOutput())}/hr`;
+          ironMineRateValue.textContent = `${formatResource(getTotalIronMineOutput())}/hr`;
+          timeZoneValue.textContent = timeZoneSelect.value;
+          costLevelSelect.value = String(
+            protectorsFieldS5Costs[protectorsFieldS5Costs.length - 1].level,
+          );
+          updateCurrentTimeDisplay();
+          return;
+        }
+
+        const allianceTechPct = Number(allianceTechSelect.value || 0);
+        const requiredCoffeeBean = Math.max(
+          0,
+          Math.round(nextUpgrade.coffeeBean * (1 - allianceTechPct / 100)),
+        );
+        const requiredFood = Math.max(
+          0,
+          Math.round(nextUpgrade.food * (1 - allianceTechPct / 100)),
+        );
+        const requiredIron = Math.max(
+          0,
+          Math.round(nextUpgrade.iron * (1 - allianceTechPct / 100)),
+        );
+        const remainingCoffeeBean = Math.max(
+          0,
+          requiredCoffeeBean - currentCoffeeBean,
+        );
+        const remainingFood = Math.max(0, requiredFood - currentFood);
+        const remainingIron = Math.max(0, requiredIron - currentIron);
+        const coffeeBeanReady = remainingCoffeeBean === 0;
+        const foodReady = remainingFood === 0;
+        const ironReady = remainingIron === 0;
+        const totalFactoryOutput = getTotalFactoryOutput();
+        const totalFoodOutput = getTotalFoodMineOutput();
+        const totalIronOutput = getTotalIronMineOutput();
+        const coffeeBeanEtaHours = coffeeBeanReady
+          ? 0
+          : totalFactoryOutput > 0
+            ? remainingCoffeeBean / totalFactoryOutput
+            : Infinity;
+        const foodEtaHours = foodReady
+          ? 0
+          : totalFoodOutput > 0
+            ? remainingFood / totalFoodOutput
+            : Infinity;
+        const ironEtaHours = ironReady
+          ? 0
+          : totalIronOutput > 0
+            ? remainingIron / totalIronOutput
+            : Infinity;
+        const selectedTimeZone = timeZoneSelect.value;
+        const calcSignature = [
+          currentLevel,
+          currentCoffeeBean,
+          currentFood,
+          currentIron,
+          allianceTechPct,
+          getFactoryLevelsSignature(),
+          getFoodMineLevelsSignature(),
+          getIronMineLevelsSignature(),
+        ].join("|");
+
+        if (calcSignature !== lastCalcSignature) {
+          lockedReadyAtTimestampMs =
+            !coffeeBeanReady && Number.isFinite(coffeeBeanEtaHours)
+              ? Date.now() + coffeeBeanEtaHours * 3600 * 1000
+              : null;
+          lastCalcSignature = calcSignature;
+        }
+
+        nextLevelValue.textContent = `Lv ${currentLevel + 1}`;
+        requiredCoffeeBeanValue.textContent =
+          formatResource(requiredCoffeeBean);
+        ownedCoffeeBeanValue.textContent = formatResource(currentCoffeeBean);
+        deficitCoffeeBeanValue.textContent =
+          formatResource(remainingCoffeeBean);
+        deficitCoffeeBeanValue.className = `tile-value ${coffeeBeanReady ? "ok" : "warn"}`;
+        requiredFoodValue.textContent = formatResource(requiredFood);
+        ownedFoodValue.textContent = formatResource(currentFood);
+        deficitFoodValue.textContent = formatResource(remainingFood);
+        deficitFoodValue.className = `tile-value ${foodReady ? "ok" : "warn"}`;
+        requiredIronValue.textContent = formatResource(requiredIron);
+        ownedIronValue.textContent = formatResource(currentIron);
+        deficitIronValue.textContent = formatResource(remainingIron);
+        deficitIronValue.className = `tile-value ${ironReady ? "ok" : "warn"}`;
+
+        if (requiredCoffeeBean === 0) {
+          coffeeBeanEtaValue.textContent = "No coffee bean needed";
+          coffeeBeanEtaValue.className = "tile-value ok";
+          readyAtValue.textContent = "No coffee bean needed";
+          readyAtValue.className = "tile-value ok";
+        } else {
+          coffeeBeanEtaValue.textContent =
+            formatTimeFromHours(coffeeBeanEtaHours);
+          coffeeBeanEtaValue.className = `tile-value ${coffeeBeanReady ? "ok" : totalFactoryOutput > 0 ? "" : "warn"}`;
+          readyAtValue.textContent = coffeeBeanReady
+            ? "Now"
+            : Number.isFinite(lockedReadyAtTimestampMs)
+              ? formatReadyAtFromTimestamp(
+                  lockedReadyAtTimestampMs,
+                  selectedTimeZone,
+                )
+              : "No output";
+          readyAtValue.className = `tile-value ${coffeeBeanReady ? "ok" : totalFactoryOutput > 0 ? "" : "warn"}`;
+        }
+
+        if (requiredFood === 0) {
+          foodEtaValue.textContent = "No food needed";
+          foodEtaValue.className = "tile-value ok";
+        } else {
+          foodEtaValue.textContent = formatTimeFromHours(foodEtaHours);
+          foodEtaValue.className = `tile-value ${foodReady ? "ok" : totalFoodOutput > 0 ? "" : "warn"}`;
+        }
+
+        if (requiredIron === 0) {
+          ironEtaValue.textContent = "No iron needed";
+          ironEtaValue.className = "tile-value ok";
+        } else {
+          ironEtaValue.textContent = formatTimeFromHours(ironEtaHours);
+          ironEtaValue.className = `tile-value ${ironReady ? "ok" : totalIronOutput > 0 ? "" : "warn"}`;
+        }
+
+        pathValue.textContent = `Level ${currentLevel} -> Level ${currentLevel + 1}`;
+        if (coffeeBeanReady && foodReady && ironReady) {
+          statusValue.textContent = "You already have enough resources";
+        } else {
+          const missing = [];
+          if (!coffeeBeanReady) {
+            missing.push("coffee bean");
+          }
+          if (!foodReady) {
+            missing.push("food");
+          }
+          if (!ironReady) {
+            missing.push("iron");
+          }
+          statusValue.textContent = `Need more ${missing.join(", ")}`;
+        }
+
+        mineRateValue.textContent = `${formatResource(totalFactoryOutput)}/hr`;
+        foodMineRateValue.textContent = `${formatResource(totalFoodOutput)}/hr`;
+        ironMineRateValue.textContent = `${formatResource(totalIronOutput)}/hr`;
+        timeZoneValue.textContent = selectedTimeZone;
+        costLevelSelect.value = String(nextUpgrade.level);
+        updateCurrentTimeDisplay();
+        saveState();
+      }
+
+      buildLevelOptions();
+      buildTimeZoneOptions();
+      buildLanguageOptions();
+      buildAllianceTechOptions();
+      buildFactorySelectors();
+      buildFoodMineSelectors();
+      buildIronMineSelectors();
+      loadSavedState();
+      buildLanguageOptions();
+      buildTable();
+      updateCalculator();
+      updateFactoryOutput();
+      updateFoodMineOutput();
+      updateIronMineOutput();
+      updateCurrentTimeDisplay();
+      loadGoogleTranslateScript();
+      setInterval(updateCurrentTimeDisplay, 1000);
+
+      currentLevelInput.addEventListener("change", updateCalculator);
+      currentCoffeeBeanInput.addEventListener("input", updateCalculator);
+      currentFoodInput.addEventListener("input", updateCalculator);
+      currentIronInput.addEventListener("input", updateCalculator);
+      timeZoneSelect.addEventListener("change", updateCalculator);
+      allianceTechSelect.addEventListener("change", updateFactoryOutput);
+      languageSelect.addEventListener("change", () => {
+        preferredLanguage = languageSelect.value;
+        applyGoogleLanguage(preferredLanguage);
+        saveState();
+      });
+    </script>
+  </body>
+</html>

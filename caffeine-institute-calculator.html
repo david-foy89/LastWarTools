@@ -3,7 +3,7 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Last War Curse Research Lab Calculator</title>
+    <title>Last War Season 5 Caffeine Institute Calculator</title>
     <link rel="stylesheet" href="last-war-furnace-upgrade-calculator.css" />
     <script src="page-nav-dropdown.js" defer></script>
   </head>
@@ -35,14 +35,12 @@
             >
           </div>
         </details>
-        <details class="page-nav-dropdown active" name="season-nav">
+        <details class="page-nav-dropdown" name="season-nav">
           <summary class="page-link page-nav-dropdown-toggle">
             Season 3 Calculators
           </summary>
           <div class="page-nav-dropdown-menu">
-            <a
-              href="curse-research-lab-calculator.html"
-              class="page-link active"
+            <a href="curse-research-lab-calculator.html" class="page-link"
               >Curse Research Lab</a
             >
             <a href="altar-calculator.html" class="page-link">Altar</a>
@@ -67,12 +65,14 @@
             >
           </div>
         </details>
-        <details class="page-nav-dropdown" name="season-nav">
+        <details class="page-nav-dropdown active" name="season-nav">
           <summary class="page-link page-nav-dropdown-toggle">
             Season 5 Calculators
           </summary>
           <div class="page-nav-dropdown-menu">
-            <a href="caffeine-institute-calculator.html" class="page-link"
+            <a
+              href="caffeine-institute-calculator.html"
+              class="page-link active"
               >Caffeine Institute</a
             >
             <a href="protectors-field-s5-calculator.html" class="page-link"
@@ -85,12 +85,12 @@
       </nav>
 
       <section class="hero">
-        <h1>Curse Research Lab Calculator</h1>
+        <h1>Season 5 Caffeine Institute Calculator</h1>
         <div class="sub">
-          Choose your current Curse Research Lab level and enter your current
-          sacred water. The calculator shows how much sacred water you still
-          need for the next level and when your Blessing Fountains will cover
-          the gap.
+          Choose your current Caffeine Institute level and enter your current
+          Coffee and Coffee (Old). This calculator shows both Season 5 upgrade
+          tracks from Cpt Hedgehog, with Coffee for new servers and Coffee (Old)
+          for older servers.
         </div>
       </section>
 
@@ -98,18 +98,30 @@
         <div class="card">
           <h2 class="card-title">Inputs</h2>
           <div class="field">
-            <label for="currentLevel">Current Curse Research Lab Level</label>
+            <label for="currentLevel">Current Caffeine Institute Level</label>
             <select id="currentLevel"></select>
           </div>
-          <div class="field">
-            <label for="currentSacredWater">Current Sacred Water</label>
-            <input
-              id="currentSacredWater"
-              type="number"
-              min="0"
-              step="1"
-              value="0"
-            />
+          <div class="dual-field-grid">
+            <div class="field">
+              <label for="currentCoffee">Current Coffee</label>
+              <input
+                id="currentCoffee"
+                type="number"
+                min="0"
+                step="1"
+                value="0"
+              />
+            </div>
+            <div class="field">
+              <label for="currentCoffeeOld">Current Coffee (Old)</label>
+              <input
+                id="currentCoffeeOld"
+                type="number"
+                min="0"
+                step="1"
+                value="0"
+              />
+            </div>
           </div>
           <div class="field">
             <label for="allianceTechSelect"
@@ -123,12 +135,10 @@
           </div>
 
           <div class="field-group">
-            <h2 class="card-title">Blessing Fountains</h2>
+            <h2 class="card-title">Coffee Factories</h2>
             <div class="mine-list" id="mineList"></div>
             <div class="mine-total">
-              <div class="mine-total-key">
-                Total Sacred Water Output Per Hour
-              </div>
+              <div class="mine-total-key">Total Coffee Output Per Hour</div>
               <div class="mine-total-value" id="totalMineOutput">0</div>
             </div>
           </div>
@@ -142,28 +152,50 @@
               <div class="tile-value" id="nextLevelValue">Lv 2</div>
             </div>
             <div class="tile">
-              <div class="tile-key">Sacred Water Required</div>
-              <div class="tile-value" id="requiredValue">700</div>
+              <div class="tile-key">Coffee Required</div>
+              <div class="tile-value" id="requiredCoffeeValue">11,200</div>
             </div>
             <div class="tile">
-              <div class="tile-key">Current Sacred Water</div>
-              <div class="tile-value" id="ownedValue">0</div>
+              <div class="tile-key">Current Coffee</div>
+              <div class="tile-value" id="ownedCoffeeValue">0</div>
             </div>
             <div class="tile">
-              <div class="tile-key">Still Needed</div>
-              <div class="tile-value warn" id="deficitValue">700</div>
+              <div class="tile-key">Coffee Needed</div>
+              <div class="tile-value warn" id="deficitCoffeeValue">11,200</div>
             </div>
             <div class="tile">
-              <div class="tile-key">Estimated Time</div>
-              <div class="tile-value" id="etaValue">No output</div>
+              <div class="tile-key">Coffee ETA</div>
+              <div class="tile-value" id="coffeeEtaValue">No output</div>
+            </div>
+            <div class="tile">
+              <div class="tile-key">Coffee (Old) Required</div>
+              <div class="tile-value" id="requiredCoffeeOldValue">11,200</div>
+            </div>
+            <div class="tile">
+              <div class="tile-key">Current Coffee (Old)</div>
+              <div class="tile-value" id="ownedCoffeeOldValue">0</div>
+            </div>
+            <div class="tile">
+              <div class="tile-key">Coffee (Old) Needed</div>
+              <div class="tile-value warn" id="deficitCoffeeOldValue">
+                11,200
+              </div>
+            </div>
+            <div class="tile">
+              <div class="tile-key">Coffee (Old) ETA</div>
+              <div class="tile-value" id="coffeeOldEtaValue">No output</div>
             </div>
             <div class="tile">
               <div class="tile-key">Current Time</div>
               <div class="tile-value" id="currentTimeValue">-</div>
             </div>
             <div class="tile tile-full">
-              <div class="tile-key">Upgrade Ready At</div>
-              <div class="tile-value" id="readyAtValue">No output</div>
+              <div class="tile-key">Coffee Ready At</div>
+              <div class="tile-value" id="coffeeReadyAtValue">No output</div>
+            </div>
+            <div class="tile tile-full">
+              <div class="tile-key">Coffee (Old) Ready At</div>
+              <div class="tile-value" id="coffeeOldReadyAtValue">No output</div>
             </div>
           </div>
 
@@ -174,109 +206,132 @@
             </div>
             <div class="row">
               <div class="row-key">Status</div>
-              <div class="row-value" id="statusValue">
-                Need more sacred water
-              </div>
+              <div class="row-value" id="statusValue">Need more coffee</div>
             </div>
             <div class="row">
-              <div class="row-key">Blessing Fountain Output Used</div>
+              <div class="row-key">Coffee Factory Output Used</div>
               <div class="row-value" id="mineRateValue">0/hr</div>
             </div>
             <div class="row">
               <div class="row-key">Timezone Used</div>
               <div class="row-value" id="timeZoneValue">Local</div>
             </div>
+            <div class="row">
+              <div class="row-key">Server Notes</div>
+              <div class="row-value">
+                Coffee is for new servers (69+). Coffee (Old) is for older
+                servers (3-68).
+              </div>
+            </div>
           </div>
 
           <div class="table-wrap">
-            <label for="costLevelSelect">Level / Sacred Water</label>
+            <label for="costLevelSelect">Level / Coffee / Coffee (Old)</label>
             <select id="costLevelSelect"></select>
           </div>
 
           <div class="footnote">
-            Source values use the Curse Research Lab sacred water costs and
-            Blessing Fountain output table from Cpt Hedgehog.
+            Source values use the Season 5 Caffeine Institute table from Cpt
+            Hedgehog for levels 1 through 60. ETA uses Coffee Factory hourly
+            output values.
           </div>
         </div>
       </section>
     </div>
 
     <script>
-      const sacredWaterCosts = [
-        { level: 1, sacredWater: 700 },
-        { level: 2, sacredWater: 11200 },
-        { level: 3, sacredWater: 22400 },
-        { level: 4, sacredWater: 44800 },
-        { level: 5, sacredWater: 89600 },
-        { level: 6, sacredWater: 125400 },
-        { level: 7, sacredWater: 163100 },
-        { level: 8, sacredWater: 195700 },
-        { level: 9, sacredWater: 234800 },
-        { level: 10, sacredWater: 281800 },
-        { level: 11, sacredWater: 338100 },
-        { level: 12, sacredWater: 405800 },
-        { level: 13, sacredWater: 486900 },
-        { level: 14, sacredWater: 584300 },
-        { level: 15, sacredWater: 700200 },
-        { level: 16, sacredWater: 771300 },
-        { level: 17, sacredWater: 848400 },
-        { level: 18, sacredWater: 933300 },
-        { level: 19, sacredWater: 1030000 },
-        { level: 20, sacredWater: 1130000 },
-        { level: 21, sacredWater: 1240000 },
-        { level: 22, sacredWater: 1370000 },
-        { level: 23, sacredWater: 1500000 },
-        { level: 24, sacredWater: 1650000 },
-        { level: 25, sacredWater: 1820000 },
-        { level: 26, sacredWater: 2160000 },
-        { level: 27, sacredWater: 2510000 },
-        { level: 28, sacredWater: 2860000 },
-        { level: 29, sacredWater: 3460000 },
-        { level: 30, sacredWater: 4320000 },
+      const caffeineInstituteCosts = [
+        { level: 1, coffee: 0, coffeeOld: 0 },
+        { level: 2, coffee: 11200, coffeeOld: 11200 },
+        { level: 3, coffee: 22400, coffeeOld: 22400 },
+        { level: 4, coffee: 44800, coffeeOld: 44800 },
+        { level: 5, coffee: 89600, coffeeOld: 89600 },
+        { level: 6, coffee: 125400, coffeeOld: 125400 },
+        { level: 7, coffee: 150500, coffeeOld: 150500 },
+        { level: 8, coffee: 180600, coffeeOld: 180600 },
+        { level: 9, coffee: 216800, coffeeOld: 216800 },
+        { level: 10, coffee: 260100, coffeeOld: 260100 },
+        { level: 11, coffee: 312100, coffeeOld: 312100 },
+        { level: 12, coffee: 403900, coffeeOld: 403900 },
+        { level: 13, coffee: 444300, coffeeOld: 444300 },
+        { level: 14, coffee: 488800, coffeeOld: 488800 },
+        { level: 15, coffee: 537600, coffeeOld: 537600 },
+        { level: 16, coffee: 591400, coffeeOld: 591400 },
+        { level: 17, coffee: 650500, coffeeOld: 650500 },
+        { level: 18, coffee: 715600, coffeeOld: 715600 },
+        { level: 19, coffee: 787200, coffeeOld: 787200 },
+        { level: 20, coffee: 865900, coffeeOld: 865900 },
+        { level: 21, coffee: 874500, coffeeOld: 874500 },
+        { level: 22, coffee: 883300, coffeeOld: 883300 },
+        { level: 23, coffee: 892100, coffeeOld: 892100 },
+        { level: 24, coffee: 901000, coffeeOld: 901000 },
+        { level: 25, coffee: 910000, coffeeOld: 910000 },
+        { level: 26, coffee: 919100, coffeeOld: 919100 },
+        { level: 27, coffee: 928300, coffeeOld: 928300 },
+        { level: 28, coffee: 937600, coffeeOld: 937600 },
+        { level: 29, coffee: 947000, coffeeOld: 947000 },
+        { level: 30, coffee: 956500, coffeeOld: 956500 },
+        { level: 31, coffee: 966000, coffeeOld: 966000 },
+        { level: 32, coffee: 975700, coffeeOld: 975700 },
+        { level: 33, coffee: 985500, coffeeOld: 985500 },
+        { level: 34, coffee: 995300, coffeeOld: 995300 },
+        { level: 35, coffee: 1010000, coffeeOld: 1010000 },
+        { level: 36, coffee: 1210000, coffeeOld: 1020000 },
+        { level: 37, coffee: 1330000, coffeeOld: 1030000 },
+        { level: 38, coffee: 1330000, coffeeOld: 1040000 },
+        { level: 39, coffee: 1340000, coffeeOld: 1050000 },
+        { level: 40, coffee: 1350000, coffeeOld: 1060000 },
+        { level: 41, coffee: 1350000, coffeeOld: 1070000 },
+        { level: 42, coffee: 1360000, coffeeOld: 1080000 },
+        { level: 43, coffee: 1370000, coffeeOld: 1090000 },
+        { level: 44, coffee: 1370000, coffeeOld: 1100000 },
+        { level: 45, coffee: 1380000, coffeeOld: 1110000 },
+        { level: 46, coffee: 1390000, coffeeOld: 1120000 },
+        { level: 47, coffee: 1390000, coffeeOld: 1130000 },
+        { level: 48, coffee: 1400000, coffeeOld: 1140000 },
+        { level: 49, coffee: 1410000, coffeeOld: 1160000 },
+        { level: 50, coffee: 1420000, coffeeOld: 1170000 },
+        { level: 51, coffee: 1420000, coffeeOld: 1180000 },
+        { level: 52, coffee: 1430000, coffeeOld: 1190000 },
+        { level: 53, coffee: 1440000, coffeeOld: 1200000 },
+        { level: 54, coffee: 1440000, coffeeOld: 1210000 },
+        { level: 55, coffee: 1450000, coffeeOld: 1230000 },
+        { level: 56, coffee: 1460000, coffeeOld: 1240000 },
+        { level: 57, coffee: 1470000, coffeeOld: 1250000 },
+        { level: 58, coffee: 1470000, coffeeOld: 1260000 },
+        { level: 59, coffee: 1480000, coffeeOld: 1280000 },
+        { level: 60, coffee: 1490000, coffeeOld: 1290000 },
       ];
 
-      const blessingFountainOutputs = [
-        { level: 1, output: 720 },
-        { level: 2, output: 1440 },
-        { level: 3, output: 2160 },
-        { level: 4, output: 2880 },
-        { level: 5, output: 3600 },
-        { level: 6, output: 4320 },
-        { level: 7, output: 5040 },
-        { level: 8, output: 5760 },
-        { level: 9, output: 6480 },
-        { level: 10, output: 7200 },
-        { level: 11, output: 7920 },
-        { level: 12, output: 8640 },
-        { level: 13, output: 9360 },
-        { level: 14, output: 10080 },
-        { level: 15, output: 10800 },
-        { level: 16, output: 11520 },
-        { level: 17, output: 12240 },
-        { level: 18, output: 12960 },
-        { level: 19, output: 13680 },
-        { level: 20, output: 14400 },
-        { level: 21, output: 15120 },
-        { level: 22, output: 15840 },
-        { level: 23, output: 16560 },
-        { level: 24, output: 17280 },
-        { level: 25, output: 18000 },
-        { level: 26, output: 18720 },
-        { level: 27, output: 19440 },
-        { level: 28, output: 20160 },
-        { level: 29, output: 20880 },
-        { level: 30, output: 21600 },
-      ];
+      const coffeeFactoryOutputs = Array.from({ length: 30 }, (_, index) => ({
+        level: index + 1,
+        output: (index + 1) * 720,
+      }));
 
       const currentLevelInput = document.getElementById("currentLevel");
-      const currentSacredWaterInput =
-        document.getElementById("currentSacredWater");
+      const currentCoffeeInput = document.getElementById("currentCoffee");
+      const currentCoffeeOldInput = document.getElementById("currentCoffeeOld");
       const nextLevelValue = document.getElementById("nextLevelValue");
-      const requiredValue = document.getElementById("requiredValue");
-      const ownedValue = document.getElementById("ownedValue");
-      const deficitValue = document.getElementById("deficitValue");
-      const etaValue = document.getElementById("etaValue");
-      const readyAtValue = document.getElementById("readyAtValue");
+      const requiredCoffeeValue = document.getElementById(
+        "requiredCoffeeValue",
+      );
+      const ownedCoffeeValue = document.getElementById("ownedCoffeeValue");
+      const deficitCoffeeValue = document.getElementById("deficitCoffeeValue");
+      const requiredCoffeeOldValue = document.getElementById(
+        "requiredCoffeeOldValue",
+      );
+      const ownedCoffeeOldValue = document.getElementById(
+        "ownedCoffeeOldValue",
+      );
+      const deficitCoffeeOldValue = document.getElementById(
+        "deficitCoffeeOldValue",
+      );
+      const coffeeEtaValue = document.getElementById("coffeeEtaValue");
+      const coffeeOldEtaValue = document.getElementById("coffeeOldEtaValue");
+      const coffeeReadyAtValue = document.getElementById("coffeeReadyAtValue");
+      const coffeeOldReadyAtValue = document.getElementById(
+        "coffeeOldReadyAtValue",
+      );
       const pathValue = document.getElementById("pathValue");
       const statusValue = document.getElementById("statusValue");
       const mineRateValue = document.getElementById("mineRateValue");
@@ -288,9 +343,10 @@
       const timeZoneSelect = document.getElementById("timeZoneSelect");
       const allianceTechSelect = document.getElementById("allianceTechSelect");
       const languageSelect = document.getElementById("languageSelect");
-      const STORAGE_KEY = "lastWarCurseResearchLabCalcStateV1";
+      const STORAGE_KEY = "lastWarCaffeineInstituteCalcStateV1";
       let lastCalcSignature = "";
-      let lockedReadyAtTimestampMs = null;
+      let lockedCoffeeReadyAtTimestampMs = null;
+      let lockedCoffeeOldReadyAtTimestampMs = null;
       let preferredLanguage = "en";
 
       const languageOptions = [
@@ -370,7 +426,6 @@
         if (!Number.isFinite(hours)) {
           return "No output";
         }
-
         if (hours <= 0) {
           return "Ready now";
         }
@@ -388,26 +443,6 @@
           return `${wholeHours}h ${minutes}m`;
         }
         return `${minutes}m`;
-      }
-
-      function formatReadyAt(hours, timeZone) {
-        if (!Number.isFinite(hours)) {
-          return "No output";
-        }
-
-        if (hours <= 0) {
-          return "Now";
-        }
-
-        const targetDate = new Date(Date.now() + hours * 3600 * 1000);
-        return new Intl.DateTimeFormat(undefined, {
-          timeZone,
-          month: "short",
-          day: "numeric",
-          hour: "numeric",
-          minute: "2-digit",
-          hour12: true,
-        }).format(targetDate);
       }
 
       function formatReadyAtFromTimestamp(timestampMs, timeZone) {
@@ -510,9 +545,14 @@
 
       function buildLevelOptions() {
         currentLevelInput.innerHTML = "";
-        for (let level = 1; level <= sacredWaterCosts.length; level += 1) {
-          const option = new Option(`Level ${level}`, String(level));
-          currentLevelInput.appendChild(option);
+        for (
+          let level = 1;
+          level <= caffeineInstituteCosts.length;
+          level += 1
+        ) {
+          currentLevelInput.appendChild(
+            new Option(`Level ${level}`, String(level)),
+          );
         }
         currentLevelInput.value = "1";
       }
@@ -529,7 +569,7 @@
       }
 
       function buildMineSelectors() {
-        const options = blessingFountainOutputs
+        const options = coffeeFactoryOutputs
           .map(
             (row) => `<option value="${row.level}">Level ${row.level}</option>`,
           )
@@ -540,8 +580,8 @@
           (_, index) => `
         <div class="mine-row">
           <div>
-            <label for="mineLevel${index + 1}">Blessing Fountain ${index + 1}</label>
-            <select id="mineLevel${index + 1}" data-mine-index="${index + 1}">
+            <label for="mineLevel${index + 1}">Coffee Factory ${index + 1}</label>
+            <select id="mineLevel${index + 1}">
               <option value="0">Not set</option>
               ${options}
             </select>
@@ -558,8 +598,7 @@
 
       function getMineOutputForLevel(level) {
         return (
-          blessingFountainOutputs.find((row) => row.level === level)?.output ||
-          0
+          coffeeFactoryOutputs.find((row) => row.level === level)?.output || 0
         );
       }
 
@@ -569,8 +608,7 @@
         for (let index = 1; index <= 5; index += 1) {
           const select = document.getElementById(`mineLevel${index}`);
           const outputBox = document.getElementById(`mineOutput${index}`);
-          const level = Number(select.value);
-          const output = getMineOutputForLevel(level);
+          const output = getMineOutputForLevel(Number(select.value));
           totalOutput += output;
           outputBox.textContent = `${formatResource(output)}/hr`;
         }
@@ -582,8 +620,9 @@
       function getTotalMineOutput() {
         let totalOutput = 0;
         for (let index = 1; index <= 5; index += 1) {
-          const select = document.getElementById(`mineLevel${index}`);
-          totalOutput += getMineOutputForLevel(Number(select.value));
+          totalOutput += getMineOutputForLevel(
+            Number(document.getElementById(`mineLevel${index}`).value),
+          );
         }
         return totalOutput;
       }
@@ -591,17 +630,18 @@
       function getMineLevelsSignature() {
         const levels = [];
         for (let index = 1; index <= 5; index += 1) {
-          const select = document.getElementById(`mineLevel${index}`);
-          levels.push(Number(select?.value || 0));
+          levels.push(
+            Number(document.getElementById(`mineLevel${index}`)?.value || 0),
+          );
         }
         return levels.join(",");
       }
 
       function buildTable() {
-        costLevelSelect.innerHTML = sacredWaterCosts
+        costLevelSelect.innerHTML = caffeineInstituteCosts
           .map(
             (row) =>
-              `<option value="${row.level}">Level ${row.level} - ${formatResource(row.sacredWater)}</option>`,
+              `<option value="${row.level}">Level ${row.level} - Coffee ${formatResource(row.coffee)} / Coffee (Old) ${formatResource(row.coffeeOld)}</option>`,
           )
           .join("");
       }
@@ -610,31 +650,35 @@
         try {
           const mineLevels = [];
           for (let index = 1; index <= 5; index += 1) {
-            const select = document.getElementById(`mineLevel${index}`);
-            mineLevels.push(Number(select?.value || 0));
+            mineLevels.push(
+              Number(document.getElementById(`mineLevel${index}`)?.value || 0),
+            );
           }
 
-          const state = {
-            currentLevel: Number(currentLevelInput.value || 1),
-            currentSacredWater: Number(currentSacredWaterInput.value || 0),
-            timeZone: timeZoneSelect.value,
-            allianceTech: Number(allianceTechSelect.value || 0),
-            language: languageSelect.value,
-            mineLevels,
-            lockedReadyAtTimestampMs,
-            lastCalcSignature,
-          };
-
-          localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
-        } catch {
-          // Ignore storage errors (private mode / disabled storage)
-        }
+          localStorage.setItem(
+            STORAGE_KEY,
+            JSON.stringify({
+              currentLevel: Number(currentLevelInput.value || 1),
+              currentCoffee: Number(currentCoffeeInput.value || 0),
+              currentCoffeeOld: Number(currentCoffeeOldInput.value || 0),
+              timeZone: timeZoneSelect.value,
+              allianceTech: Number(allianceTechSelect.value || 0),
+              language: languageSelect.value,
+              mineLevels,
+              lockedCoffeeReadyAtTimestampMs,
+              lockedCoffeeOldReadyAtTimestampMs,
+              lastCalcSignature,
+            }),
+          );
+        } catch {}
       }
 
       function loadSavedState() {
         try {
           const raw = localStorage.getItem(STORAGE_KEY);
-          if (!raw) return;
+          if (!raw) {
+            return;
+          }
 
           const state = JSON.parse(raw);
 
@@ -647,9 +691,15 @@
             currentLevelInput.value = String(state.currentLevel);
           }
 
-          if (Number.isFinite(Number(state.currentSacredWater))) {
-            currentSacredWaterInput.value = String(
-              Math.max(0, Number(state.currentSacredWater)),
+          if (Number.isFinite(Number(state.currentCoffee))) {
+            currentCoffeeInput.value = String(
+              Math.max(0, Number(state.currentCoffee)),
+            );
+          }
+
+          if (Number.isFinite(Number(state.currentCoffeeOld))) {
+            currentCoffeeOldInput.value = String(
+              Math.max(0, Number(state.currentCoffeeOld)),
             );
           }
 
@@ -694,107 +744,164 @@
             }
           }
 
-          if (Number.isFinite(Number(state.lockedReadyAtTimestampMs))) {
-            lockedReadyAtTimestampMs = Number(state.lockedReadyAtTimestampMs);
+          if (Number.isFinite(Number(state.lockedCoffeeReadyAtTimestampMs))) {
+            lockedCoffeeReadyAtTimestampMs = Number(
+              state.lockedCoffeeReadyAtTimestampMs,
+            );
+          }
+
+          if (
+            Number.isFinite(Number(state.lockedCoffeeOldReadyAtTimestampMs))
+          ) {
+            lockedCoffeeOldReadyAtTimestampMs = Number(
+              state.lockedCoffeeOldReadyAtTimestampMs,
+            );
           }
 
           if (typeof state.lastCalcSignature === "string") {
             lastCalcSignature = state.lastCalcSignature;
           }
-        } catch {
-          // Ignore malformed or inaccessible stored state
-        }
+        } catch {}
       }
 
       function updateCalculator() {
         const currentLevel = Number(currentLevelInput.value);
-        const currentSacredWater = Math.max(
+        const currentCoffee = Math.max(
           0,
-          Number(currentSacredWaterInput.value) || 0,
+          Number(currentCoffeeInput.value) || 0,
         );
-        const nextUpgrade = sacredWaterCosts.find(
+        const currentCoffeeOld = Math.max(
+          0,
+          Number(currentCoffeeOldInput.value) || 0,
+        );
+        const nextUpgrade = caffeineInstituteCosts.find(
           (row) => row.level === currentLevel + 1,
         );
 
         if (!nextUpgrade) {
           nextLevelValue.textContent = "Max";
-          requiredValue.textContent = "0";
-          ownedValue.textContent = formatResource(currentSacredWater);
-          deficitValue.textContent = "0";
-          deficitValue.className = "tile-value ok";
-          etaValue.textContent = "-";
-          readyAtValue.textContent = "-";
+          requiredCoffeeValue.textContent = "0";
+          ownedCoffeeValue.textContent = formatResource(currentCoffee);
+          deficitCoffeeValue.textContent = "0";
+          deficitCoffeeValue.className = "tile-value ok";
+          requiredCoffeeOldValue.textContent = "0";
+          ownedCoffeeOldValue.textContent = formatResource(currentCoffeeOld);
+          deficitCoffeeOldValue.textContent = "0";
+          deficitCoffeeOldValue.className = "tile-value ok";
+          coffeeEtaValue.textContent = "-";
+          coffeeOldEtaValue.textContent = "-";
+          coffeeReadyAtValue.textContent = "-";
+          coffeeOldReadyAtValue.textContent = "-";
           pathValue.textContent = "Maximum configured level reached";
           statusValue.textContent = "No higher level in this table";
           mineRateValue.textContent = `${formatResource(getTotalMineOutput())}/hr`;
           timeZoneValue.textContent = timeZoneSelect.value;
           costLevelSelect.value = String(
-            sacredWaterCosts[sacredWaterCosts.length - 1].level,
+            caffeineInstituteCosts[caffeineInstituteCosts.length - 1].level,
           );
           updateCurrentTimeDisplay();
           return;
         }
 
         const allianceTechPct = Number(allianceTechSelect.value || 0);
-        const requiredSacredWater = Math.max(
+        const requiredCoffee = Math.max(
           0,
-          Math.round(nextUpgrade.sacredWater * (1 - allianceTechPct / 100)),
+          Math.round(nextUpgrade.coffee * (1 - allianceTechPct / 100)),
         );
-        const remainingSacredWater = Math.max(
+        const requiredCoffeeOld = Math.max(
           0,
-          requiredSacredWater - currentSacredWater,
+          Math.round(nextUpgrade.coffeeOld * (1 - allianceTechPct / 100)),
         );
-        const ready = remainingSacredWater === 0;
+        const remainingCoffee = Math.max(0, requiredCoffee - currentCoffee);
+        const remainingCoffeeOld = Math.max(
+          0,
+          requiredCoffeeOld - currentCoffeeOld,
+        );
+        const coffeeReady = remainingCoffee === 0;
+        const coffeeOldReady = remainingCoffeeOld === 0;
         const totalOutputPerHour = getTotalMineOutput();
-        const estimatedHours = ready
+        const coffeeEtaHours = coffeeReady
           ? 0
           : totalOutputPerHour > 0
-            ? remainingSacredWater / totalOutputPerHour
+            ? remainingCoffee / totalOutputPerHour
+            : Infinity;
+        const coffeeOldEtaHours = coffeeOldReady
+          ? 0
+          : totalOutputPerHour > 0
+            ? remainingCoffeeOld / totalOutputPerHour
             : Infinity;
         const selectedTimeZone = timeZoneSelect.value;
-
         const calcSignature = [
           currentLevel,
-          currentSacredWater,
+          currentCoffee,
+          currentCoffeeOld,
           allianceTechPct,
           getMineLevelsSignature(),
         ].join("|");
 
         if (calcSignature !== lastCalcSignature) {
-          if (!ready && Number.isFinite(estimatedHours)) {
-            lockedReadyAtTimestampMs =
-              Date.now() + estimatedHours * 3600 * 1000;
-          } else {
-            lockedReadyAtTimestampMs = null;
-          }
+          lockedCoffeeReadyAtTimestampMs =
+            !coffeeReady && Number.isFinite(coffeeEtaHours)
+              ? Date.now() + coffeeEtaHours * 3600 * 1000
+              : null;
+          lockedCoffeeOldReadyAtTimestampMs =
+            !coffeeOldReady && Number.isFinite(coffeeOldEtaHours)
+              ? Date.now() + coffeeOldEtaHours * 3600 * 1000
+              : null;
           lastCalcSignature = calcSignature;
         }
 
         nextLevelValue.textContent = `Lv ${currentLevel + 1}`;
-        requiredValue.textContent = formatResource(requiredSacredWater);
-        ownedValue.textContent = formatResource(currentSacredWater);
-        deficitValue.textContent = formatResource(remainingSacredWater);
-        deficitValue.className = `tile-value ${ready ? "ok" : "warn"}`;
-        etaValue.textContent = formatTimeFromHours(estimatedHours);
-        etaValue.className = `tile-value ${ready ? "ok" : totalOutputPerHour > 0 ? "" : "warn"}`;
-        readyAtValue.textContent = ready
+        requiredCoffeeValue.textContent = formatResource(requiredCoffee);
+        ownedCoffeeValue.textContent = formatResource(currentCoffee);
+        deficitCoffeeValue.textContent = formatResource(remainingCoffee);
+        deficitCoffeeValue.className = `tile-value ${coffeeReady ? "ok" : "warn"}`;
+        requiredCoffeeOldValue.textContent = formatResource(requiredCoffeeOld);
+        ownedCoffeeOldValue.textContent = formatResource(currentCoffeeOld);
+        deficitCoffeeOldValue.textContent = formatResource(remainingCoffeeOld);
+        deficitCoffeeOldValue.className = `tile-value ${coffeeOldReady ? "ok" : "warn"}`;
+        coffeeEtaValue.textContent = formatTimeFromHours(coffeeEtaHours);
+        coffeeEtaValue.className = `tile-value ${coffeeReady ? "ok" : totalOutputPerHour > 0 ? "" : "warn"}`;
+        coffeeOldEtaValue.textContent = formatTimeFromHours(coffeeOldEtaHours);
+        coffeeOldEtaValue.className = `tile-value ${coffeeOldReady ? "ok" : totalOutputPerHour > 0 ? "" : "warn"}`;
+        coffeeReadyAtValue.textContent = coffeeReady
           ? "Now"
-          : Number.isFinite(lockedReadyAtTimestampMs)
+          : Number.isFinite(lockedCoffeeReadyAtTimestampMs)
             ? formatReadyAtFromTimestamp(
-                lockedReadyAtTimestampMs,
+                lockedCoffeeReadyAtTimestampMs,
                 selectedTimeZone,
               )
-            : formatReadyAt(estimatedHours, selectedTimeZone);
-        readyAtValue.className = `tile-value ${ready ? "ok" : totalOutputPerHour > 0 ? "" : "warn"}`;
+            : "No output";
+        coffeeReadyAtValue.className = `tile-value ${coffeeReady ? "ok" : totalOutputPerHour > 0 ? "" : "warn"}`;
+        coffeeOldReadyAtValue.textContent = coffeeOldReady
+          ? "Now"
+          : Number.isFinite(lockedCoffeeOldReadyAtTimestampMs)
+            ? formatReadyAtFromTimestamp(
+                lockedCoffeeOldReadyAtTimestampMs,
+                selectedTimeZone,
+              )
+            : "No output";
+        coffeeOldReadyAtValue.className = `tile-value ${coffeeOldReady ? "ok" : totalOutputPerHour > 0 ? "" : "warn"}`;
         pathValue.textContent = `Level ${currentLevel} -> Level ${currentLevel + 1}`;
-        statusValue.textContent = ready
-          ? "You already have enough sacred water"
-          : "Need more sacred water";
+
+        if (coffeeReady && coffeeOldReady) {
+          statusValue.textContent =
+            "You already have enough resources for both server tracks";
+        } else {
+          const missing = [];
+          if (!coffeeReady) {
+            missing.push("coffee");
+          }
+          if (!coffeeOldReady) {
+            missing.push("coffee (old)");
+          }
+          statusValue.textContent = `Need more ${missing.join(" and ")}`;
+        }
+
         mineRateValue.textContent = `${formatResource(totalOutputPerHour)}/hr`;
         timeZoneValue.textContent = selectedTimeZone;
         costLevelSelect.value = String(nextUpgrade.level);
         updateCurrentTimeDisplay();
-
         saveState();
       }
 
@@ -813,7 +920,8 @@
       setInterval(updateCurrentTimeDisplay, 1000);
 
       currentLevelInput.addEventListener("change", updateCalculator);
-      currentSacredWaterInput.addEventListener("input", updateCalculator);
+      currentCoffeeInput.addEventListener("input", updateCalculator);
+      currentCoffeeOldInput.addEventListener("input", updateCalculator);
       timeZoneSelect.addEventListener("change", updateCalculator);
       allianceTechSelect.addEventListener("change", updateMineOutput);
       languageSelect.addEventListener("change", () => {
