@@ -194,6 +194,12 @@ h1 {
   gap: 12px;
 }
 
+.triple-field-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 12px;
+}
+
 .field-group {
   margin-top: 18px;
   padding-top: 18px;
@@ -419,6 +425,10 @@ tr.active td {
   }
 
   .dual-field-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .triple-field-grid {
     grid-template-columns: 1fr;
   }
 
