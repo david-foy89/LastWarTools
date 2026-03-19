@@ -3,6 +3,7 @@
   --panel: #111c28;
   --panel-2: #162434;
   --line: #2b3d51;
+  --line-soft: #37506a;
   --text: #e4edf7;
   --muted: #91a4b8;
   --accent: #74c0fc;
@@ -18,21 +19,38 @@
 body {
   margin: 0;
   min-height: 100vh;
-  font-family: "Segoe UI", Tahoma, sans-serif;
+  font-family: "Bahnschrift", "Trebuchet MS", "Segoe UI", Tahoma, sans-serif;
   color: var(--text);
+  position: relative;
   background:
-    radial-gradient(circle at top, rgba(116, 192, 252, 0.18), transparent 28%),
-    linear-gradient(180deg, #09111a 0%, #05090e 100%);
+    radial-gradient(circle at top, rgba(116, 192, 252, 0.28), transparent 32%),
+    linear-gradient(180deg, #0a1420 0%, #05090e 100%);
+}
+
+body::before {
+  content: "";
+  position: fixed;
+  inset: 0;
+  background-image: url("media/lwst.png");
+  background-repeat: no-repeat;
+  background-position: center 12%;
+  background-size: clamp(900px, 110vw, 1800px);
+  opacity: 0.09;
+  pointer-events: none;
+  z-index: 0;
 }
 
 .page {
   max-width: 980px;
   margin: 0 auto;
-  padding: 24px 16px 40px;
+  padding: 26px 16px 44px;
+  position: relative;
+  z-index: 1;
 }
 
 .page-top-controls {
   display: flex;
+  align-items: center;
   justify-content: flex-end;
   margin-bottom: 12px;
 }
@@ -53,14 +71,15 @@ body {
 .hero,
 .card {
   background: linear-gradient(180deg, var(--panel) 0%, var(--panel-2) 100%);
-  border: 1px solid var(--line);
+  border: 1px solid var(--line-soft);
   border-radius: 16px;
-  box-shadow: 0 18px 50px rgba(0, 0, 0, 0.18);
+  box-shadow: 0 18px 50px rgba(0, 0, 0, 0.24);
 }
 
 .hero {
-  padding: 22px;
-  margin-bottom: 16px;
+  padding: 24px;
+  margin-bottom: 18px;
+  border-top: 2px solid rgba(116, 192, 252, 0.42);
 }
 
 h1 {
@@ -71,34 +90,49 @@ h1 {
 }
 
 .sub {
-  margin-top: 8px;
+  margin-top: 10px;
   color: var(--muted);
-  font-size: 0.96rem;
+  font-size: 0.98rem;
   line-height: 1.5;
 }
 
 .layout {
   display: grid;
   grid-template-columns: minmax(280px, 340px) 1fr;
-  gap: 16px;
+  gap: 18px;
+  align-items: start;
 }
 
 @media (max-width: 800px) {
   .layout {
     grid-template-columns: 1fr;
   }
+
+  body::before {
+    background-size: 150vw;
+    background-position: center 8%;
+    opacity: 0.08;
+  }
+}
+
+@media (max-width: 520px) {
+  body::before {
+    background-size: 185vw;
+    background-position: center 6%;
+    opacity: 0.07;
+  }
 }
 
 .card {
-  padding: 18px;
+  padding: 20px;
 }
 
 .card-title {
   margin: 0 0 14px;
   color: var(--accent);
-  font-size: 0.82rem;
+  font-size: 0.8rem;
   text-transform: uppercase;
-  letter-spacing: 0.12em;
+  letter-spacing: 0.14em;
 }
 
 .field {
@@ -130,9 +164,21 @@ select {
   padding: 11px 12px;
   border: 1px solid var(--line);
   border-radius: 10px;
-  background: #0a141f;
+  background: #0c1825;
   color: var(--text);
   font-size: 0.98rem;
+  transition:
+    border-color 140ms ease,
+    box-shadow 140ms ease,
+    background-color 140ms ease;
+}
+
+input:focus,
+select:focus {
+  outline: none;
+  border-color: var(--accent-2);
+  box-shadow: 0 0 0 3px rgba(77, 171, 247, 0.22);
+  background: #0f1d2c;
 }
 
 .summary {
@@ -149,10 +195,15 @@ select {
 }
 
 .tile {
-  background: rgba(8, 16, 25, 0.65);
+  background: linear-gradient(
+    180deg,
+    rgba(9, 20, 33, 0.82),
+    rgba(8, 16, 25, 0.7)
+  );
   border: 1px solid var(--line);
   border-radius: 14px;
   padding: 14px;
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.04);
 }
 
 .tile-full {
@@ -171,6 +222,7 @@ select {
   font-size: 1.45rem;
   font-weight: 800;
   line-height: 1.15;
+  text-wrap: balance;
 }
 
 .ok {
@@ -182,7 +234,7 @@ select {
 }
 
 .details {
-  background: rgba(8, 16, 25, 0.65);
+  background: rgba(8, 16, 25, 0.7);
   border: 1px solid var(--line);
   border-radius: 14px;
   overflow: hidden;
@@ -194,6 +246,7 @@ select {
   gap: 10px;
   padding: 12px 14px;
   border-top: 1px solid var(--line);
+  align-items: center;
 }
 
 .row:first-child {
@@ -210,9 +263,14 @@ select {
 
 .table-wrap {
   margin-top: 16px;
-  overflow-x: auto;
   border: 1px solid var(--line);
   border-radius: 14px;
+  background: rgba(8, 16, 25, 0.72);
+  padding: 12px;
+}
+
+#costLevelSelect {
+  font-weight: 700;
 }
 
 table {
@@ -250,7 +308,7 @@ tr.active td {
 .footnote {
   margin-top: 12px;
   color: var(--muted);
-  font-size: 0.82rem;
+  font-size: 0.8rem;
   line-height: 1.5;
 }
 
@@ -271,7 +329,7 @@ tr.active td {
   padding: 11px 12px;
   border: 1px solid var(--line);
   border-radius: 10px;
-  background: #0a141f;
+  background: #0c1825;
   color: var(--accent);
   font-weight: 700;
   text-align: right;
@@ -282,7 +340,7 @@ tr.active td {
   padding: 12px 14px;
   border: 1px solid var(--line);
   border-radius: 12px;
-  background: rgba(8, 16, 25, 0.65);
+  background: rgba(8, 16, 25, 0.75);
 }
 
 .mine-total-key {
@@ -294,9 +352,24 @@ tr.active td {
 
 .mine-total-value {
   margin-top: 6px;
-  font-size: 1.2rem;
+  font-size: 1.22rem;
   font-weight: 800;
   color: var(--accent);
+}
+
+@media (max-width: 520px) {
+  .hero,
+  .card {
+    border-radius: 14px;
+  }
+
+  .card {
+    padding: 16px;
+  }
+
+  .tile-full {
+    grid-column: auto;
+  }
 }
 
 /* Hide Google Translate top bar/overlays */

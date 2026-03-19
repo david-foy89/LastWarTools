@@ -118,15 +118,8 @@
           </div>
 
           <div class="table-wrap">
-            <table>
-              <thead>
-                <tr>
-                  <th>Level</th>
-                  <th>Titanium Alloy</th>
-                </tr>
-              </thead>
-              <tbody id="costTableBody"></tbody>
-            </table>
+            <label for="costLevelSelect">Level / Titanium Alloy</label>
+            <select id="costLevelSelect"></select>
           </div>
 
           <div class="footnote">
@@ -217,7 +210,7 @@
       const mineRateValue = document.getElementById("mineRateValue");
       const timeZoneValue = document.getElementById("timeZoneValue");
       const currentTimeValue = document.getElementById("currentTimeValue");
-      const costTableBody = document.getElementById("costTableBody");
+      const costLevelSelect = document.getElementById("costLevelSelect");
       const mineList = document.getElementById("mineList");
       const totalMineOutput = document.getElementById("totalMineOutput");
       const timeZoneSelect = document.getElementById("timeZoneSelect");
@@ -452,6 +445,21 @@
         currentLevelInput.value = "1";
       }
 
+      function buildCurrentTitaniumOptions() {
+        const titaniumValues = [
+          0,
+          ...new Set(titaniumCosts.map((row) => row.titanium)),
+        ].sort((a, b) => a - b);
+
+        currentTitaniumInput.innerHTML = titaniumValues
+          .map(
+            (value) =>
+              `<option value="${value}">${formatTitanium(value)}</option>`,
+          )
+          .join("");
+        currentTitaniumInput.value = "0";
+      }
+
       function buildAllianceTechOptions() {
         allianceTechSelect.innerHTML = Array.from(
           { length: 201 },
@@ -530,14 +538,10 @@
       }
 
       function buildTable() {
-        costTableBody.innerHTML = titaniumCosts
+        costLevelSelect.innerHTML = titaniumCosts
           .map(
-            (row) => `
-          <tr data-level="${row.level}">
-            <td>${row.level}</td>
-            <td>${formatTitanium(row.titanium)}</td>
-          </tr>
-        `,
+            (row) =>
+              `<option value="${row.level}">Level ${row.level} - ${formatTitanium(row.titanium)}</option>`,
           )
           .join("");
       }
@@ -584,9 +588,19 @@
           }
 
           if (Number.isFinite(Number(state.currentTitanium))) {
-            currentTitaniumInput.value = String(
+            const savedTitanium = String(
               Math.max(0, Number(state.currentTitanium)),
             );
+            if (
+              !currentTitaniumInput.querySelector(
+                `option[value="${savedTitanium}"]`,
+              )
+            ) {
+              currentTitaniumInput.appendChild(
+                new Option(formatTitanium(savedTitanium), savedTitanium),
+              );
+            }
+            currentTitaniumInput.value = savedTitanium;
           }
 
           if (state.timeZone) {
@@ -664,6 +678,9 @@
           statusValue.textContent = "No higher level in this table";
           mineRateValue.textContent = `${formatTitanium(getTotalMineOutput())}/hr`;
           timeZoneValue.textContent = timeZoneSelect.value;
+          costLevelSelect.value = String(
+            titaniumCosts[titaniumCosts.length - 1].level,
+          );
           updateCurrentTimeDisplay();
           return;
         }
@@ -726,19 +743,14 @@
           : "Need more titanium alloy";
         mineRateValue.textContent = `${formatTitanium(totalOutputPerHour)}/hr`;
         timeZoneValue.textContent = selectedTimeZone;
+        costLevelSelect.value = String(nextUpgrade.level);
         updateCurrentTimeDisplay();
-
-        Array.from(costTableBody.querySelectorAll("tr")).forEach((row) => {
-          row.classList.toggle(
-            "active",
-            Number(row.dataset.level) === currentLevel,
-          );
-        });
 
         saveState();
       }
 
       buildLevelOptions();
+      buildCurrentTitaniumOptions();
       buildTimeZoneOptions();
       buildLanguageOptions();
       buildAllianceTechOptions();
@@ -753,7 +765,7 @@
       setInterval(updateCurrentTimeDisplay, 1000);
 
       currentLevelInput.addEventListener("change", updateCalculator);
-      currentTitaniumInput.addEventListener("input", updateCalculator);
+      currentTitaniumInput.addEventListener("change", updateCalculator);
       timeZoneSelect.addEventListener("change", updateCalculator);
       allianceTechSelect.addEventListener("change", updateMineOutput);
       languageSelect.addEventListener("change", () => {
