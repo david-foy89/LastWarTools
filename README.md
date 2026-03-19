@@ -1,6 +1,6 @@
 # Last War Tools
 
-A lightweight set of browser-based calculators for planning upgrades in Last War: Survival. The site now includes HQ, Season 2, Season 3, and Season 4 calculator pages with shared styling and consistent navigation.
+A lightweight set of browser-based calculators for planning upgrades in Last War: Survival. The site now includes HQ, troop planners, and Season 1 through Season 5 calculator pages with shared styling and consistent navigation.
 
 ## Live Site
 
