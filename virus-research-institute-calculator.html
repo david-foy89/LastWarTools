@@ -164,11 +164,12 @@
             <h2 class="card-title">Protein Farms</h2>
             <div class="mine-list" id="proteinFarmList"></div>
             <div class="mine-total">
-              <div class="mine-total-key">Total Protein Farm Output Per Hour</div>
+              <div class="mine-total-key">
+                Total Protein Farm Output Per Hour
+              </div>
               <div class="mine-total-value" id="totalProteinFarmOutput">0</div>
             </div>
           </div>
-
         </div>
 
         <div class="card">
@@ -526,7 +527,9 @@
       const targetDeficitValue = document.getElementById("targetDeficitValue");
       const targetTimeValue = document.getElementById("targetTimeValue");
       const targetXpValue = document.getElementById("targetXpValue");
-      const farmOutputTileValue = document.getElementById("farmOutputTileValue");
+      const farmOutputTileValue = document.getElementById(
+        "farmOutputTileValue",
+      );
       const pathValue = document.getElementById("pathValue");
       const nextTimeValue = document.getElementById("nextTimeValue");
       const currentResistanceValue = document.getElementById(
@@ -825,7 +828,9 @@
           // Backward compatibility for prior saved state that stored raw outputs.
           if (Array.isArray(state.proteinFarmOutputs)) {
             for (let spot = 1; spot <= 5; spot += 1) {
-              const levelInput = document.getElementById(`proteinFarmLevel${spot}`);
+              const levelInput = document.getElementById(
+                `proteinFarmLevel${spot}`,
+              );
               if (!levelInput) {
                 continue;
               }
@@ -842,7 +847,9 @@
             }
           } else if (Array.isArray(state.proteinFarmLevels)) {
             for (let spot = 1; spot <= 5; spot += 1) {
-              const levelInput = document.getElementById(`proteinFarmLevel${spot}`);
+              const levelInput = document.getElementById(
+                `proteinFarmLevel${spot}`,
+              );
               if (!levelInput) {
                 continue;
               }
@@ -874,7 +881,9 @@
 
         for (let spot = 1; spot <= 5; spot += 1) {
           const spotOutput = getProteinFarmOutput(spot);
-          const outputValue = document.getElementById(`proteinFarmValue${spot}`);
+          const outputValue = document.getElementById(
+            `proteinFarmValue${spot}`,
+          );
           outputValue.textContent = `${formatNumber(spotOutput)}/hr`;
         }
         totalProteinFarmOutput.textContent = `${formatNumber(totalFarmOutput)}/hr`;
