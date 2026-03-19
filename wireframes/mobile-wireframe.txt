@@ -1,27 +1,37 @@
-LAST WAR FURNACE CALCULATOR - MOBILE WIREFRAME
-==============================================
+LAST WAR TOOLS - SHARED MOBILE CALCULATOR WIREFRAME
+===================================================
 
-+------------------------------------+
-| [Language Dropdown]                |
-+------------------------------------+
-| Hero: Title + subtitle             |
-+------------------------------------+
-| INPUT CARD                         |
-| - Current Furnace Level            |
-| - Current Titanium Alloy           |
-| - RSS Reduction                    |
-| - Timezone                         |
-| - Coal Mine 1..5                   |
-| - Total Mine Output                |
-+------------------------------------+
-| RESULTS CARD                       |
-| [Tile] Next Level                  |
-| [Tile] Titanium Required           |
-| [Tile] Current Titanium            |
-| [Tile] Still Needed                |
-| [Tile] Estimated Time              |
-| [Tile] Current Time                |
-| [Tile full-width] Upgrade Ready At |
-| Details rows                       |
-| Cost table                         |
-+------------------------------------+
++----------------------------------------------+
+| Header: [LWST Logo]          [Language ▼]    |
++----------------------------------------------+
+| Nav row: [HQ] [S2 ▼] [S3 ▼] [S4 ▼]           |
++----------------------------------------------+
+| Hero: Title + subtitle                        |
++----------------------------------------------+
+| INPUT CARD                                    |
+| - Current Level                               |
+| - Current Resource A                          |
+| - Current Resource B*                         |
+| - Current Resource C*                         |
+| - RSS Reduction                               |
+| - Timezone                                    |
+| - Output Building 1..5                        |
+| - Total Output                                |
+| - Extra output groups for multi-resource*     |
++----------------------------------------------+
+| RESULTS CARD                                  |
+| [Tile] Next Level                             |
+| [Tile] Resource A Required                    |
+| [Tile] Resource A Needed                       |
+| [Tile] Resource B Required*                   |
+| [Tile] Resource B Needed*                     |
+| [Tile] Resource C Required*                   |
+| [Tile] Resource C Needed*                     |
+| [Tile] ETA tiles (one or more resources)      |
+| [Tile] Current Time                           |
+| [Tile full-width] Ready At                    |
+| Details rows                                  |
+| Cost table                                    |
++----------------------------------------------+
+
+* Optional sections shown on multi-resource pages.
