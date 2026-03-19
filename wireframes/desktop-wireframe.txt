@@ -4,13 +4,15 @@ LAST WAR TOOLS - SHARED DESKTOP CALCULATOR WIREFRAME
 +----------------------------------------------------------------------------------+
 | Header: [LWST Logo]                                              [Language ▼]   |
 +----------------------------------------------------------------------------------+
-| Top Nav: [HQ] [Season 2 ▼] [Season 3 ▼] [Season 4 ▼]                          |
-|   Season dropdowns contain links to the calculator pages for that season.       |
+| Top Nav: [HQ] [Troop ▼] [Season 1 ▼] [Season 2 ▼] [Season 3 ▼] [Season 4 ▼]    |
+|          [Season 5 ▼]                                                           |
+|   Dropdowns contain links to each calculator page in that group.                |
 +----------------------------------------------------------------------------------+
 | Hero: Page Title + short subtitle                                                |
 +----------------------------------------------------------------------------------+
 | LEFT COLUMN (Inputs)                 | RIGHT COLUMN (Results)                    |
 |--------------------------------------|-------------------------------------------|
+| Quick Start (3 bullets, page-specific)|                                           |
 | Current Level [select]               | [Tile] Next Level                         |
 | Current Resource A [input]           | [Tile] Resource A Required                |
 | Current Resource B [input]*          | [Tile] Current Resource A                 |
@@ -28,4 +30,11 @@ LAST WAR TOOLS - SHARED DESKTOP CALCULATOR WIREFRAME
 |                                      | Cost Table: Level + required resources    |
 +----------------------------------------------------------------------------------+
 
-* Optional rows used by multi-resource calculators (for example S4 pages).
+Alternative left-column pattern used by troop planner pages:
+- Quick Start (3 bullets)
+- Planner Controls (mode, reduction)
+- Quick Actions buttons
+- Focus View (search + plan-only filter)
+- Notes
+
+* Optional rows used by multi-resource calculators.

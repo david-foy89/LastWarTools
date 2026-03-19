@@ -4,11 +4,13 @@ LAST WAR TOOLS - SHARED MOBILE CALCULATOR WIREFRAME
 +----------------------------------------------+
 | Header: [LWST Logo]          [Language ▼]    |
 +----------------------------------------------+
-| Nav row: [HQ] [S2 ▼] [S3 ▼] [S4 ▼]           |
+| Nav row: [HQ] [Troop ▼] [S1 ▼] [S2 ▼]        |
+|          [S3 ▼] [S4 ▼] [S5 ▼]                |
 +----------------------------------------------+
 | Hero: Title + subtitle                        |
 +----------------------------------------------+
 | INPUT CARD                                    |
+| - Quick Start (3 bullets, page-specific)      |
 | - Current Level                               |
 | - Current Resource A                          |
 | - Current Resource B*                         |
@@ -33,5 +35,12 @@ LAST WAR TOOLS - SHARED MOBILE CALCULATOR WIREFRAME
 | Details rows                                  |
 | Cost table                                    |
 +----------------------------------------------+
+
+Alternative INPUT CARD pattern for troop planner pages:
+- Quick Start
+- Planner Controls
+- Quick Actions
+- Focus View
+- Notes
 
 * Optional sections shown on multi-resource pages.
