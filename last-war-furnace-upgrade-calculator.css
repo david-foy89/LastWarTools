@@ -16,28 +16,20 @@
   box-sizing: border-box;
 }
 
+html {
+  min-height: 100%;
+}
+
 body {
   margin: 0;
-  min-height: 100vh;
+  min-height: 100%;
   font-family: "Bahnschrift", "Trebuchet MS", "Segoe UI", Tahoma, sans-serif;
   color: var(--text);
   position: relative;
   background:
-    radial-gradient(circle at top, rgba(116, 192, 252, 0.28), transparent 32%),
+    radial-gradient(ellipse at top, rgba(116, 192, 252, 0.22), transparent 60%),
     linear-gradient(180deg, #0a1420 0%, #05090e 100%);
-}
-
-body::before {
-  content: "";
-  position: fixed;
-  inset: 0;
-  background-image: url("media/lwst.png");
-  background-repeat: no-repeat;
-  background-position: center 12%;
-  background-size: clamp(900px, 110vw, 1800px);
-  opacity: 0.09;
-  pointer-events: none;
-  z-index: 0;
+  background-attachment: fixed, fixed;
 }
 
 .page {
@@ -51,12 +43,32 @@ body::before {
 .page-top-controls {
   display: flex;
   align-items: center;
-  justify-content: flex-end;
+  justify-content: space-between;
+  gap: 12px;
   margin-bottom: 12px;
+}
+
+.logo-control {
+  flex: 0 0 auto;
+}
+
+.site-logo {
+  height: 148px;
+  width: auto;
+  max-width: 56vw;
+  display: block;
+}
+
+@media (max-width: 520px) {
+  .site-logo {
+    height: 108px;
+  }
 }
 
 .language-control {
   width: min(320px, 100%);
+  margin-left: auto;
+  flex: 0 1 320px;
 }
 
 .hidden-translate {
@@ -106,20 +118,6 @@ h1 {
 @media (max-width: 800px) {
   .layout {
     grid-template-columns: 1fr;
-  }
-
-  body::before {
-    background-size: 150vw;
-    background-position: center 8%;
-    opacity: 0.08;
-  }
-}
-
-@media (max-width: 520px) {
-  body::before {
-    background-size: 185vw;
-    background-position: center 6%;
-    opacity: 0.07;
   }
 }
 
