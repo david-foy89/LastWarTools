@@ -1,0 +1,1253 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Last War Season 4 Protector's Field Calculator</title>
+    <link rel="stylesheet" href="last-war-furnace-upgrade-calculator.css" />
+  </head>
+  <body>
+    <div class="page">
+      <div class="page-top-controls">
+        <div class="logo-control">
+          <img src="media/lwst.png" alt="LWST logo" class="site-logo" />
+        </div>
+        <div class="language-control">
+          <label for="languageSelect">Language</label>
+          <select id="languageSelect"></select>
+        </div>
+      </div>
+      <div id="google_translate_element" class="hidden-translate"></div>
+
+      <nav class="page-nav" aria-label="Calculator pages">
+        <a href="hq-upgrade-calculator.html" class="page-link">HQ Upgrade</a>
+        <details class="page-nav-dropdown">
+          <summary class="page-link page-nav-dropdown-toggle">
+            Season 2 Calculators
+          </summary>
+          <div class="page-nav-dropdown-menu">
+            <a href="last-war-furnace-upgrade-calculator.html" class="page-link"
+              >Furnace Calculator</a
+            >
+            <a href="season-2-tank-center-calculator.html" class="page-link"
+              >Season 2 Squad Base</a
+            >
+          </div>
+        </details>
+        <details class="page-nav-dropdown">
+          <summary class="page-link page-nav-dropdown-toggle">
+            Season 3 Calculators
+          </summary>
+          <div class="page-nav-dropdown-menu">
+            <a href="curse-research-lab-calculator.html" class="page-link"
+              >Curse Research Lab</a
+            >
+            <a href="altar-calculator.html" class="page-link">Altar</a>
+            <a href="protectors-field-calculator.html" class="page-link"
+              >Protectors Field</a
+            >
+          </div>
+        </details>
+        <details class="page-nav-dropdown active">
+          <summary class="page-link page-nav-dropdown-toggle">
+            Season 4 Calculators
+          </summary>
+          <div class="page-nav-dropdown-menu">
+            <a href="optoelectronic-lab-calculator.html" class="page-link"
+              >Optoelectronic Lab</a
+            >
+            <a
+              href="protectors-field-s4-calculator.html"
+              class="page-link active"
+              >Protector's Field S4</a
+            >
+            <a href="lighthouse-s4-calculator.html" class="page-link"
+              >Lighthouse S4</a
+            >
+          </div>
+        </details>
+      </nav>
+
+      <section class="hero">
+        <h1>Season 4 Protector's Field Calculator</h1>
+        <div class="sub">
+          Choose your current Season 4 Protector's Field level and enter your
+          current resources. The calculator shows what you still need for the
+          next level and estimates the quartz ready time from your Quartz
+          Workshops.
+        </div>
+      </section>
+
+      <section class="layout">
+        <div class="card">
+          <h2 class="card-title">Inputs</h2>
+          <div class="field">
+            <label for="currentLevel">Current Protector's Field Level</label>
+            <select id="currentLevel"></select>
+          </div>
+          <div class="dual-field-grid">
+            <div class="field">
+              <label for="currentFood">Current Food</label>
+              <input
+                id="currentFood"
+                type="number"
+                min="0"
+                step="1"
+                value="0"
+              />
+            </div>
+            <div class="field">
+              <label for="currentIron">Current Iron</label>
+              <input
+                id="currentIron"
+                type="number"
+                min="0"
+                step="1"
+                value="0"
+              />
+            </div>
+          </div>
+          <div class="field">
+            <label for="currentQuartz">Current Quartz</label>
+            <input
+              id="currentQuartz"
+              type="number"
+              min="0"
+              step="1"
+              value="0"
+            />
+          </div>
+          <div class="field">
+            <label for="allianceTechSelect"
+              >Reduced RSS required for building construction</label
+            >
+            <select id="allianceTechSelect"></select>
+          </div>
+          <div class="field">
+            <label for="timeZoneSelect">Timezone</label>
+            <select id="timeZoneSelect"></select>
+          </div>
+
+          <div class="field-group">
+            <h2 class="card-title">Quartz Workshops</h2>
+            <div class="mine-list" id="mineList"></div>
+            <div class="mine-total">
+              <div class="mine-total-key">Total Quartz Output Per Hour</div>
+              <div class="mine-total-value" id="totalMineOutput">0</div>
+            </div>
+          </div>
+          <div class="field-group">
+            <h2 class="card-title">Food Mines</h2>
+            <div class="mine-list" id="foodMineList"></div>
+            <div class="mine-total">
+              <div class="mine-total-key">Total Food Output Per Hour</div>
+              <div class="mine-total-value" id="totalFoodMineOutput">0</div>
+            </div>
+          </div>
+          <div class="field-group">
+            <h2 class="card-title">Iron Mines</h2>
+            <div class="mine-list" id="ironMineList"></div>
+            <div class="mine-total">
+              <div class="mine-total-key">Total Iron Output Per Hour</div>
+              <div class="mine-total-value" id="totalIronMineOutput">0</div>
+            </div>
+          </div>
+        </div>
+
+        <div class="card">
+          <h2 class="card-title">Next Upgrade</h2>
+          <div class="summary">
+            <div class="tile">
+              <div class="tile-key">Next Level</div>
+              <div class="tile-value" id="nextLevelValue">Lv 2</div>
+            </div>
+            <div class="tile">
+              <div class="tile-key">Food Required</div>
+              <div class="tile-value" id="requiredFoodValue">42,000</div>
+            </div>
+            <div class="tile">
+              <div class="tile-key">Current Food</div>
+              <div class="tile-value" id="ownedFoodValue">0</div>
+            </div>
+            <div class="tile">
+              <div class="tile-key">Food Needed</div>
+              <div class="tile-value warn" id="deficitFoodValue">42,000</div>
+            </div>
+            <div class="tile">
+              <div class="tile-key">Iron Required</div>
+              <div class="tile-value" id="requiredIronValue">42,000</div>
+            </div>
+            <div class="tile">
+              <div class="tile-key">Current Iron</div>
+              <div class="tile-value" id="ownedIronValue">0</div>
+            </div>
+            <div class="tile">
+              <div class="tile-key">Iron Needed</div>
+              <div class="tile-value warn" id="deficitIronValue">42,000</div>
+            </div>
+            <div class="tile">
+              <div class="tile-key">Quartz Required</div>
+              <div class="tile-value" id="requiredQuartzValue">0</div>
+            </div>
+            <div class="tile">
+              <div class="tile-key">Current Quartz</div>
+              <div class="tile-value" id="ownedQuartzValue">0</div>
+            </div>
+            <div class="tile">
+              <div class="tile-key">Quartz Needed</div>
+              <div class="tile-value ok" id="deficitQuartzValue">0</div>
+            </div>
+            <div class="tile">
+              <div class="tile-key">Quartz ETA</div>
+              <div class="tile-value" id="etaValue">No quartz needed</div>
+            </div>
+            <div class="tile">
+              <div class="tile-key">Food ETA</div>
+              <div class="tile-value" id="foodEtaValue">No food needed</div>
+            </div>
+            <div class="tile">
+              <div class="tile-key">Iron ETA</div>
+              <div class="tile-value" id="ironEtaValue">No iron needed</div>
+            </div>
+            <div class="tile">
+              <div class="tile-key">Current Time</div>
+              <div class="tile-value" id="currentTimeValue">-</div>
+            </div>
+            <div class="tile tile-full">
+              <div class="tile-key">Quartz Ready At</div>
+              <div class="tile-value" id="readyAtValue">No quartz needed</div>
+            </div>
+          </div>
+
+          <div class="details">
+            <div class="row">
+              <div class="row-key">Upgrade Path</div>
+              <div class="row-value" id="pathValue">Level 1 -> Level 2</div>
+            </div>
+            <div class="row">
+              <div class="row-key">Status</div>
+              <div class="row-value" id="statusValue">Need more resources</div>
+            </div>
+            <div class="row">
+              <div class="row-key">Quartz Workshop Output Used</div>
+              <div class="row-value" id="mineRateValue">0/hr</div>
+            </div>
+            <div class="row">
+              <div class="row-key">Food Mine Output Used</div>
+              <div class="row-value" id="foodMineRateValue">0/hr</div>
+            </div>
+            <div class="row">
+              <div class="row-key">Iron Mine Output Used</div>
+              <div class="row-value" id="ironMineRateValue">0/hr</div>
+            </div>
+            <div class="row">
+              <div class="row-key">Timezone Used</div>
+              <div class="row-value" id="timeZoneValue">Local</div>
+            </div>
+          </div>
+
+          <div class="table-wrap">
+            <label for="costLevelSelect">Level / Food / Iron / Quartz</label>
+            <select id="costLevelSelect"></select>
+          </div>
+
+          <div class="footnote">
+            Source values use the Season 4 Protector's Field cost table from Cpt
+            Hedgehog for levels 1 through 35. Quartz ETA uses Quartz Workshop
+            hourly outputs.
+          </div>
+        </div>
+      </section>
+    </div>
+
+    <script>
+      const protectorsFieldS4Costs = [
+        { level: 1, food: 0, iron: 0, quartz: 0 },
+        { level: 2, food: 42000, iron: 42000, quartz: 0 },
+        { level: 3, food: 84000, iron: 84000, quartz: 0 },
+        { level: 4, food: 168000, iron: 168000, quartz: 0 },
+        { level: 5, food: 336000, iron: 336000, quartz: 0 },
+        { level: 6, food: 470400, iron: 470400, quartz: 0 },
+        { level: 7, food: 611500, iron: 611500, quartz: 0 },
+        { level: 8, food: 733800, iron: 733800, quartz: 0 },
+        { level: 9, food: 880600, iron: 880600, quartz: 0 },
+        { level: 10, food: 1000000, iron: 1000000, quartz: 0 },
+        { level: 11, food: 0, iron: 0, quartz: 3800000 },
+        { level: 12, food: 0, iron: 0, quartz: 3990000 },
+        { level: 13, food: 0, iron: 0, quartz: 4110000 },
+        { level: 14, food: 0, iron: 0, quartz: 4220000 },
+        { level: 15, food: 0, iron: 0, quartz: 4270000 },
+        { level: 16, food: 0, iron: 0, quartz: 4410000 },
+        { level: 17, food: 0, iron: 0, quartz: 4530000 },
+        { level: 18, food: 0, iron: 0, quartz: 4640000 },
+        { level: 19, food: 0, iron: 0, quartz: 4720000 },
+        { level: 20, food: 0, iron: 0, quartz: 4870000 },
+        { level: 21, food: 0, iron: 0, quartz: 5000000 },
+        { level: 22, food: 0, iron: 0, quartz: 5250000 },
+        { level: 23, food: 0, iron: 0, quartz: 5500000 },
+        { level: 24, food: 0, iron: 0, quartz: 5580000 },
+        { level: 25, food: 0, iron: 0, quartz: 5630000 },
+        { level: 26, food: 0, iron: 0, quartz: 5730000 },
+        { level: 27, food: 0, iron: 0, quartz: 5830000 },
+        { level: 28, food: 0, iron: 0, quartz: 5920000 },
+        { level: 29, food: 0, iron: 0, quartz: 6010000 },
+        { level: 30, food: 0, iron: 0, quartz: 6200000 },
+        { level: 31, food: 0, iron: 0, quartz: 6260000 },
+        { level: 32, food: 0, iron: 0, quartz: 6360000 },
+        { level: 33, food: 0, iron: 0, quartz: 6550000 },
+        { level: 34, food: 0, iron: 0, quartz: 6740000 },
+        { level: 35, food: 0, iron: 0, quartz: 6940000 },
+      ];
+
+      const quartzWorkshopOutputs = [
+        { level: 1, output: 720 },
+        { level: 2, output: 1440 },
+        { level: 3, output: 2160 },
+        { level: 4, output: 2880 },
+        { level: 5, output: 3600 },
+        { level: 6, output: 4320 },
+        { level: 7, output: 5040 },
+        { level: 8, output: 5760 },
+        { level: 9, output: 6480 },
+        { level: 10, output: 7200 },
+        { level: 11, output: 7920 },
+        { level: 12, output: 8640 },
+        { level: 13, output: 9360 },
+        { level: 14, output: 10080 },
+        { level: 15, output: 10800 },
+        { level: 16, output: 11520 },
+        { level: 17, output: 12240 },
+        { level: 18, output: 12960 },
+        { level: 19, output: 13680 },
+        { level: 20, output: 14400 },
+        { level: 21, output: 15120 },
+        { level: 22, output: 15840 },
+        { level: 23, output: 16560 },
+        { level: 24, output: 17280 },
+        { level: 25, output: 18000 },
+        { level: 26, output: 18720 },
+        { level: 27, output: 19440 },
+        { level: 28, output: 20160 },
+        { level: 29, output: 20880 },
+        { level: 30, output: 21600 },
+        { level: 31, output: 22320 },
+        { level: 32, output: 23040 },
+        { level: 33, output: 23760 },
+        { level: 34, output: 24480 },
+        { level: 35, output: 25200 },
+      ];
+
+      const foodMineOutputs = [
+        { level: 1, output: 1800 },
+        { level: 2, output: 3600 },
+        { level: 3, output: 5400 },
+        { level: 4, output: 7200 },
+        { level: 5, output: 9000 },
+        { level: 6, output: 10800 },
+        { level: 7, output: 12600 },
+        { level: 8, output: 14400 },
+        { level: 9, output: 16200 },
+        { level: 10, output: 18000 },
+        { level: 11, output: 19800 },
+        { level: 12, output: 21600 },
+        { level: 13, output: 23400 },
+        { level: 14, output: 25200 },
+        { level: 15, output: 27000 },
+        { level: 16, output: 28800 },
+        { level: 17, output: 30600 },
+        { level: 18, output: 32400 },
+        { level: 19, output: 34200 },
+        { level: 20, output: 36000 },
+        { level: 21, output: 37800 },
+        { level: 22, output: 39600 },
+        { level: 23, output: 41400 },
+        { level: 24, output: 43200 },
+        { level: 25, output: 45000 },
+        { level: 26, output: 46800 },
+        { level: 27, output: 48600 },
+        { level: 28, output: 50400 },
+        { level: 29, output: 52200 },
+        { level: 30, output: 54000 },
+      ];
+
+      const ironMineOutputs = [
+        { level: 1, output: 1800 },
+        { level: 2, output: 3600 },
+        { level: 3, output: 5400 },
+        { level: 4, output: 7200 },
+        { level: 5, output: 9000 },
+        { level: 6, output: 10800 },
+        { level: 7, output: 12600 },
+        { level: 8, output: 14400 },
+        { level: 9, output: 16200 },
+        { level: 10, output: 18000 },
+        { level: 11, output: 19800 },
+        { level: 12, output: 21600 },
+        { level: 13, output: 23400 },
+        { level: 14, output: 25200 },
+        { level: 15, output: 27000 },
+        { level: 16, output: 28800 },
+        { level: 17, output: 30600 },
+        { level: 18, output: 32400 },
+        { level: 19, output: 34200 },
+        { level: 20, output: 36000 },
+        { level: 21, output: 37800 },
+        { level: 22, output: 39600 },
+        { level: 23, output: 41400 },
+        { level: 24, output: 43200 },
+        { level: 25, output: 45000 },
+        { level: 26, output: 46800 },
+        { level: 27, output: 48600 },
+        { level: 28, output: 50400 },
+        { level: 29, output: 52200 },
+        { level: 30, output: 54000 },
+      ];
+
+      const currentLevelInput = document.getElementById("currentLevel");
+      const currentFoodInput = document.getElementById("currentFood");
+      const currentIronInput = document.getElementById("currentIron");
+      const currentQuartzInput = document.getElementById("currentQuartz");
+      const nextLevelValue = document.getElementById("nextLevelValue");
+      const requiredFoodValue = document.getElementById("requiredFoodValue");
+      const requiredIronValue = document.getElementById("requiredIronValue");
+      const requiredQuartzValue = document.getElementById(
+        "requiredQuartzValue",
+      );
+      const ownedFoodValue = document.getElementById("ownedFoodValue");
+      const ownedIronValue = document.getElementById("ownedIronValue");
+      const ownedQuartzValue = document.getElementById("ownedQuartzValue");
+      const deficitFoodValue = document.getElementById("deficitFoodValue");
+      const deficitIronValue = document.getElementById("deficitIronValue");
+      const deficitQuartzValue = document.getElementById("deficitQuartzValue");
+      const etaValue = document.getElementById("etaValue");
+      const foodEtaValue = document.getElementById("foodEtaValue");
+      const ironEtaValue = document.getElementById("ironEtaValue");
+      const readyAtValue = document.getElementById("readyAtValue");
+      const pathValue = document.getElementById("pathValue");
+      const statusValue = document.getElementById("statusValue");
+      const mineRateValue = document.getElementById("mineRateValue");
+      const foodMineRateValue = document.getElementById("foodMineRateValue");
+      const ironMineRateValue = document.getElementById("ironMineRateValue");
+      const timeZoneValue = document.getElementById("timeZoneValue");
+      const currentTimeValue = document.getElementById("currentTimeValue");
+      const costLevelSelect = document.getElementById("costLevelSelect");
+      const mineList = document.getElementById("mineList");
+      const totalMineOutput = document.getElementById("totalMineOutput");
+      const foodMineList = document.getElementById("foodMineList");
+      const totalFoodMineOutput = document.getElementById(
+        "totalFoodMineOutput",
+      );
+      const ironMineList = document.getElementById("ironMineList");
+      const totalIronMineOutput = document.getElementById(
+        "totalIronMineOutput",
+      );
+      const timeZoneSelect = document.getElementById("timeZoneSelect");
+      const allianceTechSelect = document.getElementById("allianceTechSelect");
+      const languageSelect = document.getElementById("languageSelect");
+      const STORAGE_KEY = "lastWarProtectorsFieldS4CalcStateV1";
+      let lastCalcSignature = "";
+      let lockedReadyAtTimestampMs = null;
+      let preferredLanguage = "en";
+
+      const languageOptions = [
+        { code: "en", label: "English" },
+        { code: "es", label: "Spanish" },
+        { code: "fr", label: "French" },
+        { code: "de", label: "German" },
+        { code: "it", label: "Italian" },
+        { code: "pt", label: "Portuguese" },
+        { code: "ru", label: "Russian" },
+        { code: "uk", label: "Ukrainian" },
+        { code: "pl", label: "Polish" },
+        { code: "tr", label: "Turkish" },
+        { code: "ar", label: "Arabic" },
+        { code: "fa", label: "Persian" },
+        { code: "he", label: "Hebrew" },
+        { code: "hi", label: "Hindi" },
+        { code: "bn", label: "Bengali" },
+        { code: "ur", label: "Urdu" },
+        { code: "th", label: "Thai" },
+        { code: "vi", label: "Vietnamese" },
+        { code: "id", label: "Indonesian" },
+        { code: "ms", label: "Malay" },
+        { code: "fil", label: "Filipino" },
+        { code: "ja", label: "Japanese" },
+        { code: "ko", label: "Korean" },
+        { code: "zh-CN", label: "Chinese (Simplified)" },
+        { code: "zh-TW", label: "Chinese (Traditional)" },
+        { code: "el", label: "Greek" },
+        { code: "nl", label: "Dutch" },
+        { code: "sv", label: "Swedish" },
+        { code: "da", label: "Danish" },
+        { code: "fi", label: "Finnish" },
+        { code: "no", label: "Norwegian" },
+        { code: "cs", label: "Czech" },
+        { code: "ro", label: "Romanian" },
+        { code: "hu", label: "Hungarian" },
+        { code: "sk", label: "Slovak" },
+        { code: "bg", label: "Bulgarian" },
+        { code: "hr", label: "Croatian" },
+        { code: "sr", label: "Serbian" },
+        { code: "sl", label: "Slovenian" },
+        { code: "lt", label: "Lithuanian" },
+        { code: "lv", label: "Latvian" },
+        { code: "et", label: "Estonian" },
+      ];
+
+      const commonTimeZones = [
+        "UTC",
+        "America/New_York",
+        "America/Chicago",
+        "America/Denver",
+        "America/Los_Angeles",
+        "America/Phoenix",
+        "America/Toronto",
+        "America/Sao_Paulo",
+        "Europe/London",
+        "Europe/Paris",
+        "Europe/Berlin",
+        "Europe/Athens",
+        "Africa/Johannesburg",
+        "Asia/Dubai",
+        "Asia/Kolkata",
+        "Asia/Singapore",
+        "Asia/Shanghai",
+        "Asia/Tokyo",
+        "Australia/Perth",
+        "Australia/Sydney",
+        "Pacific/Auckland",
+      ];
+
+      function formatResource(value) {
+        return Math.round(Number(value) || 0).toLocaleString();
+      }
+
+      function formatTimeFromHours(hours) {
+        if (!Number.isFinite(hours)) {
+          return "No output";
+        }
+
+        if (hours <= 0) {
+          return "Ready now";
+        }
+
+        const totalMinutes = Math.round(hours * 60);
+        const days = Math.floor(totalMinutes / 1440);
+        const remainingMinutes = totalMinutes % 1440;
+        const wholeHours = Math.floor(remainingMinutes / 60);
+        const minutes = remainingMinutes % 60;
+
+        if (days > 0) {
+          return `${days}d ${wholeHours}h`;
+        }
+        if (wholeHours > 0) {
+          return `${wholeHours}h ${minutes}m`;
+        }
+        return `${minutes}m`;
+      }
+
+      function formatReadyAtFromTimestamp(timestampMs, timeZone) {
+        if (!Number.isFinite(timestampMs)) {
+          return "No output";
+        }
+
+        return new Intl.DateTimeFormat(undefined, {
+          timeZone,
+          month: "short",
+          day: "numeric",
+          hour: "numeric",
+          minute: "2-digit",
+          hour12: true,
+        }).format(new Date(timestampMs));
+      }
+
+      function formatCurrentTime(timeZone) {
+        return new Intl.DateTimeFormat(undefined, {
+          timeZone,
+          month: "short",
+          day: "numeric",
+          hour: "numeric",
+          minute: "2-digit",
+          second: "2-digit",
+          hour12: true,
+        }).format(new Date());
+      }
+
+      function updateCurrentTimeDisplay() {
+        const selectedTimeZone = timeZoneSelect.value || "UTC";
+        try {
+          currentTimeValue.textContent = formatCurrentTime(selectedTimeZone);
+        } catch {
+          currentTimeValue.textContent = "Unavailable";
+        }
+      }
+
+      function buildTimeZoneOptions() {
+        const detectedTimeZone =
+          Intl.DateTimeFormat().resolvedOptions().timeZone || "UTC";
+        const zoneList = commonTimeZones.includes(detectedTimeZone)
+          ? commonTimeZones
+          : [detectedTimeZone, ...commonTimeZones];
+
+        timeZoneSelect.innerHTML = zoneList
+          .map((zone) => `<option value="${zone}">${zone}</option>`)
+          .join("");
+        timeZoneSelect.value = detectedTimeZone;
+      }
+
+      function buildLanguageOptions() {
+        languageSelect.innerHTML = languageOptions
+          .map((lang) => `<option value="${lang.code}">${lang.label}</option>`)
+          .join("");
+        languageSelect.value = preferredLanguage;
+      }
+
+      function applyGoogleLanguage(languageCode, retries = 25) {
+        const combo = document.querySelector(".goog-te-combo");
+        if (!combo) {
+          if (retries > 0) {
+            setTimeout(
+              () => applyGoogleLanguage(languageCode, retries - 1),
+              200,
+            );
+          }
+          return;
+        }
+
+        combo.value = languageCode;
+        combo.dispatchEvent(new Event("change"));
+      }
+
+      function loadGoogleTranslateScript() {
+        if (window.google && window.google.translate) {
+          window.googleTranslateElementInit();
+          return;
+        }
+
+        const script = document.createElement("script");
+        script.src =
+          "https://translate.google.com/translate_a/element.js?cb=googleTranslateElementInit";
+        script.async = true;
+        document.body.appendChild(script);
+      }
+
+      window.googleTranslateElementInit =
+        function googleTranslateElementInit() {
+          new window.google.translate.TranslateElement(
+            {
+              pageLanguage: "en",
+              autoDisplay: false,
+            },
+            "google_translate_element",
+          );
+
+          applyGoogleLanguage(preferredLanguage);
+        };
+
+      function buildLevelOptions() {
+        currentLevelInput.innerHTML = "";
+        for (
+          let level = 1;
+          level <= protectorsFieldS4Costs.length;
+          level += 1
+        ) {
+          const option = new Option(`Level ${level}`, String(level));
+          currentLevelInput.appendChild(option);
+        }
+        currentLevelInput.value = "1";
+      }
+
+      function buildAllianceTechOptions() {
+        allianceTechSelect.innerHTML = Array.from(
+          { length: 201 },
+          (_, index) => {
+            const pct = (index * 0.5).toFixed(1);
+            return `<option value="${pct}">${pct}%</option>`;
+          },
+        ).join("");
+        allianceTechSelect.value = "0.0";
+      }
+
+      function buildMineSelectors() {
+        const options = quartzWorkshopOutputs
+          .map(
+            (row) => `<option value="${row.level}">Level ${row.level}</option>`,
+          )
+          .join("");
+
+        mineList.innerHTML = Array.from(
+          { length: 5 },
+          (_, index) => `
+        <div class="mine-row">
+          <div>
+            <label for="mineLevel${index + 1}">Quartz Workshop ${index + 1}</label>
+            <select id="mineLevel${index + 1}" data-mine-index="${index + 1}">
+              <option value="0">Not set</option>
+              ${options}
+            </select>
+          </div>
+          <div class="mine-output" id="mineOutput${index + 1}">0/hr</div>
+        </div>
+      `,
+        ).join("");
+
+        Array.from(mineList.querySelectorAll("select")).forEach((select) => {
+          select.addEventListener("change", updateMineOutput);
+        });
+      }
+
+      function getMineOutputForLevel(level) {
+        return (
+          quartzWorkshopOutputs.find((row) => row.level === level)?.output || 0
+        );
+      }
+
+      function updateMineOutput() {
+        let totalOutput = 0;
+
+        for (let index = 1; index <= 5; index += 1) {
+          const select = document.getElementById(`mineLevel${index}`);
+          const outputBox = document.getElementById(`mineOutput${index}`);
+          const level = Number(select.value);
+          const output = getMineOutputForLevel(level);
+          totalOutput += output;
+          outputBox.textContent = `${formatResource(output)}/hr`;
+        }
+
+        totalMineOutput.textContent = `${formatResource(totalOutput)}/hr`;
+        updateCalculator();
+      }
+
+      function buildFoodMineSelectors() {
+        const options = foodMineOutputs
+          .map(
+            (row) => `<option value="${row.level}">Level ${row.level}</option>`,
+          )
+          .join("");
+
+        foodMineList.innerHTML = Array.from(
+          { length: 5 },
+          (_, index) => `
+        <div class="mine-row">
+          <div>
+            <label for="foodMineLevel${index + 1}">Food Mine ${index + 1}</label>
+            <select id="foodMineLevel${index + 1}" data-mine-index="${index + 1}">
+              <option value="0">Not set</option>
+              ${options}
+            </select>
+          </div>
+          <div class="mine-output" id="foodMineOutput${index + 1}">0/hr</div>
+        </div>
+      `,
+        ).join("");
+
+        Array.from(foodMineList.querySelectorAll("select")).forEach(
+          (select) => {
+            select.addEventListener("change", updateFoodMineOutput);
+          },
+        );
+      }
+
+      function getFoodMineOutputForLevel(level) {
+        return foodMineOutputs.find((row) => row.level === level)?.output || 0;
+      }
+
+      function updateFoodMineOutput() {
+        let totalOutput = 0;
+
+        for (let index = 1; index <= 5; index += 1) {
+          const select = document.getElementById(`foodMineLevel${index}`);
+          const outputBox = document.getElementById(`foodMineOutput${index}`);
+          const level = Number(select.value);
+          const output = getFoodMineOutputForLevel(level);
+          totalOutput += output;
+          outputBox.textContent = `${formatResource(output)}/hr`;
+        }
+
+        totalFoodMineOutput.textContent = `${formatResource(totalOutput)}/hr`;
+        updateCalculator();
+      }
+
+      function getTotalFoodMineOutput() {
+        let totalOutput = 0;
+        for (let index = 1; index <= 5; index += 1) {
+          const select = document.getElementById(`foodMineLevel${index}`);
+          totalOutput += getFoodMineOutputForLevel(Number(select.value));
+        }
+        return totalOutput;
+      }
+
+      function getFoodMineLevelsSignature() {
+        const levels = [];
+        for (let index = 1; index <= 5; index += 1) {
+          const select = document.getElementById(`foodMineLevel${index}`);
+          levels.push(Number(select?.value || 0));
+        }
+        return levels.join(",");
+      }
+
+      function buildIronMineSelectors() {
+        const options = ironMineOutputs
+          .map(
+            (row) => `<option value="${row.level}">Level ${row.level}</option>`,
+          )
+          .join("");
+
+        ironMineList.innerHTML = Array.from(
+          { length: 5 },
+          (_, index) => `
+        <div class="mine-row">
+          <div>
+            <label for="ironMineLevel${index + 1}">Iron Mine ${index + 1}</label>
+            <select id="ironMineLevel${index + 1}" data-mine-index="${index + 1}">
+              <option value="0">Not set</option>
+              ${options}
+            </select>
+          </div>
+          <div class="mine-output" id="ironMineOutput${index + 1}">0/hr</div>
+        </div>
+      `,
+        ).join("");
+
+        Array.from(ironMineList.querySelectorAll("select")).forEach(
+          (select) => {
+            select.addEventListener("change", updateIronMineOutput);
+          },
+        );
+      }
+
+      function getIronMineOutputForLevel(level) {
+        return ironMineOutputs.find((row) => row.level === level)?.output || 0;
+      }
+
+      function updateIronMineOutput() {
+        let totalOutput = 0;
+
+        for (let index = 1; index <= 5; index += 1) {
+          const select = document.getElementById(`ironMineLevel${index}`);
+          const outputBox = document.getElementById(`ironMineOutput${index}`);
+          const level = Number(select.value);
+          const output = getIronMineOutputForLevel(level);
+          totalOutput += output;
+          outputBox.textContent = `${formatResource(output)}/hr`;
+        }
+
+        totalIronMineOutput.textContent = `${formatResource(totalOutput)}/hr`;
+        updateCalculator();
+      }
+
+      function getTotalIronMineOutput() {
+        let totalOutput = 0;
+        for (let index = 1; index <= 5; index += 1) {
+          const select = document.getElementById(`ironMineLevel${index}`);
+          totalOutput += getIronMineOutputForLevel(Number(select.value));
+        }
+        return totalOutput;
+      }
+
+      function getIronMineLevelsSignature() {
+        const levels = [];
+        for (let index = 1; index <= 5; index += 1) {
+          const select = document.getElementById(`ironMineLevel${index}`);
+          levels.push(Number(select?.value || 0));
+        }
+        return levels.join(",");
+      }
+
+      function getTotalMineOutput() {
+        let totalOutput = 0;
+        for (let index = 1; index <= 5; index += 1) {
+          const select = document.getElementById(`mineLevel${index}`);
+          totalOutput += getMineOutputForLevel(Number(select.value));
+        }
+        return totalOutput;
+      }
+
+      function getMineLevelsSignature() {
+        const levels = [];
+        for (let index = 1; index <= 5; index += 1) {
+          const select = document.getElementById(`mineLevel${index}`);
+          levels.push(Number(select?.value || 0));
+        }
+        return levels.join(",");
+      }
+
+      function buildTable() {
+        costLevelSelect.innerHTML = protectorsFieldS4Costs
+          .map((row) => {
+            const parts = [];
+            if (row.food > 0) {
+              parts.push(`Food ${formatResource(row.food)}`);
+            }
+            if (row.iron > 0) {
+              parts.push(`Iron ${formatResource(row.iron)}`);
+            }
+            if (row.quartz > 0) {
+              parts.push(`Quartz ${formatResource(row.quartz)}`);
+            }
+            if (parts.length === 0) {
+              parts.push("No resource cost");
+            }
+            return `<option value="${row.level}">Level ${row.level} - ${parts.join(" / ")}</option>`;
+          })
+          .join("");
+      }
+
+      function saveState() {
+        try {
+          const mineLevels = [];
+          const foodMineLevels = [];
+          const ironMineLevels = [];
+          for (let index = 1; index <= 5; index += 1) {
+            const select = document.getElementById(`mineLevel${index}`);
+            const foodSelect = document.getElementById(`foodMineLevel${index}`);
+            const ironSelect = document.getElementById(`ironMineLevel${index}`);
+            mineLevels.push(Number(select?.value || 0));
+            foodMineLevels.push(Number(foodSelect?.value || 0));
+            ironMineLevels.push(Number(ironSelect?.value || 0));
+          }
+
+          const state = {
+            currentLevel: Number(currentLevelInput.value || 1),
+            currentFood: Number(currentFoodInput.value || 0),
+            currentIron: Number(currentIronInput.value || 0),
+            currentQuartz: Number(currentQuartzInput.value || 0),
+            timeZone: timeZoneSelect.value,
+            allianceTech: Number(allianceTechSelect.value || 0),
+            language: languageSelect.value,
+            mineLevels,
+            foodMineLevels,
+            ironMineLevels,
+            lockedReadyAtTimestampMs,
+            lastCalcSignature,
+          };
+
+          localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
+        } catch {
+          // Ignore storage errors (private mode / disabled storage)
+        }
+      }
+
+      function loadSavedState() {
+        try {
+          const raw = localStorage.getItem(STORAGE_KEY);
+          if (!raw) return;
+
+          const state = JSON.parse(raw);
+
+          if (
+            state.currentLevel &&
+            currentLevelInput.querySelector(
+              `option[value="${state.currentLevel}"]`,
+            )
+          ) {
+            currentLevelInput.value = String(state.currentLevel);
+          }
+
+          if (Number.isFinite(Number(state.currentFood))) {
+            currentFoodInput.value = String(
+              Math.max(0, Number(state.currentFood)),
+            );
+          }
+
+          if (Number.isFinite(Number(state.currentIron))) {
+            currentIronInput.value = String(
+              Math.max(0, Number(state.currentIron)),
+            );
+          }
+
+          if (Number.isFinite(Number(state.currentQuartz))) {
+            currentQuartzInput.value = String(
+              Math.max(0, Number(state.currentQuartz)),
+            );
+          }
+
+          if (state.timeZone) {
+            if (
+              !timeZoneSelect.querySelector(`option[value="${state.timeZone}"]`)
+            ) {
+              timeZoneSelect.appendChild(
+                new Option(state.timeZone, state.timeZone),
+              );
+            }
+            timeZoneSelect.value = state.timeZone;
+          }
+
+          if (
+            state.language &&
+            languageOptions.some((lang) => lang.code === state.language)
+          ) {
+            preferredLanguage = state.language;
+            languageSelect.value = state.language;
+          }
+
+          if (Number.isFinite(Number(state.allianceTech))) {
+            const savedTech = Number(state.allianceTech).toFixed(1);
+            if (
+              allianceTechSelect.querySelector(`option[value="${savedTech}"]`)
+            ) {
+              allianceTechSelect.value = savedTech;
+            }
+          }
+
+          if (Array.isArray(state.mineLevels)) {
+            for (let index = 1; index <= 5; index += 1) {
+              const savedLevel = Number(state.mineLevels[index - 1] || 0);
+              const select = document.getElementById(`mineLevel${index}`);
+              if (
+                select &&
+                select.querySelector(`option[value="${savedLevel}"]`)
+              ) {
+                select.value = String(savedLevel);
+              }
+            }
+          }
+
+          if (Array.isArray(state.foodMineLevels)) {
+            for (let index = 1; index <= 5; index += 1) {
+              const savedLevel = Number(state.foodMineLevels[index - 1] || 0);
+              const select = document.getElementById(`foodMineLevel${index}`);
+              if (
+                select &&
+                select.querySelector(`option[value="${savedLevel}"]`)
+              ) {
+                select.value = String(savedLevel);
+              }
+            }
+          }
+
+          if (Array.isArray(state.ironMineLevels)) {
+            for (let index = 1; index <= 5; index += 1) {
+              const savedLevel = Number(state.ironMineLevels[index - 1] || 0);
+              const select = document.getElementById(`ironMineLevel${index}`);
+              if (
+                select &&
+                select.querySelector(`option[value="${savedLevel}"]`)
+              ) {
+                select.value = String(savedLevel);
+              }
+            }
+          }
+
+          if (Number.isFinite(Number(state.lockedReadyAtTimestampMs))) {
+            lockedReadyAtTimestampMs = Number(state.lockedReadyAtTimestampMs);
+          }
+
+          if (typeof state.lastCalcSignature === "string") {
+            lastCalcSignature = state.lastCalcSignature;
+          }
+        } catch {
+          // Ignore malformed or inaccessible stored state
+        }
+      }
+
+      function updateCalculator() {
+        const currentLevel = Number(currentLevelInput.value);
+        const currentFood = Math.max(0, Number(currentFoodInput.value) || 0);
+        const currentIron = Math.max(0, Number(currentIronInput.value) || 0);
+        const currentQuartz = Math.max(
+          0,
+          Number(currentQuartzInput.value) || 0,
+        );
+        const nextUpgrade = protectorsFieldS4Costs.find(
+          (row) => row.level === currentLevel + 1,
+        );
+
+        if (!nextUpgrade) {
+          nextLevelValue.textContent = "Max";
+          requiredFoodValue.textContent = "0";
+          requiredIronValue.textContent = "0";
+          requiredQuartzValue.textContent = "0";
+          ownedFoodValue.textContent = formatResource(currentFood);
+          ownedIronValue.textContent = formatResource(currentIron);
+          ownedQuartzValue.textContent = formatResource(currentQuartz);
+          deficitFoodValue.textContent = "0";
+          deficitIronValue.textContent = "0";
+          deficitQuartzValue.textContent = "0";
+          deficitFoodValue.className = "tile-value ok";
+          deficitIronValue.className = "tile-value ok";
+          deficitQuartzValue.className = "tile-value ok";
+          etaValue.textContent = "-";
+          foodEtaValue.textContent = "-";
+          ironEtaValue.textContent = "-";
+          readyAtValue.textContent = "-";
+          pathValue.textContent = "Maximum configured level reached";
+          statusValue.textContent = "No higher level in this table";
+          mineRateValue.textContent = `${formatResource(getTotalMineOutput())}/hr`;
+          foodMineRateValue.textContent = `${formatResource(getTotalFoodMineOutput())}/hr`;
+          ironMineRateValue.textContent = `${formatResource(getTotalIronMineOutput())}/hr`;
+          timeZoneValue.textContent = timeZoneSelect.value;
+          costLevelSelect.value = String(
+            protectorsFieldS4Costs[protectorsFieldS4Costs.length - 1].level,
+          );
+          updateCurrentTimeDisplay();
+          return;
+        }
+
+        const allianceTechPct = Number(allianceTechSelect.value || 0);
+        const requiredFood = Math.max(
+          0,
+          Math.round(nextUpgrade.food * (1 - allianceTechPct / 100)),
+        );
+        const requiredIron = Math.max(
+          0,
+          Math.round(nextUpgrade.iron * (1 - allianceTechPct / 100)),
+        );
+        const requiredQuartz = Math.max(
+          0,
+          Math.round(nextUpgrade.quartz * (1 - allianceTechPct / 100)),
+        );
+
+        const remainingFood = Math.max(0, requiredFood - currentFood);
+        const remainingIron = Math.max(0, requiredIron - currentIron);
+        const remainingQuartz = Math.max(0, requiredQuartz - currentQuartz);
+
+        const foodReady = remainingFood === 0;
+        const ironReady = remainingIron === 0;
+        const quartzReady = remainingQuartz === 0;
+
+        const totalOutputPerHour = getTotalMineOutput();
+        const totalFoodOutputPerHour = getTotalFoodMineOutput();
+        const totalIronOutputPerHour = getTotalIronMineOutput();
+        const quartzEtaHours = quartzReady
+          ? 0
+          : totalOutputPerHour > 0
+            ? remainingQuartz / totalOutputPerHour
+            : Infinity;
+        const foodEtaHours = foodReady
+          ? 0
+          : totalFoodOutputPerHour > 0
+            ? remainingFood / totalFoodOutputPerHour
+            : Infinity;
+        const ironEtaHours = ironReady
+          ? 0
+          : totalIronOutputPerHour > 0
+            ? remainingIron / totalIronOutputPerHour
+            : Infinity;
+
+        const selectedTimeZone = timeZoneSelect.value;
+        const calcSignature = [
+          currentLevel,
+          currentFood,
+          currentIron,
+          currentQuartz,
+          allianceTechPct,
+          getMineLevelsSignature(),
+          getFoodMineLevelsSignature(),
+          getIronMineLevelsSignature(),
+        ].join("|");
+
+        if (calcSignature !== lastCalcSignature) {
+          if (!quartzReady && Number.isFinite(quartzEtaHours)) {
+            lockedReadyAtTimestampMs =
+              Date.now() + quartzEtaHours * 3600 * 1000;
+          } else {
+            lockedReadyAtTimestampMs = null;
+          }
+          lastCalcSignature = calcSignature;
+        }
+
+        nextLevelValue.textContent = `Lv ${currentLevel + 1}`;
+        requiredFoodValue.textContent = formatResource(requiredFood);
+        requiredIronValue.textContent = formatResource(requiredIron);
+        requiredQuartzValue.textContent = formatResource(requiredQuartz);
+        ownedFoodValue.textContent = formatResource(currentFood);
+        ownedIronValue.textContent = formatResource(currentIron);
+        ownedQuartzValue.textContent = formatResource(currentQuartz);
+
+        deficitFoodValue.textContent = formatResource(remainingFood);
+        deficitIronValue.textContent = formatResource(remainingIron);
+        deficitQuartzValue.textContent = formatResource(remainingQuartz);
+        deficitFoodValue.className = `tile-value ${foodReady ? "ok" : "warn"}`;
+        deficitIronValue.className = `tile-value ${ironReady ? "ok" : "warn"}`;
+        deficitQuartzValue.className = `tile-value ${quartzReady ? "ok" : "warn"}`;
+
+        if (requiredQuartz === 0) {
+          etaValue.textContent = "No quartz needed";
+          etaValue.className = "tile-value ok";
+          readyAtValue.textContent = "No quartz needed";
+          readyAtValue.className = "tile-value ok";
+        } else {
+          etaValue.textContent = formatTimeFromHours(quartzEtaHours);
+          etaValue.className = `tile-value ${quartzReady ? "ok" : totalOutputPerHour > 0 ? "" : "warn"}`;
+          readyAtValue.textContent = quartzReady
+            ? "Now"
+            : Number.isFinite(lockedReadyAtTimestampMs)
+              ? formatReadyAtFromTimestamp(
+                  lockedReadyAtTimestampMs,
+                  selectedTimeZone,
+                )
+              : "No output";
+          readyAtValue.className = `tile-value ${quartzReady ? "ok" : totalOutputPerHour > 0 ? "" : "warn"}`;
+        }
+
+        if (requiredFood === 0) {
+          foodEtaValue.textContent = "No food needed";
+          foodEtaValue.className = "tile-value ok";
+        } else {
+          foodEtaValue.textContent = formatTimeFromHours(foodEtaHours);
+          foodEtaValue.className = `tile-value ${foodReady ? "ok" : totalFoodOutputPerHour > 0 ? "" : "warn"}`;
+        }
+
+        if (requiredIron === 0) {
+          ironEtaValue.textContent = "No iron needed";
+          ironEtaValue.className = "tile-value ok";
+        } else {
+          ironEtaValue.textContent = formatTimeFromHours(ironEtaHours);
+          ironEtaValue.className = `tile-value ${ironReady ? "ok" : totalIronOutputPerHour > 0 ? "" : "warn"}`;
+        }
+
+        pathValue.textContent = `Level ${currentLevel} -> Level ${currentLevel + 1}`;
+
+        if (foodReady && ironReady && quartzReady) {
+          statusValue.textContent = "You already have enough resources";
+        } else {
+          const missing = [];
+          if (!foodReady) missing.push("food");
+          if (!ironReady) missing.push("iron");
+          if (!quartzReady) missing.push("quartz");
+          statusValue.textContent = `Need more ${missing.join(", ")}`;
+        }
+
+        mineRateValue.textContent = `${formatResource(totalOutputPerHour)}/hr`;
+        foodMineRateValue.textContent = `${formatResource(totalFoodOutputPerHour)}/hr`;
+        ironMineRateValue.textContent = `${formatResource(totalIronOutputPerHour)}/hr`;
+        timeZoneValue.textContent = selectedTimeZone;
+        costLevelSelect.value = String(nextUpgrade.level);
+        updateCurrentTimeDisplay();
+
+        saveState();
+      }
+
+      buildLevelOptions();
+      buildTimeZoneOptions();
+      buildLanguageOptions();
+      buildAllianceTechOptions();
+      buildMineSelectors();
+      buildFoodMineSelectors();
+      buildIronMineSelectors();
+      loadSavedState();
+      buildLanguageOptions();
+      buildTable();
+      updateCalculator();
+      updateMineOutput();
+      updateFoodMineOutput();
+      updateIronMineOutput();
+      updateCurrentTimeDisplay();
+      loadGoogleTranslateScript();
+      setInterval(updateCurrentTimeDisplay, 1000);
+
+      currentLevelInput.addEventListener("change", updateCalculator);
+      currentFoodInput.addEventListener("input", updateCalculator);
+      currentIronInput.addEventListener("input", updateCalculator);
+      currentQuartzInput.addEventListener("input", updateCalculator);
+      timeZoneSelect.addEventListener("change", updateCalculator);
+      allianceTechSelect.addEventListener("change", updateMineOutput);
+      languageSelect.addEventListener("change", () => {
+        preferredLanguage = languageSelect.value;
+        applyGoogleLanguage(preferredLanguage);
+        saveState();
+      });
+    </script>
+  </body>
+</html>
