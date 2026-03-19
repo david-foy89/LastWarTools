@@ -19,6 +19,17 @@
       </div>
       <div id="google_translate_element" class="hidden-translate"></div>
 
+      <nav class="page-nav" aria-label="Calculator pages">
+        <a
+          href="last-war-furnace-upgrade-calculator.html"
+          class="page-link active"
+          >Furnace Calculator</a
+        >
+        <a href="season-2-tank-center-calculator.html" class="page-link"
+          >Season 2 Squad Base</a
+        >
+      </nav>
+
       <section class="hero">
         <h1>Last War Titanium Alloy Calculator</h1>
         <div class="sub">
@@ -36,7 +47,7 @@
             <select id="currentLevel"></select>
           </div>
           <div class="field">
-            <label for="currentTitanium">Current Titanium Alloy</label>
+            <label for="currentTitanium">Current Titanium</label>
             <input
               id="currentTitanium"
               type="number"
@@ -448,21 +459,6 @@
         currentLevelInput.value = "1";
       }
 
-      function buildCurrentTitaniumOptions() {
-        const titaniumValues = [
-          0,
-          ...new Set(titaniumCosts.map((row) => row.titanium)),
-        ].sort((a, b) => a - b);
-
-        currentTitaniumInput.innerHTML = titaniumValues
-          .map(
-            (value) =>
-              `<option value="${value}">${formatTitanium(value)}</option>`,
-          )
-          .join("");
-        currentTitaniumInput.value = "0";
-      }
-
       function buildAllianceTechOptions() {
         allianceTechSelect.innerHTML = Array.from(
           { length: 201 },
@@ -591,19 +587,9 @@
           }
 
           if (Number.isFinite(Number(state.currentTitanium))) {
-            const savedTitanium = String(
+            currentTitaniumInput.value = String(
               Math.max(0, Number(state.currentTitanium)),
             );
-            if (
-              !currentTitaniumInput.querySelector(
-                `option[value="${savedTitanium}"]`,
-              )
-            ) {
-              currentTitaniumInput.appendChild(
-                new Option(formatTitanium(savedTitanium), savedTitanium),
-              );
-            }
-            currentTitaniumInput.value = savedTitanium;
           }
 
           if (state.timeZone) {
@@ -753,7 +739,6 @@
       }
 
       buildLevelOptions();
-      buildCurrentTitaniumOptions();
       buildTimeZoneOptions();
       buildLanguageOptions();
       buildAllianceTechOptions();
@@ -768,7 +753,7 @@
       setInterval(updateCurrentTimeDisplay, 1000);
 
       currentLevelInput.addEventListener("change", updateCalculator);
-      currentTitaniumInput.addEventListener("change", updateCalculator);
+      currentTitaniumInput.addEventListener("input", updateCalculator);
       timeZoneSelect.addEventListener("change", updateCalculator);
       allianceTechSelect.addEventListener("change", updateMineOutput);
       languageSelect.addEventListener("change", () => {

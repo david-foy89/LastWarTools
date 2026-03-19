@@ -3,7 +3,7 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Last War Titanium Alloy Calculator</title>
+    <title>Last War Season 2 Squad Base Calculator</title>
     <link rel="stylesheet" href="last-war-furnace-upgrade-calculator.css" />
   </head>
   <body>
@@ -20,22 +20,21 @@
       <div id="google_translate_element" class="hidden-translate"></div>
 
       <nav class="page-nav" aria-label="Calculator pages">
-        <a
-          href="last-war-furnace-upgrade-calculator.html"
-          class="page-link active"
+        <a href="last-war-furnace-upgrade-calculator.html" class="page-link"
           >Furnace Calculator</a
         >
-        <a href="season-2-tank-center-calculator.html" class="page-link"
+        <a href="season-2-tank-center-calculator.html" class="page-link active"
           >Season 2 Squad Base</a
         >
       </nav>
 
       <section class="hero">
-        <h1>Last War Titanium Alloy Calculator</h1>
+        <h1>Season 2 Squad Base Calculator</h1>
         <div class="sub">
-          Choose your current furnace level and enter your current titanium
-          alloy. The calculator shows exactly how much titanium you need for the
-          next level and how much more you still need.
+          Choose your current Squad Base level, enter your current coal and
+          titanium alloy, and set your titanium alloy factories. The calculator
+          shows what you still need for the next upgrade and when both resources
+          will be ready.
         </div>
       </section>
 
@@ -43,18 +42,30 @@
         <div class="card">
           <h2 class="card-title">Inputs</h2>
           <div class="field">
-            <label for="currentLevel">Current Furnace Level</label>
+            <label for="currentLevel">Current Squad Base Level</label>
             <select id="currentLevel"></select>
           </div>
-          <div class="field">
-            <label for="currentTitanium">Current Titanium</label>
-            <input
-              id="currentTitanium"
-              type="number"
-              min="0"
-              step="1"
-              value="0"
-            />
+          <div class="dual-field-grid">
+            <div class="field">
+              <label for="currentCoal">Current Coal</label>
+              <input
+                id="currentCoal"
+                type="number"
+                min="0"
+                step="1"
+                value="0"
+              />
+            </div>
+            <div class="field">
+              <label for="currentTitanium">Current Titanium</label>
+              <input
+                id="currentTitanium"
+                type="number"
+                min="0"
+                step="1"
+                value="0"
+              />
+            </div>
           </div>
           <div class="field">
             <label for="allianceTechSelect"
@@ -68,13 +79,13 @@
           </div>
 
           <div class="field-group">
-            <h2 class="card-title">Titanium Alloy Factories</h2>
+            <h2 class="card-title">Resource Income</h2>
             <div class="mine-list" id="mineList"></div>
             <div class="mine-total">
               <div class="mine-total-key">
                 Total Titanium Alloy Factory Output Per Hour
               </div>
-              <div class="mine-total-value" id="totalMineOutput">0</div>
+              <div class="mine-total-value" id="totalMineOutput">0/hr</div>
             </div>
           </div>
         </div>
@@ -87,16 +98,28 @@
               <div class="tile-value" id="nextLevelValue">Lv 2</div>
             </div>
             <div class="tile">
+              <div class="tile-key">Coal Required</div>
+              <div class="tile-value" id="requiredCoalValue">4,200</div>
+            </div>
+            <div class="tile">
               <div class="tile-key">Titanium Required</div>
-              <div class="tile-value" id="requiredValue">11.20k</div>
+              <div class="tile-value" id="requiredTitaniumValue">4,200</div>
+            </div>
+            <div class="tile">
+              <div class="tile-key">Current Coal</div>
+              <div class="tile-value" id="ownedCoalValue">0</div>
             </div>
             <div class="tile">
               <div class="tile-key">Current Titanium</div>
-              <div class="tile-value" id="ownedValue">0</div>
+              <div class="tile-value" id="ownedTitaniumValue">0</div>
             </div>
             <div class="tile">
-              <div class="tile-key">Still Needed</div>
-              <div class="tile-value warn" id="deficitValue">11.20k</div>
+              <div class="tile-key">Coal Still Needed</div>
+              <div class="tile-value warn" id="deficitCoalValue">4,200</div>
+            </div>
+            <div class="tile">
+              <div class="tile-key">Titanium Still Needed</div>
+              <div class="tile-value warn" id="deficitTitaniumValue">4,200</div>
             </div>
             <div class="tile">
               <div class="tile-key">Estimated Time</div>
@@ -115,17 +138,17 @@
           <div class="details">
             <div class="row">
               <div class="row-key">Upgrade Path</div>
-              <div class="row-value" id="pathValue">Level 1 -> Level 2</div>
+              <div class="row-value" id="pathValue">Level 1 -&gt; Level 2</div>
             </div>
             <div class="row">
               <div class="row-key">Status</div>
               <div class="row-value" id="statusValue">
-                Need more titanium alloy
+                Need more coal and titanium alloy
               </div>
             </div>
             <div class="row">
               <div class="row-key">Titanium Alloy Factory Output Used</div>
-              <div class="row-value" id="mineRateValue">0/hr</div>
+              <div class="row-value" id="titaniumRateValue">0/hr</div>
             </div>
             <div class="row">
               <div class="row-key">Timezone Used</div>
@@ -134,53 +157,53 @@
           </div>
 
           <div class="table-wrap">
-            <label for="costLevelSelect">Level / Titanium Alloy</label>
+            <label for="costLevelSelect">Level / Coal / Titanium Alloy</label>
             <select id="costLevelSelect"></select>
           </div>
 
           <div class="footnote">
-            Source values loaded from your provided level table for Levels 1
-            through 30.
+            Source values loaded from your provided Season 2 Squad Base table
+            for Levels 1 through 30.
           </div>
         </div>
       </section>
     </div>
 
     <script>
-      const titaniumCosts = [
-        { level: 1, titanium: 2800 },
-        { level: 2, titanium: 11200 },
-        { level: 3, titanium: 22400 },
-        { level: 4, titanium: 44800 },
-        { level: 5, titanium: 89600 },
-        { level: 6, titanium: 125400 },
-        { level: 7, titanium: 163100 },
-        { level: 8, titanium: 195700 },
-        { level: 9, titanium: 234800 },
-        { level: 10, titanium: 281800 },
-        { level: 11, titanium: 338100 },
-        { level: 12, titanium: 405800 },
-        { level: 13, titanium: 486900 },
-        { level: 14, titanium: 584300 },
-        { level: 15, titanium: 701200 },
-        { level: 16, titanium: 771300 },
-        { level: 17, titanium: 848400 },
-        { level: 18, titanium: 933300 },
-        { level: 19, titanium: 1030000 },
-        { level: 20, titanium: 1130000 },
-        { level: 21, titanium: 1240000 },
-        { level: 22, titanium: 1370000 },
-        { level: 23, titanium: 1500000 },
-        { level: 24, titanium: 1650000 },
-        { level: 25, titanium: 1820000 },
-        { level: 26, titanium: 2160000 },
-        { level: 27, titanium: 2510000 },
-        { level: 28, titanium: 2860000 },
-        { level: 29, titanium: 3460000 },
-        { level: 30, titanium: 4320000 },
+      const squadBaseCosts = [
+        { level: 1, coal: 4200, titanium: 4200 },
+        { level: 2, coal: 7900, titanium: 14790 },
+        { level: 3, coal: 15790, titanium: 31580 },
+        { level: 4, coal: 31580, titanium: 63170 },
+        { level: 5, coal: 63170, titanium: 126340 },
+        { level: 6, coal: 94750, titanium: 176910 },
+        { level: 7, coal: 142130, titanium: 229920 },
+        { level: 8, coal: 213190, titanium: 275890 },
+        { level: 9, coal: 319790, titanium: 331070 },
+        { level: 10, coal: 479680, titanium: 397340 },
+        { level: 11, coal: 526220, titanium: 475500 },
+        { level: 12, coal: 578910, titanium: 570600 },
+        { level: 13, coal: 636750, titanium: 684750 },
+        { level: 14, coal: 712080, titanium: 835410 },
+        { level: 15, coal: 783280, titanium: 1020000 },
+        { level: 16, coal: 861580, titanium: 1410000 },
+        { level: 17, coal: 947180, titanium: 1150000 },
+        { level: 18, coal: 1050000, titanium: 1310000 },
+        { level: 19, coal: 1150000, titanium: 1490000 },
+        { level: 20, coal: 1270000, titanium: 1570000 },
+        { level: 21, coal: 1250000, titanium: 1770000 },
+        { level: 22, coal: 1360000, titanium: 1890000 },
+        { level: 23, coal: 1460000, titanium: 2090000 },
+        { level: 24, coal: 1460000, titanium: 2300000 },
+        { level: 25, coal: 1560000, titanium: 2510000 },
+        { level: 26, coal: 1660000, titanium: 2730000 },
+        { level: 27, coal: 1680000, titanium: 2810000 },
+        { level: 28, coal: 1780000, titanium: 2990000 },
+        { level: 29, coal: 1880000, titanium: 3020000 },
+        { level: 30, coal: 1990000, titanium: 3250000 },
       ];
 
-      const coalMineOutputs = [
+      const titaniumFactoryOutputs = [
         { level: 1, output: 720 },
         { level: 2, output: 1440 },
         { level: 3, output: 2160 },
@@ -214,25 +237,33 @@
       ];
 
       const currentLevelInput = document.getElementById("currentLevel");
+      const currentCoalInput = document.getElementById("currentCoal");
       const currentTitaniumInput = document.getElementById("currentTitanium");
+      const mineList = document.getElementById("mineList");
+      const totalMineOutput = document.getElementById("totalMineOutput");
       const nextLevelValue = document.getElementById("nextLevelValue");
-      const requiredValue = document.getElementById("requiredValue");
-      const ownedValue = document.getElementById("ownedValue");
-      const deficitValue = document.getElementById("deficitValue");
+      const requiredCoalValue = document.getElementById("requiredCoalValue");
+      const requiredTitaniumValue = document.getElementById(
+        "requiredTitaniumValue",
+      );
+      const ownedCoalValue = document.getElementById("ownedCoalValue");
+      const ownedTitaniumValue = document.getElementById("ownedTitaniumValue");
+      const deficitCoalValue = document.getElementById("deficitCoalValue");
+      const deficitTitaniumValue = document.getElementById(
+        "deficitTitaniumValue",
+      );
       const etaValue = document.getElementById("etaValue");
       const readyAtValue = document.getElementById("readyAtValue");
       const pathValue = document.getElementById("pathValue");
       const statusValue = document.getElementById("statusValue");
-      const mineRateValue = document.getElementById("mineRateValue");
+      const titaniumRateValue = document.getElementById("titaniumRateValue");
       const timeZoneValue = document.getElementById("timeZoneValue");
       const currentTimeValue = document.getElementById("currentTimeValue");
       const costLevelSelect = document.getElementById("costLevelSelect");
-      const mineList = document.getElementById("mineList");
-      const totalMineOutput = document.getElementById("totalMineOutput");
       const timeZoneSelect = document.getElementById("timeZoneSelect");
       const allianceTechSelect = document.getElementById("allianceTechSelect");
       const languageSelect = document.getElementById("languageSelect");
-      const STORAGE_KEY = "lastWarFurnaceCalcStateV1";
+      const STORAGE_KEY = "lastWarSeason2SquadBaseCalcStateV1";
       let lastCalcSignature = "";
       let lockedReadyAtTimestampMs = null;
       let preferredLanguage = "en";
@@ -306,7 +337,7 @@
         "Pacific/Auckland",
       ];
 
-      function formatTitanium(value) {
+      function formatResource(value) {
         return Math.round(Number(value) || 0).toLocaleString();
       }
 
@@ -454,7 +485,7 @@
 
       function buildLevelOptions() {
         currentLevelInput.innerHTML = "";
-        for (let level = 1; level <= titaniumCosts.length; level += 1) {
+        for (let level = 1; level <= squadBaseCosts.length; level += 1) {
           const option = new Option(`Level ${level}`, String(level));
           currentLevelInput.appendChild(option);
         }
@@ -472,8 +503,17 @@
         allianceTechSelect.value = "0.0";
       }
 
+      function buildTable() {
+        costLevelSelect.innerHTML = squadBaseCosts
+          .map(
+            (row) =>
+              `<option value="${row.level}">Level ${row.level} - Coal ${formatResource(row.coal)} - Titanium ${formatResource(row.titanium)}</option>`,
+          )
+          .join("");
+      }
+
       function buildMineSelectors() {
-        const options = coalMineOutputs
+        const options = titaniumFactoryOutputs
           .map(
             (row) => `<option value="${row.level}">Level ${row.level}</option>`,
           )
@@ -501,30 +541,16 @@
       }
 
       function getMineOutputForLevel(level) {
-        return coalMineOutputs.find((row) => row.level === level)?.output || 0;
-      }
-
-      function updateMineOutput() {
-        let totalOutput = 0;
-
-        for (let index = 1; index <= 5; index += 1) {
-          const select = document.getElementById(`mineLevel${index}`);
-          const outputBox = document.getElementById(`mineOutput${index}`);
-          const level = Number(select.value);
-          const output = getMineOutputForLevel(level);
-          totalOutput += output;
-          outputBox.textContent = `${formatTitanium(output)}/hr`;
-        }
-
-        totalMineOutput.textContent = `${formatTitanium(totalOutput)}/hr`;
-        updateCalculator();
+        return (
+          titaniumFactoryOutputs.find((row) => row.level === level)?.output || 0
+        );
       }
 
       function getTotalMineOutput() {
         let totalOutput = 0;
         for (let index = 1; index <= 5; index += 1) {
           const select = document.getElementById(`mineLevel${index}`);
-          totalOutput += getMineOutputForLevel(Number(select.value));
+          totalOutput += getMineOutputForLevel(Number(select?.value || 0));
         }
         return totalOutput;
       }
@@ -538,13 +564,20 @@
         return levels.join(",");
       }
 
-      function buildTable() {
-        costLevelSelect.innerHTML = titaniumCosts
-          .map(
-            (row) =>
-              `<option value="${row.level}">Level ${row.level} - ${formatTitanium(row.titanium)}</option>`,
-          )
-          .join("");
+      function updateMineOutput() {
+        let totalOutput = 0;
+
+        for (let index = 1; index <= 5; index += 1) {
+          const select = document.getElementById(`mineLevel${index}`);
+          const outputBox = document.getElementById(`mineOutput${index}`);
+          const level = Number(select?.value || 0);
+          const output = getMineOutputForLevel(level);
+          totalOutput += output;
+          outputBox.textContent = `${formatResource(output)}/hr`;
+        }
+
+        totalMineOutput.textContent = `${formatResource(totalOutput)}/hr`;
+        updateCalculator();
       }
 
       function saveState() {
@@ -557,6 +590,7 @@
 
           const state = {
             currentLevel: Number(currentLevelInput.value || 1),
+            currentCoal: Number(currentCoalInput.value || 0),
             currentTitanium: Number(currentTitaniumInput.value || 0),
             timeZone: timeZoneSelect.value,
             allianceTech: Number(allianceTechSelect.value || 0),
@@ -588,10 +622,29 @@
             currentLevelInput.value = String(state.currentLevel);
           }
 
+          if (Number.isFinite(Number(state.currentCoal))) {
+            currentCoalInput.value = String(
+              Math.max(0, Number(state.currentCoal)),
+            );
+          }
+
           if (Number.isFinite(Number(state.currentTitanium))) {
             currentTitaniumInput.value = String(
               Math.max(0, Number(state.currentTitanium)),
             );
+          }
+
+          if (Array.isArray(state.mineLevels)) {
+            for (let index = 1; index <= 5; index += 1) {
+              const savedLevel = Number(state.mineLevels[index - 1] || 0);
+              const select = document.getElementById(`mineLevel${index}`);
+              if (
+                select &&
+                select.querySelector(`option[value="${savedLevel}"]`)
+              ) {
+                select.value = String(savedLevel);
+              }
+            }
           }
 
           if (state.timeZone) {
@@ -622,19 +675,6 @@
             }
           }
 
-          if (Array.isArray(state.mineLevels)) {
-            for (let index = 1; index <= 5; index += 1) {
-              const savedLevel = Number(state.mineLevels[index - 1] || 0);
-              const select = document.getElementById(`mineLevel${index}`);
-              if (
-                select &&
-                select.querySelector(`option[value="${savedLevel}"]`)
-              ) {
-                select.value = String(savedLevel);
-              }
-            }
-          }
-
           if (Number.isFinite(Number(state.lockedReadyAtTimestampMs))) {
             lockedReadyAtTimestampMs = Number(state.lockedReadyAtTimestampMs);
           }
@@ -649,61 +689,78 @@
 
       function updateCalculator() {
         const currentLevel = Number(currentLevelInput.value);
+        const currentCoal = Math.max(0, Number(currentCoalInput.value) || 0);
         const currentTitanium = Math.max(
           0,
           Number(currentTitaniumInput.value) || 0,
         );
-        const nextUpgrade = titaniumCosts.find(
+        const titaniumIncome = getTotalMineOutput();
+        const nextUpgrade = squadBaseCosts.find(
           (row) => row.level === currentLevel + 1,
         );
 
         if (!nextUpgrade) {
           nextLevelValue.textContent = "Max";
-          requiredValue.textContent = "0";
-          ownedValue.textContent = formatTitanium(currentTitanium);
-          deficitValue.textContent = "0";
-          deficitValue.className = "tile-value ok";
+          requiredCoalValue.textContent = "0";
+          requiredTitaniumValue.textContent = "0";
+          ownedCoalValue.textContent = formatResource(currentCoal);
+          ownedTitaniumValue.textContent = formatResource(currentTitanium);
+          deficitCoalValue.textContent = "0";
+          deficitCoalValue.className = "tile-value ok";
+          deficitTitaniumValue.textContent = "0";
+          deficitTitaniumValue.className = "tile-value ok";
           etaValue.textContent = "-";
           readyAtValue.textContent = "-";
           pathValue.textContent = "Maximum configured level reached";
           statusValue.textContent = "No higher level in this table";
-          mineRateValue.textContent = `${formatTitanium(getTotalMineOutput())}/hr`;
+          titaniumRateValue.textContent = `${formatResource(titaniumIncome)}/hr`;
           timeZoneValue.textContent = timeZoneSelect.value;
           costLevelSelect.value = String(
-            titaniumCosts[titaniumCosts.length - 1].level,
+            squadBaseCosts[squadBaseCosts.length - 1].level,
           );
           updateCurrentTimeDisplay();
+          saveState();
           return;
         }
 
         const allianceTechPct = Number(allianceTechSelect.value || 0);
+        const requiredCoal = Math.max(
+          0,
+          Math.round(nextUpgrade.coal * (1 - allianceTechPct / 100)),
+        );
         const requiredTitanium = Math.max(
           0,
           Math.round(nextUpgrade.titanium * (1 - allianceTechPct / 100)),
         );
+        const remainingCoal = Math.max(0, requiredCoal - currentCoal);
         const remainingTitanium = Math.max(
           0,
           requiredTitanium - currentTitanium,
         );
-        const ready = remainingTitanium === 0;
-        const totalOutputPerHour = getTotalMineOutput();
-        const estimatedHours = ready
-          ? 0
-          : totalOutputPerHour > 0
-            ? remainingTitanium / totalOutputPerHour
-            : Infinity;
+        const ready = remainingCoal === 0 && remainingTitanium === 0;
+        const titaniumHours =
+          remainingTitanium === 0
+            ? 0
+            : titaniumIncome > 0
+              ? remainingTitanium / titaniumIncome
+              : Infinity;
+        const estimatedHours = ready ? 0 : titaniumHours;
         const selectedTimeZone = timeZoneSelect.value;
+        const hasRatesForNeed = remainingTitanium === 0 || titaniumIncome > 0;
+        const titaniumReadyButCoalMissing =
+          remainingTitanium === 0 && remainingCoal > 0;
 
-        // Lock the ready-at time until values that affect the calculation change.
         const calcSignature = [
           currentLevel,
+          currentCoal,
           currentTitanium,
-          allianceTechPct,
           getMineLevelsSignature(),
+          titaniumIncome,
+          allianceTechPct,
         ].join("|");
 
         if (calcSignature !== lastCalcSignature) {
-          if (!ready && Number.isFinite(estimatedHours)) {
+          if (!ready && hasRatesForNeed && Number.isFinite(estimatedHours)) {
             lockedReadyAtTimestampMs =
               Date.now() + estimatedHours * 3600 * 1000;
           } else {
@@ -712,27 +769,42 @@
           lastCalcSignature = calcSignature;
         }
 
+        let statusText = "Need more coal and titanium alloy";
+        if (ready) {
+          statusText = "You already have enough coal and titanium alloy";
+        } else if (remainingCoal > 0 && remainingTitanium === 0) {
+          statusText = "Need more coal";
+        } else if (remainingCoal === 0 && remainingTitanium > 0) {
+          statusText = "Need more titanium alloy";
+        }
+
         nextLevelValue.textContent = `Lv ${currentLevel + 1}`;
-        requiredValue.textContent = formatTitanium(requiredTitanium);
-        ownedValue.textContent = formatTitanium(currentTitanium);
-        deficitValue.textContent = formatTitanium(remainingTitanium);
-        deficitValue.className = `tile-value ${ready ? "ok" : "warn"}`;
-        etaValue.textContent = formatTimeFromHours(estimatedHours);
-        etaValue.className = `tile-value ${ready ? "ok" : totalOutputPerHour > 0 ? "" : "warn"}`;
+        requiredCoalValue.textContent = formatResource(requiredCoal);
+        requiredTitaniumValue.textContent = formatResource(requiredTitanium);
+        ownedCoalValue.textContent = formatResource(currentCoal);
+        ownedTitaniumValue.textContent = formatResource(currentTitanium);
+        deficitCoalValue.textContent = formatResource(remainingCoal);
+        deficitCoalValue.className = `tile-value ${remainingCoal === 0 ? "ok" : "warn"}`;
+        deficitTitaniumValue.textContent = formatResource(remainingTitanium);
+        deficitTitaniumValue.className = `tile-value ${remainingTitanium === 0 ? "ok" : "warn"}`;
+        etaValue.textContent = titaniumReadyButCoalMissing
+          ? "Coal missing"
+          : formatTimeFromHours(estimatedHours);
+        etaValue.className = `tile-value ${ready ? "ok" : hasRatesForNeed ? "" : "warn"}`;
         readyAtValue.textContent = ready
           ? "Now"
-          : Number.isFinite(lockedReadyAtTimestampMs)
-            ? formatReadyAtFromTimestamp(
-                lockedReadyAtTimestampMs,
-                selectedTimeZone,
-              )
-            : formatReadyAt(estimatedHours, selectedTimeZone);
-        readyAtValue.className = `tile-value ${ready ? "ok" : totalOutputPerHour > 0 ? "" : "warn"}`;
+          : titaniumReadyButCoalMissing
+            ? "Need coal"
+            : Number.isFinite(lockedReadyAtTimestampMs)
+              ? formatReadyAtFromTimestamp(
+                  lockedReadyAtTimestampMs,
+                  selectedTimeZone,
+                )
+              : formatReadyAt(estimatedHours, selectedTimeZone);
+        readyAtValue.className = `tile-value ${ready ? "ok" : hasRatesForNeed ? "" : "warn"}`;
         pathValue.textContent = `Level ${currentLevel} -> Level ${currentLevel + 1}`;
-        statusValue.textContent = ready
-          ? "You already have enough titanium alloy"
-          : "Need more titanium alloy";
-        mineRateValue.textContent = `${formatTitanium(totalOutputPerHour)}/hr`;
+        statusValue.textContent = statusText;
+        titaniumRateValue.textContent = `${formatResource(titaniumIncome)}/hr`;
         timeZoneValue.textContent = selectedTimeZone;
         costLevelSelect.value = String(nextUpgrade.level);
         updateCurrentTimeDisplay();
@@ -755,9 +827,10 @@
       setInterval(updateCurrentTimeDisplay, 1000);
 
       currentLevelInput.addEventListener("change", updateCalculator);
+      currentCoalInput.addEventListener("input", updateCalculator);
       currentTitaniumInput.addEventListener("input", updateCalculator);
       timeZoneSelect.addEventListener("change", updateCalculator);
-      allianceTechSelect.addEventListener("change", updateMineOutput);
+      allianceTechSelect.addEventListener("change", updateCalculator);
       languageSelect.addEventListener("change", () => {
         preferredLanguage = languageSelect.value;
         applyGoogleLanguage(preferredLanguage);
