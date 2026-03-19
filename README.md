@@ -8,38 +8,38 @@ Hosted on GitHub Pages via `index.html`.
 
 ## Files
 
-| File                                       | Purpose                                                                         |
-| ------------------------------------------ | ------------------------------------------------------------------------------- |
-| `index.html`                               | GitHub Pages entry point                                                        |
-| `last-war-furnace-upgrade-calculator.html` | Furnace calculator (Season 2)                                                   |
-| `season-2-tank-center-calculator.html`     | Season 2 Squad Base calculator                                                  |
-| `hq-upgrade-calculator.html`               | HQ upgrade calculator                                                           |
-| `curse-research-lab-calculator.html`       | Season 3 Curse Research Lab calculator                                          |
-| `altar-calculator.html`                    | Season 3 Altar calculator                                                       |
-| `protectors-field-calculator.html`         | Season 3 Protector's Field calculator                                           |
-| `optoelectronic-lab-calculator.html`       | Season 4 Optoelectronic Lab calculator                                          |
-| `protectors-field-s4-calculator.html`      | Season 4 Protector's Field calculator                                           |
-| `lighthouse-s4-calculator.html`            | Season 4 Lighthouse calculator                                                  |
-| `last-war-furnace-upgrade-calculator.css`  | Shared stylesheet for all calculator pages                                      |
-| `media/lwst.png`                           | Site logo                                                                       |
-| `media/lwst1.png`                          | Alternative logo asset                                                          |
-| `wireframes/desktop-wireframe.txt`         | Shared desktop wireframe pattern for calculator pages                           |
-| `wireframes/mobile-wireframe.txt`          | Shared mobile wireframe pattern for calculator pages                            |
+| File                                       | Purpose                                               |
+| ------------------------------------------ | ----------------------------------------------------- |
+| `index.html`                               | GitHub Pages entry point                              |
+| `last-war-furnace-upgrade-calculator.html` | Furnace calculator (Season 2)                         |
+| `season-2-tank-center-calculator.html`     | Season 2 Squad Base calculator                        |
+| `hq-upgrade-calculator.html`               | HQ upgrade calculator                                 |
+| `curse-research-lab-calculator.html`       | Season 3 Curse Research Lab calculator                |
+| `altar-calculator.html`                    | Season 3 Altar calculator                             |
+| `protectors-field-calculator.html`         | Season 3 Protector's Field calculator                 |
+| `optoelectronic-lab-calculator.html`       | Season 4 Optoelectronic Lab calculator                |
+| `protectors-field-s4-calculator.html`      | Season 4 Protector's Field calculator                 |
+| `lighthouse-s4-calculator.html`            | Season 4 Lighthouse calculator                        |
+| `last-war-furnace-upgrade-calculator.css`  | Shared stylesheet for all calculator pages            |
+| `media/lwst.png`                           | Site logo                                             |
+| `media/lwst1.png`                          | Alternative logo asset                                |
+| `wireframes/desktop-wireframe.txt`         | Shared desktop wireframe pattern for calculator pages |
+| `wireframes/mobile-wireframe.txt`          | Shared mobile wireframe pattern for calculator pages  |
 
 ## Features
 
 - HQ upgrade calculator with prerequisite tracking
 - Season 2 calculators:
-	- Furnace (single resource + mine output ETA)
-	- Squad Base (two resources + factory output ETA)
+  - Furnace (single resource + mine output ETA)
+  - Squad Base (two resources + factory output ETA)
 - Season 3 calculators:
-	- Curse Research Lab
-	- Altar
-	- Protector's Field
+  - Curse Research Lab
+  - Altar
+  - Protector's Field
 - Season 4 calculators:
-	- Optoelectronic Lab
-	- Protector's Field S4
-	- Lighthouse S4
+  - Optoelectronic Lab
+  - Protector's Field S4
+  - Lighthouse S4
 - Level cost dropdowns showing configured costs per tier
 - Alliance tech discount support (RSS reduction %)
 - Timezone selector with live current-time display
