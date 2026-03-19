@@ -68,10 +68,12 @@
           </div>
 
           <div class="field-group">
-            <h2 class="card-title">Coal Mines</h2>
+            <h2 class="card-title">Titanium Alloy Factories</h2>
             <div class="mine-list" id="mineList"></div>
             <div class="mine-total">
-              <div class="mine-total-key">Total Output Per Hour</div>
+              <div class="mine-total-key">
+                Total Titanium Alloy Factory Output Per Hour
+              </div>
               <div class="mine-total-value" id="totalMineOutput">0</div>
             </div>
           </div>
@@ -122,7 +124,7 @@
               </div>
             </div>
             <div class="row">
-              <div class="row-key">Mine Output Used</div>
+              <div class="row-key">Titanium Alloy Factory Output Used</div>
               <div class="row-value" id="mineRateValue">0/hr</div>
             </div>
             <div class="row">
@@ -482,7 +484,7 @@
           (_, index) => `
         <div class="mine-row">
           <div>
-            <label for="mineLevel${index + 1}">Coal Mine ${index + 1}</label>
+            <label for="mineLevel${index + 1}">Titanium Alloy Factory ${index + 1}</label>
             <select id="mineLevel${index + 1}" data-mine-index="${index + 1}">
               <option value="0">Not set</option>
               ${options}
