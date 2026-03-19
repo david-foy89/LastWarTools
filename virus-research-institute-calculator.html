@@ -1,0 +1,990 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Last War Season 1 Virus Research Institute Calculator</title>
+    <link rel="stylesheet" href="last-war-furnace-upgrade-calculator.css" />
+    <script src="page-nav-dropdown.js" defer></script>
+  </head>
+  <body>
+    <div class="page">
+      <div class="page-top-controls">
+        <div class="logo-control">
+          <img src="media/lwst.png" alt="LWST logo" class="site-logo" />
+        </div>
+        <div class="language-control">
+          <label for="languageSelect">Language</label>
+          <select id="languageSelect"></select>
+        </div>
+      </div>
+      <div id="google_translate_element" class="hidden-translate"></div>
+
+      <nav class="page-nav" aria-label="Calculator pages">
+        <a href="hq-upgrade-calculator.html" class="page-link">HQ Upgrade</a>
+        <details class="page-nav-dropdown" name="troop-nav">
+          <summary class="page-link page-nav-dropdown-toggle">
+            Troop Calculators
+          </summary>
+          <div class="page-nav-dropdown-menu">
+            <a href="t10-troops-calculator.html" class="page-link"
+              >T10 Troops</a
+            >
+            <a href="t11-troops-calculator.html" class="page-link"
+              >T11 Troops</a
+            >
+          </div>
+        </details>
+        <details class="page-nav-dropdown active" name="season-nav">
+          <summary class="page-link page-nav-dropdown-toggle">
+            Season 1 Calculators
+          </summary>
+          <div class="page-nav-dropdown-menu">
+            <a
+              href="virus-research-institute-calculator.html"
+              class="page-link active"
+              >Virus Research Institute</a
+            >
+          </div>
+        </details>
+        <details class="page-nav-dropdown" name="season-nav">
+          <summary class="page-link page-nav-dropdown-toggle">
+            Season 2 Calculators
+          </summary>
+          <div class="page-nav-dropdown-menu">
+            <a href="last-war-furnace-upgrade-calculator.html" class="page-link"
+              >Furnace Calculator</a
+            >
+            <a href="season-2-tank-center-calculator.html" class="page-link"
+              >Season 2 Squad Base</a
+            >
+          </div>
+        </details>
+        <details class="page-nav-dropdown" name="season-nav">
+          <summary class="page-link page-nav-dropdown-toggle">
+            Season 3 Calculators
+          </summary>
+          <div class="page-nav-dropdown-menu">
+            <a href="curse-research-lab-calculator.html" class="page-link"
+              >Curse Research Lab</a
+            >
+            <a href="altar-calculator.html" class="page-link">Altar</a>
+            <a href="protectors-field-calculator.html" class="page-link"
+              >Protectors Field</a
+            >
+          </div>
+        </details>
+        <details class="page-nav-dropdown" name="season-nav">
+          <summary class="page-link page-nav-dropdown-toggle">
+            Season 4 Calculators
+          </summary>
+          <div class="page-nav-dropdown-menu">
+            <a href="optoelectronic-lab-calculator.html" class="page-link"
+              >Optoelectronic Lab</a
+            >
+            <a href="protectors-field-s4-calculator.html" class="page-link"
+              >Protector's Field S4</a
+            >
+            <a href="lighthouse-s4-calculator.html" class="page-link"
+              >Lighthouse S4</a
+            >
+          </div>
+        </details>
+        <details class="page-nav-dropdown" name="season-nav">
+          <summary class="page-link page-nav-dropdown-toggle">
+            Season 5 Calculators
+          </summary>
+          <div class="page-nav-dropdown-menu">
+            <a href="caffeine-institute-calculator.html" class="page-link"
+              >Caffeine Institute</a
+            >
+            <a href="protectors-field-s5-calculator.html" class="page-link"
+              >Protector's Field S5</a
+            >
+            <a href="season-5-squad-base-calculator.html" class="page-link"
+              >Season 5 Squad Base</a
+            >
+          </div>
+        </details>
+      </nav>
+
+      <section class="hero">
+        <h1>Season 1 Virus Research Institute Calculator</h1>
+        <div class="sub">
+          Plan upgrades for Virus Research Institute with level-based Immune
+          Protein costs, build time, Season XP, and virus resistance values. Set
+          your current and target levels to see exact next-step and total
+          remaining costs.
+        </div>
+      </section>
+
+      <section class="layout">
+        <div class="card">
+          <div class="field-group">
+            <h2 class="card-title">Quick Start</h2>
+            <ol class="helper-list">
+              <li>Set your current level and intended target level.</li>
+              <li>
+                Enter your current Immune Protein to see what is still needed
+                for the next upgrade and full target path.
+              </li>
+              <li>
+                Apply any alliance or profession resource reduction to adjust
+                required Immune Protein.
+              </li>
+            </ol>
+          </div>
+
+          <h2 class="card-title">Inputs</h2>
+
+          <div class="field">
+            <label for="currentLevel">Current Virus Institute Level</label>
+            <select id="currentLevel"></select>
+          </div>
+          <div class="field">
+            <label for="targetLevel">Target Virus Institute Level</label>
+            <select id="targetLevel"></select>
+          </div>
+          <div class="field">
+            <label for="currentImmuneProtein">Current Immune Protein</label>
+            <input
+              id="currentImmuneProtein"
+              type="number"
+              min="0"
+              step="1"
+              value="0"
+            />
+          </div>
+          <div class="field">
+            <label for="reductionSelect">Resource Reduction (%)</label>
+            <select id="reductionSelect"></select>
+          </div>
+
+          <div class="field-group">
+            <h2 class="card-title">Protein Farms</h2>
+            <div class="mine-list" id="proteinFarmList"></div>
+            <div class="mine-total">
+              <div class="mine-total-key">Total Protein Farm Output Per Hour</div>
+              <div class="mine-total-value" id="totalProteinFarmOutput">0</div>
+            </div>
+          </div>
+
+        </div>
+
+        <div class="card">
+          <h2 class="card-title">Upgrade Summary</h2>
+          <div class="summary">
+            <div class="tile">
+              <div class="tile-key">Next Level</div>
+              <div class="tile-value" id="nextLevelValue">Lv 2</div>
+            </div>
+            <div class="tile">
+              <div class="tile-key">Next Cost (Immune Protein)</div>
+              <div class="tile-value" id="nextCostValue">10,472</div>
+            </div>
+            <div class="tile">
+              <div class="tile-key">Current Immune Protein</div>
+              <div class="tile-value" id="ownedValue">0</div>
+            </div>
+            <div class="tile">
+              <div class="tile-key">Still Needed For Next</div>
+              <div class="tile-value warn" id="nextDeficitValue">10,472</div>
+            </div>
+            <div class="tile">
+              <div class="tile-key">Total Cost To Target</div>
+              <div class="tile-value" id="targetCostValue">10,472</div>
+            </div>
+            <div class="tile">
+              <div class="tile-key">Still Needed To Target</div>
+              <div class="tile-value warn" id="targetDeficitValue">10,472</div>
+            </div>
+            <div class="tile">
+              <div class="tile-key">Total Build Time To Target</div>
+              <div class="tile-value" id="targetTimeValue">00:12:30</div>
+            </div>
+            <div class="tile">
+              <div class="tile-key">Total Season XP To Target</div>
+              <div class="tile-value" id="targetXpValue">6,800</div>
+            </div>
+            <div class="tile">
+              <div class="tile-key">Protein Farm Output</div>
+              <div class="tile-value" id="farmOutputTileValue">0/hr</div>
+            </div>
+          </div>
+
+          <div class="details">
+            <div class="row">
+              <div class="row-key">Upgrade Path</div>
+              <div class="row-value" id="pathValue">Level 1 -> Level 2</div>
+            </div>
+            <div class="row">
+              <div class="row-key">Next Upgrade Time</div>
+              <div class="row-value" id="nextTimeValue">00:12:30</div>
+            </div>
+            <div class="row">
+              <div class="row-key">Current Virus Resistance</div>
+              <div class="row-value" id="currentResistanceValue">100</div>
+            </div>
+            <div class="row">
+              <div class="row-key">Target Virus Resistance</div>
+              <div class="row-value" id="targetResistanceValue">200</div>
+            </div>
+            <div class="row">
+              <div class="row-key">Reduction Applied</div>
+              <div class="row-value" id="reductionValue">0%</div>
+            </div>
+            <div class="row">
+              <div class="row-key">Protein Farm Output Used</div>
+              <div class="row-value" id="mineRateValue">0/hr</div>
+            </div>
+            <div class="row">
+              <div class="row-key">Status</div>
+              <div class="row-value" id="statusValue">
+                Need more Immune Protein
+              </div>
+            </div>
+          </div>
+
+          <div class="table-wrap">
+            <label for="costLevelSelect"
+              >Level / Immune Protein / Time / Season XP / Resistance</label
+            >
+            <select id="costLevelSelect"></select>
+          </div>
+
+          <div class="footnote">
+            Source values use the Season 1 Virus Research Institute table from
+            Cpt Hedgehog for levels 1 through 30.
+          </div>
+        </div>
+      </section>
+    </div>
+
+    <script>
+      const virusInstituteLevels = [
+        {
+          level: 1,
+          immuneProtein: 0,
+          time: "0",
+          seasonXp: 5900,
+          resistance: 100,
+        },
+        {
+          level: 2,
+          immuneProtein: 10472,
+          time: "00:12:30",
+          seasonXp: 6800,
+          resistance: 200,
+        },
+        {
+          level: 3,
+          immuneProtein: 20944,
+          time: "00:18:45",
+          seasonXp: 31100,
+          resistance: 300,
+        },
+        {
+          level: 4,
+          immuneProtein: 41888,
+          time: "00:28:08",
+          seasonXp: 35700,
+          resistance: 400,
+        },
+        {
+          level: 5,
+          immuneProtein: 83776,
+          time: "00:42:12",
+          seasonXp: 41100,
+          resistance: 500,
+        },
+        {
+          level: 6,
+          immuneProtein: 117249,
+          time: "01:03:17",
+          seasonXp: 47200,
+          resistance: 750,
+        },
+        {
+          level: 7,
+          immuneProtein: 152499,
+          time: "01:34:56",
+          seasonXp: 54300,
+          resistance: 1000,
+        },
+        {
+          level: 8,
+          immuneProtein: 182980,
+          time: "02:22:23",
+          seasonXp: 62500,
+          resistance: 1250,
+        },
+        {
+          level: 9,
+          immuneProtein: 219538,
+          time: "03:33:35",
+          seasonXp: 71800,
+          resistance: 1500,
+        },
+        {
+          level: 10,
+          immuneProtein: 263483,
+          time: "05:20:22",
+          seasonXp: 82600,
+          resistance: 1750,
+        },
+        {
+          level: 11,
+          immuneProtein: 316124,
+          time: "05:52:24",
+          seasonXp: 95000,
+          resistance: 2000,
+        },
+        {
+          level: 12,
+          immuneProtein: 379423,
+          time: "06:27:39",
+          seasonXp: 104500,
+          resistance: 2250,
+        },
+        {
+          level: 13,
+          immuneProtein: 455252,
+          time: "07:06:25",
+          seasonXp: 114900,
+          resistance: 2500,
+        },
+        {
+          level: 14,
+          immuneProtein: 543399,
+          time: "07:49:03",
+          seasonXp: 126400,
+          resistance: 2750,
+        },
+        {
+          level: 15,
+          immuneProtein: 652116,
+          time: "08:35:57",
+          seasonXp: 139100,
+          resistance: 3000,
+        },
+        {
+          level: 16,
+          immuneProtein: 717309,
+          time: "09:27:33",
+          seasonXp: 153000,
+          resistance: 3400,
+        },
+        {
+          level: 17,
+          immuneProtein: 789012,
+          time: "10:24:18",
+          seasonXp: 168300,
+          resistance: 3800,
+        },
+        {
+          level: 18,
+          immuneProtein: 867969,
+          time: "11:26:44",
+          seasonXp: 185100,
+          resistance: 4200,
+        },
+        {
+          level: 19,
+          immuneProtein: 954738,
+          time: "12:35:24",
+          seasonXp: 203600,
+          resistance: 4600,
+        },
+        {
+          level: 20,
+          immuneProtein: 1050249,
+          time: "13:50:57",
+          seasonXp: 224000,
+          resistance: 5000,
+        },
+        {
+          level: 21,
+          immuneProtein: 1155246,
+          time: "15:14:02",
+          seasonXp: 246400,
+          resistance: 5500,
+        },
+        {
+          level: 22,
+          immuneProtein: 1270752,
+          time: "16:45:26",
+          seasonXp: 258700,
+          resistance: 6000,
+        },
+        {
+          level: 23,
+          immuneProtein: 1397790,
+          time: "18:25:59",
+          seasonXp: 271600,
+          resistance: 6500,
+        },
+        {
+          level: 24,
+          immuneProtein: 1537569,
+          time: "20:16:35",
+          seasonXp: 285200,
+          resistance: 7000,
+        },
+        {
+          level: 25,
+          immuneProtein: 1691391,
+          time: "22:18:14",
+          seasonXp: 299500,
+          resistance: 7500,
+        },
+        {
+          level: 26,
+          immuneProtein: 2008428,
+          time: "1d 00:32:04",
+          seasonXp: 314400,
+          resistance: 8000,
+        },
+        {
+          level: 27,
+          immuneProtein: 2317218,
+          time: "1d 02:59:16",
+          seasonXp: 330100,
+          resistance: 8500,
+        },
+        {
+          level: 28,
+          immuneProtein: 2641153,
+          time: "1d 05:41:11",
+          seasonXp: 346700,
+          resistance: 9000,
+        },
+        {
+          level: 29,
+          immuneProtein: 3201055,
+          time: "1d 08:39:19",
+          seasonXp: 364000,
+          resistance: 9500,
+        },
+        {
+          level: 30,
+          immuneProtein: 3997018,
+          time: "1d 11:55:14",
+          seasonXp: 382200,
+          resistance: 10000,
+        },
+      ];
+
+      const proteinFarmOutputByLevel = [
+        { level: 1, outputPerHour: 720 },
+        { level: 2, outputPerHour: 1440 },
+        { level: 3, outputPerHour: 2160 },
+        { level: 4, outputPerHour: 2880 },
+        { level: 5, outputPerHour: 3600 },
+        { level: 6, outputPerHour: 4320 },
+        { level: 7, outputPerHour: 5040 },
+        { level: 8, outputPerHour: 5760 },
+        { level: 9, outputPerHour: 6480 },
+        { level: 10, outputPerHour: 7200 },
+        { level: 11, outputPerHour: 7920 },
+        { level: 12, outputPerHour: 8640 },
+        { level: 13, outputPerHour: 9360 },
+        { level: 14, outputPerHour: 10080 },
+        { level: 15, outputPerHour: 10800 },
+        { level: 16, outputPerHour: 11520 },
+        { level: 17, outputPerHour: 12240 },
+        { level: 18, outputPerHour: 12960 },
+        { level: 19, outputPerHour: 13680 },
+        { level: 20, outputPerHour: 14400 },
+        { level: 21, outputPerHour: 15120 },
+        { level: 22, outputPerHour: 15840 },
+        { level: 23, outputPerHour: 16560 },
+        { level: 24, outputPerHour: 17280 },
+        { level: 25, outputPerHour: 18000 },
+        { level: 26, outputPerHour: 18720 },
+        { level: 27, outputPerHour: 19440 },
+        { level: 28, outputPerHour: 20160 },
+        { level: 29, outputPerHour: 20880 },
+        { level: 30, outputPerHour: 21600 },
+      ];
+
+      const currentLevelSelect = document.getElementById("currentLevel");
+      const targetLevelSelect = document.getElementById("targetLevel");
+      const currentImmuneProteinInput = document.getElementById(
+        "currentImmuneProtein",
+      );
+      const reductionSelect = document.getElementById("reductionSelect");
+      const proteinFarmList = document.getElementById("proteinFarmList");
+      const totalProteinFarmOutput = document.getElementById(
+        "totalProteinFarmOutput",
+      );
+      const costLevelSelect = document.getElementById("costLevelSelect");
+      const nextLevelValue = document.getElementById("nextLevelValue");
+      const nextCostValue = document.getElementById("nextCostValue");
+      const ownedValue = document.getElementById("ownedValue");
+      const nextDeficitValue = document.getElementById("nextDeficitValue");
+      const targetCostValue = document.getElementById("targetCostValue");
+      const targetDeficitValue = document.getElementById("targetDeficitValue");
+      const targetTimeValue = document.getElementById("targetTimeValue");
+      const targetXpValue = document.getElementById("targetXpValue");
+      const farmOutputTileValue = document.getElementById("farmOutputTileValue");
+      const pathValue = document.getElementById("pathValue");
+      const nextTimeValue = document.getElementById("nextTimeValue");
+      const currentResistanceValue = document.getElementById(
+        "currentResistanceValue",
+      );
+      const targetResistanceValue = document.getElementById(
+        "targetResistanceValue",
+      );
+      const reductionValue = document.getElementById("reductionValue");
+      const mineRateValue = document.getElementById("mineRateValue");
+      const statusValue = document.getElementById("statusValue");
+      const languageSelect = document.getElementById("languageSelect");
+
+      const STORAGE_KEY = "lastWarVirusInstituteCalcStateV1";
+      let preferredLanguage = "en";
+
+      const languageOptions = [
+        { code: "en", label: "English" },
+        { code: "es", label: "Spanish" },
+        { code: "fr", label: "French" },
+        { code: "de", label: "German" },
+        { code: "it", label: "Italian" },
+        { code: "pt", label: "Portuguese" },
+        { code: "ru", label: "Russian" },
+        { code: "uk", label: "Ukrainian" },
+        { code: "pl", label: "Polish" },
+        { code: "tr", label: "Turkish" },
+        { code: "ar", label: "Arabic" },
+        { code: "fa", label: "Persian" },
+        { code: "he", label: "Hebrew" },
+        { code: "hi", label: "Hindi" },
+        { code: "bn", label: "Bengali" },
+        { code: "ur", label: "Urdu" },
+        { code: "th", label: "Thai" },
+        { code: "vi", label: "Vietnamese" },
+        { code: "id", label: "Indonesian" },
+        { code: "ms", label: "Malay" },
+        { code: "fil", label: "Filipino" },
+        { code: "ja", label: "Japanese" },
+        { code: "ko", label: "Korean" },
+        { code: "zh-CN", label: "Chinese (Simplified)" },
+        { code: "zh-TW", label: "Chinese (Traditional)" },
+      ];
+
+      function formatNumber(value) {
+        return Math.round(Number(value) || 0).toLocaleString();
+      }
+
+      function formatLargeNumber(value) {
+        const num = Number(value) || 0;
+        if (num >= 1000000) {
+          return `${(num / 1000000).toFixed(2)}M`;
+        }
+
+        if (num >= 1000) {
+          return `${(num / 1000).toFixed(2)}k`;
+        }
+
+        return String(Math.round(num));
+      }
+
+      function parseDurationToSeconds(duration) {
+        if (!duration || duration === "0" || duration === "-") {
+          return 0;
+        }
+
+        const daySplit = duration.split("d ");
+        let days = 0;
+        let timePart = duration;
+
+        if (daySplit.length === 2) {
+          days = Number(daySplit[0]) || 0;
+          timePart = daySplit[1];
+        }
+
+        const parts = timePart.split(":").map((part) => Number(part) || 0);
+        if (parts.length !== 3) {
+          return 0;
+        }
+
+        const [hours, minutes, seconds] = parts;
+        return days * 86400 + hours * 3600 + minutes * 60 + seconds;
+      }
+
+      function formatSecondsToDuration(totalSeconds) {
+        const seconds = Math.max(0, Math.round(Number(totalSeconds) || 0));
+        const days = Math.floor(seconds / 86400);
+        const remAfterDays = seconds % 86400;
+        const hours = Math.floor(remAfterDays / 3600);
+        const remAfterHours = remAfterDays % 3600;
+        const minutes = Math.floor(remAfterHours / 60);
+        const secs = remAfterHours % 60;
+
+        const hh = String(hours).padStart(2, "0");
+        const mm = String(minutes).padStart(2, "0");
+        const ss = String(secs).padStart(2, "0");
+        return days > 0 ? `${days}d ${hh}:${mm}:${ss}` : `${hh}:${mm}:${ss}`;
+      }
+
+      function getReductionMultiplier() {
+        const reductionPercent = Number(reductionSelect.value) || 0;
+        return (100 - reductionPercent) / 100;
+      }
+
+      function getLevelData(level) {
+        return virusInstituteLevels.find((row) => row.level === level) || null;
+      }
+
+      function buildLanguageOptions() {
+        languageSelect.innerHTML = languageOptions
+          .map((lang) => `<option value="${lang.code}">${lang.label}</option>`)
+          .join("");
+        languageSelect.value = preferredLanguage;
+      }
+
+      function buildLevelOptions() {
+        const currentOptions = virusInstituteLevels
+          .map(
+            (row) => `<option value="${row.level}">Level ${row.level}</option>`,
+          )
+          .join("");
+        currentLevelSelect.innerHTML = currentOptions;
+
+        const targetOptions = virusInstituteLevels
+          .filter((row) => row.level >= 2)
+          .map(
+            (row) => `<option value="${row.level}">Level ${row.level}</option>`,
+          )
+          .join("");
+        targetLevelSelect.innerHTML = targetOptions;
+      }
+
+      function buildReductionOptions() {
+        const reductions = [
+          0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 12, 15, 18, 20, 25, 30,
+        ];
+
+        reductionSelect.innerHTML = reductions
+          .map(
+            (value) =>
+              `<option value="${value}">${value}% reduction applied</option>`,
+          )
+          .join("");
+      }
+
+      function buildCostLevelOptions() {
+        costLevelSelect.innerHTML = virusInstituteLevels
+          .map((row) => {
+            const cost = formatLargeNumber(row.immuneProtein);
+            const xp = formatLargeNumber(row.seasonXp);
+            const time = row.time === "0" ? "-" : row.time;
+            return `<option value="${row.level}">Lv ${row.level} | Immune Protein ${cost} | Time ${time} | Season XP ${xp} | Resistance ${formatNumber(row.resistance)}</option>`;
+          })
+          .join("");
+      }
+
+      function buildProteinFarmInputs() {
+        const levelOptions = proteinFarmOutputByLevel
+          .map(
+            (row) => `<option value="${row.level}">Level ${row.level}</option>`,
+          )
+          .join("");
+
+        proteinFarmList.innerHTML = Array.from({ length: 5 }, (_, index) => {
+          const spotNumber = index + 1;
+          return `
+            <div class="mine-row">
+              <div>
+                <label for="proteinFarmLevel${spotNumber}">Protein Farm ${spotNumber} Level</label>
+                <select id="proteinFarmLevel${spotNumber}">
+                  <option value="0">Not set</option>
+                  ${levelOptions}
+                </select>
+              </div>
+              <div class="mine-output" id="proteinFarmValue${spotNumber}">0/hr</div>
+            </div>
+          `;
+        }).join("");
+
+        for (let spot = 1; spot <= 5; spot += 1) {
+          const levelInput = document.getElementById(`proteinFarmLevel${spot}`);
+          levelInput.value = "0";
+          levelInput.addEventListener("change", updateCalculator);
+        }
+      }
+
+      function getProteinFarmOutputByLevel(level) {
+        const row = proteinFarmOutputByLevel.find(
+          (entry) => entry.level === Number(level),
+        );
+        return row ? row.outputPerHour : 0;
+      }
+
+      function getProteinFarmLevel(spotNumber) {
+        const input = document.getElementById(`proteinFarmLevel${spotNumber}`);
+        return Math.max(0, Number(input ? input.value : 0) || 0);
+      }
+
+      function getProteinFarmOutput(spotNumber) {
+        return getProteinFarmOutputByLevel(getProteinFarmLevel(spotNumber));
+      }
+
+      function getTotalProteinFarmOutput() {
+        let totalOutput = 0;
+        for (let spot = 1; spot <= 5; spot += 1) {
+          totalOutput += getProteinFarmOutput(spot);
+        }
+        return totalOutput;
+      }
+
+      function applyGoogleLanguage(languageCode, retries = 25) {
+        const combo = document.querySelector(".goog-te-combo");
+        if (!combo) {
+          if (retries > 0) {
+            setTimeout(
+              () => applyGoogleLanguage(languageCode, retries - 1),
+              200,
+            );
+          }
+          return;
+        }
+
+        combo.value = languageCode;
+        combo.dispatchEvent(new Event("change"));
+      }
+
+      function loadGoogleTranslateScript() {
+        if (window.google && window.google.translate) {
+          window.googleTranslateElementInit();
+          return;
+        }
+
+        const script = document.createElement("script");
+        script.src =
+          "https://translate.google.com/translate_a/element.js?cb=googleTranslateElementInit";
+        script.async = true;
+        document.body.appendChild(script);
+      }
+
+      window.googleTranslateElementInit =
+        function googleTranslateElementInit() {
+          new window.google.translate.TranslateElement(
+            {
+              pageLanguage: "en",
+              autoDisplay: false,
+            },
+            "google_translate_element",
+          );
+
+          applyGoogleLanguage(preferredLanguage);
+        };
+
+      function saveState() {
+        try {
+          const state = {
+            currentLevel: Number(currentLevelSelect.value) || 1,
+            targetLevel: Number(targetLevelSelect.value) || 2,
+            currentImmuneProtein: Number(currentImmuneProteinInput.value) || 0,
+            reduction: Number(reductionSelect.value) || 0,
+            costLevel: Number(costLevelSelect.value) || 1,
+            proteinFarmLevels: Array.from({ length: 5 }, (_, index) =>
+              getProteinFarmLevel(index + 1),
+            ),
+            language: languageSelect.value,
+          };
+          localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
+        } catch {}
+      }
+
+      function loadState() {
+        try {
+          const raw = localStorage.getItem(STORAGE_KEY);
+          if (!raw) {
+            return;
+          }
+
+          const state = JSON.parse(raw);
+          if (state.currentLevel) {
+            currentLevelSelect.value = String(state.currentLevel);
+          }
+          if (state.targetLevel) {
+            targetLevelSelect.value = String(state.targetLevel);
+          }
+          if (state.currentImmuneProtein != null) {
+            currentImmuneProteinInput.value = String(
+              Math.max(0, Number(state.currentImmuneProtein) || 0),
+            );
+          }
+          if (state.reduction != null) {
+            reductionSelect.value = String(Number(state.reduction) || 0);
+          }
+          if (state.costLevel) {
+            costLevelSelect.value = String(state.costLevel);
+          }
+
+          // Backward compatibility for prior saved state that stored raw outputs.
+          if (Array.isArray(state.proteinFarmOutputs)) {
+            for (let spot = 1; spot <= 5; spot += 1) {
+              const levelInput = document.getElementById(`proteinFarmLevel${spot}`);
+              if (!levelInput) {
+                continue;
+              }
+
+              const rawOutput = Math.max(
+                0,
+                Number(state.proteinFarmOutputs[spot - 1]) || 0,
+              );
+              const matchedLevel =
+                proteinFarmOutputByLevel.find(
+                  (entry) => entry.outputPerHour === rawOutput,
+                )?.level || 0;
+              levelInput.value = String(matchedLevel);
+            }
+          } else if (Array.isArray(state.proteinFarmLevels)) {
+            for (let spot = 1; spot <= 5; spot += 1) {
+              const levelInput = document.getElementById(`proteinFarmLevel${spot}`);
+              if (!levelInput) {
+                continue;
+              }
+
+              const level = Math.max(
+                0,
+                Math.min(30, Number(state.proteinFarmLevels[spot - 1]) || 0),
+              );
+              levelInput.value = String(level);
+            }
+          }
+          if (
+            state.language &&
+            languageOptions.some((option) => option.code === state.language)
+          ) {
+            preferredLanguage = state.language;
+          }
+        } catch {}
+      }
+
+      function updateCalculator() {
+        const currentLevel = Math.max(1, Number(currentLevelSelect.value) || 1);
+        let targetLevel = Math.max(2, Number(targetLevelSelect.value) || 2);
+        const ownedImmuneProtein = Math.max(
+          0,
+          Number(currentImmuneProteinInput.value) || 0,
+        );
+        const totalFarmOutput = getTotalProteinFarmOutput();
+
+        for (let spot = 1; spot <= 5; spot += 1) {
+          const spotOutput = getProteinFarmOutput(spot);
+          const outputValue = document.getElementById(`proteinFarmValue${spot}`);
+          outputValue.textContent = `${formatNumber(spotOutput)}/hr`;
+        }
+        totalProteinFarmOutput.textContent = `${formatNumber(totalFarmOutput)}/hr`;
+        mineRateValue.textContent = `${formatNumber(totalFarmOutput)}/hr`;
+        farmOutputTileValue.textContent = `${formatNumber(totalFarmOutput)}/hr`;
+
+        if (targetLevel <= currentLevel) {
+          targetLevel = Math.min(30, currentLevel + 1);
+          targetLevelSelect.value = String(targetLevel);
+        }
+
+        const nextLevel = Math.min(30, currentLevel + 1);
+        const nextLevelData = getLevelData(nextLevel);
+        const currentLevelData = getLevelData(currentLevel);
+        const targetLevelData = getLevelData(targetLevel);
+
+        const reductionMultiplier = getReductionMultiplier();
+        const nextCostBase = nextLevelData ? nextLevelData.immuneProtein : 0;
+        const nextCostReduced = Math.round(nextCostBase * reductionMultiplier);
+
+        let targetCostBase = 0;
+        let totalTimeSeconds = 0;
+        let totalTargetXp = 0;
+
+        for (let level = currentLevel + 1; level <= targetLevel; level += 1) {
+          const row = getLevelData(level);
+          if (!row) {
+            continue;
+          }
+
+          targetCostBase += row.immuneProtein;
+          totalTimeSeconds += parseDurationToSeconds(row.time);
+          totalTargetXp += row.seasonXp;
+        }
+
+        const targetCostReduced = Math.round(
+          targetCostBase * reductionMultiplier,
+        );
+        const nextDeficit = Math.max(0, nextCostReduced - ownedImmuneProtein);
+        const targetDeficit = Math.max(
+          0,
+          targetCostReduced - ownedImmuneProtein,
+        );
+
+        nextLevelValue.textContent = `Lv ${nextLevel}`;
+        nextCostValue.textContent = formatNumber(nextCostReduced);
+        ownedValue.textContent = formatNumber(ownedImmuneProtein);
+        nextDeficitValue.textContent = formatNumber(nextDeficit);
+        targetCostValue.textContent = formatNumber(targetCostReduced);
+        targetDeficitValue.textContent = formatNumber(targetDeficit);
+        targetTimeValue.textContent = formatSecondsToDuration(totalTimeSeconds);
+        targetXpValue.textContent = formatNumber(totalTargetXp);
+
+        pathValue.textContent = `Level ${currentLevel} -> Level ${targetLevel}`;
+        nextTimeValue.textContent = nextLevelData
+          ? nextLevelData.time === "0"
+            ? "-"
+            : nextLevelData.time
+          : "-";
+        currentResistanceValue.textContent = currentLevelData
+          ? formatNumber(currentLevelData.resistance)
+          : "-";
+        targetResistanceValue.textContent = targetLevelData
+          ? formatNumber(targetLevelData.resistance)
+          : "-";
+        reductionValue.textContent = `${reductionSelect.value}%`;
+
+        nextDeficitValue.classList.toggle("warn", nextDeficit > 0);
+        nextDeficitValue.classList.toggle("ok", nextDeficit === 0);
+        targetDeficitValue.classList.toggle("warn", targetDeficit > 0);
+        targetDeficitValue.classList.toggle("ok", targetDeficit === 0);
+
+        if (currentLevel >= 30) {
+          statusValue.textContent = "Building is at max level";
+        } else if (nextDeficit === 0) {
+          statusValue.textContent = "Ready for next upgrade";
+        } else {
+          statusValue.textContent = "Need more Immune Protein";
+        }
+
+        saveState();
+      }
+
+      buildLanguageOptions();
+      buildLevelOptions();
+      buildReductionOptions();
+      buildProteinFarmInputs();
+      buildCostLevelOptions();
+      loadState();
+      buildLanguageOptions();
+      updateCalculator();
+      loadGoogleTranslateScript();
+
+      currentLevelSelect.addEventListener("change", () => {
+        const currentLevel = Number(currentLevelSelect.value) || 1;
+        const targetLevel = Number(targetLevelSelect.value) || 2;
+        if (targetLevel <= currentLevel) {
+          targetLevelSelect.value = String(Math.min(30, currentLevel + 1));
+        }
+        updateCalculator();
+      });
+      targetLevelSelect.addEventListener("change", updateCalculator);
+      currentImmuneProteinInput.addEventListener("input", updateCalculator);
+      reductionSelect.addEventListener("change", updateCalculator);
+      costLevelSelect.addEventListener("change", saveState);
+      languageSelect.addEventListener("change", () => {
+        preferredLanguage = languageSelect.value;
+        applyGoogleLanguage(preferredLanguage);
+        saveState();
+      });
+    </script>
+  </body>
+</html>

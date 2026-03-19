@@ -37,6 +37,16 @@
         </details>
         <details class="page-nav-dropdown" name="season-nav">
           <summary class="page-link page-nav-dropdown-toggle">
+            Season 1 Calculators
+          </summary>
+          <div class="page-nav-dropdown-menu">
+            <a href="virus-research-institute-calculator.html" class="page-link"
+              >Virus Research Institute</a
+            >
+          </div>
+        </details>
+        <details class="page-nav-dropdown" name="season-nav">
+          <summary class="page-link page-nav-dropdown-toggle">
             Season 2 Calculators
           </summary>
           <div class="page-nav-dropdown-menu">
@@ -100,9 +110,9 @@
         <h1>T11 Troops Calculator</h1>
         <div class="sub">
           Track the remaining Armament Research required for T11 troops in the
-          Armament Institute. Mark any research branches you have already
-          completed and the calculator will total the exact remaining published
-          costs for Armament Materials, Armament Cores, and Oil.
+          Armament Institute. Enter the completion percentage for each research
+          item and the calculator will prorate the published total costs for
+          Armament Materials, Armament Cores, and Oil.
         </div>
       </section>
 
@@ -112,14 +122,16 @@
           <div class="field-group">
             <h2 class="card-title">Quick Start</h2>
             <ol class="helper-list">
-              <li>Check each research item you have already finished.</li>
               <li>
-                Leave incomplete branches unchecked to count their full
-                published total.
+                Enter the current completion percentage for each research item.
               </li>
               <li>
-                Use the stage reference table on the right if you need the
-                per-band costs while planning progress.
+                Totals on the right are reduced based on the remaining
+                percentage for each branch.
+              </li>
+              <li>
+                Use the stage reference table on the right when you need the
+                published stage-band cost notes alongside the percentage view.
               </li>
             </ol>
           </div>
@@ -137,21 +149,21 @@
                 type="button"
                 class="action-button"
               >
-                Mark Nothing Complete
+                Set Everything To 0%
               </button>
               <button
                 id="markResearchDoneButton"
                 type="button"
                 class="action-button"
               >
-                Mark Research Complete
+                Set Branches To 100%
               </button>
               <button
                 id="markEverythingDoneButton"
                 type="button"
                 class="action-button"
               >
-                Mark Everything Complete
+                Set Everything To 100%
               </button>
             </div>
           </div>
@@ -209,6 +221,10 @@
               <div class="tile-key">Remaining Items</div>
               <div class="tile-value" id="remainingItemsValue">5</div>
             </div>
+            <div class="tile">
+              <div class="tile-key">Overall Progress</div>
+              <div class="tile-value" id="overallProgressValue">0%</div>
+            </div>
           </div>
 
           <div class="details">
@@ -229,8 +245,10 @@
             <div class="row">
               <div class="row-key">Notes</div>
               <div class="row-value">
-                Unlock cost is a final one-time requirement after the four
-                research branches.
+                Remaining totals are prorated from the published full branch
+                totals based on your entered completion percentage. Unlock cost
+                is a final one-time requirement after the four research
+                branches.
               </div>
             </div>
           </div>
@@ -338,6 +356,9 @@
       const remainingItemsValue = document.getElementById(
         "remainingItemsValue",
       );
+      const overallProgressValue = document.getElementById(
+        "overallProgressValue",
+      );
       const statusValue = document.getElementById("statusValue");
       const focusValue = document.getElementById("focusValue");
       const plannerOverview = document.getElementById("plannerOverview");
@@ -383,6 +404,32 @@
 
       function formatNumber(value) {
         return Math.round(Number(value) || 0).toLocaleString();
+      }
+
+      function clampPercentage(value) {
+        const numericValue = Number(value);
+        if (!Number.isFinite(numericValue)) {
+          return 0;
+        }
+
+        return Math.min(100, Math.max(0, numericValue));
+      }
+
+      function normalizeStoredProgress(value) {
+        if (value === true) {
+          return 100;
+        }
+
+        if (value === false || value == null) {
+          return 0;
+        }
+
+        return clampPercentage(value);
+      }
+
+      function getProgress(itemId) {
+        const input = document.getElementById(`progress-${itemId}`);
+        return clampPercentage(input ? input.value : 0);
       }
 
       function buildLanguageOptions() {
@@ -444,10 +491,16 @@
                 <div class="planner-breakdown-meta">${item.stageCosts.total}</div>
               </div>
               <div>
-                <label class="toggle-field" for="done-${item.id}">
-                  <input id="done-${item.id}" type="checkbox" />
-                  <span>Completed</span>
-                </label>
+                <label for="progress-${item.id}">Progress (%)</label>
+                <input
+                  id="progress-${item.id}"
+                  type="number"
+                  min="0"
+                  max="100"
+                  step="1"
+                  value="0"
+                  inputmode="numeric"
+                />
               </div>
             </div>
           `,
@@ -455,9 +508,12 @@
           .join("");
 
         t11Research.forEach((item) => {
-          document
-            .getElementById(`done-${item.id}`)
-            .addEventListener("change", updateCalculator);
+          const progressInput = document.getElementById(`progress-${item.id}`);
+          progressInput.addEventListener("input", updateCalculator);
+          progressInput.addEventListener("change", () => {
+            progressInput.value = String(clampPercentage(progressInput.value));
+            updateCalculator();
+          });
         });
       }
 
@@ -481,7 +537,7 @@
         try {
           const state = {};
           t11Research.forEach((item) => {
-            state[item.id] = document.getElementById(`done-${item.id}`).checked;
+            state[item.id] = getProgress(item.id);
           });
           state.language = languageSelect.value;
           localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
@@ -505,20 +561,18 @@
           }
 
           t11Research.forEach((item) => {
-            document.getElementById(`done-${item.id}`).checked = Boolean(
-              state[item.id],
+            document.getElementById(`progress-${item.id}`).value = String(
+              normalizeStoredProgress(state[item.id]),
             );
           });
         } catch {}
       }
 
-      function setCompletionState(ids, completed) {
+      function setCompletionState(ids, percentage) {
         t11Research.forEach((item) => {
-          document.getElementById(`done-${item.id}`).checked = ids.includes(
-            item.id,
-          )
-            ? completed
-            : false;
+          document.getElementById(`progress-${item.id}`).value = String(
+            ids.includes(item.id) ? percentage : 0,
+          );
         });
         updateCalculator();
       }
@@ -526,21 +580,32 @@
       function updateCalculator() {
         const totals = { materials: 0, cores: 0, oil: 0 };
         const remainingItems = [];
+        let totalProgress = 0;
 
         t11Research.forEach((item) => {
-          const isDone = document.getElementById(`done-${item.id}`).checked;
-          if (!isDone) {
-            totals.materials += item.totals.materials;
-            totals.cores += item.totals.cores;
-            totals.oil += item.totals.oil;
-            remainingItems.push(item);
+          const progress = getProgress(item.id);
+          const remainingFraction = (100 - progress) / 100;
+
+          totalProgress += progress;
+          if (progress < 100) {
+            totals.materials += item.totals.materials * remainingFraction;
+            totals.cores += item.totals.cores * remainingFraction;
+            totals.oil += item.totals.oil * remainingFraction;
+            remainingItems.push({
+              ...item,
+              progress,
+              remainingFraction,
+            });
           }
         });
+
+        const averageProgress = totalProgress / t11Research.length;
 
         materialsValue.textContent = formatNumber(totals.materials);
         coresValue.textContent = formatNumber(totals.cores);
         oilValue.textContent = formatNumber(totals.oil);
         remainingItemsValue.textContent = String(remainingItems.length);
+        overallProgressValue.textContent = `${Math.round(averageProgress)}%`;
 
         if (remainingItems.length === 0) {
           statusValue.textContent = "All T11 Armament Research complete";
@@ -552,9 +617,9 @@
           statusValue.textContent =
             remainingItems.length === t11Research.length
               ? "All T11 research costs still remaining"
-              : `${remainingItems.length} T11 items still remaining`;
+              : `${remainingItems.length} T11 items still have remaining cost`;
           focusValue.textContent = nextItem.name;
-          plannerOverview.innerHTML = `<strong>Next step:</strong> ${nextItem.name} is the next unchecked item in your T11 plan.`;
+          plannerOverview.innerHTML = `<strong>Next step:</strong> ${nextItem.name} is at ${Math.round(nextItem.progress)}% complete, so ${Math.round(100 - nextItem.progress)}% of its published cost still remains.`;
         }
 
         remainingBreakdown.innerHTML = remainingItems
@@ -563,20 +628,20 @@
             <div class="planner-breakdown-row">
               <div>
                 <div class="planner-breakdown-title">${item.name}</div>
-                <div class="planner-breakdown-meta">${item.stageCosts.total}</div>
+                <div class="planner-breakdown-meta">${Math.round(item.progress)}% complete | ${Math.round(100 - item.progress)}% remaining | ${item.stageCosts.total}</div>
               </div>
               <div class="planner-breakdown-costs">
                 <div class="planner-breakdown-cost">
                   <span class="label">Materials</span>
-                  <span class="value">${formatNumber(item.totals.materials)}</span>
+                  <span class="value">${formatNumber(item.totals.materials * item.remainingFraction)}</span>
                 </div>
                 <div class="planner-breakdown-cost">
                   <span class="label">Cores</span>
-                  <span class="value">${formatNumber(item.totals.cores)}</span>
+                  <span class="value">${formatNumber(item.totals.cores * item.remainingFraction)}</span>
                 </div>
                 <div class="planner-breakdown-cost">
                   <span class="label">Oil</span>
-                  <span class="value">${formatNumber(item.totals.oil)}</span>
+                  <span class="value">${formatNumber(item.totals.oil * item.remainingFraction)}</span>
                 </div>
               </div>
             </div>
@@ -601,18 +666,18 @@
       loadGoogleTranslateScript();
 
       markAllNeededButton.addEventListener("click", () => {
-        setCompletionState([], false);
+        setCompletionState([], 100);
       });
       markResearchDoneButton.addEventListener("click", () => {
         setCompletionState(
           ["helmet", "body-armor", "accessories", "weapon"],
-          true,
+          100,
         );
       });
       markEverythingDoneButton.addEventListener("click", () => {
         setCompletionState(
           ["helmet", "body-armor", "accessories", "weapon", "unlock"],
-          true,
+          100,
         );
       });
       languageSelect.addEventListener("change", () => {
