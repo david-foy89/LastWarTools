@@ -284,7 +284,7 @@
         background: rgba(20, 45, 29, 0.34);
       }
 
-      .supply-row input[type='checkbox'] {
+      .supply-row input[type="checkbox"] {
         width: 18px;
         height: 18px;
         margin: 0;
@@ -398,6 +398,113 @@
 
       .is-hidden {
         display: none !important;
+      }
+
+      .export-menu-wrap {
+        position: relative;
+      }
+
+      .export-menu {
+        position: absolute;
+        top: calc(100% + 8px);
+        right: 0;
+        z-index: 200;
+        min-width: 220px;
+        border: 1px solid var(--line);
+        border-radius: 14px;
+        background: rgba(12, 24, 37, 0.98);
+        backdrop-filter: blur(10px);
+        padding: 6px;
+        display: grid;
+        gap: 2px;
+        box-shadow: 0 8px 32px rgba(0, 0, 0, 0.55);
+      }
+
+      .export-menu-item {
+        cursor: pointer;
+        border: none;
+        border-radius: 10px;
+        background: transparent;
+        color: var(--text);
+        padding: 10px 14px;
+        font: inherit;
+        font-size: 0.88rem;
+        text-align: left;
+        transition: background-color 120ms ease;
+      }
+
+      .export-menu-item:hover,
+      .export-menu-item:focus-visible {
+        background: rgba(116, 192, 252, 0.12);
+        outline: none;
+      }
+
+      @media print {
+        .page-top-controls,
+        .page-nav,
+        .hero,
+        .support-bar,
+        .share-banner,
+        .card-header-actions,
+        .level-actions,
+        .copy-button,
+        #google_translate_element {
+          display: none !important;
+        }
+
+        body {
+          background: #fff;
+          color: #111;
+        }
+
+        .layout {
+          display: block;
+        }
+
+        .card:first-child {
+          display: none;
+        }
+
+        .card {
+          border: none;
+          background: #fff;
+          box-shadow: none;
+        }
+
+        .level-card {
+          border: 1px solid #ccc;
+          background: #fff;
+          page-break-inside: avoid;
+          margin-bottom: 16px;
+        }
+
+        .level-head {
+          background: #f0f0f0;
+          border-bottom: 1px solid #ccc;
+        }
+
+        .level-name,
+        .level-meta,
+        .supply-code,
+        .supply-coords {
+          color: #111;
+        }
+
+        .supply-row {
+          border: 1px solid #e0e0e0;
+          background: #fff;
+          break-inside: avoid;
+        }
+
+        .supply-row.is-done {
+          background: #f0fff4;
+          border-color: #a8d5a2;
+        }
+
+        .supply-row.is-done .supply-code,
+        .supply-row.is-done .supply-coords {
+          color: #2d6a4f;
+        }
       }
     </style>
   </head>
@@ -535,9 +642,27 @@
             <div class="share-banner-title">Shared Checklist</div>
             <div class="share-banner-text" id="shareBannerText"></div>
             <div class="share-banner-actions">
-              <button type="button" class="action-button" id="mergeSharedButton">Merge into my list</button>
-              <button type="button" class="action-button" id="replaceSharedButton">Replace my list</button>
-              <button type="button" class="action-button subtle" id="dismissSharedButton">Dismiss</button>
+              <button
+                type="button"
+                class="action-button"
+                id="mergeSharedButton"
+              >
+                Merge into my list
+              </button>
+              <button
+                type="button"
+                class="action-button"
+                id="replaceSharedButton"
+              >
+                Replace my list
+              </button>
+              <button
+                type="button"
+                class="action-button subtle"
+                id="dismissSharedButton"
+              >
+                Dismiss
+              </button>
             </div>
           </div>
 
@@ -573,13 +698,25 @@
               <button id="checkLevelButton" type="button" class="action-button">
                 Check selected level
               </button>
-              <button id="resetLevelButton" type="button" class="action-button subtle">
+              <button
+                id="resetLevelButton"
+                type="button"
+                class="action-button subtle"
+              >
                 Reset selected level
               </button>
-              <button id="markVisibleButton" type="button" class="action-button">
+              <button
+                id="markVisibleButton"
+                type="button"
+                class="action-button"
+              >
                 Check visible results
               </button>
-              <button id="clearProgressButton" type="button" class="action-button danger">
+              <button
+                id="clearProgressButton"
+                type="button"
+                class="action-button danger"
+              >
                 Clear progress
               </button>
             </div>
@@ -589,16 +726,21 @@
             <h2 class="card-title">Level Breakdown</h2>
             <div class="level-progress-list" id="levelProgressList"></div>
           </div>
-
         </div>
 
         <div class="card">
           <div class="card-header-row">
             <h2 class="card-title">Checklist</h2>
             <div class="card-header-actions">
-              <button id="shareListButton" type="button" class="action-button">
-                Share list
-              </button>
+              <div class="export-menu-wrap" id="exportMenuWrap">
+                <button id="exportMenuToggle" type="button" class="action-button">Share / Export &#9662;</button>
+                <div class="export-menu is-hidden" id="exportMenu">
+                  <button type="button" class="export-menu-item" id="copyLinkButton">Copy shareable link</button>
+                  <button type="button" class="export-menu-item" id="exportCsvButton">Download as CSV</button>
+                  <button type="button" class="export-menu-item" id="exportPdfButton">Print / Save as PDF</button>
+                  <button type="button" class="export-menu-item" id="exportPngButton">Save as PNG</button>
+                </div>
+              </div>
               <div class="status-pill" id="statusPill">Loading supplies...</div>
             </div>
           </div>
@@ -622,13 +764,25 @@
       const checkLevelButton = document.getElementById("checkLevelButton");
       const resetLevelButton = document.getElementById("resetLevelButton");
       const markVisibleButton = document.getElementById("markVisibleButton");
-      const clearProgressButton = document.getElementById("clearProgressButton");
-      const shareListButton = document.getElementById("shareListButton");
+      const clearProgressButton = document.getElementById(
+        "clearProgressButton",
+      );
+      const exportMenuWrap = document.getElementById("exportMenuWrap");
+      const exportMenuToggle = document.getElementById("exportMenuToggle");
+      const exportMenu = document.getElementById("exportMenu");
+      const copyLinkButton = document.getElementById("copyLinkButton");
+      const exportCsvButton = document.getElementById("exportCsvButton");
+      const exportPdfButton = document.getElementById("exportPdfButton");
+      const exportPngButton = document.getElementById("exportPngButton");
       const shareBanner = document.getElementById("shareBanner");
       const shareBannerText = document.getElementById("shareBannerText");
       const mergeSharedButton = document.getElementById("mergeSharedButton");
-      const replaceSharedButton = document.getElementById("replaceSharedButton");
-      const dismissSharedButton = document.getElementById("dismissSharedButton");
+      const replaceSharedButton = document.getElementById(
+        "replaceSharedButton",
+      );
+      const dismissSharedButton = document.getElementById(
+        "dismissSharedButton",
+      );
 
       let preferredLanguage = "en";
 
@@ -705,7 +859,10 @@
         const combo = document.querySelector(".goog-te-combo");
         if (!combo) {
           if (retries > 0) {
-            setTimeout(() => applyGoogleLanguage(languageCode, retries - 1), 200);
+            setTimeout(
+              () => applyGoogleLanguage(languageCode, retries - 1),
+              200,
+            );
           }
           return;
         }
@@ -727,17 +884,18 @@
         document.body.appendChild(script);
       }
 
-      window.googleTranslateElementInit = function googleTranslateElementInit() {
-        new window.google.translate.TranslateElement(
-          {
-            pageLanguage: "en",
-            autoDisplay: false,
-          },
-          "google_translate_element",
-        );
+      window.googleTranslateElementInit =
+        function googleTranslateElementInit() {
+          new window.google.translate.TranslateElement(
+            {
+              pageLanguage: "en",
+              autoDisplay: false,
+            },
+            "google_translate_element",
+          );
 
-        applyGoogleLanguage(preferredLanguage);
-      };
+          applyGoogleLanguage(preferredLanguage);
+        };
 
       function saveState() {
         try {
@@ -795,15 +953,18 @@
       }
 
       function getAllLevels() {
-        return Array.from(new Set(state.supplies.map((supply) => supply.level))).sort(
-          (left, right) => left - right,
-        );
+        return Array.from(
+          new Set(state.supplies.map((supply) => supply.level)),
+        ).sort((left, right) => left - right);
       }
 
       function getVisibleSupplies() {
         const query = state.search.trim().toLowerCase();
         return state.supplies.filter((supply) => {
-          if (state.selectedLevel !== null && supply.level !== state.selectedLevel) {
+          if (
+            state.selectedLevel !== null &&
+            supply.level !== state.selectedLevel
+          ) {
             return false;
           }
 
@@ -922,8 +1083,10 @@
         const levelAllSupplies = getSuppliesForLevel(level);
         const totalForLevel = levelAllSupplies.length;
         const completedForLevel = getCompletionCount(levelAllSupplies);
-        const percent = totalForLevel > 0 ? (completedForLevel / totalForLevel) * 100 : 0;
-        const isComplete = totalForLevel > 0 && completedForLevel === totalForLevel;
+        const percent =
+          totalForLevel > 0 ? (completedForLevel / totalForLevel) * 100 : 0;
+        const isComplete =
+          totalForLevel > 0 && completedForLevel === totalForLevel;
         const color = levelAllSupplies[0]?.color || "#ffffff";
 
         const rows = levelSupplies.length
@@ -1045,7 +1208,7 @@
       function encodeShareState(completed, selectedLevel) {
         const grouped = {};
         for (const id of completed) {
-          const sep = id.indexOf(':');
+          const sep = id.indexOf(":");
           const level = id.slice(0, sep);
           const index = Number(id.slice(sep + 1));
           if (!grouped[level]) grouped[level] = [];
@@ -1055,15 +1218,15 @@
           grouped[level].sort((a, b) => a - b);
         }
         const b64 = btoa(JSON.stringify({ c: grouped, l: selectedLevel }));
-        return b64.replace(/\+/g, '-').replace(/\//g, '_').replace(/=/g, '');
+        return b64.replace(/\+/g, "-").replace(/\//g, "_").replace(/=/g, "");
       }
 
       function decodeShareState(encoded) {
         try {
-          const b64 = encoded.replace(/-/g, '+').replace(/_/g, '/');
-          const padded = b64 + '='.repeat((4 - (b64.length % 4)) % 4);
+          const b64 = encoded.replace(/-/g, "+").replace(/_/g, "/");
+          const padded = b64 + "=".repeat((4 - (b64.length % 4)) % 4);
           const obj = JSON.parse(atob(padded));
-          if (!obj || typeof obj.c !== 'object') return null;
+          if (!obj || typeof obj.c !== "object") return null;
           const completed = new Set();
           for (const [level, indices] of Object.entries(obj.c)) {
             if (!Array.isArray(indices)) continue;
@@ -1071,7 +1234,9 @@
               if (Number.isFinite(index)) completed.add(`${level}:${index}`);
             }
           }
-          const selectedLevel = Number.isFinite(Number(obj.l)) ? Number(obj.l) : null;
+          const selectedLevel = Number.isFinite(Number(obj.l))
+            ? Number(obj.l)
+            : null;
           return { completed, selectedLevel };
         } catch {
           return null;
@@ -1081,39 +1246,50 @@
       function generateShareUrl() {
         const encoded = encodeShareState(state.completed, state.selectedLevel);
         const url = new URL(window.location.href);
-        url.search = '';
-        url.searchParams.set('share', encoded);
+        url.search = "";
+        url.searchParams.set("share", encoded);
         return url.toString();
       }
 
       function dismissShareBanner() {
-        shareBanner.classList.add('is-hidden');
+        shareBanner.classList.add("is-hidden");
         pendingShareData = null;
         const url = new URL(window.location.href);
-        url.searchParams.delete('share');
-        history.replaceState(null, '', url.toString());
+        url.searchParams.delete("share");
+        history.replaceState(null, "", url.toString());
       }
 
       function handleShareParam() {
-        const shareParam = new URLSearchParams(window.location.search).get('share');
+        const shareParam = new URLSearchParams(window.location.search).get(
+          "share",
+        );
         if (!shareParam) return;
         const decoded = decodeShareState(shareParam);
         if (!decoded) return;
         const validIds = new Set(state.supplies.map((s) => s.id));
-        const validCompleted = new Set([...decoded.completed].filter((id) => validIds.has(id)));
+        const validCompleted = new Set(
+          [...decoded.completed].filter((id) => validIds.has(id)),
+        );
         if (validCompleted.size === 0) return;
-        pendingShareData = { completed: validCompleted, selectedLevel: decoded.selectedLevel };
+        pendingShareData = {
+          completed: validCompleted,
+          selectedLevel: decoded.selectedLevel,
+        };
         const count = validCompleted.size;
         shareBannerText.textContent = `${count.toLocaleString()} completed ${
-          count === 1 ? 'supply' : 'supplies'
+          count === 1 ? "supply" : "supplies"
         } shared with you. Load them into your checklist?`;
-        shareBanner.classList.remove('is-hidden');
+        shareBanner.classList.remove("is-hidden");
       }
 
       function normalizeSupplies(data) {
-        const strongholds = Array.isArray(data?.strongholds) ? data.strongholds : [];
+        const strongholds = Array.isArray(data?.strongholds)
+          ? data.strongholds
+          : [];
         return strongholds.flatMap((group) => {
-          const coordinates = Array.isArray(group.coordinates) ? group.coordinates : [];
+          const coordinates = Array.isArray(group.coordinates)
+            ? group.coordinates
+            : [];
           return coordinates.map((coordinate, index) => {
             const code = `L${group.level}-${String(index + 1).padStart(3, "0")}`;
             return {
@@ -1123,7 +1299,8 @@
               color: group.color || "#ffffff",
               x: Number(coordinate.x),
               y: Number(coordinate.y),
-              searchable: `${code} level ${group.level} ${coordinate.x} ${coordinate.y} ${coordinate.x},${coordinate.y} ${coordinate.x}, ${coordinate.y}`.toLowerCase(),
+              searchable:
+                `${code} level ${group.level} ${coordinate.x} ${coordinate.y} ${coordinate.x},${coordinate.y} ${coordinate.x}, ${coordinate.y}`.toLowerCase(),
             };
           });
         });
@@ -1152,7 +1329,10 @@
           `;
           summaryTiles.innerHTML = "";
           levelProgressList.innerHTML = "";
-          setStatus(`Failed to load supplies (${escapeHtml(error.message)})`, true);
+          setStatus(
+            `Failed to load supplies (${escapeHtml(error.message)})`,
+            true,
+          );
         }
       }
 
@@ -1207,25 +1387,107 @@
           setLevelCompletion(state.selectedLevel, false);
         }
       });
-      markVisibleButton.addEventListener("click", () => setVisibleCompletion(true));
+      markVisibleButton.addEventListener("click", () =>
+        setVisibleCompletion(true),
+      );
       clearProgressButton.addEventListener("click", () => {
         state.completed.clear();
         saveState();
         render();
       });
 
-      shareListButton.addEventListener('click', async () => {
+      function closeExportMenu() {
+        exportMenu.classList.add("is-hidden");
+      }
+
+      exportMenuToggle.addEventListener("click", (e) => {
+        e.stopPropagation();
+        exportMenu.classList.toggle("is-hidden");
+      });
+
+      document.addEventListener("click", (e) => {
+        if (!exportMenuWrap.contains(e.target)) closeExportMenu();
+      });
+
+      copyLinkButton.addEventListener("click", async () => {
+        closeExportMenu();
         const url = generateShareUrl();
         try {
           await navigator.clipboard.writeText(url);
-          shareListButton.textContent = 'Link copied!';
-          setTimeout(() => { shareListButton.textContent = 'Share list'; }, 2000);
+          copyLinkButton.textContent = "Link copied!";
+          setTimeout(() => {
+            copyLinkButton.textContent = "Copy shareable link";
+          }, 2000);
         } catch {
-          window.prompt('Copy this shareable link:', url);
+          window.prompt("Copy this shareable link:", url);
         }
       });
 
-      mergeSharedButton.addEventListener('click', () => {
+      exportCsvButton.addEventListener("click", () => {
+        closeExportMenu();
+        const headers = ["Level", "Code", "X", "Y", "Status"];
+        const rows = state.supplies.map((supply) => [
+          `Level ${supply.level}`,
+          supply.code,
+          supply.x,
+          supply.y,
+          state.completed.has(supply.id) ? "Completed" : "Remaining",
+        ]);
+        const csvContent = [headers, ...rows]
+          .map((row) =>
+            row
+              .map((cell) => `"${String(cell).replace(/"/g, '""')}"`)
+              .join(","),
+          )
+          .join("\r\n");
+        const blob = new Blob([csvContent], {
+          type: "text/csv;charset=utf-8;",
+        });
+        const a = document.createElement("a");
+        a.href = URL.createObjectURL(blob);
+        a.download = "season2-supplies-checklist.csv";
+        a.click();
+        URL.revokeObjectURL(a.href);
+      });
+
+      exportPdfButton.addEventListener("click", () => {
+        closeExportMenu();
+        window.print();
+      });
+
+      exportPngButton.addEventListener("click", async () => {
+        closeExportMenu();
+        const originalLabel = exportPngButton.textContent;
+        exportPngButton.textContent = "Capturing…";
+        try {
+          if (!window.html2canvas) {
+            await new Promise((resolve, reject) => {
+              const script = document.createElement("script");
+              script.src =
+                "https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js";
+              script.onload = resolve;
+              script.onerror = reject;
+              document.body.appendChild(script);
+            });
+          }
+          const target = document.querySelector(".checklist-layout .card:last-child");
+          const canvas = await window.html2canvas(target, {
+            backgroundColor: "#080f18",
+            scale: 2,
+            useCORS: true,
+          });
+          const a = document.createElement("a");
+          a.href = canvas.toDataURL("image/png");
+          a.download = "season2-supplies-checklist.png";
+          a.click();
+        } catch {
+          setStatus("PNG export failed. Try a different browser.", true);
+        } finally {
+          exportPngButton.textContent = originalLabel;
+        }
+      });
+
+      mergeSharedButton.addEventListener("click", () => {
         if (!pendingShareData) return;
         for (const id of pendingShareData.completed) {
           state.completed.add(id);
@@ -1235,10 +1497,13 @@
         dismissShareBanner();
       });
 
-      replaceSharedButton.addEventListener('click', () => {
+      replaceSharedButton.addEventListener("click", () => {
         if (!pendingShareData) return;
         state.completed = new Set(pendingShareData.completed);
-        if (pendingShareData.selectedLevel !== null && getAllLevels().includes(pendingShareData.selectedLevel)) {
+        if (
+          pendingShareData.selectedLevel !== null &&
+          getAllLevels().includes(pendingShareData.selectedLevel)
+        ) {
           state.selectedLevel = pendingShareData.selectedLevel;
         }
         saveState();
@@ -1246,7 +1511,7 @@
         dismissShareBanner();
       });
 
-      dismissSharedButton.addEventListener('click', dismissShareBanner);
+      dismissSharedButton.addEventListener("click", dismissShareBanner);
 
       languageSelect.addEventListener("change", () => {
         preferredLanguage = languageSelect.value;
