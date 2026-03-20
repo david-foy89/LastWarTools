@@ -733,12 +733,42 @@
             <h2 class="card-title">Checklist</h2>
             <div class="card-header-actions">
               <div class="export-menu-wrap" id="exportMenuWrap">
-                <button id="exportMenuToggle" type="button" class="action-button">Share / Export &#9662;</button>
+                <button
+                  id="exportMenuToggle"
+                  type="button"
+                  class="action-button"
+                >
+                  Share / Export &#9662;
+                </button>
                 <div class="export-menu is-hidden" id="exportMenu">
-                  <button type="button" class="export-menu-item" id="copyLinkButton">Copy shareable link</button>
-                  <button type="button" class="export-menu-item" id="exportCsvButton">Download as CSV</button>
-                  <button type="button" class="export-menu-item" id="exportPdfButton">Print / Save as PDF</button>
-                  <button type="button" class="export-menu-item" id="exportPngButton">Save as PNG</button>
+                  <button
+                    type="button"
+                    class="export-menu-item"
+                    id="copyLinkButton"
+                  >
+                    Copy shareable link
+                  </button>
+                  <button
+                    type="button"
+                    class="export-menu-item"
+                    id="exportCsvButton"
+                  >
+                    Download as CSV
+                  </button>
+                  <button
+                    type="button"
+                    class="export-menu-item"
+                    id="exportPdfButton"
+                  >
+                    Print / Save as PDF
+                  </button>
+                  <button
+                    type="button"
+                    class="export-menu-item"
+                    id="exportPngButton"
+                  >
+                    Save as PNG
+                  </button>
                 </div>
               </div>
               <div class="status-pill" id="statusPill">Loading supplies...</div>
@@ -1470,7 +1500,9 @@
               document.body.appendChild(script);
             });
           }
-          const target = document.querySelector(".checklist-layout .card:last-child");
+          const target = document.querySelector(
+            ".checklist-layout .card:last-child",
+          );
           const canvas = await window.html2canvas(target, {
             backgroundColor: "#080f18",
             scale: 2,
