@@ -3,7 +3,7 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Last War Titanium Alloy Calculator</title>
+    <title>Last War Tools - Home</title>
     <link rel="stylesheet" href="last-war-furnace-upgrade-calculator.css" />
     <script src="page-nav-dropdown.js" defer></script>
   </head>
@@ -11,14 +11,11 @@
     <div class="page">
       <div class="page-top-controls">
         <div class="logo-control">
-          <img src="media/lwst.png" alt="LWST logo" class="site-logo" />
-        </div>
-        <div class="language-control">
-          <label for="languageSelect">Language</label>
-          <select id="languageSelect"></select>
+          <a href="index.html" aria-label="Go to homepage">
+            <img src="media/lwst.png" alt="LWST logo" class="site-logo" />
+          </a>
         </div>
       </div>
-      <div id="google_translate_element" class="hidden-translate"></div>
 
       <nav class="page-nav" aria-label="Calculator pages">
         <a href="hq-upgrade-calculator.html" class="page-link">HQ Upgrade</a>
@@ -27,12 +24,8 @@
             Troop Calculators
           </summary>
           <div class="page-nav-dropdown-menu">
-            <a href="t10-troops-calculator.html" class="page-link"
-              >T10 Troops</a
-            >
-            <a href="t11-troops-calculator.html" class="page-link"
-              >T11 Troops</a
-            >
+            <a href="t10-troops-calculator.html" class="page-link">T10 Troops</a>
+            <a href="t11-troops-calculator.html" class="page-link">T11 Troops</a>
           </div>
         </details>
         <details class="page-nav-dropdown" name="season-nav">
@@ -40,27 +33,17 @@
             Season 1 Calculators
           </summary>
           <div class="page-nav-dropdown-menu">
-            <a href="virus-research-institute-calculator.html" class="page-link"
-              >Virus Research Institute</a
-            >
-            <a href="season-1-squad-base-calculator.html" class="page-link"
-              >Season 1 Squad Base</a
-            >
+            <a href="virus-research-institute-calculator.html" class="page-link">Virus Research Institute</a>
+            <a href="season-1-squad-base-calculator.html" class="page-link">Season 1 Squad Base</a>
           </div>
         </details>
-        <details class="page-nav-dropdown active" name="season-nav">
+        <details class="page-nav-dropdown" name="season-nav">
           <summary class="page-link page-nav-dropdown-toggle">
             Season 2 Calculators
           </summary>
           <div class="page-nav-dropdown-menu">
-            <a
-              href="last-war-furnace-upgrade-calculator.html"
-              class="page-link active"
-              >Furnace Calculator</a
-            >
-            <a href="season-2-tank-center-calculator.html" class="page-link"
-              >Season 2 Squad Base</a
-            >
+            <a href="last-war-furnace-upgrade-calculator.html" class="page-link">Furnace Calculator</a>
+            <a href="season-2-tank-center-calculator.html" class="page-link">Season 2 Squad Base</a>
           </div>
         </details>
         <details class="page-nav-dropdown" name="season-nav">
@@ -68,13 +51,9 @@
             Season 3 Calculators
           </summary>
           <div class="page-nav-dropdown-menu">
-            <a href="curse-research-lab-calculator.html" class="page-link"
-              >Curse Research Lab</a
-            >
+            <a href="curse-research-lab-calculator.html" class="page-link">Curse Research Lab</a>
             <a href="altar-calculator.html" class="page-link">Altar</a>
-            <a href="protectors-field-calculator.html" class="page-link"
-              >Protectors Field</a
-            >
+            <a href="protectors-field-calculator.html" class="page-link">Protectors Field</a>
           </div>
         </details>
         <details class="page-nav-dropdown" name="season-nav">
@@ -82,15 +61,9 @@
             Season 4 Calculators
           </summary>
           <div class="page-nav-dropdown-menu">
-            <a href="optoelectronic-lab-calculator.html" class="page-link"
-              >Optoelectronic Lab</a
-            >
-            <a href="protectors-field-s4-calculator.html" class="page-link"
-              >Protector's Field S4</a
-            >
-            <a href="lighthouse-s4-calculator.html" class="page-link"
-              >Lighthouse S4</a
-            >
+            <a href="optoelectronic-lab-calculator.html" class="page-link">Optoelectronic Lab</a>
+            <a href="protectors-field-s4-calculator.html" class="page-link">Protector's Field S4</a>
+            <a href="lighthouse-s4-calculator.html" class="page-link">Lighthouse S4</a>
           </div>
         </details>
         <details class="page-nav-dropdown" name="season-nav">
@@ -98,765 +71,67 @@
             Season 5 Calculators
           </summary>
           <div class="page-nav-dropdown-menu">
-            <a href="caffeine-institute-calculator.html" class="page-link"
-              >Caffeine Institute</a
-            >
-            <a href="protectors-field-s5-calculator.html" class="page-link"
-              >Protector's Field S5</a
-            >
-            <a href="season-5-squad-base-calculator.html" class="page-link"
-              >Season 5 Squad Base</a
-            >
+            <a href="caffeine-institute-calculator.html" class="page-link">Caffeine Institute</a>
+            <a href="protectors-field-s5-calculator.html" class="page-link">Protector's Field S5</a>
+            <a href="season-5-squad-base-calculator.html" class="page-link">Season 5 Squad Base</a>
           </div>
         </details>
       </nav>
 
       <section class="hero">
-        <h1>Last War Titanium Alloy Calculator</h1>
+        <h1>Last War Tools</h1>
         <div class="sub">
-          Choose your current furnace level and enter your current titanium
-          alloy. The calculator shows exactly how much titanium you need for the
-          next level and how much more you still need.
+          These calculators help you plan upgrades and research by showing what resources you still need,
+          your expected hourly income, and the estimated time until you are ready for the next step.
         </div>
       </section>
 
       <section class="layout">
         <div class="card">
-          <div class="field-group">
-            <h2 class="card-title">Quick Start</h2>
-            <ol class="helper-list">
-              <li>
-                Select your current Furnace level and your intended target
-                level.
-              </li>
-              <li>
-                Enter your current Titanium Alloy to calculate what is still
-                required.
-              </li>
-              <li>
-                Set Titanium Alloy Factory levels and timezone to estimate when
-                the upgrade is ready.
-              </li>
-            </ol>
-          </div>
-
-          <h2 class="card-title">Inputs</h2>
-          <div class="field">
-            <label for="currentLevel">Current Furnace Level</label>
-            <select id="currentLevel"></select>
-          </div>
-          <div class="field">
-            <label for="currentTitanium">Current Titanium</label>
-            <input
-              id="currentTitanium"
-              type="number"
-              min="0"
-              step="1"
-              value="0"
-            />
-          </div>
-          <div class="field">
-            <label for="allianceTechSelect"
-              >Reduced RSS required for building construction</label
-            >
-            <select id="allianceTechSelect"></select>
-          </div>
-          <div class="field">
-            <label for="timeZoneSelect">Timezone</label>
-            <select id="timeZoneSelect"></select>
-          </div>
-
-          <div class="field-group">
-            <h2 class="card-title">Titanium Alloy Factories</h2>
-            <div class="mine-list" id="mineList"></div>
-            <div class="mine-total">
-              <div class="mine-total-key">
-                Total Titanium Alloy Factory Output Per Hour
-              </div>
-              <div class="mine-total-value" id="totalMineOutput">0</div>
-            </div>
-          </div>
+          <h2 class="card-title">What The Calculators Are For</h2>
+          <ol class="helper-list">
+            <li>Track remaining upgrade costs from your current level to your next target.</li>
+            <li>Apply reduction bonuses to reflect alliance tech or profession effects.</li>
+            <li>Model workshop, mine, farm, or factory output to estimate time-to-ready.</li>
+            <li>Use season-specific planners for buildings that need multiple resources.</li>
+            <li>Use troop planners to map T10 and T11 research progress with clear priorities.</li>
+          </ol>
         </div>
 
         <div class="card">
-          <h2 class="card-title">Next Upgrade</h2>
-          <div class="summary">
-            <div class="tile">
-              <div class="tile-key">Next Level</div>
-              <div class="tile-value" id="nextLevelValue">Lv 2</div>
-            </div>
-            <div class="tile">
-              <div class="tile-key">Titanium Required</div>
-              <div class="tile-value" id="requiredValue">11.20k</div>
-            </div>
-            <div class="tile">
-              <div class="tile-key">Current Titanium</div>
-              <div class="tile-value" id="ownedValue">0</div>
-            </div>
-            <div class="tile">
-              <div class="tile-key">Still Needed</div>
-              <div class="tile-value warn" id="deficitValue">11.20k</div>
-            </div>
-            <div class="tile">
-              <div class="tile-key">Estimated Time</div>
-              <div class="tile-value" id="etaValue">No output</div>
-            </div>
-            <div class="tile">
-              <div class="tile-key">Current Time</div>
-              <div class="tile-value" id="currentTimeValue">-</div>
-            </div>
-            <div class="tile tile-full">
-              <div class="tile-key">Upgrade Ready At</div>
-              <div class="tile-value" id="readyAtValue">No output</div>
-            </div>
-          </div>
-
+          <h2 class="card-title">Start Here</h2>
           <div class="details">
             <div class="row">
-              <div class="row-key">Upgrade Path</div>
-              <div class="row-value" id="pathValue">Level 1 -> Level 2</div>
+              <div class="row-key">Most Common</div>
+              <div class="row-value"><a href="hq-upgrade-calculator.html">HQ Upgrade Calculator</a></div>
             </div>
             <div class="row">
-              <div class="row-key">Status</div>
-              <div class="row-value" id="statusValue">
-                Need more titanium alloy
-              </div>
+              <div class="row-key">Season 1</div>
+              <div class="row-value"><a href="virus-research-institute-calculator.html">Virus Research Institute</a> and <a href="season-1-squad-base-calculator.html">Squad Base</a></div>
             </div>
             <div class="row">
-              <div class="row-key">Titanium Alloy Factory Output Used</div>
-              <div class="row-value" id="mineRateValue">0/hr</div>
+              <div class="row-key">Season 2</div>
+              <div class="row-value"><a href="last-war-furnace-upgrade-calculator.html">Furnace</a> and <a href="season-2-tank-center-calculator.html">Squad Base</a></div>
             </div>
             <div class="row">
-              <div class="row-key">Timezone Used</div>
-              <div class="row-value" id="timeZoneValue">Local</div>
+              <div class="row-key">Season 3</div>
+              <div class="row-value"><a href="curse-research-lab-calculator.html">Curse Lab</a>, <a href="altar-calculator.html">Altar</a>, <a href="protectors-field-calculator.html">Protectors Field</a></div>
+            </div>
+            <div class="row">
+              <div class="row-key">Season 4</div>
+              <div class="row-value"><a href="optoelectronic-lab-calculator.html">Optoelectronic Lab</a>, <a href="protectors-field-s4-calculator.html">Protectors Field S4</a>, <a href="lighthouse-s4-calculator.html">Lighthouse</a></div>
+            </div>
+            <div class="row">
+              <div class="row-key">Season 5</div>
+              <div class="row-value"><a href="caffeine-institute-calculator.html">Caffeine Institute</a>, <a href="protectors-field-s5-calculator.html">Protectors Field S5</a>, <a href="season-5-squad-base-calculator.html">Squad Base</a></div>
+            </div>
+            <div class="row">
+              <div class="row-key">Troops</div>
+              <div class="row-value"><a href="t10-troops-calculator.html">T10 Planner</a> and <a href="t11-troops-calculator.html">T11 Planner</a></div>
             </div>
           </div>
-
-          <div class="table-wrap">
-            <label for="costLevelSelect">Level / Titanium Alloy</label>
-            <select id="costLevelSelect"></select>
-          </div>
         </div>
       </section>
     </div>
-
-    <script>
-      const titaniumCosts = [
-        { level: 1, titanium: 2800 },
-        { level: 2, titanium: 11200 },
-        { level: 3, titanium: 22400 },
-        { level: 4, titanium: 44800 },
-        { level: 5, titanium: 89600 },
-        { level: 6, titanium: 125400 },
-        { level: 7, titanium: 163100 },
-        { level: 8, titanium: 195700 },
-        { level: 9, titanium: 234800 },
-        { level: 10, titanium: 281800 },
-        { level: 11, titanium: 338100 },
-        { level: 12, titanium: 405800 },
-        { level: 13, titanium: 486900 },
-        { level: 14, titanium: 584300 },
-        { level: 15, titanium: 701200 },
-        { level: 16, titanium: 771300 },
-        { level: 17, titanium: 848400 },
-        { level: 18, titanium: 933300 },
-        { level: 19, titanium: 1030000 },
-        { level: 20, titanium: 1130000 },
-        { level: 21, titanium: 1240000 },
-        { level: 22, titanium: 1370000 },
-        { level: 23, titanium: 1500000 },
-        { level: 24, titanium: 1650000 },
-        { level: 25, titanium: 1820000 },
-        { level: 26, titanium: 2160000 },
-        { level: 27, titanium: 2510000 },
-        { level: 28, titanium: 2860000 },
-        { level: 29, titanium: 3460000 },
-        { level: 30, titanium: 4320000 },
-      ];
-
-      const coalMineOutputs = [
-        { level: 1, output: 720 },
-        { level: 2, output: 1440 },
-        { level: 3, output: 2160 },
-        { level: 4, output: 2880 },
-        { level: 5, output: 3600 },
-        { level: 6, output: 4320 },
-        { level: 7, output: 5040 },
-        { level: 8, output: 5760 },
-        { level: 9, output: 6480 },
-        { level: 10, output: 7200 },
-        { level: 11, output: 7920 },
-        { level: 12, output: 8640 },
-        { level: 13, output: 9360 },
-        { level: 14, output: 10080 },
-        { level: 15, output: 10800 },
-        { level: 16, output: 11520 },
-        { level: 17, output: 12240 },
-        { level: 18, output: 12960 },
-        { level: 19, output: 13680 },
-        { level: 20, output: 14400 },
-        { level: 21, output: 15120 },
-        { level: 22, output: 15840 },
-        { level: 23, output: 16560 },
-        { level: 24, output: 17280 },
-        { level: 25, output: 18000 },
-        { level: 26, output: 18720 },
-        { level: 27, output: 19440 },
-        { level: 28, output: 20160 },
-        { level: 29, output: 20880 },
-        { level: 30, output: 21600 },
-      ];
-
-      const currentLevelInput = document.getElementById("currentLevel");
-      const currentTitaniumInput = document.getElementById("currentTitanium");
-      const nextLevelValue = document.getElementById("nextLevelValue");
-      const requiredValue = document.getElementById("requiredValue");
-      const ownedValue = document.getElementById("ownedValue");
-      const deficitValue = document.getElementById("deficitValue");
-      const etaValue = document.getElementById("etaValue");
-      const readyAtValue = document.getElementById("readyAtValue");
-      const pathValue = document.getElementById("pathValue");
-      const statusValue = document.getElementById("statusValue");
-      const mineRateValue = document.getElementById("mineRateValue");
-      const timeZoneValue = document.getElementById("timeZoneValue");
-      const currentTimeValue = document.getElementById("currentTimeValue");
-      const costLevelSelect = document.getElementById("costLevelSelect");
-      const mineList = document.getElementById("mineList");
-      const totalMineOutput = document.getElementById("totalMineOutput");
-      const timeZoneSelect = document.getElementById("timeZoneSelect");
-      const allianceTechSelect = document.getElementById("allianceTechSelect");
-      const languageSelect = document.getElementById("languageSelect");
-      const STORAGE_KEY = "lastWarFurnaceCalcStateV1";
-      let lastCalcSignature = "";
-      let lockedReadyAtTimestampMs = null;
-      let preferredLanguage = "en";
-
-      const languageOptions = [
-        { code: "en", label: "English" },
-        { code: "es", label: "Spanish" },
-        { code: "fr", label: "French" },
-        { code: "de", label: "German" },
-        { code: "it", label: "Italian" },
-        { code: "pt", label: "Portuguese" },
-        { code: "ru", label: "Russian" },
-        { code: "uk", label: "Ukrainian" },
-        { code: "pl", label: "Polish" },
-        { code: "tr", label: "Turkish" },
-        { code: "ar", label: "Arabic" },
-        { code: "fa", label: "Persian" },
-        { code: "he", label: "Hebrew" },
-        { code: "hi", label: "Hindi" },
-        { code: "bn", label: "Bengali" },
-        { code: "ur", label: "Urdu" },
-        { code: "th", label: "Thai" },
-        { code: "vi", label: "Vietnamese" },
-        { code: "id", label: "Indonesian" },
-        { code: "ms", label: "Malay" },
-        { code: "fil", label: "Filipino" },
-        { code: "ja", label: "Japanese" },
-        { code: "ko", label: "Korean" },
-        { code: "zh-CN", label: "Chinese (Simplified)" },
-        { code: "zh-TW", label: "Chinese (Traditional)" },
-        { code: "el", label: "Greek" },
-        { code: "nl", label: "Dutch" },
-        { code: "sv", label: "Swedish" },
-        { code: "da", label: "Danish" },
-        { code: "fi", label: "Finnish" },
-        { code: "no", label: "Norwegian" },
-        { code: "cs", label: "Czech" },
-        { code: "ro", label: "Romanian" },
-        { code: "hu", label: "Hungarian" },
-        { code: "sk", label: "Slovak" },
-        { code: "bg", label: "Bulgarian" },
-        { code: "hr", label: "Croatian" },
-        { code: "sr", label: "Serbian" },
-        { code: "sl", label: "Slovenian" },
-        { code: "lt", label: "Lithuanian" },
-        { code: "lv", label: "Latvian" },
-        { code: "et", label: "Estonian" },
-      ];
-
-      const commonTimeZones = [
-        "UTC",
-        "America/New_York",
-        "America/Chicago",
-        "America/Denver",
-        "America/Los_Angeles",
-        "America/Phoenix",
-        "America/Toronto",
-        "America/Sao_Paulo",
-        "Europe/London",
-        "Europe/Paris",
-        "Europe/Berlin",
-        "Europe/Athens",
-        "Africa/Johannesburg",
-        "Asia/Dubai",
-        "Asia/Kolkata",
-        "Asia/Singapore",
-        "Asia/Shanghai",
-        "Asia/Tokyo",
-        "Australia/Perth",
-        "Australia/Sydney",
-        "Pacific/Auckland",
-      ];
-
-      function formatTitanium(value) {
-        return Math.round(Number(value) || 0).toLocaleString();
-      }
-
-      function formatTimeFromHours(hours) {
-        if (!Number.isFinite(hours)) {
-          return "No output";
-        }
-
-        if (hours <= 0) {
-          return "Ready now";
-        }
-
-        const totalMinutes = Math.round(hours * 60);
-        const days = Math.floor(totalMinutes / 1440);
-        const remainingMinutes = totalMinutes % 1440;
-        const wholeHours = Math.floor(remainingMinutes / 60);
-        const minutes = remainingMinutes % 60;
-
-        if (days > 0) {
-          return `${days}d ${wholeHours}h`;
-        }
-        if (wholeHours > 0) {
-          return `${wholeHours}h ${minutes}m`;
-        }
-        return `${minutes}m`;
-      }
-
-      function formatReadyAt(hours, timeZone) {
-        if (!Number.isFinite(hours)) {
-          return "No output";
-        }
-
-        if (hours <= 0) {
-          return "Now";
-        }
-
-        const targetDate = new Date(Date.now() + hours * 3600 * 1000);
-        return new Intl.DateTimeFormat(undefined, {
-          timeZone,
-          month: "short",
-          day: "numeric",
-          hour: "numeric",
-          minute: "2-digit",
-          hour12: true,
-        }).format(targetDate);
-      }
-
-      function formatReadyAtFromTimestamp(timestampMs, timeZone) {
-        if (!Number.isFinite(timestampMs)) {
-          return "No output";
-        }
-
-        return new Intl.DateTimeFormat(undefined, {
-          timeZone,
-          month: "short",
-          day: "numeric",
-          hour: "numeric",
-          minute: "2-digit",
-          hour12: true,
-        }).format(new Date(timestampMs));
-      }
-
-      function formatCurrentTime(timeZone) {
-        return new Intl.DateTimeFormat(undefined, {
-          timeZone,
-          month: "short",
-          day: "numeric",
-          hour: "numeric",
-          minute: "2-digit",
-          second: "2-digit",
-          hour12: true,
-        }).format(new Date());
-      }
-
-      function updateCurrentTimeDisplay() {
-        const selectedTimeZone = timeZoneSelect.value || "UTC";
-        try {
-          currentTimeValue.textContent = formatCurrentTime(selectedTimeZone);
-        } catch {
-          currentTimeValue.textContent = "Unavailable";
-        }
-      }
-
-      function buildTimeZoneOptions() {
-        const detectedTimeZone =
-          Intl.DateTimeFormat().resolvedOptions().timeZone || "UTC";
-        const zoneList = commonTimeZones.includes(detectedTimeZone)
-          ? commonTimeZones
-          : [detectedTimeZone, ...commonTimeZones];
-
-        timeZoneSelect.innerHTML = zoneList
-          .map((zone) => `<option value="${zone}">${zone}</option>`)
-          .join("");
-        timeZoneSelect.value = detectedTimeZone;
-      }
-
-      function buildLanguageOptions() {
-        languageSelect.innerHTML = languageOptions
-          .map((lang) => `<option value="${lang.code}">${lang.label}</option>`)
-          .join("");
-        languageSelect.value = preferredLanguage;
-      }
-
-      function applyGoogleLanguage(languageCode, retries = 25) {
-        const combo = document.querySelector(".goog-te-combo");
-        if (!combo) {
-          if (retries > 0) {
-            setTimeout(
-              () => applyGoogleLanguage(languageCode, retries - 1),
-              200,
-            );
-          }
-          return;
-        }
-
-        combo.value = languageCode;
-        combo.dispatchEvent(new Event("change"));
-      }
-
-      function loadGoogleTranslateScript() {
-        if (window.google && window.google.translate) {
-          window.googleTranslateElementInit();
-          return;
-        }
-
-        const script = document.createElement("script");
-        script.src =
-          "https://translate.google.com/translate_a/element.js?cb=googleTranslateElementInit";
-        script.async = true;
-        document.body.appendChild(script);
-      }
-
-      window.googleTranslateElementInit =
-        function googleTranslateElementInit() {
-          new window.google.translate.TranslateElement(
-            {
-              pageLanguage: "en",
-              autoDisplay: false,
-            },
-            "google_translate_element",
-          );
-
-          applyGoogleLanguage(preferredLanguage);
-        };
-
-      function buildLevelOptions() {
-        currentLevelInput.innerHTML = "";
-        for (let level = 1; level <= titaniumCosts.length; level += 1) {
-          const option = new Option(`Level ${level}`, String(level));
-          currentLevelInput.appendChild(option);
-        }
-        currentLevelInput.value = "1";
-      }
-
-      function buildAllianceTechOptions() {
-        allianceTechSelect.innerHTML = Array.from(
-          { length: 201 },
-          (_, index) => {
-            const pct = (index * 0.5).toFixed(1);
-            return `<option value="${pct}">${pct}%</option>`;
-          },
-        ).join("");
-        allianceTechSelect.value = "0.0";
-      }
-
-      function buildMineSelectors() {
-        const options = coalMineOutputs
-          .map(
-            (row) => `<option value="${row.level}">Level ${row.level}</option>`,
-          )
-          .join("");
-
-        mineList.innerHTML = Array.from(
-          { length: 5 },
-          (_, index) => `
-        <div class="mine-row">
-          <div>
-            <label for="mineLevel${index + 1}">Titanium Alloy Factory ${index + 1}</label>
-            <select id="mineLevel${index + 1}" data-mine-index="${index + 1}">
-              <option value="0">Not set</option>
-              ${options}
-            </select>
-          </div>
-          <div class="mine-output" id="mineOutput${index + 1}">0/hr</div>
-        </div>
-      `,
-        ).join("");
-
-        Array.from(mineList.querySelectorAll("select")).forEach((select) => {
-          select.addEventListener("change", updateMineOutput);
-        });
-      }
-
-      function getMineOutputForLevel(level) {
-        return coalMineOutputs.find((row) => row.level === level)?.output || 0;
-      }
-
-      function updateMineOutput() {
-        let totalOutput = 0;
-
-        for (let index = 1; index <= 5; index += 1) {
-          const select = document.getElementById(`mineLevel${index}`);
-          const outputBox = document.getElementById(`mineOutput${index}`);
-          const level = Number(select.value);
-          const output = getMineOutputForLevel(level);
-          totalOutput += output;
-          outputBox.textContent = `${formatTitanium(output)}/hr`;
-        }
-
-        totalMineOutput.textContent = `${formatTitanium(totalOutput)}/hr`;
-        updateCalculator();
-      }
-
-      function getTotalMineOutput() {
-        let totalOutput = 0;
-        for (let index = 1; index <= 5; index += 1) {
-          const select = document.getElementById(`mineLevel${index}`);
-          totalOutput += getMineOutputForLevel(Number(select.value));
-        }
-        return totalOutput;
-      }
-
-      function getMineLevelsSignature() {
-        const levels = [];
-        for (let index = 1; index <= 5; index += 1) {
-          const select = document.getElementById(`mineLevel${index}`);
-          levels.push(Number(select?.value || 0));
-        }
-        return levels.join(",");
-      }
-
-      function buildTable() {
-        costLevelSelect.innerHTML = titaniumCosts
-          .map(
-            (row) =>
-              `<option value="${row.level}">Level ${row.level} - ${formatTitanium(row.titanium)}</option>`,
-          )
-          .join("");
-      }
-
-      function saveState() {
-        try {
-          const mineLevels = [];
-          for (let index = 1; index <= 5; index += 1) {
-            const select = document.getElementById(`mineLevel${index}`);
-            mineLevels.push(Number(select?.value || 0));
-          }
-
-          const state = {
-            currentLevel: Number(currentLevelInput.value || 1),
-            currentTitanium: Number(currentTitaniumInput.value || 0),
-            timeZone: timeZoneSelect.value,
-            allianceTech: Number(allianceTechSelect.value || 0),
-            language: languageSelect.value,
-            mineLevels,
-            lockedReadyAtTimestampMs,
-            lastCalcSignature,
-          };
-
-          localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
-        } catch {
-          // Ignore storage errors (private mode / disabled storage)
-        }
-      }
-
-      function loadSavedState() {
-        try {
-          const raw = localStorage.getItem(STORAGE_KEY);
-          if (!raw) return;
-
-          const state = JSON.parse(raw);
-
-          if (
-            state.currentLevel &&
-            currentLevelInput.querySelector(
-              `option[value="${state.currentLevel}"]`,
-            )
-          ) {
-            currentLevelInput.value = String(state.currentLevel);
-          }
-
-          if (Number.isFinite(Number(state.currentTitanium))) {
-            currentTitaniumInput.value = String(
-              Math.max(0, Number(state.currentTitanium)),
-            );
-          }
-
-          if (state.timeZone) {
-            if (
-              !timeZoneSelect.querySelector(`option[value="${state.timeZone}"]`)
-            ) {
-              timeZoneSelect.appendChild(
-                new Option(state.timeZone, state.timeZone),
-              );
-            }
-            timeZoneSelect.value = state.timeZone;
-          }
-
-          if (
-            state.language &&
-            languageOptions.some((lang) => lang.code === state.language)
-          ) {
-            preferredLanguage = state.language;
-            languageSelect.value = state.language;
-          }
-
-          if (Number.isFinite(Number(state.allianceTech))) {
-            const savedTech = Number(state.allianceTech).toFixed(1);
-            if (
-              allianceTechSelect.querySelector(`option[value="${savedTech}"]`)
-            ) {
-              allianceTechSelect.value = savedTech;
-            }
-          }
-
-          if (Array.isArray(state.mineLevels)) {
-            for (let index = 1; index <= 5; index += 1) {
-              const savedLevel = Number(state.mineLevels[index - 1] || 0);
-              const select = document.getElementById(`mineLevel${index}`);
-              if (
-                select &&
-                select.querySelector(`option[value="${savedLevel}"]`)
-              ) {
-                select.value = String(savedLevel);
-              }
-            }
-          }
-
-          if (Number.isFinite(Number(state.lockedReadyAtTimestampMs))) {
-            lockedReadyAtTimestampMs = Number(state.lockedReadyAtTimestampMs);
-          }
-
-          if (typeof state.lastCalcSignature === "string") {
-            lastCalcSignature = state.lastCalcSignature;
-          }
-        } catch {
-          // Ignore malformed or inaccessible stored state
-        }
-      }
-
-      function updateCalculator() {
-        const currentLevel = Number(currentLevelInput.value);
-        const currentTitanium = Math.max(
-          0,
-          Number(currentTitaniumInput.value) || 0,
-        );
-        const nextUpgrade = titaniumCosts.find(
-          (row) => row.level === currentLevel + 1,
-        );
-
-        if (!nextUpgrade) {
-          nextLevelValue.textContent = "Max";
-          requiredValue.textContent = "0";
-          ownedValue.textContent = formatTitanium(currentTitanium);
-          deficitValue.textContent = "0";
-          deficitValue.className = "tile-value ok";
-          etaValue.textContent = "-";
-          readyAtValue.textContent = "-";
-          pathValue.textContent = "Maximum configured level reached";
-          statusValue.textContent = "No higher level in this table";
-          mineRateValue.textContent = `${formatTitanium(getTotalMineOutput())}/hr`;
-          timeZoneValue.textContent = timeZoneSelect.value;
-          costLevelSelect.value = String(
-            titaniumCosts[titaniumCosts.length - 1].level,
-          );
-          updateCurrentTimeDisplay();
-          return;
-        }
-
-        const allianceTechPct = Number(allianceTechSelect.value || 0);
-        const requiredTitanium = Math.max(
-          0,
-          Math.round(nextUpgrade.titanium * (1 - allianceTechPct / 100)),
-        );
-        const remainingTitanium = Math.max(
-          0,
-          requiredTitanium - currentTitanium,
-        );
-        const ready = remainingTitanium === 0;
-        const totalOutputPerHour = getTotalMineOutput();
-        const estimatedHours = ready
-          ? 0
-          : totalOutputPerHour > 0
-            ? remainingTitanium / totalOutputPerHour
-            : Infinity;
-        const selectedTimeZone = timeZoneSelect.value;
-
-        // Lock the ready-at time until values that affect the calculation change.
-        const calcSignature = [
-          currentLevel,
-          currentTitanium,
-          allianceTechPct,
-          getMineLevelsSignature(),
-        ].join("|");
-
-        if (calcSignature !== lastCalcSignature) {
-          if (!ready && Number.isFinite(estimatedHours)) {
-            lockedReadyAtTimestampMs =
-              Date.now() + estimatedHours * 3600 * 1000;
-          } else {
-            lockedReadyAtTimestampMs = null;
-          }
-          lastCalcSignature = calcSignature;
-        }
-
-        nextLevelValue.textContent = `Lv ${currentLevel + 1}`;
-        requiredValue.textContent = formatTitanium(requiredTitanium);
-        ownedValue.textContent = formatTitanium(currentTitanium);
-        deficitValue.textContent = formatTitanium(remainingTitanium);
-        deficitValue.className = `tile-value ${ready ? "ok" : "warn"}`;
-        etaValue.textContent = formatTimeFromHours(estimatedHours);
-        etaValue.className = `tile-value ${ready ? "ok" : totalOutputPerHour > 0 ? "" : "warn"}`;
-        readyAtValue.textContent = ready
-          ? "Now"
-          : Number.isFinite(lockedReadyAtTimestampMs)
-            ? formatReadyAtFromTimestamp(
-                lockedReadyAtTimestampMs,
-                selectedTimeZone,
-              )
-            : formatReadyAt(estimatedHours, selectedTimeZone);
-        readyAtValue.className = `tile-value ${ready ? "ok" : totalOutputPerHour > 0 ? "" : "warn"}`;
-        pathValue.textContent = `Level ${currentLevel} -> Level ${currentLevel + 1}`;
-        statusValue.textContent = ready
-          ? "You already have enough titanium alloy"
-          : "Need more titanium alloy";
-        mineRateValue.textContent = `${formatTitanium(totalOutputPerHour)}/hr`;
-        timeZoneValue.textContent = selectedTimeZone;
-        costLevelSelect.value = String(nextUpgrade.level);
-        updateCurrentTimeDisplay();
-
-        saveState();
-      }
-
-      buildLevelOptions();
-      buildTimeZoneOptions();
-      buildLanguageOptions();
-      buildAllianceTechOptions();
-      buildMineSelectors();
-      loadSavedState();
-      buildLanguageOptions();
-      buildTable();
-      updateCalculator();
-      updateMineOutput();
-      updateCurrentTimeDisplay();
-      loadGoogleTranslateScript();
-      setInterval(updateCurrentTimeDisplay, 1000);
-
-      currentLevelInput.addEventListener("change", updateCalculator);
-      currentTitaniumInput.addEventListener("input", updateCalculator);
-      timeZoneSelect.addEventListener("change", updateCalculator);
-      allianceTechSelect.addEventListener("change", updateMineOutput);
-      languageSelect.addEventListener("change", () => {
-        preferredLanguage = languageSelect.value;
-        applyGoogleLanguage(preferredLanguage);
-        saveState();
-      });
-    </script>
   </body>
 </html>
