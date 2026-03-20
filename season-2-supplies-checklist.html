@@ -733,6 +733,41 @@
           </div>
 
           <div class="field-group">
+            <h2 class="card-title">Live Sync Settings</h2>
+            <div class="field">
+              <label for="liveSyncDbInput">Realtime DB URL</label>
+              <input
+                id="liveSyncDbInput"
+                type="url"
+                placeholder="https://your-project-default-rtdb.firebaseio.com"
+              />
+            </div>
+            <div class="action-row">
+              <button
+                id="saveLiveSyncDbButton"
+                type="button"
+                class="action-button"
+              >
+                Save DB URL
+              </button>
+              <button
+                id="testLiveSyncDbButton"
+                type="button"
+                class="action-button subtle"
+              >
+                Test / Reconnect
+              </button>
+              <button
+                id="clearLiveSyncDbButton"
+                type="button"
+                class="action-button danger"
+              >
+                Clear DB URL
+              </button>
+            </div>
+          </div>
+
+          <div class="field-group">
             <h2 class="card-title">Level Breakdown</h2>
             <div class="level-progress-list" id="levelProgressList"></div>
           </div>
@@ -793,10 +828,12 @@
       const DATA_URL = "season2_supplies_api.json";
       const STORAGE_KEY = "lastWarSeason2SuppliesChecklistV1";
       const LIVE_SYNC = {
-        // Add your Firebase Realtime Database URL to enable collaborative links.
-        // Example: https://your-project-default-rtdb.firebaseio.com
-        databaseUrl: "",
-        pollMs: 2500,
+        // Live sync DB URL can come from:
+        // 1) ?db=... in URL, 2) localStorage key "lastWarLiveSyncDbUrl", 3) window.LWST_LIVE_SYNC_DB_URL,
+        // 4) hardcoded default below.
+        // Example value: https://your-project-default-rtdb.firebaseio.com
+        defaultDatabaseUrl: "",
+        pollMs: 1200,
       };
       const languageSelect = document.getElementById("languageSelect");
       const levelSelect = document.getElementById("levelSelect");
@@ -820,6 +857,16 @@
       const exportCsvButton = document.getElementById("exportCsvButton");
       const exportPdfButton = document.getElementById("exportPdfButton");
       const exportPngButton = document.getElementById("exportPngButton");
+      const liveSyncDbInput = document.getElementById("liveSyncDbInput");
+      const saveLiveSyncDbButton = document.getElementById(
+        "saveLiveSyncDbButton",
+      );
+      const testLiveSyncDbButton = document.getElementById(
+        "testLiveSyncDbButton",
+      );
+      const clearLiveSyncDbButton = document.getElementById(
+        "clearLiveSyncDbButton",
+      );
       const shareBanner = document.getElementById("shareBanner");
       const shareBannerText = document.getElementById("shareBannerText");
       const mergeSharedButton = document.getElementById("mergeSharedButton");
@@ -838,6 +885,8 @@
         pollHandle: null,
         lastSeenUpdatedAt: 0,
         applyingRemote: false,
+        dbUrl: "",
+        hadError: false,
       };
 
       const languageOptions = [
@@ -969,7 +1018,42 @@
       }
 
       function isLiveSyncConfigured() {
-        return Boolean(LIVE_SYNC.databaseUrl && LIVE_SYNC.databaseUrl.trim());
+        return Boolean(liveSyncState.dbUrl && liveSyncState.dbUrl.trim());
+      }
+
+      function resolveLiveSyncDbUrl() {
+        const params = new URLSearchParams(window.location.search);
+        const fromUrl = params.get("db");
+        const fromStorage = localStorage.getItem("lastWarLiveSyncDbUrl");
+        const fromGlobal = window.LWST_LIVE_SYNC_DB_URL;
+        const resolved = String(
+          fromUrl ||
+            fromStorage ||
+            fromGlobal ||
+            LIVE_SYNC.defaultDatabaseUrl ||
+            "",
+        ).trim();
+
+        liveSyncState.dbUrl = resolved;
+
+        if (resolved) {
+          localStorage.setItem("lastWarLiveSyncDbUrl", resolved);
+        }
+      }
+
+      function setLiveSyncDbUrl(value) {
+        const next = String(value || "")
+          .trim()
+          .replace(/\/$/, "");
+        if (next) {
+          localStorage.setItem("lastWarLiveSyncDbUrl", next);
+        } else {
+          localStorage.removeItem("lastWarLiveSyncDbUrl");
+        }
+        liveSyncState.dbUrl = next;
+        if (liveSyncDbInput) {
+          liveSyncDbInput.value = next;
+        }
       }
 
       function sanitizeShareId(raw) {
@@ -982,7 +1066,7 @@
       }
 
       function getLiveEndpoint(shareId) {
-        const base = LIVE_SYNC.databaseUrl.replace(/\/$/, "");
+        const base = liveSyncState.dbUrl.replace(/\/$/, "");
         return `${base}/season2-supplies/${encodeURIComponent(shareId)}.json`;
       }
 
@@ -990,6 +1074,9 @@
         const url = new URL(window.location.href);
         url.search = "";
         url.searchParams.set("shareId", shareId);
+        if (isLiveSyncConfigured()) {
+          url.searchParams.set("db", liveSyncState.dbUrl);
+        }
         return url.toString();
       }
 
@@ -1037,7 +1124,16 @@
           const response = await fetch(getLiveEndpoint(liveSyncState.shareId), {
             cache: "no-store",
           });
-          if (!response.ok) return;
+          if (!response.ok) {
+            if (!liveSyncState.hadError) {
+              setStatus(
+                `Live sync read failed (HTTP ${response.status}). Check DB rules/URL.`,
+                true,
+              );
+              liveSyncState.hadError = true;
+            }
+            return;
+          }
 
           const payload = await response.json();
           if (!payload || !payload.updatedAt) return;
@@ -1049,8 +1145,12 @@
           liveSyncState.lastSeenUpdatedAt = updatedAt;
           if (payload.updatedBy === liveSyncState.clientId) return;
           applyLivePayload(payload);
+          liveSyncState.hadError = false;
         } catch {
-          // Ignore transient network sync errors.
+          if (!liveSyncState.hadError) {
+            setStatus("Live sync read failed. Check network/DB URL.", true);
+            liveSyncState.hadError = true;
+          }
         }
       }
 
@@ -1071,10 +1171,23 @@
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify(payload),
           });
-          if (!response.ok) return;
+          if (!response.ok) {
+            if (!liveSyncState.hadError) {
+              setStatus(
+                `Live sync write failed (HTTP ${response.status}). Check DB rules/URL.`,
+                true,
+              );
+              liveSyncState.hadError = true;
+            }
+            return;
+          }
           liveSyncState.lastSeenUpdatedAt = Number(payload.updatedAt);
+          liveSyncState.hadError = false;
         } catch {
-          // Ignore transient network sync errors.
+          if (!liveSyncState.hadError) {
+            setStatus("Live sync write failed. Check network/DB URL.", true);
+            liveSyncState.hadError = true;
+          }
         }
       }
 
@@ -1647,6 +1760,7 @@
       }
 
       function initLiveSyncFromUrl() {
+        resolveLiveSyncDbUrl();
         const shareId = sanitizeShareId(
           new URLSearchParams(window.location.search).get("shareId"),
         );
@@ -1823,12 +1937,17 @@
 
       copyLinkButton.addEventListener("click", async () => {
         closeExportMenu();
+        resolveLiveSyncDbUrl();
         let url = generateShareUrl();
         if (isLiveSyncConfigured()) {
           const shareId = liveSyncState.shareId || createShareId();
           startLiveSync(shareId);
           await pushLiveState();
           url = buildLiveShareUrl(shareId);
+        } else {
+          setStatus(
+            "Copied snapshot link (live sync disabled: configure DB URL to sync in real time).",
+          );
         }
         try {
           await navigator.clipboard.writeText(url);
@@ -1941,9 +2060,43 @@
         saveState();
       });
 
+      saveLiveSyncDbButton.addEventListener("click", () => {
+        setLiveSyncDbUrl(liveSyncDbInput.value);
+        if (!isLiveSyncConfigured()) {
+          setStatus("Live sync DB URL cleared.");
+          return;
+        }
+        setStatus("Live sync DB URL saved.");
+        if (liveSyncState.shareId) {
+          startLiveSync(liveSyncState.shareId);
+          void pullLiveStateOnce();
+        }
+      });
+
+      testLiveSyncDbButton.addEventListener("click", async () => {
+        setLiveSyncDbUrl(liveSyncDbInput.value);
+        if (!isLiveSyncConfigured()) {
+          setStatus("Enter a DB URL first.", true);
+          return;
+        }
+        if (liveSyncState.shareId) {
+          startLiveSync(liveSyncState.shareId);
+        }
+        await pullLiveStateOnce();
+        setStatus("Live sync connection checked.");
+      });
+
+      clearLiveSyncDbButton.addEventListener("click", () => {
+        setLiveSyncDbUrl("");
+        stopLiveSyncPolling();
+        setStatus("Live sync disabled. Links will use snapshot mode.");
+      });
+
       window.addEventListener("beforeunload", stopLiveSyncPolling);
 
       loadSavedState();
+      resolveLiveSyncDbUrl();
+      liveSyncDbInput.value = liveSyncState.dbUrl;
       buildLanguageOptions();
       hideCompletedInput.checked = state.hideCompleted;
       loadGoogleTranslateScript();
