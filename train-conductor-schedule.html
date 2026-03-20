@@ -1,0 +1,1450 @@
+﻿<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Train Conductor Schedule â€“ Last War Tools</title>
+    <meta
+      name="description"
+      content="Plan your Last War train conductor weekly rotation. Assign a conductor to each day of the week and view your schedule across up to 4 weeks."
+    />
+    <link
+      rel="canonical"
+      href="https://lastwarsurvivaltools.com/train-conductor-schedule.html"
+    />
+    <meta property="og:type" content="website" />
+    <meta
+      property="og:title"
+      content="Train Conductor Schedule â€“ Last War Tools"
+    />
+    <meta
+      property="og:description"
+      content="Plan your Last War train conductor weekly rotation. Assign a conductor to each day of the week and view your schedule across up to 4 weeks."
+    />
+    <meta
+      property="og:url"
+      content="https://lastwarsurvivaltools.com/train-conductor-schedule.html"
+    />
+    <meta
+      property="og:image"
+      content="https://lastwarsurvivaltools.com/media/lwst.png"
+    />
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta
+      name="twitter:title"
+      content="Train Conductor Schedule â€“ Last War Tools"
+    />
+    <meta
+      name="twitter:description"
+      content="Plan your Last War train conductor weekly rotation. Assign a conductor to each day of the week and view your schedule across up to 4 weeks."
+    />
+    <meta
+      name="twitter:image"
+      content="https://lastwarsurvivaltools.com/media/lwst.png"
+    />
+    <script type="application/ld+json">
+      {
+        "@context": "https://schema.org",
+        "@type": "WebPage",
+        "name": "Train Conductor Schedule",
+        "description": "Plan your Last War train conductor weekly rotation. Assign a conductor to each day of the week and view your schedule across up to 4 weeks.",
+        "url": "https://lastwarsurvivaltools.com/train-conductor-schedule.html"
+      }
+    </script>
+    <link rel="stylesheet" href="last-war-furnace-upgrade-calculator.css" />
+    <script src="page-nav-dropdown.js" defer></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
+    <style>
+      .conductor-layout {
+        grid-template-columns: minmax(200px, 240px) minmax(0, 1fr);
+      }
+
+      .week-buttons {
+        display: flex;
+        gap: 8px;
+      }
+
+      .week-btn {
+        cursor: pointer;
+        width: 44px;
+        height: 44px;
+        border: 1px solid var(--line-soft);
+        border-radius: 999px;
+        background: rgba(12, 24, 37, 0.88);
+        color: var(--muted);
+        font: inherit;
+        font-size: 1rem;
+        font-weight: 700;
+        transition:
+          border-color 140ms ease,
+          background-color 140ms ease,
+          color 140ms ease;
+      }
+
+      .week-btn:hover,
+      .week-btn:focus-visible {
+        border-color: var(--accent-2);
+        color: var(--text);
+        outline: none;
+      }
+
+      .week-btn.active {
+        border-color: var(--accent-2);
+        background: rgba(77, 171, 247, 0.18);
+        color: var(--text);
+      }
+
+      .conductor-row {
+        display: flex;
+        align-items: center;
+        gap: 6px;
+      }
+
+      .conductor-name-row {
+        display: flex;
+        align-items: center;
+        gap: 6px;
+        flex: 1;
+      }
+
+      .conductor-day-tags {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 3px;
+        flex-shrink: 0;
+      }
+
+      .conductor-input-stack {
+        display: grid;
+        gap: 6px;
+        flex: 1;
+      }
+
+      .conductor-day-tag {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        width: 28px;
+        height: 20px;
+        border-radius: 999px;
+        font-size: 0.64rem;
+        font-weight: 700;
+        border: 1px solid;
+        opacity: 0.85;
+        flex-shrink: 0;
+      }
+
+      .conductor-swatch {
+        position: absolute;
+        opacity: 0;
+        pointer-events: none;
+        width: 0;
+        height: 0;
+      }
+
+      .conductor-name-input {
+        width: 100%;
+        padding: 8px 10px;
+        border: 1px solid var(--line);
+        border-radius: 8px;
+        background: #0c1825;
+        color: var(--text);
+        font: inherit;
+        font-size: 0.9rem;
+        transition:
+          border-color 140ms ease,
+          box-shadow 140ms ease;
+      }
+
+      .conductor-name-input:focus {
+        outline: none;
+        border-color: var(--accent-2);
+        box-shadow: 0 0 0 3px rgba(77, 171, 247, 0.22);
+      }
+
+      .conductor-vip-input {
+        width: 100%;
+        padding: 6px 10px;
+        border: 1px solid var(--line);
+        border-radius: 8px;
+        background: #0c1825;
+        color: var(--text);
+        font: inherit;
+        font-size: 0.82rem;
+        transition:
+          border-color 140ms ease,
+          box-shadow 140ms ease;
+      }
+
+      .conductor-vip-input:focus {
+        outline: none;
+        border-color: var(--accent-2);
+        box-shadow: 0 0 0 3px rgba(77, 171, 247, 0.22);
+      }
+
+      .vip-badge {
+        display: inline-flex;
+        align-items: center;
+        margin-top: 3px;
+        padding: 1px 6px;
+        border-radius: 999px;
+        font-size: 0.6rem;
+        font-weight: 700;
+        letter-spacing: 0.03em;
+        white-space: nowrap;
+        word-break: normal;
+        background: rgba(255, 107, 107, 0.14);
+        color: #ff6b6b;
+        border: 1px solid rgba(255, 107, 107, 0.5);
+      }
+
+      .today-banner {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        padding: 12px 16px;
+        border: 1px solid rgba(116, 192, 252, 0.35);
+        border-radius: 12px;
+        background: rgba(116, 192, 252, 0.08);
+        margin-bottom: 16px;
+        font-size: 0.9rem;
+      }
+
+      .today-banner-label {
+        color: var(--muted);
+        font-size: 0.82rem;
+        font-weight: 700;
+        text-transform: uppercase;
+        letter-spacing: 0.08em;
+        white-space: nowrap;
+      }
+
+      #todayBannerContent {
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        flex-wrap: wrap;
+      }
+
+      .today-banner-date {
+        color: var(--muted);
+        font-size: 0.82rem;
+        line-height: 1.1;
+        white-space: nowrap;
+      }
+
+      .today-banner.is-hidden {
+        display: none;
+      }
+
+      .schedule-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: flex-start;
+        gap: 12px;
+        margin-bottom: 12px;
+      }
+
+      .schedule-header .card-title {
+        margin-bottom: 0;
+      }
+
+      .schedule-actions {
+        display: flex;
+        flex-wrap: wrap;
+        justify-content: flex-end;
+        gap: 8px;
+      }
+
+      .is-hidden {
+        display: none !important;
+      }
+
+      .export-menu-wrap {
+        position: relative;
+      }
+
+      .export-menu {
+        position: absolute;
+        top: calc(100% + 8px);
+        right: 0;
+        z-index: 200;
+        min-width: 220px;
+        border: 1px solid var(--line);
+        border-radius: 14px;
+        background: rgba(12, 24, 37, 0.98);
+        backdrop-filter: blur(10px);
+        padding: 6px;
+        display: grid;
+        gap: 2px;
+        box-shadow: 0 8px 32px rgba(0, 0, 0, 0.55);
+      }
+
+      .export-menu-item {
+        cursor: pointer;
+        border: none;
+        border-radius: 10px;
+        background: transparent;
+        color: var(--text);
+        padding: 10px 14px;
+        font: inherit;
+        font-size: 0.88rem;
+        text-align: left;
+        transition: background-color 120ms ease;
+      }
+
+      .export-menu-item:hover,
+      .export-menu-item:focus-visible {
+        background: rgba(116, 192, 252, 0.12);
+        outline: none;
+      }
+
+      .schedule-action-button {
+        padding: 7px 10px;
+        font-size: 0.78rem;
+      }
+
+      .schedule-wrapper {
+        overflow-x: hidden;
+      }
+
+      .schedule-table {
+        width: 100%;
+        border-collapse: collapse;
+        table-layout: fixed;
+      }
+
+      .schedule-table th,
+      .schedule-table td {
+        padding: 6px 4px;
+        border: 1px solid var(--line);
+        text-align: center;
+        vertical-align: middle;
+        font-size: 0.78rem;
+        word-break: break-word;
+      }
+
+      .schedule-table th {
+        background: rgba(17, 28, 40, 0.86);
+        font-weight: 700;
+        color: var(--muted);
+        font-size: 0.76rem;
+      }
+
+      .schedule-table td {
+        background: rgba(8, 16, 25, 0.56);
+      }
+
+      .schedule-table td.today-cell {
+        border-color: var(--accent-2);
+        box-shadow: inset 0 0 0 1px rgba(77, 171, 247, 0.4);
+        background: rgba(77, 171, 247, 0.1);
+      }
+
+      .schedule-table .week-label-cell {
+        font-weight: 700;
+        color: var(--muted);
+        font-size: 0.74rem;
+        background: rgba(17, 28, 40, 0.86);
+        white-space: nowrap;
+        text-align: left;
+        padding-left: 8px;
+        width: 52px;
+      }
+
+      .cell-date {
+        font-size: 0.74rem;
+        color: var(--muted);
+        margin-bottom: 6px;
+        line-height: 1;
+      }
+
+      .today-cell .cell-date {
+        color: var(--accent);
+        font-weight: 700;
+      }
+
+      .conductor-chip {
+        display: inline-block;
+        padding: 3px 6px;
+        border-radius: 999px;
+        font-size: 0.72rem;
+        font-weight: 700;
+        background: rgba(12, 24, 37, 0.88);
+        border: 1px solid;
+        white-space: nowrap;
+        max-width: 100%;
+        overflow: hidden;
+        text-overflow: ellipsis;
+      }
+
+      .none-chip {
+        color: var(--muted);
+        font-size: 0.78rem;
+        font-style: italic;
+      }
+
+      .action-button {
+        cursor: pointer;
+        border: 1px solid var(--line-soft);
+        border-radius: 999px;
+        background: rgba(12, 24, 37, 0.88);
+        color: var(--text);
+        padding: 10px 14px;
+        font: inherit;
+        font-size: 0.88rem;
+        font-weight: 700;
+        transition:
+          border-color 140ms ease,
+          background-color 140ms ease;
+      }
+
+      .action-button:hover,
+      .action-button:focus-visible {
+        border-color: var(--accent-2);
+        background: rgba(18, 35, 53, 0.96);
+        outline: none;
+      }
+
+      .action-button.danger {
+        border-color: rgba(255, 146, 43, 0.45);
+        color: #ffd8a8;
+      }
+
+      .action-button.danger:hover,
+      .action-button.danger:focus-visible {
+        border-color: rgba(255, 146, 43, 0.8);
+        background: rgba(255, 146, 43, 0.12);
+      }
+
+      @media (max-width: 920px) {
+        .conductor-layout {
+          grid-template-columns: 1fr;
+        }
+
+        .schedule-header {
+          flex-direction: column;
+          align-items: stretch;
+        }
+
+        .schedule-actions {
+          justify-content: flex-start;
+        }
+
+        .export-menu {
+          left: 0;
+          right: auto;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <div class="page">
+      <div class="page-top-controls">
+        <div class="logo-control">
+          <a href="index.html" aria-label="Go to homepage">
+            <img src="media/lwst.png" alt="LWST logo" class="site-logo" />
+          </a>
+        </div>
+        <div class="language-control">
+          <label for="languageSelect">Language</label>
+          <select id="languageSelect"></select>
+        </div>
+      </div>
+      <div id="google_translate_element" class="hidden-translate"></div>
+
+      <nav class="page-nav" aria-label="Calculator pages">
+        <a href="hq-upgrade-calculator.html" class="page-link">HQ Upgrade</a>
+        <details class="page-nav-dropdown" name="troop-nav">
+          <summary class="page-link page-nav-dropdown-toggle">
+            Troop Tools
+          </summary>
+          <div class="page-nav-dropdown-menu">
+            <a href="t10-troops-calculator.html" class="page-link"
+              >T10 Troops</a
+            >
+            <a href="t11-troops-calculator.html" class="page-link"
+              >T11 Troops</a
+            >
+          </div>
+        </details>
+        <details class="page-nav-dropdown" name="season-nav">
+          <summary class="page-link page-nav-dropdown-toggle">
+            Season 1 Tools
+          </summary>
+          <div class="page-nav-dropdown-menu">
+            <a href="virus-research-institute-calculator.html" class="page-link"
+              >Virus Research Institute</a
+            >
+            <a href="season-1-squad-base-calculator.html" class="page-link"
+              >Season 1 Squad Base</a
+            >
+            <a href="season-1-interactive-map.html" class="page-link"
+              >Interactive Map</a
+            >
+          </div>
+        </details>
+        <details class="page-nav-dropdown" name="season-nav">
+          <summary class="page-link page-nav-dropdown-toggle">
+            Season 2 Tools
+          </summary>
+          <div class="page-nav-dropdown-menu">
+            <a href="last-war-furnace-upgrade-calculator.html" class="page-link"
+              >Furnace Calculator</a
+            >
+            <a href="season-2-tank-center-calculator.html" class="page-link"
+              >Season 2 Squad Base</a
+            >
+            <a href="season-2-interactive-map.html" class="page-link"
+              >Interactive Map</a
+            >
+          </div>
+        </details>
+        <details class="page-nav-dropdown" name="season-nav">
+          <summary class="page-link page-nav-dropdown-toggle">
+            Season 3 Tools
+          </summary>
+          <div class="page-nav-dropdown-menu">
+            <a href="curse-research-lab-calculator.html" class="page-link"
+              >Curse Research Lab</a
+            >
+            <a href="altar-calculator.html" class="page-link">Altar</a>
+            <a href="protectors-field-calculator.html" class="page-link"
+              >Protectors Field</a
+            >
+            <a href="season-3-interactive-map.html" class="page-link"
+              >Interactive Map</a
+            >
+          </div>
+        </details>
+        <details class="page-nav-dropdown" name="season-nav">
+          <summary class="page-link page-nav-dropdown-toggle">
+            Season 4 Tools
+          </summary>
+          <div class="page-nav-dropdown-menu">
+            <a href="optoelectronic-lab-calculator.html" class="page-link"
+              >Optoelectronic Lab</a
+            >
+            <a href="protectors-field-s4-calculator.html" class="page-link"
+              >Protector's Field S4</a
+            >
+            <a href="lighthouse-s4-calculator.html" class="page-link"
+              >Lighthouse S4</a
+            >
+            <a href="season-4-interactive-map.html" class="page-link"
+              >Interactive Map</a
+            >
+          </div>
+        </details>
+        <details class="page-nav-dropdown" name="season-nav">
+          <summary class="page-link page-nav-dropdown-toggle">
+            Season 5 Tools
+          </summary>
+          <div class="page-nav-dropdown-menu">
+            <a href="caffeine-institute-calculator.html" class="page-link"
+              >Caffeine Institute</a
+            >
+            <a href="protectors-field-s5-calculator.html" class="page-link"
+              >Protector's Field S5</a
+            >
+            <a href="season-5-squad-base-calculator.html" class="page-link"
+              >Season 5 Squad Base</a
+            >
+            <a href="season-5-interactive-map.html" class="page-link"
+              >Interactive Map</a
+            >
+          </div>
+        </details>
+        <a
+          href="train-conductor-schedule.html"
+          class="page-link active"
+          aria-current="page"
+          >Train Conductor</a
+        >
+      </nav>
+
+      <section class="hero">
+        <h1>Train Conductor Schedule</h1>
+        <div class="sub">
+          Assign a conductor to each day of the week and plan your rotation
+          across up to 4 weeks. Name and color-code up to 7 conductors, then set
+          who runs each day. Today's conductor is highlighted automatically.
+        </div>
+      </section>
+
+      <section class="layout conductor-layout">
+        <!-- Settings panel -->
+        <div class="card">
+          <div
+            class="field-group"
+            style="margin-top: 0; padding-top: 0; border-top: none"
+          >
+            <h2 class="card-title">Settings</h2>
+            <div class="field">
+              <label>Weeks to show</label>
+              <div class="week-buttons">
+                <button type="button" class="week-btn" data-weeks="1">1</button>
+                <button type="button" class="week-btn" data-weeks="2">2</button>
+                <button type="button" class="week-btn" data-weeks="3">3</button>
+                <button type="button" class="week-btn" data-weeks="4">4</button>
+              </div>
+            </div>
+            <div class="field">
+              <label for="startDateInput">Start date (snaps to Monday)</label>
+              <input id="startDateInput" type="date" />
+              <div
+                class="field"
+                style="
+                  display: flex;
+                  align-items: center;
+                  justify-content: space-between;
+                  gap: 8px;
+                  margin-top: 10px;
+                "
+              >
+                <label for="vipToggleInput" style="margin: 0; cursor: pointer"
+                  >VIP/Guardian</label
+                >
+                <input
+                  type="checkbox"
+                  id="vipToggleInput"
+                  style="
+                    width: 18px;
+                    height: 18px;
+                    cursor: pointer;
+                    accent-color: var(--accent-2);
+                  "
+                />
+              </div>
+            </div>
+          </div>
+
+          <div class="field-group">
+            <h2 class="card-title">Conductors</h2>
+            <div class="field">
+              <label for="conductorWeekSelect">Name Assignment Week</label>
+              <select
+                id="conductorWeekSelect"
+                aria-label="Conductor naming week"
+              >
+                <option value="0">Week 1</option>
+                <option value="1">Week 2</option>
+                <option value="2">Week 3</option>
+                <option value="3">Week 4</option>
+              </select>
+            </div>
+            <div id="conductorsList" style="display: grid; gap: 10px"></div>
+          </div>
+
+          <div class="field-group">
+            <button
+              type="button"
+              id="resetButton"
+              class="action-button"
+              style="width: 100%"
+            >
+              Reset to defaults
+            </button>
+          </div>
+        </div>
+
+        <!-- Schedule display -->
+        <div class="card">
+          <div class="schedule-header">
+            <h2 class="card-title">Schedule</h2>
+            <div class="schedule-actions" aria-label="Schedule export actions">
+              <div class="export-menu-wrap" id="exportMenuWrap">
+                <button
+                  type="button"
+                  id="exportMenuToggle"
+                  class="action-button schedule-action-button"
+                  aria-haspopup="menu"
+                  aria-expanded="false"
+                >
+                  Share / Export &#9662;
+                </button>
+                <div class="export-menu is-hidden" id="exportMenu" role="menu">
+                  <button
+                    type="button"
+                    id="shareLinkButton"
+                    class="export-menu-item"
+                    role="menuitem"
+                  >
+                    Copy shareable link
+                  </button>
+                  <button
+                    type="button"
+                    id="exportExcelButton"
+                    class="export-menu-item"
+                    role="menuitem"
+                  >
+                    Export as Excel
+                  </button>
+                  <button
+                    type="button"
+                    id="exportPdfButton"
+                    class="export-menu-item"
+                    role="menuitem"
+                  >
+                    Export as PDF
+                  </button>
+                  <button
+                    type="button"
+                    id="exportPngButton"
+                    class="export-menu-item"
+                    role="menuitem"
+                  >
+                    Export as PNG
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+          <div id="scheduleExportArea">
+            <div class="today-banner is-hidden" id="todayBanner">
+              <span class="today-banner-label">Today</span>
+              <span id="todayBannerContent"></span>
+            </div>
+            <div class="schedule-wrapper">
+              <table class="schedule-table" id="scheduleTable">
+                <thead id="scheduleHead"></thead>
+                <tbody id="scheduleBody"></tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+      </section>
+    </div>
+
+    <script>
+      const STORAGE_KEY = "lastWarTrainConductorV1";
+      const DAYS = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"];
+      const MONTHS = [
+        "Jan",
+        "Feb",
+        "Mar",
+        "Apr",
+        "May",
+        "Jun",
+        "Jul",
+        "Aug",
+        "Sep",
+        "Oct",
+        "Nov",
+        "Dec",
+      ];
+      const DEFAULT_COLORS = [
+        "#74c0fc",
+        "#51cf66",
+        "#ff7eb6",
+        "#ffd43b",
+        "#ff922b",
+        "#cc5de8",
+        "#20c997",
+      ];
+      const DEFAULT_NAMES = [
+        "Conductor 1",
+        "Conductor 2",
+        "Conductor 3",
+        "Conductor 4",
+        "Conductor 5",
+        "Conductor 6",
+        "Conductor 7",
+      ];
+
+      const state = {
+        weeks: 2,
+        nameEditWeek: 0,
+        conductorNamesByWeek: Array.from({ length: 4 }, () => [
+          ...DEFAULT_NAMES,
+        ]),
+        startDateStr: "",
+        conductors: DEFAULT_NAMES.map((name, i) => ({
+          name,
+          color: DEFAULT_COLORS[i],
+          vipGuardian: "",
+        })),
+        // dayAssignments[0..6] = conductor index, 0=Monday 6=Sunday, -1=none
+        dayAssignments: [0, 1, 2, 3, 4, 5, 6],
+        showVip: true,
+      };
+
+      const startDateInput = document.getElementById("startDateInput");
+      const conductorsList = document.getElementById("conductorsList");
+      const scheduleHead = document.getElementById("scheduleHead");
+      const scheduleBody = document.getElementById("scheduleBody");
+      const scheduleExportArea = document.getElementById("scheduleExportArea");
+      const resetButton = document.getElementById("resetButton");
+      const todayBanner = document.getElementById("todayBanner");
+      const todayBannerContent = document.getElementById("todayBannerContent");
+      const vipToggleInput = document.getElementById("vipToggleInput");
+      const conductorWeekSelect = document.getElementById(
+        "conductorWeekSelect",
+      );
+      const exportPngButton = document.getElementById("exportPngButton");
+      const exportPdfButton = document.getElementById("exportPdfButton");
+      const exportExcelButton = document.getElementById("exportExcelButton");
+      const shareLinkButton = document.getElementById("shareLinkButton");
+      const exportMenuWrap = document.getElementById("exportMenuWrap");
+      const exportMenuToggle = document.getElementById("exportMenuToggle");
+      const exportMenu = document.getElementById("exportMenu");
+
+      function getConductorName(weekIdx, conductorIdx) {
+        const week = state.conductorNamesByWeek[weekIdx] || [];
+        const raw = week[conductorIdx];
+        return typeof raw === "string" && raw.trim()
+          ? raw.trim()
+          : DEFAULT_NAMES[conductorIdx];
+      }
+
+      function getMondayOf(date) {
+        const d = new Date(date);
+        const day = d.getDay();
+        const diff = day === 0 ? -6 : 1 - day;
+        d.setDate(d.getDate() + diff);
+        d.setHours(0, 0, 0, 0);
+        return d;
+      }
+
+      function toDateStr(date) {
+        const y = date.getFullYear();
+        const m = String(date.getMonth() + 1).padStart(2, "0");
+        const d = String(date.getDate()).padStart(2, "0");
+        return `${y}-${m}-${d}`;
+      }
+
+      function isToday(date) {
+        const t = new Date();
+        return (
+          date.getFullYear() === t.getFullYear() &&
+          date.getMonth() === t.getMonth() &&
+          date.getDate() === t.getDate()
+        );
+      }
+
+      function escapeHtml(v) {
+        return String(v)
+          .replace(/&/g, "&amp;")
+          .replace(/</g, "&lt;")
+          .replace(/>/g, "&gt;")
+          .replace(/"/g, "&quot;");
+      }
+
+      function hexToRgba(hex, alpha) {
+        const m = /^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(hex || "");
+        if (!m) return `rgba(8, 16, 25, ${alpha})`;
+        const r = parseInt(m[1], 16);
+        const g = parseInt(m[2], 16);
+        const b = parseInt(m[3], 16);
+        return `rgba(${r}, ${g}, ${b}, ${alpha})`;
+      }
+
+      function encodeShareState() {
+        const payload = {
+          weeks: state.weeks,
+          nameEditWeek: state.nameEditWeek,
+          conductorNamesByWeek: state.conductorNamesByWeek,
+          startDateStr: state.startDateStr,
+          conductors: state.conductors,
+          dayAssignments: state.dayAssignments,
+          showVip: state.showVip,
+        };
+        return btoa(unescape(encodeURIComponent(JSON.stringify(payload))));
+      }
+
+      function decodeShareState(encoded) {
+        return JSON.parse(decodeURIComponent(escape(atob(encoded))));
+      }
+
+      function applySharedState(saved) {
+        if (!saved || typeof saved !== "object") return false;
+
+        if (saved.weeks >= 1 && saved.weeks <= 4) {
+          state.weeks = Number(saved.weeks);
+        }
+        if (Number.isFinite(Number(saved.nameEditWeek))) {
+          const n = Number(saved.nameEditWeek);
+          state.nameEditWeek = n >= 0 && n <= 3 ? n : 0;
+        }
+        if (
+          Array.isArray(saved.conductorNamesByWeek) &&
+          saved.conductorNamesByWeek.length === 4 &&
+          saved.conductorNamesByWeek.every(
+            (week) => Array.isArray(week) && week.length === 7,
+          )
+        ) {
+          state.conductorNamesByWeek = saved.conductorNamesByWeek.map((week) =>
+            week.map((name, i) =>
+              typeof name === "string" && name.trim()
+                ? name.trim().slice(0, 40)
+                : DEFAULT_NAMES[i],
+            ),
+          );
+        }
+        if (typeof saved.startDateStr === "string") {
+          state.startDateStr = saved.startDateStr;
+        }
+        if (Array.isArray(saved.conductors) && saved.conductors.length === 7) {
+          state.conductors = saved.conductors.map((c, i) => ({
+            name:
+              typeof c.name === "string" && c.name.trim()
+                ? c.name.trim().slice(0, 40)
+                : DEFAULT_NAMES[i],
+            color:
+              typeof c.color === "string" && /^#[0-9a-fA-F]{6}$/.test(c.color)
+                ? c.color
+                : DEFAULT_COLORS[i],
+            vipGuardian:
+              typeof c.vipGuardian === "string"
+                ? c.vipGuardian.trim().slice(0, 50)
+                : "",
+          }));
+        }
+        if (Array.isArray(saved.dayAssignments) && saved.dayAssignments.length === 7) {
+          state.dayAssignments = saved.dayAssignments.map((v) => {
+            const n = Number(v);
+            return Number.isFinite(n) && n >= -1 && n <= 6 ? n : 0;
+          });
+        }
+        if (typeof saved.showVip === "boolean") {
+          state.showVip = saved.showVip;
+        }
+        return true;
+      }
+
+      function loadSharedStateFromUrl() {
+        try {
+          const params = new URLSearchParams(window.location.search);
+          const data = params.get("data");
+          if (!data) return false;
+          const decoded = decodeShareState(data);
+          const applied = applySharedState(decoded);
+          if (applied) {
+            saveState();
+          }
+          return applied;
+        } catch {
+          return false;
+        }
+      }
+
+      function getShareUrl() {
+        const url = new URL(window.location.href);
+        url.searchParams.set("data", encodeShareState());
+        return url.toString();
+      }
+
+      function getExportFileBaseName() {
+        const datePart = state.startDateStr || toDateStr(getMondayOf(new Date()));
+        return `train-conductor-schedule-${datePart}`;
+      }
+
+      function getScheduleExportRows() {
+        const rows = [];
+        const startDate = new Date(state.startDateStr + "T00:00:00");
+
+        for (let w = 0; w < state.weeks; w++) {
+          const row = [`Week ${w + 1}`];
+          for (let d = 0; d < 7; d++) {
+            const cellDate = new Date(startDate);
+            cellDate.setDate(startDate.getDate() + w * 7 + d);
+            const conductorIdx = state.dayAssignments[d];
+            const dateLabel = `${MONTHS[cellDate.getMonth()]} ${cellDate.getDate()}`;
+            let cellText = dateLabel;
+
+            if (conductorIdx >= 0 && conductorIdx < state.conductors.length) {
+              const conductorName = getConductorName(w, conductorIdx);
+              cellText += ` - ${conductorName}`;
+              if (state.showVip) {
+                const vipLabel =
+                  state.conductors[conductorIdx].vipGuardian?.trim() ||
+                  "VIP/Guardian";
+                cellText += ` - ${vipLabel}`;
+              }
+            }
+
+            row.push(cellText);
+          }
+          rows.push(row);
+        }
+
+        return rows;
+      }
+
+      async function exportScheduleAsPng() {
+        if (!window.html2canvas) return;
+        const canvas = await window.html2canvas(scheduleExportArea, {
+          backgroundColor: "#081019",
+          scale: 2,
+        });
+        const link = document.createElement("a");
+        link.href = canvas.toDataURL("image/png");
+        link.download = `${getExportFileBaseName()}.png`;
+        link.click();
+      }
+
+      async function exportScheduleAsPdf() {
+        if (!window.html2canvas || !window.jspdf?.jsPDF) return;
+        const canvas = await window.html2canvas(scheduleExportArea, {
+          backgroundColor: "#081019",
+          scale: 2,
+        });
+        const { jsPDF } = window.jspdf;
+        const pdf = new jsPDF({ orientation: "landscape", unit: "pt", format: "a4" });
+        const pageWidth = pdf.internal.pageSize.getWidth();
+        const pageHeight = pdf.internal.pageSize.getHeight();
+        const imgWidth = canvas.width;
+        const imgHeight = canvas.height;
+        const ratio = Math.min(pageWidth / imgWidth, pageHeight / imgHeight);
+        const renderWidth = imgWidth * ratio;
+        const renderHeight = imgHeight * ratio;
+        const x = (pageWidth - renderWidth) / 2;
+        const y = 24;
+        pdf.addImage(canvas.toDataURL("image/png"), "PNG", x, y, renderWidth, renderHeight);
+        pdf.save(`${getExportFileBaseName()}.pdf`);
+      }
+
+      function exportScheduleAsExcel() {
+        if (!window.XLSX) return;
+        const rows = [["Week", ...DAYS], ...getScheduleExportRows()];
+        const wb = XLSX.utils.book_new();
+        const ws = XLSX.utils.aoa_to_sheet(rows);
+        XLSX.utils.book_append_sheet(wb, ws, "Schedule");
+        XLSX.writeFile(wb, `${getExportFileBaseName()}.xlsx`);
+      }
+
+      async function shareScheduleLink() {
+        const url = getShareUrl();
+        try {
+          await navigator.clipboard.writeText(url);
+          shareLinkButton.textContent = "Copied";
+          window.setTimeout(() => {
+            shareLinkButton.textContent = "Share Link";
+          }, 1600);
+        } catch {
+          window.prompt("Copy this shareable link:", url);
+        }
+      }
+
+      function closeExportMenu() {
+        exportMenu.classList.add("is-hidden");
+        exportMenuToggle.setAttribute("aria-expanded", "false");
+      }
+
+      function saveState() {
+        try {
+          localStorage.setItem(
+            STORAGE_KEY,
+            JSON.stringify({
+              weeks: state.weeks,
+              nameEditWeek: state.nameEditWeek,
+              conductorNamesByWeek: state.conductorNamesByWeek,
+              startDateStr: state.startDateStr,
+              conductors: state.conductors,
+              dayAssignments: state.dayAssignments,
+              showVip: state.showVip,
+            }),
+          );
+        } catch {
+          // ignore
+        }
+      }
+
+      function loadState() {
+        try {
+          const raw = localStorage.getItem(STORAGE_KEY);
+          if (!raw) return;
+          const saved = JSON.parse(raw);
+          if (saved.weeks >= 1 && saved.weeks <= 4) {
+            state.weeks = Number(saved.weeks);
+          }
+          if (Number.isFinite(Number(saved.nameEditWeek))) {
+            const n = Number(saved.nameEditWeek);
+            state.nameEditWeek = n >= 0 && n <= 3 ? n : 0;
+          }
+          if (
+            Array.isArray(saved.conductorNamesByWeek) &&
+            saved.conductorNamesByWeek.length === 4 &&
+            saved.conductorNamesByWeek.every(
+              (week) => Array.isArray(week) && week.length === 7,
+            )
+          ) {
+            state.conductorNamesByWeek = saved.conductorNamesByWeek.map(
+              (week) =>
+                week.map((name, i) =>
+                  typeof name === "string" && name.trim()
+                    ? name.trim().slice(0, 40)
+                    : DEFAULT_NAMES[i],
+                ),
+            );
+          }
+          if (typeof saved.startDateStr === "string") {
+            state.startDateStr = saved.startDateStr;
+          }
+          if (
+            Array.isArray(saved.conductors) &&
+            saved.conductors.length === 7
+          ) {
+            state.conductors = saved.conductors.map((c, i) => ({
+              name:
+                typeof c.name === "string" && c.name.trim()
+                  ? c.name.trim().slice(0, 40)
+                  : DEFAULT_NAMES[i],
+              color:
+                typeof c.color === "string" && /^#[0-9a-fA-F]{6}$/.test(c.color)
+                  ? c.color
+                  : DEFAULT_COLORS[i],
+              vipGuardian:
+                typeof c.vipGuardian === "string"
+                  ? c.vipGuardian.trim().slice(0, 50)
+                  : "",
+            }));
+
+            // Backward compatibility: seed per-week names from old single name if needed.
+            if (
+              !Array.isArray(saved.conductorNamesByWeek) ||
+              saved.conductorNamesByWeek.length !== 4
+            ) {
+              const legacyNames = state.conductors.map((c, i) =>
+                typeof c.name === "string" && c.name.trim()
+                  ? c.name.trim().slice(0, 40)
+                  : DEFAULT_NAMES[i],
+              );
+              state.conductorNamesByWeek = Array.from({ length: 4 }, () => [
+                ...legacyNames,
+              ]);
+            }
+          }
+          if (
+            Array.isArray(saved.dayAssignments) &&
+            saved.dayAssignments.length === 7
+          ) {
+            state.dayAssignments = saved.dayAssignments.map((v) => {
+              const n = Number(v);
+              return Number.isFinite(n) && n >= -1 && n <= 6 ? n : 0;
+            });
+          }
+          if (typeof saved.showVip === "boolean") {
+            state.showVip = saved.showVip;
+          }
+        } catch {
+          // ignore
+        }
+      }
+
+      function renderWeekButtons() {
+        document.querySelectorAll(".week-btn").forEach((btn) => {
+          btn.classList.toggle(
+            "active",
+            Number(btn.dataset.weeks) === state.weeks,
+          );
+        });
+      }
+
+      function getConductorDays(conductorIdx) {
+        return state.dayAssignments
+          .map((ci, d) => (ci === conductorIdx ? DAYS[d] : null))
+          .filter(Boolean);
+      }
+
+      function renderConductors() {
+        conductorsList.innerHTML = state.conductors
+          .map((c, i) => {
+            const assignedDays = getConductorDays(i);
+            const vipInputHtml = state.showVip
+              ? `<input
+              type="text"
+              class="conductor-vip-input"
+              value="${escapeHtml(c.vipGuardian || "")}"
+              data-idx="${i}"
+              maxlength="50"
+              placeholder="VIP/Guardian"
+              aria-label="Conductor ${i + 1} VIP/Guardian"
+            />`
+              : "";
+            const tagsHtml = assignedDays.length
+              ? `<div class="conductor-day-tags">${assignedDays
+                  .map(
+                    (day) =>
+                      `<span class="conductor-day-tag" style="color:${escapeHtml(c.color)};border-color:${escapeHtml(c.color)};">${escapeHtml(day)}</span>`,
+                  )
+                  .join("")}</div>`
+              : `<div class="conductor-day-tags"><span style="font-size:0.66rem;color:var(--muted);font-style:italic;">none</span></div>`;
+            return `
+          <div class="conductor-row">
+            <input
+              type="color"
+              class="conductor-swatch"
+              value="${escapeHtml(c.color)}"
+              data-idx="${i}"
+              aria-label="Conductor ${i + 1} color"
+            />
+            ${tagsHtml}
+            <div class="conductor-input-stack">
+              <input
+                type="text"
+                class="conductor-name-input"
+                value="${escapeHtml(getConductorName(state.nameEditWeek, i))}"
+                data-idx="${i}"
+                maxlength="40"
+                placeholder="Conductor ${i + 1}"
+                aria-label="Conductor ${i + 1} name"
+              />
+              ${vipInputHtml}
+            </div>
+          </div>`;
+          })
+          .join("");
+
+        conductorsList
+          .querySelectorAll('input[type="color"]')
+          .forEach((inp) => {
+            inp.addEventListener("input", () => {
+              const idx = Number(inp.dataset.idx);
+              state.conductors[idx].color = inp.value;
+              saveState();
+              renderSchedule();
+            });
+          });
+
+        conductorsList
+          .querySelectorAll(".conductor-name-input")
+          .forEach((inp) => {
+            inp.addEventListener("input", () => {
+              const idx = Number(inp.dataset.idx);
+              state.conductorNamesByWeek[state.nameEditWeek][idx] =
+                inp.value.trim().slice(0, 40) || DEFAULT_NAMES[idx];
+              saveState();
+              renderSchedule();
+            });
+          });
+
+        conductorsList
+          .querySelectorAll(".conductor-vip-input")
+          .forEach((inp) => {
+            inp.addEventListener("input", () => {
+              const idx = Number(inp.dataset.idx);
+              state.conductors[idx].vipGuardian = inp.value.slice(0, 50);
+              saveState();
+              renderSchedule();
+            });
+          });
+      }
+
+      function renderSchedule() {
+        if (!state.startDateStr) return;
+
+        const startDate = new Date(state.startDateStr + "T00:00:00");
+
+        // Header
+        const headerCells = ["<th></th>"];
+        for (let d = 0; d < 7; d++) {
+          headerCells.push(`<th>${DAYS[d]}</th>`);
+        }
+        scheduleHead.innerHTML = `<tr>${headerCells.join("")}</tr>`;
+
+        // Rows
+        const rows = [];
+        let todayFound = false;
+        let todayConduectorIdx = -1;
+
+        for (let w = 0; w < state.weeks; w++) {
+          const cells = [`<td class="week-label-cell">Week ${w + 1}</td>`];
+          for (let d = 0; d < 7; d++) {
+            const cellDate = new Date(startDate);
+            cellDate.setDate(startDate.getDate() + w * 7 + d);
+
+            const conductorIdx = state.dayAssignments[d];
+            const dateLabel = `${MONTHS[cellDate.getMonth()]} ${cellDate.getDate()}`;
+            const today = isToday(cellDate);
+
+            if (today) {
+              todayFound = true;
+              todayConduectorIdx = conductorIdx;
+            }
+
+            let chipHtml = `<span class="none-chip">-</span>`;
+            const todayClass = today ? " today-cell" : "";
+            if (conductorIdx >= 0 && conductorIdx < state.conductors.length) {
+              const c = state.conductors[conductorIdx];
+              const chipBg = hexToRgba(c.color, 0.18);
+              const displayName = getConductorName(w, conductorIdx);
+              chipHtml = `<span class="conductor-chip" style="color:${escapeHtml(c.color)};border-color:${escapeHtml(c.color)};background:${chipBg};">${escapeHtml(displayName)}</span>`;
+            }
+
+            let vipHtml = "";
+            if (
+              state.showVip &&
+              conductorIdx >= 0 &&
+              conductorIdx < state.conductors.length
+            ) {
+              const vipLabel =
+                state.conductors[conductorIdx].vipGuardian?.trim() ||
+                "VIP/Guardian";
+              vipHtml = `<span class="vip-badge">${escapeHtml(vipLabel)}</span>`;
+            }
+            cells.push(`<td class="${todayClass}">
+              <div class="cell-date">${dateLabel}</div>
+              ${chipHtml}
+              ${vipHtml}
+            </td>`);
+          }
+          rows.push(`<tr>${cells.join("")}</tr>`);
+        }
+
+        scheduleBody.innerHTML = rows.join("");
+
+        // Today banner
+        if (todayFound) {
+          const today = new Date();
+          const diffMs =
+            today.setHours(0, 0, 0, 0) -
+            new Date(state.startDateStr + "T00:00:00").getTime();
+          const dayDiff = Math.floor(diffMs / 86400000);
+          const todayWeekIdx =
+            dayDiff >= 0 && dayDiff < state.weeks * 7
+              ? Math.floor(dayDiff / 7)
+              : 0;
+          const todayLabel = `${DAYS[today.getDay() === 0 ? 6 : today.getDay() - 1]}, ${MONTHS[today.getMonth()]} ${today.getDate()}`;
+          let bannerChip = `<span style="color:var(--muted);font-style:italic;">No conductor assigned</span>`;
+          if (
+            todayConduectorIdx >= 0 &&
+            todayConduectorIdx < state.conductors.length
+          ) {
+            const c = state.conductors[todayConduectorIdx];
+            const displayName = getConductorName(
+              todayWeekIdx,
+              todayConduectorIdx,
+            );
+            let todayVipHtml = "";
+            if (state.showVip) {
+              const vipLabel = c.vipGuardian?.trim() || "VIP/Guardian";
+              todayVipHtml = `<span class="vip-badge">${escapeHtml(vipLabel)}</span>`;
+            }
+            bannerChip = `<span class="conductor-chip" style="color:${escapeHtml(c.color)};border-color:${escapeHtml(c.color)};">${escapeHtml(displayName)}</span>${todayVipHtml}<span class="today-banner-date">${escapeHtml(todayLabel)}</span>`;
+          }
+          todayBannerContent.innerHTML = bannerChip;
+          todayBanner.classList.remove("is-hidden");
+        } else {
+          todayBanner.classList.add("is-hidden");
+        }
+      }
+
+      function render() {
+        renderWeekButtons();
+        renderConductors();
+        renderSchedule();
+      }
+
+      // Init
+      loadState();
+      loadSharedStateFromUrl();
+
+      if (!state.startDateStr) {
+        state.startDateStr = toDateStr(getMondayOf(new Date()));
+      }
+      startDateInput.value = state.startDateStr;
+      vipToggleInput.checked = state.showVip;
+      conductorWeekSelect.value = String(state.nameEditWeek);
+
+      render();
+
+      // Week buttons
+      document.querySelectorAll(".week-btn").forEach((btn) => {
+        btn.addEventListener("click", () => {
+          state.weeks = Number(btn.dataset.weeks);
+          saveState();
+          renderWeekButtons();
+          renderSchedule();
+        });
+      });
+
+      // Conductor naming week selector
+      conductorWeekSelect.addEventListener("change", () => {
+        const n = Number(conductorWeekSelect.value);
+        state.nameEditWeek = n >= 0 && n <= 3 ? n : 0;
+        saveState();
+        renderConductors();
+        renderSchedule();
+      });
+
+      exportPngButton.addEventListener("click", () => {
+        closeExportMenu();
+        exportScheduleAsPng();
+      });
+
+      exportPdfButton.addEventListener("click", () => {
+        closeExportMenu();
+        exportScheduleAsPdf();
+      });
+
+      exportExcelButton.addEventListener("click", () => {
+        closeExportMenu();
+        exportScheduleAsExcel();
+      });
+
+      shareLinkButton.addEventListener("click", () => {
+        closeExportMenu();
+        shareScheduleLink();
+      });
+
+      exportMenuToggle.addEventListener("click", (event) => {
+        event.preventDefault();
+        const willOpen = exportMenu.classList.contains("is-hidden");
+        exportMenu.classList.toggle("is-hidden");
+        exportMenuToggle.setAttribute("aria-expanded", willOpen ? "true" : "false");
+      });
+
+      document.addEventListener("click", (event) => {
+        if (!exportMenuWrap.contains(event.target)) {
+          closeExportMenu();
+        }
+      });
+
+      // Start date
+      startDateInput.addEventListener("change", () => {
+        if (!startDateInput.value) return;
+        const picked = new Date(startDateInput.value + "T00:00:00");
+        const monday = getMondayOf(picked);
+        state.startDateStr = toDateStr(monday);
+        startDateInput.value = state.startDateStr;
+        saveState();
+        renderSchedule();
+      });
+
+      // Reset
+      resetButton.addEventListener("click", () => {
+        if (!confirm("Reset all conductors and assignments to defaults?"))
+          return;
+        state.conductors = DEFAULT_NAMES.map((name, i) => ({
+          name,
+          color: DEFAULT_COLORS[i],
+          vipGuardian: "",
+        }));
+        state.dayAssignments = [0, 1, 2, 3, 4, 5, 6];
+        state.startDateStr = toDateStr(getMondayOf(new Date()));
+        startDateInput.value = state.startDateStr;
+        state.weeks = 2;
+        state.nameEditWeek = 0;
+        conductorWeekSelect.value = "0";
+        state.conductorNamesByWeek = Array.from({ length: 4 }, () => [
+          ...DEFAULT_NAMES,
+        ]);
+        state.showVip = true;
+        vipToggleInput.checked = true;
+        saveState();
+        render();
+      });
+
+      // VIP toggle
+      vipToggleInput.addEventListener("change", () => {
+        state.showVip = vipToggleInput.checked;
+        saveState();
+        renderConductors();
+        renderSchedule();
+      });
+    </script>
+  </body>
+</html>

@@ -4,6 +4,7 @@
     if (!nav) return;
 
     ensureSeason2SuppliesLink(nav);
+    ensureTrainConductorLink(nav);
 
     const dropdowns = Array.from(nav.querySelectorAll('details.page-nav-dropdown'));
 
@@ -41,6 +42,22 @@
         dropdown.removeAttribute('open');
       });
     });
+  }
+
+  function ensureTrainConductorLink(nav) {
+    const currentPage = window.location.pathname.split('/').pop() || 'index.html';
+    let link = nav.querySelector('a[href="train-conductor-schedule.html"]');
+    if (!link) {
+      link = document.createElement('a');
+      link.href = 'train-conductor-schedule.html';
+      link.className = 'page-link';
+      link.textContent = 'Train Conductor';
+      nav.appendChild(link);
+    }
+    if (currentPage === 'train-conductor-schedule.html') {
+      link.classList.add('active');
+      link.setAttribute('aria-current', 'page');
+    }
   }
 
   function ensureSeason2SuppliesLink(nav) {
