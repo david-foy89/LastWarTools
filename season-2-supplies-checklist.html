@@ -792,6 +792,12 @@
     <script>
       const DATA_URL = "season2_supplies_api.json";
       const STORAGE_KEY = "lastWarSeason2SuppliesChecklistV1";
+      const LIVE_SYNC = {
+        // Add your Firebase Realtime Database URL to enable collaborative links.
+        // Example: https://your-project-default-rtdb.firebaseio.com
+        databaseUrl: "",
+        pollMs: 2500,
+      };
       const languageSelect = document.getElementById("languageSelect");
       const levelSelect = document.getElementById("levelSelect");
       const selectedLevelDot = document.getElementById("selectedLevelDot");
@@ -825,6 +831,14 @@
       );
 
       let preferredLanguage = "en";
+      let pendingShareData = null;
+      const liveSyncState = {
+        clientId: `${Math.random().toString(36).slice(2, 10)}-${Date.now()}`,
+        shareId: null,
+        pollHandle: null,
+        lastSeenUpdatedAt: 0,
+        applyingRemote: false,
+      };
 
       const languageOptions = [
         { code: "en", label: "English" },
@@ -952,6 +966,138 @@
         } catch {
           // Ignore storage errors.
         }
+      }
+
+      function isLiveSyncConfigured() {
+        return Boolean(LIVE_SYNC.databaseUrl && LIVE_SYNC.databaseUrl.trim());
+      }
+
+      function sanitizeShareId(raw) {
+        const value = String(raw || "").trim();
+        return /^[a-zA-Z0-9_-]{6,64}$/.test(value) ? value : null;
+      }
+
+      function createShareId() {
+        return `${Date.now().toString(36)}${Math.random().toString(36).slice(2, 8)}`;
+      }
+
+      function getLiveEndpoint(shareId) {
+        const base = LIVE_SYNC.databaseUrl.replace(/\/$/, "");
+        return `${base}/season2-supplies/${encodeURIComponent(shareId)}.json`;
+      }
+
+      function buildLiveShareUrl(shareId) {
+        const url = new URL(window.location.href);
+        url.search = "";
+        url.searchParams.set("shareId", shareId);
+        return url.toString();
+      }
+
+      function getLivePayload() {
+        return {
+          completed: Array.from(state.completed),
+          selectedLevel: state.selectedLevel,
+          updatedAt: Date.now(),
+          updatedBy: liveSyncState.clientId,
+        };
+      }
+
+      function applyLivePayload(payload) {
+        if (!payload || !Array.isArray(payload.completed)) return false;
+
+        const validIds = new Set(state.supplies.map((supply) => supply.id));
+        const validCompleted = new Set(
+          payload.completed
+            .filter((id) => validIds.has(String(id)))
+            .map(String),
+        );
+
+        let nextLevel = "all";
+        if (payload.selectedLevel === "all") {
+          nextLevel = "all";
+        } else if (Number.isFinite(Number(payload.selectedLevel))) {
+          const numericLevel = Number(payload.selectedLevel);
+          nextLevel = getAllLevels().includes(numericLevel)
+            ? numericLevel
+            : "all";
+        }
+
+        liveSyncState.applyingRemote = true;
+        state.completed = validCompleted;
+        state.selectedLevel = nextLevel;
+        saveState();
+        render();
+        liveSyncState.applyingRemote = false;
+        return true;
+      }
+
+      async function pullLiveStateOnce() {
+        if (!isLiveSyncConfigured() || !liveSyncState.shareId) return;
+        try {
+          const response = await fetch(getLiveEndpoint(liveSyncState.shareId), {
+            cache: "no-store",
+          });
+          if (!response.ok) return;
+
+          const payload = await response.json();
+          if (!payload || !payload.updatedAt) return;
+
+          const updatedAt = Number(payload.updatedAt);
+          if (!Number.isFinite(updatedAt)) return;
+          if (updatedAt <= liveSyncState.lastSeenUpdatedAt) return;
+
+          liveSyncState.lastSeenUpdatedAt = updatedAt;
+          if (payload.updatedBy === liveSyncState.clientId) return;
+          applyLivePayload(payload);
+        } catch {
+          // Ignore transient network sync errors.
+        }
+      }
+
+      async function pushLiveState() {
+        if (
+          !isLiveSyncConfigured() ||
+          !liveSyncState.shareId ||
+          liveSyncState.applyingRemote
+        ) {
+          return;
+        }
+
+        const payload = getLivePayload();
+
+        try {
+          const response = await fetch(getLiveEndpoint(liveSyncState.shareId), {
+            method: "PUT",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify(payload),
+          });
+          if (!response.ok) return;
+          liveSyncState.lastSeenUpdatedAt = Number(payload.updatedAt);
+        } catch {
+          // Ignore transient network sync errors.
+        }
+      }
+
+      function stopLiveSyncPolling() {
+        if (liveSyncState.pollHandle) {
+          clearInterval(liveSyncState.pollHandle);
+          liveSyncState.pollHandle = null;
+        }
+      }
+
+      function startLiveSync(shareId) {
+        stopLiveSyncPolling();
+        liveSyncState.shareId = shareId;
+        history.replaceState(null, "", buildLiveShareUrl(shareId));
+        void pullLiveStateOnce();
+        liveSyncState.pollHandle = setInterval(
+          pullLiveStateOnce,
+          LIVE_SYNC.pollMs,
+        );
+      }
+
+      function syncLocalChecklistChanges() {
+        void pushLiveState();
       }
 
       function loadSavedState() {
@@ -1401,6 +1547,7 @@
         }
         saveState();
         render();
+        syncLocalChecklistChanges();
       }
 
       function setLevelCompletion(level, shouldComplete) {
@@ -1413,6 +1560,7 @@
         });
         saveState();
         render();
+        syncLocalChecklistChanges();
       }
 
       function setVisibleCompletion(shouldComplete) {
@@ -1425,12 +1573,14 @@
         });
         saveState();
         render();
+        syncLocalChecklistChanges();
       }
 
       function setSelectedLevel(level) {
         state.selectedLevel = level;
         saveState();
         render();
+        syncLocalChecklistChanges();
       }
 
       async function copyText(text) {
@@ -1441,8 +1591,6 @@
           setStatus("Copy failed in this browser.", true);
         }
       }
-
-      let pendingShareData = null;
 
       function encodeShareState(completed, selectedLevel) {
         const grouped = {};
@@ -1498,7 +1646,26 @@
         history.replaceState(null, "", url.toString());
       }
 
+      function initLiveSyncFromUrl() {
+        const shareId = sanitizeShareId(
+          new URLSearchParams(window.location.search).get("shareId"),
+        );
+        if (!shareId) return;
+
+        if (!isLiveSyncConfigured()) {
+          setStatus(
+            "This link uses live sync, but live sync is not configured for this site.",
+            true,
+          );
+          return;
+        }
+
+        startLiveSync(shareId);
+        setStatus("Live shared list connected");
+      }
+
       function handleShareParam() {
+        if (new URLSearchParams(window.location.search).get("shareId")) return;
         const shareParam = new URLSearchParams(window.location.search).get(
           "share",
         );
@@ -1562,6 +1729,7 @@
             state.selectedLevel = "all";
           }
           render();
+          initLiveSyncFromUrl();
           handleShareParam();
         } catch (error) {
           checklistRoot.innerHTML = `
@@ -1637,6 +1805,7 @@
         state.completed.clear();
         saveState();
         render();
+        syncLocalChecklistChanges();
       });
 
       function closeExportMenu() {
@@ -1654,7 +1823,13 @@
 
       copyLinkButton.addEventListener("click", async () => {
         closeExportMenu();
-        const url = generateShareUrl();
+        let url = generateShareUrl();
+        if (isLiveSyncConfigured()) {
+          const shareId = liveSyncState.shareId || createShareId();
+          startLiveSync(shareId);
+          await pushLiveState();
+          url = buildLiveShareUrl(shareId);
+        }
         try {
           await navigator.clipboard.writeText(url);
           copyLinkButton.textContent = "Link copied!";
@@ -1739,6 +1914,7 @@
         }
         saveState();
         render();
+        syncLocalChecklistChanges();
         dismissShareBanner();
       });
 
@@ -1753,6 +1929,7 @@
         }
         saveState();
         render();
+        syncLocalChecklistChanges();
         dismissShareBanner();
       });
 
@@ -1763,6 +1940,8 @@
         applyGoogleLanguage(preferredLanguage);
         saveState();
       });
+
+      window.addEventListener("beforeunload", stopLiveSyncPolling);
 
       loadSavedState();
       buildLanguageOptions();
