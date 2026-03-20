@@ -15,6 +15,7 @@ Hosted on GitHub Pages via `index.html`.
 | `season-2-tank-center-calculator.html`     | Season 2 Squad Base calculator                        |
 | `season-1-squad-base-calculator.html`      | Season 1 Squad Base calculator                        |
 | `virus-research-institute-calculator.html` | Season 1 Virus Research Institute calculator          |
+| `season-1-interactive-map.html`            | Interactive alliance territory planning map for S1    |
 | `hq-upgrade-calculator.html`               | HQ upgrade calculator                                 |
 | `curse-research-lab-calculator.html`       | Season 3 Curse Research Lab calculator                |
 | `altar-calculator.html`                    | Season 3 Altar calculator                             |
@@ -42,9 +43,10 @@ Hosted on GitHub Pages via `index.html`.
 - Troop planners:
   - T10 research path planner with quick actions and focus filters
   - T11 percentage-based research planner with prorated remaining totals
-- Season 1 calculators:
+- Season 1 calculators and planning tools:
   - Virus Research Institute
   - Squad Base
+  - Interactive Alliance Map (real-time territory planning, import/export)
 - Season 2 calculators:
   - Furnace (single resource + mine output ETA)
   - Squad Base (two resources + factory output ETA)

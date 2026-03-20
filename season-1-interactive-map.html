@@ -1,0 +1,1982 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Season 1 Interactive Map - Last War Tools</title>
+    <meta
+      name="description"
+      content="Interactive alli
+      ance map planning tool for Season 1 - The Crimson Plague. Manage cities, strongholds, and coordinate territories with real-time visualization and import/export functionality."
+    />
+    <meta
+      name="canonical"
+      content="https://lastwarsurvivaltools.com/season-1-interactive-map.html"
+    />
+
+    <!-- Open Graph Tags -->
+    <meta property="og:type" content="website" />
+    <meta
+      property="og:title"
+      content="Season 1 Interactive Map - Last War Tools"
+    />
+    <meta
+      property="og:description"
+      content="Plan your Season 1 alliance strategy with our interactive map tool. Manage territories and coordinate with allies."
+    />
+    <meta
+      property="og:url"
+      content="https://lastwarsurvivaltools.com/season-1-interactive-map.html"
+    />
+    <meta
+      property="og:image"
+      content="https://lastwarsurvivaltools.com/media/lwst.png"
+    />
+
+    <!-- Twitter Card Tags -->
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta
+      name="twitter:title"
+      content="Season 1 Interactive Map - Last War Tools"
+    />
+    <meta
+      name="twitter:description"
+      content="Interactive alliance map planning for Season 1 - The Crimson Plague"
+    />
+
+    <!-- JSON-LD Structured Data -->
+    <script type="application/ld+json">
+      {
+        "@context": "https://schema.org",
+        "@type": "WebPage",
+        "name": "Season 1 Interactive Map",
+        "description": "Interactive alliance map planning tool for Season 1",
+        "url": "https://lastwarsurvivaltools.com/season-1-interactive-map.html",
+        "image": "https://lastwarsurvivaltools.com/media/lwst.png"
+      }
+    </script>
+
+    <link rel="stylesheet" href="last-war-furnace-upgrade-calculator.css" />
+    <style>
+      .map-container {
+        display: grid;
+        grid-template-columns: 1fr 300px;
+        gap: 20px;
+        margin-top: 20px;
+      }
+
+      .map-canvas-wrapper {
+        background: linear-gradient(
+          180deg,
+          var(--panel) 0%,
+          var(--panel-2) 100%
+        );
+        border: 1px solid var(--line-soft);
+        border-radius: 16px;
+        box-shadow: 0 18px 50px rgba(0, 0, 0, 0.24);
+        padding: 15px;
+        position: relative;
+        overflow: auto;
+        max-height: 700px;
+      }
+
+      #mapCanvas {
+        display: block;
+        background: #0a1420;
+        border: 1px solid var(--line);
+        border-radius: 12px;
+        cursor: crosshair;
+      }
+
+      .map-tooltip {
+        position: fixed;
+        z-index: 1200;
+        min-width: 190px;
+        max-width: 280px;
+        background: rgba(8, 16, 25, 0.96);
+        border: 1px solid var(--line-soft);
+        border-radius: 8px;
+        box-shadow: 0 10px 28px rgba(0, 0, 0, 0.35);
+        color: var(--text);
+        font-size: 0.76rem;
+        line-height: 1.35;
+        padding: 8px 10px;
+        pointer-events: none;
+        opacity: 0;
+        transform: translateY(4px);
+        transition:
+          opacity 0.1s ease,
+          transform 0.1s ease;
+      }
+
+      .map-tooltip.show {
+        opacity: 1;
+        transform: translateY(0);
+      }
+
+      .map-tooltip-title {
+        color: var(--accent);
+        font-weight: 700;
+        margin-bottom: 4px;
+      }
+
+      .sidebar {
+        background: linear-gradient(
+          180deg,
+          var(--panel) 0%,
+          var(--panel-2) 100%
+        );
+        border: 1px solid var(--line-soft);
+        border-radius: 16px;
+        box-shadow: 0 18px 50px rgba(0, 0, 0, 0.24);
+        padding: 15px;
+        max-height: 700px;
+        overflow-y: auto;
+      }
+
+      .sidebar-section {
+        margin-bottom: 20px;
+        border-bottom: 1px solid var(--line);
+        padding-bottom: 15px;
+      }
+
+      .sidebar-section:last-child {
+        border-bottom: none;
+        margin-bottom: 0;
+        padding-bottom: 0;
+      }
+
+      .sidebar-title {
+        font-weight: bold;
+        color: var(--accent);
+        margin-bottom: 10px;
+        font-size: 0.95rem;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+      }
+
+      .alliance-input {
+        display: grid;
+        grid-template-columns: 1fr auto;
+        gap: 8px;
+        margin-bottom: 10px;
+      }
+
+      .alliance-input input {
+        padding: 6px 10px;
+        background: rgba(8, 16, 25, 0.66);
+        border: 1px solid var(--line);
+        border-radius: 4px;
+        color: var(--text);
+        font-size: 0.85rem;
+      }
+
+      .alliance-input input::placeholder {
+        color: var(--muted);
+      }
+
+      .btn-small {
+        padding: 6px 12px;
+        background: rgba(8, 16, 25, 0.66);
+        border: 1px solid var(--line);
+        border-radius: 4px;
+        color: var(--muted);
+        cursor: pointer;
+        font-size: 0.8rem;
+        transition: all 0.2s;
+        white-space: nowrap;
+      }
+
+      .btn-small:hover {
+        color: var(--text);
+        border-color: var(--accent-2);
+        background: rgba(12, 24, 37, 0.92);
+      }
+
+      .alliance-list {
+        max-height: 150px;
+        overflow-y: auto;
+      }
+
+      .alliance-item {
+        padding: 8px;
+        background: rgba(8, 16, 25, 0.5);
+        border: 1px solid var(--line);
+        border-radius: 3px;
+        margin-bottom: 6px;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        font-size: 0.85rem;
+        cursor: pointer;
+        transition: all 0.2s;
+      }
+
+      .alliance-item:hover {
+        background: rgba(12, 24, 37, 0.92);
+        border-color: var(--accent-2);
+      }
+
+      .alliance-item.selected {
+        background: rgba(18, 35, 53, 0.95);
+        border-color: rgba(116, 192, 252, 0.42);
+      }
+
+      .alliance-color {
+        width: 16px;
+        height: 16px;
+        border-radius: 3px;
+        border: 1px solid rgba(0, 0, 0, 0.3);
+      }
+
+      .alliance-remove {
+        color: #ff6b6b;
+        cursor: pointer;
+        font-size: 0.8rem;
+      }
+
+      .toggle-group {
+        display: flex;
+        flex-direction: column;
+        gap: 8px;
+      }
+
+      .toggle-item {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        font-size: 0.85rem;
+        cursor: pointer;
+        user-select: none;
+      }
+
+      .toggle-item input[type="checkbox"] {
+        cursor: pointer;
+        width: 16px;
+        height: 16px;
+        accent-color: var(--accent);
+      }
+
+      .legend-grid {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 8px;
+      }
+
+      .legend-item {
+        display: flex;
+        align-items: center;
+        gap: 0;
+        font-size: 0.75rem;
+        padding: 4px;
+        background: rgba(8, 16, 25, 0.4);
+        border-radius: 3px;
+      }
+
+      .controls-top {
+        display: flex;
+        gap: 10px;
+        margin-bottom: 15px;
+        flex-wrap: wrap;
+      }
+
+      .controls-top .btn-action {
+        flex: 1 1 160px;
+      }
+
+      .zoom-controls {
+        display: inline-flex;
+        align-items: center;
+        justify-content: flex-end;
+        gap: 8px;
+        flex: 1 1 320px;
+        flex-wrap: wrap;
+      }
+
+      .zoom-level {
+        min-width: 60px;
+        text-align: center;
+        color: var(--accent);
+        font-size: 0.88rem;
+        font-weight: 700;
+      }
+
+      .btn-action {
+        padding: 8px 14px;
+        background: rgba(8, 16, 25, 0.66);
+        border: 1px solid var(--line);
+        border-radius: 4px;
+        color: var(--muted);
+        cursor: pointer;
+        font-size: 0.85rem;
+        transition: all 0.2s;
+      }
+
+      .btn-action:hover {
+        color: var(--text);
+        border-color: var(--accent-2);
+        background: rgba(12, 24, 37, 0.92);
+      }
+
+      .stats-panel {
+        background: rgba(8, 16, 25, 0.4);
+        border: 1px solid var(--line);
+        border-radius: 4px;
+        padding: 10px;
+        margin-bottom: 10px;
+        font-size: 0.85rem;
+      }
+
+      .stats-row {
+        display: flex;
+        justify-content: space-between;
+        margin-bottom: 4px;
+      }
+
+      .stats-row:last-child {
+        margin-bottom: 0;
+      }
+
+      .stat-label {
+        color: var(--muted);
+      }
+
+      .stat-value {
+        color: var(--accent);
+        font-weight: bold;
+      }
+
+      .area-detail-hint {
+        color: var(--muted);
+        font-size: 0.8rem;
+        line-height: 1.4;
+      }
+
+      .area-detail-value {
+        color: var(--text);
+        font-weight: 600;
+        text-align: right;
+        max-width: 58%;
+      }
+
+      .modal {
+        display: none;
+        position: fixed;
+        z-index: 1000;
+        left: 0;
+        top: 0;
+        width: 100%;
+        height: 100%;
+        background-color: rgba(0, 0, 0, 0.8);
+      }
+
+      .modal.show {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+      }
+
+      .modal-content {
+        background: linear-gradient(
+          180deg,
+          var(--panel) 0%,
+          var(--panel-2) 100%
+        );
+        border: 1px solid var(--line-soft);
+        border-radius: 16px;
+        box-shadow: 0 18px 50px rgba(0, 0, 0, 0.24);
+        padding: 25px;
+        max-width: 500px;
+        width: 90%;
+        max-height: 80vh;
+        overflow-y: auto;
+      }
+
+      .modal-content h3 {
+        margin-top: 0;
+        color: var(--accent);
+      }
+
+      .modal-textarea {
+        width: 100%;
+        height: 150px;
+        padding: 10px;
+        background: rgba(8, 16, 25, 0.66);
+        border: 1px solid var(--line);
+        border-radius: 4px;
+        color: var(--text);
+        font-family: monospace;
+        font-size: 0.85rem;
+        resize: vertical;
+      }
+
+      .modal-textarea::placeholder {
+        color: var(--muted);
+      }
+
+      .modal-buttons {
+        display: flex;
+        gap: 10px;
+        margin-top: 15px;
+      }
+
+      .export-format-grid {
+        display: grid;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 10px;
+        margin-bottom: 20px;
+      }
+
+      .export-format-grid .btn-confirm {
+        width: 100%;
+      }
+
+      .export-preview {
+        background: rgba(8, 16, 25, 0.4);
+        border: 1px solid var(--line);
+        border-radius: 4px;
+        padding: 10px;
+        margin-bottom: 15px;
+        font-size: 0.8rem;
+        color: var(--muted);
+        display: none;
+        max-height: 120px;
+        overflow-y: auto;
+      }
+
+      .modal-buttons button {
+        flex: 1;
+        padding: 10px;
+        border-radius: 4px;
+        border: 1px solid var(--line);
+        cursor: pointer;
+        font-size: 0.85rem;
+        transition: all 0.2s;
+      }
+
+      .btn-confirm {
+        background: rgba(8, 16, 25, 0.66);
+        color: var(--muted);
+      }
+
+      .btn-confirm:hover {
+        color: var(--text);
+        border-color: var(--accent-2);
+        background: rgba(12, 24, 37, 0.92);
+      }
+
+      .btn-cancel {
+        background: rgba(8, 16, 25, 0.4);
+        color: var(--muted);
+      }
+
+      .btn-cancel:hover {
+        color: var(--text);
+        border-color: var(--line-soft);
+        background: rgba(12, 24, 37, 0.92);
+      }
+
+      @media (max-width: 1024px) {
+        .map-container {
+          grid-template-columns: 1fr;
+        }
+
+        .sidebar {
+          max-height: none;
+        }
+
+        .map-canvas-wrapper {
+          max-height: none;
+        }
+
+        .top-stats-bar {
+          flex-wrap: wrap;
+          gap: 18px;
+        }
+
+        .top-stat {
+          flex: 1 1 160px;
+        }
+      }
+
+      @media (max-width: 720px) {
+        .map-container {
+          gap: 16px;
+        }
+
+        .map-canvas-wrapper,
+        .sidebar,
+        .top-stats-bar,
+        .modal-content {
+          border-radius: 12px;
+        }
+
+        .map-canvas-wrapper,
+        .sidebar,
+        .modal-content {
+          padding: 12px;
+        }
+
+        .top-stats-bar {
+          gap: 14px;
+          padding: 14px;
+        }
+
+        .top-stat-value {
+          font-size: 1.25rem;
+        }
+
+        .controls-top {
+          display: grid;
+          grid-template-columns: repeat(2, minmax(0, 1fr));
+        }
+
+        .controls-top .btn-action {
+          min-width: 0;
+        }
+
+        .zoom-controls {
+          grid-column: 1 / -1;
+          justify-content: stretch;
+          flex-wrap: wrap;
+        }
+
+        .zoom-controls .btn-action {
+          flex: 1 1 0;
+        }
+
+        .zoom-level {
+          flex: 1 1 100%;
+          order: -1;
+        }
+
+        .alliance-input {
+          grid-template-columns: 1fr;
+        }
+
+        .btn-small {
+          width: 100%;
+        }
+
+        .legend-grid,
+        .export-format-grid {
+          grid-template-columns: 1fr;
+        }
+
+        .modal-buttons {
+          flex-direction: column;
+        }
+      }
+
+      @media (max-width: 520px) {
+        .top-stats-bar {
+          flex-direction: column;
+          align-items: stretch;
+        }
+
+        .top-stat {
+          width: 100%;
+        }
+
+        .controls-top {
+          grid-template-columns: 1fr;
+        }
+
+        .alliance-item {
+          flex-wrap: wrap;
+          gap: 8px;
+        }
+
+        .alliance-item > div {
+          min-width: 0;
+        }
+
+        .modal-content {
+          width: 94%;
+        }
+      }
+
+      .area-info {
+        position: absolute;
+        background: var(--panel);
+        border: 1px solid var(--accent);
+        border-radius: 4px;
+        padding: 8px;
+        font-size: 0.8rem;
+        pointer-events: none;
+        z-index: 10;
+        max-width: 200px;
+      }
+
+      .top-stats-bar {
+        display: flex;
+        gap: 30px;
+        background: linear-gradient(
+          180deg,
+          var(--panel) 0%,
+          var(--panel-2) 100%
+        );
+        border: 1px solid var(--line-soft);
+        border-radius: 16px;
+        box-shadow: 0 18px 50px rgba(0, 0, 0, 0.24);
+        padding: 15px 20px;
+        margin-bottom: 20px;
+        align-items: center;
+      }
+
+      .top-stat {
+        display: flex;
+        flex-direction: column;
+        gap: 4px;
+      }
+
+      .top-stat-label {
+        font-size: 0.8rem;
+        color: var(--muted);
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+        font-weight: 500;
+      }
+
+      .top-stat-value {
+        font-size: 1.5rem;
+        font-weight: bold;
+        color: var(--accent);
+      }
+    </style>
+  </head>
+  <body>
+    <div class="page">
+      <div class="support-bar">
+        <a
+          href="https://buymeacoffee.com/dkfoy56w"
+          class="support-link"
+          target="_blank"
+          rel="noopener noreferrer"
+          >Buy Me a Coffee</a
+        >
+      </div>
+
+      <div class="page-top-controls">
+        <div class="logo-control">
+          <a href="index.html" aria-label="Go to homepage">
+            <img src="media/lwst.png" alt="LWST logo" class="site-logo" />
+          </a>
+        </div>
+        <div class="language-control">
+          <label for="languageSelect">Language</label>
+          <select id="languageSelect">
+            <option value="en">English</option>
+            <option value="es">Español</option>
+            <option value="fr">Français</option>
+            <option value="de">Deutsch</option>
+            <option value="pt">Português</option>
+            <option value="ru">Русский</option>
+            <option value="ja">日本語</option>
+            <option value="zh">中文</option>
+          </select>
+        </div>
+      </div>
+      <div id="google_translate_element" class="hidden-translate"></div>
+
+      <nav class="page-nav" aria-label="Calculator pages">
+        <a href="hq-upgrade-calculator.html" class="page-link">HQ Upgrade</a>
+        <details class="page-nav-dropdown" name="troop-nav">
+          <summary class="page-link page-nav-dropdown-toggle">
+            Troop Calculators
+          </summary>
+          <div class="page-nav-dropdown-menu">
+            <a href="t10-troops-calculator.html" class="page-link"
+              >T10 Troops</a
+            >
+            <a href="t11-troops-calculator.html" class="page-link"
+              >T11 Troops</a
+            >
+          </div>
+        </details>
+        <details class="page-nav-dropdown active" name="season-nav">
+          <summary class="page-link page-nav-dropdown-toggle">
+            Season 1 Tools
+          </summary>
+          <div class="page-nav-dropdown-menu">
+            <a href="virus-research-institute-calculator.html" class="page-link"
+              >Virus Research Institute</a
+            >
+            <a href="season-1-squad-base-calculator.html" class="page-link"
+              >Season 1 Squad Base</a
+            >
+            <a href="season-1-interactive-map.html" class="page-link active"
+              >Interactive Map</a
+            >
+          </div>
+        </details>
+        <details class="page-nav-dropdown" name="season-nav">
+          <summary class="page-link page-nav-dropdown-toggle">
+            Season 2 Tools
+          </summary>
+          <div class="page-nav-dropdown-menu">
+            <a href="last-war-furnace-upgrade-calculator.html" class="page-link"
+              >Furnace Calculator</a
+            >
+            <a href="season-2-tank-center-calculator.html" class="page-link"
+              >Season 2 Squad Base</a
+            >
+            <a href="season-2-interactive-map.html" class="page-link"
+              >Interactive Map</a
+            >
+          </div>
+        </details>
+        <details class="page-nav-dropdown" name="season-nav">
+          <summary class="page-link page-nav-dropdown-toggle">
+            Season 3 Tools
+          </summary>
+          <div class="page-nav-dropdown-menu">
+            <a href="curse-research-lab-calculator.html" class="page-link"
+              >Curse Research Lab</a
+            >
+            <a href="altar-calculator.html" class="page-link">Altar</a>
+            <a href="protectors-field-calculator.html" class="page-link"
+              >Protectors Field</a
+            >
+          </div>
+        </details>
+        <details class="page-nav-dropdown" name="season-nav">
+          <summary class="page-link page-nav-dropdown-toggle">
+            Season 4 Tools
+          </summary>
+          <div class="page-nav-dropdown-menu">
+            <a href="optoelectronic-lab-calculator.html" class="page-link"
+              >Optoelectronic Lab</a
+            >
+            <a href="protectors-field-s4-calculator.html" class="page-link"
+              >Protector's Field S4</a
+            >
+            <a href="lighthouse-s4-calculator.html" class="page-link"
+              >Lighthouse S4</a
+            >
+          </div>
+        </details>
+        <details class="page-nav-dropdown" name="season-nav">
+          <summary class="page-link page-nav-dropdown-toggle">
+            Season 5 Tools
+          </summary>
+          <div class="page-nav-dropdown-menu">
+            <a href="caffeine-institute-calculator.html" class="page-link"
+              >Caffeine Institute</a
+            >
+            <a href="protectors-field-s5-calculator.html" class="page-link"
+              >Protector's Field S5</a
+            >
+            <a href="season-5-squad-base-calculator.html" class="page-link"
+              >Season 5 Squad Base</a
+            >
+          </div>
+        </details>
+      </nav>
+
+      <div class="container">
+        <h1>Season 1 Interactive Map - The Crimson Plague</h1>
+        <p style="color: rgba(217, 240, 255, 0.7); margin-bottom: 20px">
+          Plan your alliance strategy with real-time territory management.
+          Create alliances, assign territories, and coordinate with your team.
+        </p>
+
+        <div class="top-stats-bar">
+          <div class="top-stat">
+            <div class="top-stat-label">Total Areas</div>
+            <div class="top-stat-value" id="topStatTotalAreas">386</div>
+          </div>
+          <div class="top-stat">
+            <div class="top-stat-label">Active Alliances</div>
+            <div class="top-stat-value" id="topStatAlliances">0</div>
+          </div>
+          <div class="top-stat">
+            <div class="top-stat-label">Assigned Territories</div>
+            <div class="top-stat-value" id="topStatAssigned">0</div>
+          </div>
+        </div>
+
+        <div class="controls-top">
+          <button class="btn-action" onclick="clearAllTerritories()">
+            Clear Map
+          </button>
+          <button class="btn-action" onclick="showExportModal()">
+            Export Plan
+          </button>
+          <button class="btn-action" onclick="showImportModal()">
+            Import Plan
+          </button>
+          <button class="btn-action" onclick="resetView()">Reset View</button>
+          <div class="zoom-controls">
+            <button class="btn-action" onclick="zoomOut()">Zoom Out</button>
+            <div class="zoom-level" id="zoomLevel">100%</div>
+            <button class="btn-action" onclick="zoomIn()">Zoom In</button>
+            <button class="btn-action" onclick="resetZoom()">Reset Zoom</button>
+          </div>
+        </div>
+
+        <div class="map-container">
+          <div class="map-canvas-wrapper" id="mapCanvasWrapper">
+            <canvas id="mapCanvas" width="1000" height="1000"></canvas>
+            <div class="map-tooltip" id="mapTooltip"></div>
+          </div>
+
+          <div class="sidebar">
+            <!-- Help -->
+            <div class="sidebar-section">
+              <div class="sidebar-title">How to Use</div>
+              <p
+                style="
+                  font-size: 0.8rem;
+                  color: rgba(217, 240, 255, 0.6);
+                  line-height: 1.4;
+                "
+              >
+                1. Add alliances using the input field<br />
+                2. Select an alliance in the list<br />
+                3. Click on map areas to assign territories<br />
+                4. Export plan to share with your team
+              </p>
+            </div>
+
+            <!-- Stats -->
+            <div class="sidebar-section">
+              <div class="sidebar-title">Map Stats</div>
+              <div class="stats-panel">
+                <div class="stats-row">
+                  <span class="stat-label">Total Areas:</span>
+                  <span class="stat-value" id="statTotalAreas">386</span>
+                </div>
+                <div class="stats-row">
+                  <span class="stat-label">Assigned:</span>
+                  <span class="stat-value" id="statAssigned">0</span>
+                </div>
+                <div class="stats-row">
+                  <span class="stat-label">Alliances:</span>
+                  <span class="stat-value" id="statAlliances">0</span>
+                </div>
+                <div class="stats-row">
+                  <span class="stat-label">Selected:</span>
+                  <span class="stat-value" id="statSelected">None</span>
+                </div>
+              </div>
+            </div>
+
+            <!-- Alliance Management -->
+            <div class="sidebar-section">
+              <div class="sidebar-title">Alliance Manager</div>
+              <div class="alliance-input">
+                <input
+                  type="text"
+                  id="allianceInput"
+                  placeholder="Enter alliance tag"
+                  maxlength="4"
+                />
+                <button class="btn-small" onclick="addAlliance()">Add</button>
+              </div>
+              <div class="alliance-list" id="allianceList"></div>
+            </div>
+
+            <div class="sidebar-section">
+              <div class="sidebar-title">Selected Area</div>
+              <div class="stats-panel" id="selectedAreaPanel">
+                <div class="area-detail-hint">
+                  Click any square on the map to inspect its level, buff, and
+                  influence points.
+                </div>
+              </div>
+            </div>
+
+            <!-- Display Options -->
+            <div class="sidebar-section">
+              <div class="sidebar-title">Display Options</div>
+              <div class="toggle-group">
+                <label class="toggle-item">
+                  <input
+                    type="checkbox"
+                    id="showLabels"
+                    onchange="renderMap()"
+                  />
+                  <span>Show Area Labels</span>
+                </label>
+                <label class="toggle-item">
+                  <input type="checkbox" id="showGrid" onchange="renderMap()" />
+                  <span>Show Grid</span>
+                </label>
+                <label class="toggle-item">
+                  <input
+                    type="checkbox"
+                    id="showCities"
+                    checked
+                    onchange="renderMap()"
+                  />
+                  <span>Show City Names &amp; Levels</span>
+                </label>
+              </div>
+            </div>
+
+            <!-- Legend -->
+            <div class="sidebar-section">
+              <div class="sidebar-title">Area Types</div>
+              <div class="legend-grid">
+                <div class="legend-item">
+                  <span>Stronghold</span>
+                </div>
+                <div class="legend-item">
+                  <span>Brewery</span>
+                </div>
+                <div class="legend-item">
+                  <span>Fog Shroud</span>
+                </div>
+                <div class="legend-item">
+                  <span>Theme Park</span>
+                </div>
+                <div class="legend-item">
+                  <span>Art Gallery</span>
+                </div>
+                <div class="legend-item">
+                  <span>Stadium</span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Export Modal -->
+      <div id="exportModal" class="modal">
+        <div class="modal-content">
+          <h3>Export Battle Plan</h3>
+          <p
+            style="
+              color: rgba(217, 240, 255, 0.7);
+              font-size: 0.9rem;
+              margin-bottom: 15px;
+            "
+          >
+            Select an export format:
+          </p>
+
+          <div class="export-format-grid">
+            <button class="btn-confirm" onclick="exportAsJSON()">
+              📋 JSON
+            </button>
+            <button class="btn-confirm" onclick="exportAsExcel()">
+              📊 Excel
+            </button>
+            <button class="btn-confirm" onclick="exportAsPNG()">🖼️ PNG</button>
+            <button class="btn-confirm" onclick="exportAsPDF()">📄 PDF</button>
+          </div>
+
+          <div class="export-preview" id="exportPreview">
+            <textarea
+              class="modal-textarea"
+              id="exportText"
+              readonly
+              style="display: none; max-height: 100px"
+            ></textarea>
+          </div>
+
+          <div class="modal-buttons">
+            <button
+              class="btn-confirm"
+              onclick="copyToClipboard()"
+              id="copyBtn"
+              style="display: none"
+            >
+              Copy to Clipboard
+            </button>
+            <button class="btn-cancel" onclick="closeExportModal()">
+              Close
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Import Modal -->
+    <div id="importModal" class="modal">
+      <div class="modal-content">
+        <h3>Import Battle Plan</h3>
+        <p
+          style="
+            color: rgba(217, 240, 255, 0.7);
+            font-size: 0.9rem;
+            margin-bottom: 15px;
+          "
+        >
+          Paste the JSON plan from your allies:
+        </p>
+        <textarea
+          class="modal-textarea"
+          id="importText"
+          placeholder="Paste JSON plan here..."
+        ></textarea>
+        <div class="modal-buttons">
+          <button class="btn-confirm" onclick="importPlan()">Import</button>
+          <button class="btn-cancel" onclick="closeImportModal()">
+            Cancel
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- External libraries for export functionality -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
+
+    <script src="page-nav-dropdown.js"></script>
+    <script src="season-1-territories.js"></script>
+    <script>
+      // Initialize map data
+      const state = {
+        alliances: [],
+        selectedAlliance: null,
+        selectedAreaId: null,
+        territories: {}, // territory index -> alliance tag
+        view: {
+          zoom: 1,
+          minZoom: 0.75,
+          maxZoom: 3,
+          zoomStep: 0.25,
+          pinchStartDistance: null,
+          pinchStartZoom: 1,
+          isDragging: false,
+          dragHappened: false,
+          dragStartX: 0,
+          dragStartY: 0,
+          dragStartScrollLeft: 0,
+          dragStartScrollTop: 0,
+          touchPanStartX: null,
+          touchPanStartY: null,
+          touchPanScrollLeft: 0,
+          touchPanScrollTop: 0,
+        },
+        areaTypes: {
+          SH: { name: "Stronghold", count: 305 },
+          B: { name: "Brewery", count: 24 },
+          FSA: { name: "Fog Shroud Alley", count: 20 },
+          TP: { name: "Theme Park", count: 16 },
+          AG: { name: "Art Gallery", count: 12 },
+          S: { name: "Stadium", count: 2 },
+          RS: { name: "Royal Stadium", count: 3 },
+          HN: { name: "House of Nobles", count: 3 },
+        },
+      };
+
+      const canvas = document.getElementById("mapCanvas");
+      const mapCanvasWrapper = document.getElementById("mapCanvasWrapper");
+      const mapTooltip = document.getElementById("mapTooltip");
+      const ctx = canvas.getContext("2d");
+      const MAP_SIZE = 1000;
+      const AREA_ABBREVIATIONS = {
+        Stronghold: "SH",
+        Brewery: "B",
+        "Fog Shroud Alley": "FSA",
+        "Theme Park": "TP",
+        "Art Gallery": "AG",
+        Stadium: "S",
+        "Royal Stadium": "RS",
+        "House of Nobles": "HN",
+        "Royal Palace": "RP",
+      };
+
+      const BUFF_LABELS = {
+        iron: "Iron Output",
+        food: "Food Output",
+        coin: "Coin Output",
+        gathering: "Gathering Speed",
+        research: "Research Speed",
+        training: "Training Speed",
+        construction: "Construction Speed",
+        healing: "Healing Speed",
+        march: "March Speed",
+      };
+
+      // Alliance colors
+      const allianceColors = [
+        "#ff6b6b",
+        "#4ecdc4",
+        "#45b7d1",
+        "#ffd93d",
+        "#a78bfa",
+        "#f97316",
+        "#10b981",
+        "#06b6d4",
+        "#ec4899",
+        "#8b5cf6",
+        "#ef4444",
+        "#3b82f6",
+      ];
+
+      function clampZoom(zoom) {
+        return Math.min(state.view.maxZoom, Math.max(state.view.minZoom, zoom));
+      }
+
+      function updateCanvasDisplay() {
+        const wrapperStyles = window.getComputedStyle(mapCanvasWrapper);
+        const paddingLeft = parseFloat(wrapperStyles.paddingLeft) || 0;
+        const paddingRight = parseFloat(wrapperStyles.paddingRight) || 0;
+        const availableWidth = Math.max(
+          240,
+          mapCanvasWrapper.clientWidth - paddingLeft - paddingRight,
+        );
+        const baseWidth = Math.min(MAP_SIZE, availableWidth);
+        const displayWidth = baseWidth * state.view.zoom;
+        const displayHeight = displayWidth;
+
+        state.view.displayWidth = displayWidth;
+        state.view.displayHeight = displayHeight;
+
+        canvas.style.width = `${displayWidth}px`;
+        canvas.style.height = `${displayHeight}px`;
+        document.getElementById("zoomLevel").textContent = `${Math.round(
+          state.view.zoom * 100,
+        )}%`;
+      }
+
+      function setZoom(zoom) {
+        const nextZoom = clampZoom(zoom);
+        if (nextZoom === state.view.zoom) {
+          return;
+        }
+
+        state.view.zoom = nextZoom;
+        updateCanvasDisplay();
+        renderMap();
+      }
+
+      function zoomIn() {
+        setZoom(state.view.zoom + state.view.zoomStep);
+      }
+
+      function zoomOut() {
+        setZoom(state.view.zoom - state.view.zoomStep);
+      }
+
+      function resetZoom() {
+        setZoom(1);
+      }
+
+      function getTouchDistance(touchA, touchB) {
+        const deltaX = touchA.clientX - touchB.clientX;
+        const deltaY = touchA.clientY - touchB.clientY;
+        return Math.hypot(deltaX, deltaY);
+      }
+
+      function addAlliance() {
+        const input = document.getElementById("allianceInput");
+        const tag = input.value.trim().toUpperCase();
+
+        if (!tag) return;
+        if (state.alliances.find((a) => a.tag === tag)) {
+          alert("Alliance already exists!");
+          return;
+        }
+        if (state.alliances.length >= 12) {
+          alert("Maximum 12 alliances allowed!");
+          return;
+        }
+
+        const alliance = {
+          tag,
+          color: allianceColors[state.alliances.length % allianceColors.length],
+          cities: 0,
+          strongholds: 0,
+        };
+
+        state.alliances.push(alliance);
+        input.value = "";
+        updateUI();
+        renderMap();
+      }
+
+      function removeAlliance(tag) {
+        state.alliances = state.alliances.filter((a) => a.tag !== tag);
+
+        // Remove all territories for this alliance
+        Object.keys(state.territories).forEach((key) => {
+          if (state.territories[key] === tag) {
+            delete state.territories[key];
+          }
+        });
+
+        if (state.selectedAlliance === tag) {
+          state.selectedAlliance = null;
+        }
+
+        updateUI();
+        renderMap();
+      }
+
+      function selectAlliance(tag) {
+        state.selectedAlliance = state.selectedAlliance === tag ? null : tag;
+        updateUI();
+      }
+
+      function updateUI() {
+        const allianceList = document.getElementById("allianceList");
+        allianceList.innerHTML = state.alliances
+          .map(
+            (alliance) => `
+                <div class="alliance-item ${state.selectedAlliance === alliance.tag ? "selected" : ""}" 
+                     onclick="selectAlliance('${alliance.tag}')">
+                    <div style="display: flex; align-items: center; gap: 8px; flex: 1;">
+                        <div class="alliance-color" style="background: ${alliance.color};"></div>
+                        <strong>${alliance.tag}</strong>
+                        <span style="font-size: 0.75rem; color: rgba(217, 240, 255, 0.5);">
+                            (${countAllianceTerritories(alliance.tag)} areas)
+                        </span>
+                    </div>
+                    <span class="alliance-remove" onclick="event.stopPropagation(); removeAlliance('${alliance.tag}')">✕</span>
+                </div>
+            `,
+          )
+          .join("");
+
+        // Update stats
+        const assignedCount = Object.keys(state.territories).length;
+        document.getElementById("statTotalAreas").textContent = "386";
+        document.getElementById("statAssigned").textContent = assignedCount;
+        document.getElementById("statAlliances").textContent =
+          state.alliances.length;
+        document.getElementById("statSelected").textContent =
+          state.selectedAlliance || "None";
+
+        // Update top stats
+        document.getElementById("topStatTotalAreas").textContent = "386";
+        document.getElementById("topStatAlliances").textContent =
+          state.alliances.length;
+        document.getElementById("topStatAssigned").textContent = assignedCount;
+        updateSelectedAreaInfo();
+      }
+
+      function countAllianceTerritories(tag) {
+        return Object.values(state.territories).filter((t) => t === tag).length;
+      }
+
+      function getAreaAbbreviation(name) {
+        return AREA_ABBREVIATIONS[name] || name;
+      }
+
+      function formatBuff(buff) {
+        if (!buff) {
+          return "None";
+        }
+
+        const label = BUFF_LABELS[buff.item] || buff.item;
+        return `${label} +${buff.percentage}%`;
+      }
+
+      function updateSelectedAreaInfo() {
+        const panel = document.getElementById("selectedAreaPanel");
+        if (!panel) {
+          return;
+        }
+
+        if (!state.selectedAreaId) {
+          panel.innerHTML = `
+            <div class="area-detail-hint">
+              Click any square on the map to inspect its level, buff, and influence points.
+            </div>
+          `;
+          return;
+        }
+
+        const area = mapAreas.find(
+          (entry) => entry.id === state.selectedAreaId,
+        );
+        if (!area) {
+          panel.innerHTML = `
+            <div class="area-detail-hint">Area details are unavailable.</div>
+          `;
+          return;
+        }
+
+        const owner = state.territories[area.id] || "Unassigned";
+        const influence = area.resources?.influence ?? 0;
+
+        panel.innerHTML = `
+          <div class="stats-row">
+            <span class="stat-label">Area:</span>
+            <span class="area-detail-value">${area.name}</span>
+          </div>
+          <div class="stats-row">
+            <span class="stat-label">Level:</span>
+            <span class="area-detail-value">Lv. ${area.level}</span>
+          </div>
+          <div class="stats-row">
+            <span class="stat-label">Abbrev:</span>
+            <span class="area-detail-value">${area.abbreviation}</span>
+          </div>
+          <div class="stats-row">
+            <span class="stat-label">Buff:</span>
+            <span class="area-detail-value">${formatBuff(area.buff)}</span>
+          </div>
+          <div class="stats-row">
+            <span class="stat-label">Influence:</span>
+            <span class="area-detail-value">${influence.toLocaleString()}</span>
+          </div>
+          <div class="stats-row">
+            <span class="stat-label">Owner:</span>
+            <span class="area-detail-value">${owner}</span>
+          </div>
+        `;
+      }
+
+      function getAreaById(areaId) {
+        return mapAreas.find((entry) => entry.id === areaId) || null;
+      }
+
+      function hideMapTooltip() {
+        if (!mapTooltip) return;
+        mapTooltip.classList.remove("show");
+      }
+
+      function showMapTooltip(area, clientX, clientY) {
+        if (!mapTooltip || !area) return;
+
+        const owner = state.territories[area.id] || "Unassigned";
+        const influence = area.resources?.influence ?? 0;
+
+        mapTooltip.innerHTML = `
+          <div class="map-tooltip-title">${area.name} (Lv. ${area.level})</div>
+          <div>Buff: ${formatBuff(area.buff)}</div>
+          <div>Influence: ${influence.toLocaleString()}</div>
+          <div>Owner: ${owner}</div>
+        `;
+
+        const offset = 14;
+        const maxLeft = window.innerWidth - 300;
+        const maxTop = window.innerHeight - 140;
+        const left = Math.max(10, Math.min(clientX + offset, maxLeft));
+        const top = Math.max(10, Math.min(clientY + offset, maxTop));
+
+        mapTooltip.style.left = `${left}px`;
+        mapTooltip.style.top = `${top}px`;
+        mapTooltip.classList.add("show");
+      }
+
+      const mapAreas = (window.SEASON_1_TERRITORIES || []).map((area) => ({
+        id: area.id,
+        name: area.name,
+        abbreviation: getAreaAbbreviation(area.name),
+        level: area.level,
+        isCapitol: !!area.isCapitol,
+        buff: area.buff,
+        resources: area.resources,
+        coordinates: area.coordinates,
+      }));
+
+      function renderMap() {
+        const dpr = window.devicePixelRatio || 1;
+        const cssWidth = state.view.displayWidth || MAP_SIZE;
+        const renderScale = Math.max((cssWidth / MAP_SIZE) * dpr, 1);
+
+        canvas.width = Math.round(MAP_SIZE * renderScale);
+        canvas.height = Math.round(MAP_SIZE * renderScale);
+        ctx.setTransform(renderScale, 0, 0, renderScale, 0, 0);
+        ctx.clearRect(0, 0, MAP_SIZE, MAP_SIZE);
+
+        ctx.fillStyle = "rgb(20, 20, 25)";
+        ctx.fillRect(0, 0, MAP_SIZE, MAP_SIZE);
+
+        const showGrid = document.getElementById("showGrid").checked;
+        const showLabels = document.getElementById("showLabels").checked;
+        const showCities = document.getElementById("showCities").checked;
+
+        // Draw territories
+        mapAreas.forEach((area) => {
+          const x = area.coordinates.x;
+          const y = area.coordinates.y;
+          const w = area.coordinates.width;
+          const h = area.coordinates.height;
+
+          const alliance = state.territories[area.id];
+          const isCapitol = area.isCapitol;
+          const isStronghold = area.name === "Stronghold";
+
+          if (alliance) {
+            const allianceObj = state.alliances.find((a) => a.tag === alliance);
+            ctx.fillStyle = allianceObj.color;
+            ctx.globalAlpha = isCapitol ? 0.85 : 0.7;
+          } else if (isCapitol) {
+            ctx.fillStyle = "rgba(255, 215, 0, 0.1)";
+            ctx.globalAlpha = 1.0;
+          } else {
+            ctx.fillStyle = "rgba(217, 240, 255, 0.16)";
+            ctx.globalAlpha = 1.0;
+          }
+
+          ctx.fillRect(x + 1, y + 1, w - 2, h - 2);
+          ctx.globalAlpha = 1.0;
+
+          // Border
+          ctx.strokeStyle = isCapitol
+            ? alliance
+              ? "rgba(255, 255, 255, 0.6)"
+              : "rgba(255, 215, 0, 0.85)"
+            : alliance
+              ? "rgba(255, 255, 255, 0.3)"
+              : "rgba(43, 61, 81, 0.95)";
+          ctx.lineWidth = isCapitol ? 2.5 : alliance ? 2 : 0.75;
+          if (showGrid || alliance || isCapitol) {
+            ctx.strokeRect(x + 1, y + 1, w - 2, h - 2);
+          }
+
+          if (state.selectedAreaId === area.id) {
+            ctx.strokeStyle = "rgba(116, 192, 252, 0.95)";
+            ctx.lineWidth = 3;
+            ctx.strokeRect(x + 2, y + 2, w - 4, h - 4);
+          }
+
+          // Level badge colours: index = city level (1–6)
+          const LEVEL_COLORS = [
+            "",
+            "rgba(160,180,200,0.85)", // L1 — outer ring, dim
+            "rgba(120,195,225,0.9)", // L2
+            "#74c0fc", // L3
+            "#cd7f32", // L4 bronze
+            "#c0c0c0", // L5 silver
+            "#ffd700", // L6 gold
+          ];
+
+          // Capitol label — always visible
+          if (isCapitol) {
+            ctx.fillStyle = alliance
+              ? "rgba(255, 255, 255, 0.95)"
+              : "rgba(255, 215, 0, 0.95)";
+            ctx.textAlign = "center";
+            ctx.textBaseline = "middle";
+            ctx.font = "bold 14px monospace";
+            ctx.fillText("ROYAL PALACE", x + w / 2, y + h / 2 - 10);
+            ctx.font = "11px monospace";
+            ctx.fillText("LV. 7", x + w / 2, y + h / 2 + 12);
+          } else if (showCities && (!isStronghold || showLabels)) {
+            const labelColor = alliance
+              ? "rgba(255,255,255,0.95)"
+              : LEVEL_COLORS[Math.min(area.level, 6)] ||
+                "rgba(217,240,255,0.7)";
+
+            ctx.textAlign = "center";
+            ctx.textBaseline = "middle";
+            ctx.fillStyle = labelColor;
+            ctx.font =
+              w >= 100 || h >= 100
+                ? "bold 12px monospace"
+                : "bold 8px monospace";
+            ctx.fillText(area.abbreviation, x + w / 2, y + h / 2 - 6);
+            ctx.fillStyle = alliance
+              ? "rgba(255,255,255,0.8)"
+              : "rgba(217,240,255,0.55)";
+            ctx.font =
+              w >= 100 || h >= 100 ? "10px monospace" : "7px monospace";
+            ctx.fillText(`LV ${area.level}`, x + w / 2, y + h / 2 + 8);
+          } else if (showLabels) {
+            ctx.fillStyle = "rgba(217, 240, 255, 0.6)";
+            ctx.font = "9px monospace";
+            ctx.textAlign = "center";
+            ctx.textBaseline = "middle";
+            ctx.fillText(area.name, x + w / 2, y + h / 2 - 5);
+            ctx.fillText(area.id, x + w / 2, y + h / 2 + 7);
+          }
+        });
+      }
+
+      function getTerritoryAtPosition(x, y) {
+        const rect = canvas.getBoundingClientRect();
+        const canvasX = ((x - rect.left) / rect.width) * MAP_SIZE;
+        const canvasY = ((y - rect.top) / rect.height) * MAP_SIZE;
+
+        for (let i = mapAreas.length - 1; i >= 0; i--) {
+          const area = mapAreas[i];
+          const areaRight = area.coordinates.x + area.coordinates.width;
+          const areaBottom = area.coordinates.y + area.coordinates.height;
+          if (
+            canvasX >= area.coordinates.x &&
+            canvasX < areaRight &&
+            canvasY >= area.coordinates.y &&
+            canvasY < areaBottom
+          ) {
+            return area.id;
+          }
+        }
+
+        return null;
+      }
+
+      canvas.addEventListener("click", (e) => {
+        if (state.view.dragHappened) {
+          state.view.dragHappened = false;
+          return;
+        }
+
+        const territory = getTerritoryAtPosition(e.clientX, e.clientY);
+        if (territory === null) return;
+
+        state.selectedAreaId = territory;
+
+        if (!state.selectedAlliance) {
+          updateSelectedAreaInfo();
+          renderMap();
+          return;
+        }
+
+        if (state.territories[territory] === state.selectedAlliance) {
+          delete state.territories[territory];
+        } else {
+          state.territories[territory] = state.selectedAlliance;
+        }
+
+        updateUI();
+        renderMap();
+      });
+
+      canvas.addEventListener("mousemove", (e) => {
+        if (state.view.isDragging) {
+          hideMapTooltip();
+          return;
+        }
+
+        const territory = getTerritoryAtPosition(e.clientX, e.clientY);
+        if (!territory) {
+          hideMapTooltip();
+          return;
+        }
+
+        const area = getAreaById(territory);
+        if (!area) {
+          hideMapTooltip();
+          return;
+        }
+
+        showMapTooltip(area, e.clientX, e.clientY);
+      });
+
+      canvas.addEventListener("mouseleave", () => {
+        hideMapTooltip();
+      });
+
+      mapCanvasWrapper.addEventListener("mousedown", (e) => {
+        if (e.button !== 0) return;
+        state.view.isDragging = true;
+        state.view.dragHappened = false;
+        state.view.dragStartX = e.clientX;
+        state.view.dragStartY = e.clientY;
+        state.view.dragStartScrollLeft = mapCanvasWrapper.scrollLeft;
+        state.view.dragStartScrollTop = mapCanvasWrapper.scrollTop;
+        canvas.style.cursor = "grabbing";
+      });
+
+      document.addEventListener("mousemove", (e) => {
+        if (!state.view.isDragging) return;
+        const dx = e.clientX - state.view.dragStartX;
+        const dy = e.clientY - state.view.dragStartY;
+        if (!state.view.dragHappened && Math.hypot(dx, dy) < 5) return;
+        state.view.dragHappened = true;
+        mapCanvasWrapper.scrollLeft = state.view.dragStartScrollLeft - dx;
+        mapCanvasWrapper.scrollTop = state.view.dragStartScrollTop - dy;
+      });
+
+      document.addEventListener("mouseup", () => {
+        if (!state.view.isDragging) return;
+        state.view.isDragging = false;
+        canvas.style.cursor = "crosshair";
+        hideMapTooltip();
+      });
+
+      mapCanvasWrapper.addEventListener(
+        "wheel",
+        (event) => {
+          if (!event.ctrlKey) {
+            return;
+          }
+
+          event.preventDefault();
+
+          if (event.deltaY < 0) {
+            zoomIn();
+          } else {
+            zoomOut();
+          }
+        },
+        { passive: false },
+      );
+
+      mapCanvasWrapper.addEventListener(
+        "touchstart",
+        (event) => {
+          if (event.touches.length === 2) {
+            // Two fingers: start pinch zoom
+            state.view.pinchStartDistance = getTouchDistance(
+              event.touches[0],
+              event.touches[1],
+            );
+            state.view.pinchStartZoom = state.view.zoom;
+            // Cancel any in-progress single-touch pan
+            state.view.touchPanStartX = null;
+            state.view.touchPanStartY = null;
+          } else if (event.touches.length === 1) {
+            // One finger: start pan
+            state.view.touchPanStartX = event.touches[0].clientX;
+            state.view.touchPanStartY = event.touches[0].clientY;
+            state.view.touchPanScrollLeft = mapCanvasWrapper.scrollLeft;
+            state.view.touchPanScrollTop = mapCanvasWrapper.scrollTop;
+          }
+        },
+        { passive: true },
+      );
+
+      mapCanvasWrapper.addEventListener(
+        "touchmove",
+        (event) => {
+          if (
+            event.touches.length === 2 &&
+            state.view.pinchStartDistance !== null
+          ) {
+            // Pinch zoom
+            event.preventDefault();
+            const currentDistance = getTouchDistance(
+              event.touches[0],
+              event.touches[1],
+            );
+            const zoomRatio = currentDistance / state.view.pinchStartDistance;
+            setZoom(state.view.pinchStartZoom * zoomRatio);
+          } else if (
+            event.touches.length === 1 &&
+            state.view.touchPanStartX !== null
+          ) {
+            // Single-finger pan
+            const dx = event.touches[0].clientX - state.view.touchPanStartX;
+            const dy = event.touches[0].clientY - state.view.touchPanStartY;
+            mapCanvasWrapper.scrollLeft = state.view.touchPanScrollLeft - dx;
+            mapCanvasWrapper.scrollTop = state.view.touchPanScrollTop - dy;
+          }
+        },
+        { passive: false },
+      );
+
+      mapCanvasWrapper.addEventListener("touchend", () => {
+        state.view.pinchStartDistance = null;
+        state.view.touchPanStartX = null;
+        state.view.touchPanStartY = null;
+      });
+
+      mapCanvasWrapper.addEventListener("touchcancel", () => {
+        state.view.pinchStartDistance = null;
+        state.view.touchPanStartX = null;
+        state.view.touchPanStartY = null;
+      });
+
+      function clearAllTerritories() {
+        if (confirm("Clear all territories? This cannot be undone.")) {
+          state.territories = {};
+          updateUI();
+          renderMap();
+        }
+      }
+
+      function resetView() {
+        mapCanvasWrapper.scrollTo({ left: 0, top: 0, behavior: "smooth" });
+        canvas.scrollIntoView({ behavior: "smooth", block: "center" });
+      }
+
+      function showExportModal() {
+        document.getElementById("exportModal").classList.add("show");
+      }
+
+      function getExportData() {
+        return {
+          version: "1.0",
+          timestamp: new Date().toISOString(),
+          alliances: state.alliances,
+          territories: state.territories,
+        };
+      }
+
+      function getExportFileName() {
+        return `season-1-map-${new Date().toISOString().split("T")[0]}`;
+      }
+
+      function exportAsJSON() {
+        const data = getExportData();
+        const json = JSON.stringify(data, null, 2);
+        document.getElementById("exportText").value = json;
+        document.getElementById("exportText").style.display = "block";
+        document.getElementById("exportPreview").style.display = "block";
+        document.getElementById("copyBtn").style.display = "block";
+      }
+
+      function exportAsExcel() {
+        try {
+          if (!window.XLSX) {
+            alert(
+              "Excel library is still loading. Please wait a moment and try again.",
+            );
+            return;
+          }
+
+          const data = getExportData();
+          const wb = XLSX.utils.book_new();
+
+          // Sheet 1: Alliances summary
+          const alliancesData = data.alliances.map((a) => ({
+            Alliance: a.tag,
+            Color: a.color,
+            TerritoryCount: Object.values(data.territories).filter(
+              (t) => t === a.tag,
+            ).length,
+          }));
+
+          if (alliancesData.length > 0) {
+            const wsAlliances = XLSX.utils.json_to_sheet(alliancesData);
+            XLSX.utils.book_append_sheet(wb, wsAlliances, "Alliances");
+          }
+
+          // Sheet 2: Territory mapping
+          const territoriesData = Object.entries(data.territories).map((e) => ({
+            AreaIndex: e[0],
+            Alliance: e[1],
+          }));
+
+          if (territoriesData.length > 0) {
+            const wsTerritories = XLSX.utils.json_to_sheet(territoriesData);
+            XLSX.utils.book_append_sheet(wb, wsTerritories, "Territories");
+          }
+
+          // Sheet 3: Metadata
+          const metaData = [
+            { Key: "Export Date", Value: new Date().toLocaleString() },
+            { Key: "Total Areas", Value: 386 },
+            { Key: "Assigned Areas", Value: territoriesData.length },
+            { Key: "Total Alliances", Value: data.alliances.length },
+          ];
+          const wsMeta = XLSX.utils.json_to_sheet(metaData);
+          XLSX.utils.book_append_sheet(wb, wsMeta, "Summary");
+
+          XLSX.writeFile(wb, `${getExportFileName()}.xlsx`);
+          closeExportModal();
+          alert("Exported to Excel successfully!");
+        } catch (error) {
+          console.error("Excel export error:", error);
+          alert(
+            "Failed to export to Excel: " +
+              error.message +
+              ". Please try PNG or PDF instead.",
+          );
+        }
+      }
+
+      function exportAsPNG() {
+        try {
+          html2canvas(document.getElementById("mapCanvas"), {
+            backgroundColor: "rgb(20, 20, 25)",
+            scale: 2,
+          }).then((canvas) => {
+            const link = document.createElement("a");
+            link.href = canvas.toDataURL("image/png");
+            link.download = `${getExportFileName()}.png`;
+            link.click();
+            closeExportModal();
+            alert("Map exported as PNG successfully!");
+          });
+        } catch (error) {
+          console.error("PNG export error:", error);
+          alert("Failed to export as PNG: " + error.message);
+        }
+      }
+
+      function exportAsPDF() {
+        try {
+          html2canvas(document.getElementById("mapCanvas"), {
+            backgroundColor: "rgb(20, 20, 25)",
+            scale: 2,
+          }).then((canvas) => {
+            const imgData = canvas.toDataURL("image/png");
+            const { jsPDF } = window.jspdf;
+            const pdf = new jsPDF({
+              orientation: "landscape",
+              unit: "mm",
+              format: "a4",
+            });
+
+            const imgWidth = 280;
+            const imgHeight = (canvas.height * imgWidth) / canvas.width;
+
+            pdf.addImage(imgData, "PNG", 15, 15, imgWidth, imgHeight);
+
+            // Add metadata
+            const data = getExportData();
+            pdf.setFontSize(10);
+            pdf.setTextColor(150);
+            pdf.text(
+              `Exported: ${new Date().toLocaleString()}`,
+              15,
+              pdf.internal.pageSize.height - 15,
+            );
+            pdf.text(
+              `Alliances: ${data.alliances.length} | Assigned: ${Object.keys(data.territories).length}`,
+              15,
+              pdf.internal.pageSize.height - 10,
+            );
+
+            pdf.save(`${getExportFileName()}.pdf`);
+            closeExportModal();
+            alert("Map exported as PDF successfully!");
+          });
+        } catch (error) {
+          console.error("PDF export error:", error);
+          alert("Failed to export as PDF: " + error.message);
+        }
+      }
+
+      function closeExportModal() {
+        document.getElementById("exportModal").classList.remove("show");
+        document.getElementById("exportText").style.display = "none";
+        document.getElementById("exportPreview").style.display = "none";
+        document.getElementById("copyBtn").style.display = "none";
+      }
+
+      function showImportModal() {
+        document.getElementById("importText").value = "";
+        document.getElementById("importModal").classList.add("show");
+      }
+
+      function closeImportModal() {
+        document.getElementById("importModal").classList.remove("show");
+      }
+
+      function importPlan() {
+        try {
+          const data = JSON.parse(document.getElementById("importText").value);
+
+          if (!data.alliances || !data.territories) {
+            throw new Error("Invalid plan format");
+          }
+
+          state.alliances = data.alliances;
+          state.territories = data.territories;
+          state.selectedAlliance = null;
+
+          closeImportModal();
+          updateUI();
+          renderMap();
+        } catch (e) {
+          alert("Invalid import data: " + e.message);
+        }
+      }
+
+      function copyToClipboard() {
+        const text = document.getElementById("exportText");
+        text.select();
+        document.execCommand("copy");
+        alert("Copied to clipboard!");
+      }
+
+      // Language selection
+      document
+        .getElementById("languageSelect")
+        .addEventListener("change", (e) => {
+          const lang = e.target.value;
+          localStorage.setItem("selectedLanguage", lang);
+
+          const googleTranslateElement = document.getElementById(
+            "google_translate_element",
+          );
+          if (
+            googleTranslateElement &&
+            window.google &&
+            window.google.translate
+          ) {
+            new google.translate.TranslateElement(
+              {
+                pageLanguage: "en",
+                includedLanguages: "en,es,fr,de,pt,ru,ja,zh-CN",
+              },
+              "google_translate_element",
+            );
+
+            const select = document.querySelector(".goog-te-combo");
+            if (select) {
+              select.value = lang;
+              select.dispatchEvent(new Event("change"));
+            }
+          }
+        });
+
+      // Load saved language preference
+      const savedLang = localStorage.getItem("selectedLanguage");
+      if (savedLang) {
+        document.getElementById("languageSelect").value = savedLang;
+      }
+
+      // Google Translate
+      window.addEventListener("load", () => {
+        const script = document.createElement("script");
+        script.src =
+          "https://translate.google.com/translate_a/element.js?cb=googleTranslateElementInit";
+        document.body.appendChild(script);
+      });
+
+      window.googleTranslateElementInit = function () {
+        new google.translate.TranslateElement(
+          {
+            pageLanguage: "en",
+            includedLanguages: "en,es,fr,de,pt,ru,ja,zh-CN",
+            layout: google.translate.TranslateElement.InlineLayout.SIMPLE,
+          },
+          "google_translate_element",
+        );
+      };
+
+      // Initial render
+      updateUI();
+      renderMap();
+      updateCanvasDisplay();
+
+      // Handle window resize
+      window.addEventListener("resize", () => {
+        updateCanvasDisplay();
+        renderMap();
+      });
+
+      // ESC to close modals and keyboard zoom shortcuts
+      document.addEventListener("keydown", (e) => {
+        const targetTag = e.target.tagName;
+        const isTypingTarget =
+          targetTag === "INPUT" ||
+          targetTag === "TEXTAREA" ||
+          targetTag === "SELECT" ||
+          e.target.isContentEditable;
+
+        if (e.key === "Escape") {
+          closeExportModal();
+          closeImportModal();
+          return;
+        }
+
+        if (isTypingTarget) {
+          return;
+        }
+
+        if (e.key === "+" || e.key === "=") {
+          e.preventDefault();
+          zoomIn();
+          return;
+        }
+
+        if (e.key === "-" || e.key === "_") {
+          e.preventDefault();
+          zoomOut();
+          return;
+        }
+
+        if (e.key === "0") {
+          e.preventDefault();
+          resetZoom();
+        }
+      });
+    </script>
+  </body>
+</html>
