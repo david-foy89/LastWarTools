@@ -150,6 +150,10 @@ body {
 }
 
 @media (max-width: 720px) {
+  .page-nav > .page-link {
+    width: 100%;
+  }
+
   .page-nav-dropdown {
     width: 100%;
   }
