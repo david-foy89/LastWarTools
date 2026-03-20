@@ -1,4 +1,4 @@
-<!doctype html>
+﻿<!doctype html>
 <html lang="en">
   <head>
     <meta charset="UTF-8" />
@@ -647,16 +647,6 @@
   </head>
   <body>
     <div class="page">
-      <div class="support-bar">
-        <a
-          href="https://buymeacoffee.com/dkfoy56w"
-          class="support-link"
-          target="_blank"
-          rel="noopener noreferrer"
-          >Buy Me a Coffee</a
-        >
-      </div>
-
       <div class="page-top-controls">
         <div class="logo-control">
           <a href="index.html" aria-label="Go to homepage">
@@ -667,13 +657,13 @@
           <label for="languageSelect">Language</label>
           <select id="languageSelect">
             <option value="en">English</option>
-            <option value="es">Español</option>
-            <option value="fr">Français</option>
+            <option value="es">EspaÃ±ol</option>
+            <option value="fr">FranÃ§ais</option>
             <option value="de">Deutsch</option>
-            <option value="pt">Português</option>
-            <option value="ru">Русский</option>
-            <option value="ja">日本語</option>
-            <option value="zh">中文</option>
+            <option value="pt">PortuguÃªs</option>
+            <option value="ru">Ð ÑƒÑÑÐºÐ¸Ð¹</option>
+            <option value="ja">æ—¥æœ¬èªž</option>
+            <option value="zh">ä¸­æ–‡</option>
           </select>
         </div>
       </div>
@@ -738,6 +728,7 @@
             <a href="protectors-field-calculator.html" class="page-link"
               >Protectors Field</a
             >
+            <a href="season-3-interactive-map.html" class="page-link">Interactive Map</a>
           </div>
         </details>
         <details class="page-nav-dropdown" name="season-nav">
@@ -959,13 +950,13 @@
 
           <div class="export-format-grid">
             <button class="btn-confirm" onclick="exportAsJSON()">
-              📋 JSON
+              ðŸ“‹ JSON
             </button>
             <button class="btn-confirm" onclick="exportAsExcel()">
-              📊 Excel
+              ðŸ“Š Excel
             </button>
-            <button class="btn-confirm" onclick="exportAsPNG()">🖼️ PNG</button>
-            <button class="btn-confirm" onclick="exportAsPDF()">📄 PDF</button>
+            <button class="btn-confirm" onclick="exportAsPNG()">ðŸ–¼ï¸ PNG</button>
+            <button class="btn-confirm" onclick="exportAsPDF()">ðŸ“„ PDF</button>
           </div>
 
           <div class="export-preview" id="exportPreview">
@@ -1229,7 +1220,7 @@
                             (${countAllianceTerritories(alliance.tag)} areas)
                         </span>
                     </div>
-                    <span class="alliance-remove" onclick="event.stopPropagation(); removeAlliance('${alliance.tag}')">✕</span>
+                    <span class="alliance-remove" onclick="event.stopPropagation(); removeAlliance('${alliance.tag}')">âœ•</span>
                 </div>
             `,
           )
@@ -1431,10 +1422,10 @@
             ctx.strokeRect(x + 2, y + 2, w - 4, h - 4);
           }
 
-          // Level badge colours: index = city level (1–6)
+          // Level badge colours: index = city level (1â€“6)
           const LEVEL_COLORS = [
             "",
-            "rgba(160,180,200,0.85)", // L1 — outer ring, dim
+            "rgba(160,180,200,0.85)", // L1 â€” outer ring, dim
             "rgba(120,195,225,0.9)", // L2
             "#74c0fc", // L3
             "#cd7f32", // L4 bronze
@@ -1442,7 +1433,7 @@
             "#ffd700", // L6 gold
           ];
 
-          // Capitol label — always visible
+          // Capitol label â€” always visible
           if (isCapitol) {
             ctx.fillStyle = alliance
               ? "rgba(255, 255, 255, 0.95)"
@@ -1978,5 +1969,15 @@
         }
       });
     </script>
+
+    <div class="support-bar">
+      <a
+        href="https://buymeacoffee.com/dkfoy56w"
+        class="support-link"
+        target="_blank"
+        rel="noopener noreferrer"
+        >Buy Me a Coffee</a
+      >
+    </div>
   </body>
 </html>
