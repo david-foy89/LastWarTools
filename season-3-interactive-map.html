@@ -1061,6 +1061,12 @@
           touchPanScrollLeft: 0,
           touchPanScrollTop: 0,
         },
+        paint: {
+          isPainting: false,
+          mode: "assign",
+          visited: new Set(),
+          justPainted: false,
+        },
         areaTypes: {
           SH: { name: "Stronghold", count: 168 },
           V: { name: "Village", count: 40 },
@@ -1536,8 +1542,96 @@
 
         return null;
       }
+      function applyAllianceToTerritory(territory, mode = "toggle") {
+        if (territory === null || territory === undefined) return false;
+
+        state.selectedAreaId = territory;
+        const current = state.territories[territory];
+
+        if (!state.selectedAlliance) {
+          return false;
+        }
+
+        if (mode === "assign") {
+          if (current === state.selectedAlliance) return false;
+          state.territories[territory] = state.selectedAlliance;
+          return true;
+        }
+
+        if (mode === "erase") {
+          if (current !== state.selectedAlliance) return false;
+          delete state.territories[territory];
+          return true;
+        }
+
+        if (current === state.selectedAlliance) {
+          delete state.territories[territory];
+        } else {
+          state.territories[territory] = state.selectedAlliance;
+        }
+
+        return true;
+      }
+
+      function startPainting(clientX, clientY) {
+        if (!state.selectedAlliance) {
+          return;
+        }
+
+        const territory = getTerritoryAtPosition(clientX, clientY);
+        if (territory === null) {
+          return;
+        }
+
+        state.paint.isPainting = true;
+        state.paint.visited = new Set();
+        state.paint.mode =
+          state.territories[territory] === state.selectedAlliance
+            ? "erase"
+            : "assign";
+
+        state.paint.visited.add(territory);
+        if (applyAllianceToTerritory(territory, state.paint.mode)) {
+          state.paint.justPainted = true;
+        }
+
+        updateUI();
+        renderMap();
+      }
+
+      function paintAt(clientX, clientY) {
+        if (!state.paint.isPainting) {
+          return;
+        }
+
+        const territory = getTerritoryAtPosition(clientX, clientY);
+        if (territory === null || state.paint.visited.has(territory)) {
+          return;
+        }
+
+        state.paint.visited.add(territory);
+        if (applyAllianceToTerritory(territory, state.paint.mode)) {
+          state.paint.justPainted = true;
+          updateUI();
+          renderMap();
+        }
+      }
+
+      function stopPainting() {
+        if (!state.paint.isPainting) {
+          return;
+        }
+
+        state.paint.isPainting = false;
+        state.paint.visited = new Set();
+      }
 
       canvas.addEventListener("click", (e) => {
+        if (state.paint.justPainted) {
+          state.paint.justPainted = false;
+          return;
+        }
+
         if (state.view.dragHappened) {
           state.view.dragHappened = false;
           return;
@@ -1554,17 +1648,36 @@
           return;
         }
 
-        if (state.territories[territory] === state.selectedAlliance) {
-          delete state.territories[territory];
-        } else {
-          state.territories[territory] = state.selectedAlliance;
-        }
+        applyAllianceToTerritory(territory, "toggle");
 
         updateUI();
         renderMap();
       });
 
+      canvas.addEventListener("mousedown", (e) => {
+        if (e.button !== 0) return;
+
+        if (state.selectedAlliance && !e.shiftKey) {
+          startPainting(e.clientX, e.clientY);
+          return;
+        }
+
+        state.view.isDragging = true;
+        state.view.dragHappened = false;
+        state.view.dragStartX = e.clientX;
+        state.view.dragStartY = e.clientY;
+        state.view.dragStartScrollLeft = mapCanvasWrapper.scrollLeft;
+        state.view.dragStartScrollTop = mapCanvasWrapper.scrollTop;
+        canvas.style.cursor = "grabbing";
+      });
+
       canvas.addEventListener("mousemove", (e) => {
+        if (state.paint.isPainting) {
+          hideMapTooltip();
+          paintAt(e.clientX, e.clientY);
+          return;
+        }
+
         if (state.view.isDragging) {
           hideMapTooltip();
           return;
@@ -1589,17 +1702,6 @@
         hideMapTooltip();
       });
 
-      mapCanvasWrapper.addEventListener("mousedown", (e) => {
-        if (e.button !== 0) return;
-        state.view.isDragging = true;
-        state.view.dragHappened = false;
-        state.view.dragStartX = e.clientX;
-        state.view.dragStartY = e.clientY;
-        state.view.dragStartScrollLeft = mapCanvasWrapper.scrollLeft;
-        state.view.dragStartScrollTop = mapCanvasWrapper.scrollTop;
-        canvas.style.cursor = "grabbing";
-      });
-
       document.addEventListener("mousemove", (e) => {
         if (!state.view.isDragging) return;
         const dx = e.clientX - state.view.dragStartX;
@@ -1611,6 +1713,8 @@
       });
 
       document.addEventListener("mouseup", () => {
+        stopPainting();
+
         if (!state.view.isDragging) return;
         state.view.isDragging = false;
         canvas.style.cursor = "crosshair";
