@@ -342,6 +342,16 @@
         text-align: center;
       }
 
+      .fuzzy-hint {
+        padding: 10px 16px;
+        border: 1px solid rgba(255, 214, 90, 0.35);
+        border-radius: 12px;
+        background: rgba(255, 214, 90, 0.07);
+        color: #ffd65a;
+        font-size: 0.84rem;
+        font-weight: 600;
+      }
+
       @media (max-width: 920px) {
         .checklist-layout {
           grid-template-columns: 1fr;
@@ -867,6 +877,7 @@
         selectedLevel: "all",
         search: "",
         hideCompleted: false,
+        fuzzySearch: false,
       };
 
       function escapeHtml(value) {
@@ -996,25 +1007,98 @@
 
       function getVisibleSupplies() {
         const query = state.search.trim().toLowerCase();
-        return state.supplies.filter((supply) => {
+
+        // Pool of supplies passing level + hideCompleted filters.
+        const pool = state.supplies.filter((supply) => {
           if (
             state.selectedLevel !== "all" &&
             supply.level !== state.selectedLevel
           ) {
             return false;
           }
-
           const isDone = state.completed.has(supply.id);
           if (state.hideCompleted && isDone) {
             return false;
           }
-
-          if (!query) {
-            return true;
-          }
-
-          return supply.searchable.includes(query);
+          return true;
         });
+
+        if (!query) {
+          state.fuzzySearch = false;
+          return pool;
+        }
+
+        // Exact substring match.
+        const exact = pool.filter((supply) =>
+          supply.searchable.includes(query),
+        );
+
+        if (exact.length > 0) {
+          state.fuzzySearch = false;
+          return exact;
+        }
+
+        // Fallback: proximity search when query looks numeric.
+        // Supports: single number ("535"), or coordinate pair ("535, 466" / "535 466").
+        const pairMatch = query.match(/^(\d+)[,\s]+(\d+)$/);
+        const singleMatch = !pairMatch && query.match(/^\d+$/);
+
+        if (!pairMatch && !singleMatch) {
+          state.fuzzySearch = false;
+          return [];
+        }
+
+        const FUZZY_COUNT = 10;
+
+        function mergeByAxes(byX, byY, sortFn) {
+          const seen = new Set();
+          const out = [];
+          for (const s of [...byX, ...byY]) {
+            if (!seen.has(s.id)) {
+              seen.add(s.id);
+              out.push(s);
+            }
+          }
+          out.sort(sortFn);
+          return out;
+        }
+
+        if (pairMatch) {
+          const qx = Number(pairMatch[1]);
+          const qy = Number(pairMatch[2]);
+          // Top N closest by x-axis proximity, independent of y.
+          const byX = [...pool]
+            .sort((a, b) => Math.abs(a.x - qx) - Math.abs(b.x - qx))
+            .slice(0, FUZZY_COUNT);
+          // Top N closest by y-axis proximity, independent of x.
+          const byY = [...pool]
+            .sort((a, b) => Math.abs(a.y - qy) - Math.abs(b.y - qy))
+            .slice(0, FUZZY_COUNT);
+          state.fuzzySearch = true;
+          return mergeByAxes(
+            byX,
+            byY,
+            (a, b) =>
+              Math.hypot(a.x - qx, a.y - qy) - Math.hypot(b.x - qx, b.y - qy),
+          );
+        }
+
+        // Single number: top N closest by x AND top N closest by y, merged.
+        const n = Number(query);
+        const byX = [...pool]
+          .sort((a, b) => Math.abs(a.x - n) - Math.abs(b.x - n))
+          .slice(0, FUZZY_COUNT);
+        const byY = [...pool]
+          .sort((a, b) => Math.abs(a.y - n) - Math.abs(b.y - n))
+          .slice(0, FUZZY_COUNT);
+        state.fuzzySearch = true;
+        return mergeByAxes(
+          byX,
+          byY,
+          (a, b) =>
+            Math.min(Math.abs(a.x - n), Math.abs(a.y - n)) -
+            Math.min(Math.abs(b.x - n), Math.abs(b.y - n)),
+        );
       }
 
       function getSuppliesForLevel(level, supplies = state.supplies) {
@@ -1281,6 +1365,12 @@
         renderSummary(visibleSupplies);
         renderLevelProgress();
         renderChecklist(visibleSupplies);
+        if (state.fuzzySearch) {
+          checklistRoot.insertAdjacentHTML(
+            "afterbegin",
+            `<div class="fuzzy-hint">No exact matches &mdash; showing the ${visibleSupplies.length} closest coordinates to your search.</div>`,
+          );
+        }
         setStatus(`${formatNumber(state.supplies.length)} supplies loaded`);
       }
 
