@@ -39,3 +39,54 @@ Alternative left-column pattern used by troop planner pages:
 - Focus View (search + plan-only filter)
 
 * Optional rows used by multi-resource calculators.
+
+
+LAST WAR TOOLS - SUPPLIES CHECKLIST DESKTOP WIREFRAME
+=====================================================
+(Used by: season-2-supplies-checklist.html)
+
++----------------------------------------------------------------------------------+
+| Top Support Bar: [Buy Me a Coffee]                                              |
++----------------------------------------------------------------------------------+
+| Header: [LWST Logo]                                              [Language ▼]   |
++----------------------------------------------------------------------------------+
+| Top Nav: [HQ] [Troop ▼] [Season 1 ▼] [Season 2 ▼] [Season 3 ▼] ...            |
++----------------------------------------------------------------------------------+
+| [Shared Checklist Banner - shown only when a ?share= URL param is present]      |
+| "N completed supplies shared with you. Load them into your checklist?"          |
+| [Merge into my list]  [Replace my list]  [Dismiss]                              |
++----------------------------------------------------------------------------------+
+| Hero: "Season 2 Supplies Checklist" + short subtitle                            |
++----------------------------------------------------------------------------------+
+| LEFT PANEL (280-320px)               | RIGHT PANEL (flex)                        |
+|--------------------------------------|-------------------------------------------|
+| Progress                             | Checklist  [Share/Export ▾]  [Status Pill]|
+|  [Tile] Total Supplies               |                                           |
+|  [Tile] Completed                    | +-level-card------------------------------+|
+|  [Tile] Remaining                    | | ● Level N  X/Y complete, Z%             ||
+|  [Tile] Overall Progress             | | [Check level] [Reset level]             ||
+|  [Tile full-width] Visible Results   | |                                         ||
+|--------------------------------------|  [ ] L3-001  x: 535, y: 466  [Copy]      ||
+| Filters                              |  [✓] L3-002  x: 512, y: 489  [Copy]      ||
+|  Level [● ▼ select]                  |  ...                                      ||
+|  Search [_________________]          | +-----------------------------------------+|
+|  [ ] Hide completed                  |                                           |
+|--------------------------------------|-------------------------------------------|
+| Actions                              |
+|  [Check selected level]              |
+|  [Reset selected level]              |
+|  [Check visible results]             |
+|  [Clear progress]                    |
+|--------------------------------------|
+| Level Breakdown                      |
+|  ● Level 1  [====----------] 45/360  |
+|  ● Level 2  [======--------] 60/250  |
+|  ...                                 |
++----------------------------------------------------------------------------------+
+
+Share / Export dropdown (top-right of Checklist card):
+  - Copy shareable link  (encodes completed IDs + selected level in URL ?share=)
+  - Download as CSV      (all supplies with completion status, opens in Excel)
+  - Print / Save as PDF  (clean print stylesheet, nav/left-panel hidden)
+  - Save as PNG          (html2canvas screenshot of the checklist card)
+

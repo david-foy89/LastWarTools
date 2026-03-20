@@ -45,3 +45,55 @@ Alternative INPUT CARD pattern for troop planner pages:
 - Focus View
 
 * Optional sections shown on multi-resource pages.
+
+
+LAST WAR TOOLS - SUPPLIES CHECKLIST MOBILE WIREFRAME
+====================================================
+(Used by: season-2-supplies-checklist.html)
+
++----------------------------------------------+
+| Top Support: [Buy Me a Coffee]               |
++----------------------------------------------+
+| Header: [LWST Logo]          [Language ▼]    |
++----------------------------------------------+
+| Nav row: [HQ] [Troop ▼] [S1 ▼] [S2 ▼] ...   |
++----------------------------------------------+
+| [Shared Checklist Banner - conditional]       |
+| "N supplies shared with you."                 |
+| [Merge] [Replace] [Dismiss]                   |
++----------------------------------------------+
+| Hero: Title + subtitle                        |
++----------------------------------------------+
+| LEFT PANEL (stacks full width on mobile)      |
+| Progress                                      |
+| [Tile] Total / Completed / Remaining / %      |
+| [Tile full-width] Visible Results             |
++----------------------------------------------+
+| Filters                                       |
+| Level [● ▼ select]                            |
+| Search [_________________]                    |
+| [ ] Hide completed                            |
++----------------------------------------------+
+| Actions                                       |
+| [Check selected level]                        |
+| [Reset selected level]                        |
+| [Check visible results]                       |
+| [Clear progress]                              |
++----------------------------------------------+
+| Level Breakdown                               |
+| ● Level 1 [====-----] 45/360                 |
+| ● Level 2 [======---] 60/250                 |
+| ...                                           |
++----------------------------------------------+
+| RIGHT PANEL (stacks below, full width)        |
+| Checklist  [Share/Export ▾]  [Status Pill]    |
+|                                               |
+| +--level-card---------------------------+     |
+| | ● Level N  X/Y complete, Z%          |     |
+| | [Check level]  [Reset level]         |     |
+| | [ ] L3-001  x:535 y:466  [Copy]      |     |
+| | [✓] L3-002  x:512 y:489  [Copy]      |     |
+| | ...                                  |     |
+| +--------------------------------------+     |
++----------------------------------------------+
+

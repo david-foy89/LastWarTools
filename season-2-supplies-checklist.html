@@ -864,7 +864,7 @@
       const state = {
         supplies: [],
         completed: new Set(),
-        selectedLevel: null,
+        selectedLevel: "all",
         search: "",
         hideCompleted: false,
       };
@@ -952,8 +952,14 @@
           if (Array.isArray(saved.completed)) {
             state.completed = new Set(saved.completed.map(String));
           }
-          if (Number.isFinite(Number(saved.selectedLevel))) {
-            state.selectedLevel = Number(saved.selectedLevel);
+          if (
+            saved.selectedLevel === "all" ||
+            Number.isFinite(Number(saved.selectedLevel))
+          ) {
+            state.selectedLevel =
+              saved.selectedLevel === "all"
+                ? "all"
+                : Number(saved.selectedLevel);
           }
           if (typeof saved.hideCompleted === "boolean") {
             state.hideCompleted = saved.hideCompleted;
@@ -992,7 +998,7 @@
         const query = state.search.trim().toLowerCase();
         return state.supplies.filter((supply) => {
           if (
-            state.selectedLevel !== null &&
+            state.selectedLevel !== "all" &&
             supply.level !== state.selectedLevel
           ) {
             return false;
@@ -1027,20 +1033,30 @@
         if (levels.length === 0) {
           levelSelect.innerHTML = "";
           selectedLevelDot.style.background = "#ffffff";
+          selectedLevelDot.style.display = "none";
           return;
         }
 
-        if (!levels.includes(state.selectedLevel)) {
-          state.selectedLevel = levels[0];
+        const isAll = state.selectedLevel === "all";
+        if (!isAll && !levels.includes(state.selectedLevel)) {
+          state.selectedLevel = "all";
         }
 
-        levelSelect.innerHTML = levels
-          .map((level) => `<option value="${level}">Level ${level}</option>`)
-          .join("");
+        levelSelect.innerHTML =
+          `<option value="all">All Levels</option>` +
+          levels
+            .map((level) => `<option value="${level}">Level ${level}</option>`)
+            .join("");
         levelSelect.value = String(state.selectedLevel);
 
-        const selectedSupply = getSuppliesForLevel(state.selectedLevel)[0];
-        selectedLevelDot.style.background = selectedSupply?.color || "#ffffff";
+        if (state.selectedLevel === "all") {
+          selectedLevelDot.style.display = "none";
+        } else {
+          selectedLevelDot.style.display = "";
+          const selectedSupply = getSuppliesForLevel(state.selectedLevel)[0];
+          selectedLevelDot.style.background =
+            selectedSupply?.color || "#ffffff";
+        }
       }
 
       function renderSummary(visibleSupplies) {
@@ -1103,6 +1119,90 @@
       }
 
       function renderChecklist(visibleSupplies) {
+        if (state.selectedLevel === "all") {
+          const levels = getAllLevels();
+          if (levels.length === 0) {
+            checklistRoot.innerHTML = `<div class="empty-state">No supplies are available.</div>`;
+            return;
+          }
+
+          checklistRoot.innerHTML = levels
+            .map((level) => {
+              const levelSupplies = getSuppliesForLevel(level, visibleSupplies);
+              const levelAllSupplies = getSuppliesForLevel(level);
+              const totalForLevel = levelAllSupplies.length;
+              const completedForLevel = getCompletionCount(levelAllSupplies);
+              const percent =
+                totalForLevel > 0
+                  ? (completedForLevel / totalForLevel) * 100
+                  : 0;
+              const isComplete =
+                totalForLevel > 0 && completedForLevel === totalForLevel;
+              const color = levelAllSupplies[0]?.color || "#ffffff";
+
+              if (levelSupplies.length === 0) return "";
+
+              const rows = levelSupplies
+                .map((supply) => {
+                  const isDone = state.completed.has(supply.id);
+                  return `
+                    <label class="supply-row${isDone ? " is-done" : ""}">
+                      <input
+                        type="checkbox"
+                        data-action="toggle-item"
+                        data-id="${escapeHtml(supply.id)}"
+                        ${isDone ? "checked" : ""}
+                      />
+                      <div class="supply-main">
+                        <div class="supply-code">${escapeHtml(supply.code)}</div>
+                        <div class="supply-coords">x: ${formatNumber(supply.x)}, y: ${formatNumber(supply.y)}</div>
+                      </div>
+                      <button
+                        type="button"
+                        class="copy-button"
+                        data-action="copy"
+                        data-copy="${escapeHtml(`Level ${supply.level}, x: ${supply.x}, y: ${supply.y}`)}"
+                      >
+                        Copy
+                      </button>
+                    </label>
+                  `;
+                })
+                .join("");
+
+              return `
+                <section class="level-card${isComplete ? " is-complete" : ""}">
+                  <div class="level-head">
+                    <div class="level-title-wrap">
+                      <span class="level-dot" style="background:${escapeHtml(color)}"></span>
+                      <div>
+                        <div class="level-name">Level ${level}</div>
+                        <div class="level-meta">${formatNumber(completedForLevel)} / ${formatNumber(totalForLevel)} complete, ${formatPercent(percent)}</div>
+                      </div>
+                    </div>
+                    <div class="level-actions">
+                      <button type="button" class="level-action" data-action="check-level" data-level="${level}">
+                        Check level
+                      </button>
+                      <button type="button" class="level-action" data-action="reset-level" data-level="${level}">
+                        Reset level
+                      </button>
+                    </div>
+                  </div>
+                  <div class="level-body">
+                    ${rows}
+                  </div>
+                </section>
+              `;
+            })
+            .join("");
+
+          if (!checklistRoot.innerHTML.trim()) {
+            checklistRoot.innerHTML = `<div class="empty-state">No supplies match the current filters.</div>`;
+          }
+          return;
+        }
+
         if (state.selectedLevel === null) {
           checklistRoot.innerHTML = `<div class="empty-state">No supplies are available.</div>`;
           return;
@@ -1346,8 +1446,11 @@
 
           const data = await response.json();
           state.supplies = normalizeSupplies(data);
-          if (!getAllLevels().includes(state.selectedLevel)) {
-            state.selectedLevel = getAllLevels()[0] ?? null;
+          if (
+            state.selectedLevel !== "all" &&
+            !getAllLevels().includes(state.selectedLevel)
+          ) {
+            state.selectedLevel = "all";
           }
           render();
           handleShareParam();
@@ -1398,7 +1501,8 @@
       });
 
       levelSelect.addEventListener("change", () => {
-        setSelectedLevel(Number(levelSelect.value));
+        const value = levelSelect.value;
+        setSelectedLevel(value === "all" ? "all" : Number(value));
       });
 
       hideCompletedInput.addEventListener("change", () => {
@@ -1408,12 +1512,12 @@
       });
 
       checkLevelButton.addEventListener("click", () => {
-        if (state.selectedLevel !== null) {
+        if (state.selectedLevel !== null && state.selectedLevel !== "all") {
           setLevelCompletion(state.selectedLevel, true);
         }
       });
       resetLevelButton.addEventListener("click", () => {
-        if (state.selectedLevel !== null) {
+        if (state.selectedLevel !== null && state.selectedLevel !== "all") {
           setLevelCompletion(state.selectedLevel, false);
         }
       });

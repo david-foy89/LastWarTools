@@ -13,6 +13,8 @@ Hosted on GitHub Pages via `index.html`.
 | `index.html`                               | Homepage with calculator overview and grouped links   |
 | `last-war-furnace-upgrade-calculator.html` | Furnace calculator (Season 2)                         |
 | `season-2-tank-center-calculator.html`     | Season 2 Squad Base calculator                        |
+| `season-2-supplies-checklist.html`         | Season 2 scattered supplies tracking checklist        |
+| `season2_supplies_api.json`                | Static Season 2 supply coordinates (fetched from API) |
 | `season-1-squad-base-calculator.html`      | Season 1 Squad Base calculator                        |
 | `virus-research-institute-calculator.html` | Season 1 Virus Research Institute calculator          |
 | `season-1-interactive-map.html`            | Interactive alliance territory planning map for S1    |
@@ -50,6 +52,7 @@ Hosted on GitHub Pages via `index.html`.
 - Season 2 calculators:
   - Furnace (single resource + mine output ETA)
   - Squad Base (two resources + factory output ETA)
+  - Supplies Checklist (coordinate tracker with level selector, filters, progress, and sharing)
 - Season 3 calculators:
   - Curse Research Lab
   - Altar
@@ -70,6 +73,15 @@ Hosted on GitHub Pages via `index.html`.
 - Timezone selector with live current-time display
 - Multi-language support via Google Translate dropdown on every page (persisted)
 - Separate `localStorage` persistence per calculator page
+- Season 2 Supplies Checklist:
+  - Tracks all scattered supply coordinates by level (data from `season2_supplies_api.json`)
+  - Level dropdown selector with colored dot indicator
+  - Text search by coordinate or supply code
+  - Hide completed toggle
+  - Per-level and overall progress bars
+  - Shareable link encoding completed state in the URL (merge or replace on open)
+  - Export options: shareable link copy, CSV download, Print/PDF, PNG screenshot
+  - Progress persisted in `localStorage`
 - Responsive layout with shared styling across calculator pages
 - Shared top navigation with season-group dropdowns
 - LWST logo in the header that links back to homepage
@@ -90,6 +102,7 @@ Hosted on GitHub Pages via `index.html`.
 - Examples include `titaniumCosts`, `squadBaseCosts`, `quartzCosts`, `protectorsFieldS4Costs`, and `lighthouseS4Costs`.
 - Output tables are page-specific (mine/workshop/factory arrays), and are used to compute ETA and ready-time displays.
 - Most calculators include level data through 35 where source data is available.
+- `season2_supplies_api.json` contains the full Season 2 scattered supply coordinate dataset fetched from `https://cpt-hedge.com/api/coordinates?season=2`. Schema: `{ strongholds: [{ level, color, label, coordinates: [{x, y}] }], cities: [] }`. Refresh it by re-running the fetch command to pick up any upstream coordinate changes.
 
 ## Deployment
 
