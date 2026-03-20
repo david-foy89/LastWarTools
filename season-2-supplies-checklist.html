@@ -1,0 +1,1274 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Season 2 Supplies Checklist</title>
+    <meta
+      name="description"
+      content="Track every Season 2 scattered supply by level and coordinate, and save your completed checklist progress locally."
+    />
+    <link
+      rel="canonical"
+      href="https://lastwarsurvivaltools.com/season-2-supplies-checklist.html"
+    />
+    <meta property="og:type" content="website" />
+    <meta property="og:title" content="Season 2 Supplies Checklist" />
+    <meta
+      property="og:description"
+      content="Track every Season 2 scattered supply by level and coordinate, and save your completed checklist progress locally."
+    />
+    <meta
+      property="og:url"
+      content="https://lastwarsurvivaltools.com/season-2-supplies-checklist.html"
+    />
+    <meta
+      property="og:image"
+      content="https://lastwarsurvivaltools.com/media/lwst.png"
+    />
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:title" content="Season 2 Supplies Checklist" />
+    <meta
+      name="twitter:description"
+      content="Track every Season 2 scattered supply by level and coordinate, and save your completed checklist progress locally."
+    />
+    <meta
+      name="twitter:image"
+      content="https://lastwarsurvivaltools.com/media/lwst.png"
+    />
+    <script type="application/ld+json">
+      {
+        "@context": "https://schema.org",
+        "@type": "WebPage",
+        "name": "Season 2 Supplies Checklist",
+        "description": "Track every Season 2 scattered supply by level and coordinate, and save your completed checklist progress locally.",
+        "url": "https://lastwarsurvivaltools.com/season-2-supplies-checklist.html"
+      }
+    </script>
+    <link rel="stylesheet" href="last-war-furnace-upgrade-calculator.css" />
+    <script src="page-nav-dropdown.js" defer></script>
+    <style>
+      .checklist-layout {
+        grid-template-columns: minmax(280px, 320px) minmax(0, 1fr);
+      }
+
+      .card-header-row {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 12px;
+      }
+
+      .card-header-actions {
+        display: flex;
+        align-items: center;
+        flex-wrap: wrap;
+        gap: 10px;
+      }
+
+      .status-pill {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        min-height: 36px;
+        padding: 8px 12px;
+        border: 1px solid rgba(116, 192, 252, 0.28);
+        border-radius: 999px;
+        background: rgba(116, 192, 252, 0.1);
+        color: var(--text);
+        font-size: 0.85rem;
+        font-weight: 700;
+      }
+
+      .status-pill.error {
+        border-color: rgba(255, 146, 43, 0.45);
+        background: rgba(255, 146, 43, 0.12);
+        color: #ffd8a8;
+      }
+
+      .action-row {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 10px;
+      }
+
+      .action-button {
+        cursor: pointer;
+        border: 1px solid var(--line-soft);
+        border-radius: 999px;
+        background: rgba(12, 24, 37, 0.88);
+        color: var(--text);
+        padding: 10px 14px;
+        font: inherit;
+        font-size: 0.88rem;
+        font-weight: 700;
+        transition:
+          border-color 140ms ease,
+          background-color 140ms ease,
+          transform 140ms ease;
+      }
+
+      .action-button:hover,
+      .action-button:focus-visible {
+        border-color: var(--accent-2);
+        background: rgba(18, 35, 53, 0.96);
+        outline: none;
+      }
+
+      .action-button.danger {
+        border-color: rgba(255, 146, 43, 0.45);
+        color: #ffd8a8;
+      }
+
+      .action-button.subtle {
+        color: var(--muted);
+      }
+
+      .supply-filters {
+        display: grid;
+        gap: 12px;
+      }
+
+      .select-with-dot {
+        display: grid;
+        grid-template-columns: auto minmax(0, 1fr);
+        align-items: center;
+        gap: 12px;
+      }
+
+      .toggle-row {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        color: var(--muted);
+        font-size: 0.92rem;
+      }
+
+      .toggle-row input {
+        width: 16px;
+        height: 16px;
+        accent-color: var(--accent-2);
+      }
+
+      .level-progress-list {
+        display: grid;
+        gap: 10px;
+      }
+
+      .level-progress-item {
+        display: grid;
+        gap: 8px;
+      }
+
+      .level-progress-head {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 12px;
+        font-size: 0.92rem;
+      }
+
+      .level-progress-title {
+        display: inline-flex;
+        align-items: center;
+        gap: 10px;
+        font-weight: 700;
+      }
+
+      .level-progress-bar {
+        overflow: hidden;
+        height: 8px;
+        border-radius: 999px;
+        background: rgba(145, 164, 184, 0.16);
+      }
+
+      .level-progress-fill {
+        height: 100%;
+        border-radius: inherit;
+      }
+
+      .checklist-root {
+        display: grid;
+        gap: 16px;
+      }
+
+      .level-card {
+        border: 1px solid var(--line);
+        border-radius: 18px;
+        background: rgba(8, 16, 25, 0.56);
+        overflow: hidden;
+      }
+
+      .level-card.is-complete {
+        border-color: rgba(81, 207, 102, 0.45);
+        box-shadow: inset 0 0 0 1px rgba(81, 207, 102, 0.12);
+      }
+
+      .level-head {
+        display: flex;
+        flex-wrap: wrap;
+        align-items: center;
+        justify-content: space-between;
+        gap: 12px;
+        padding: 16px 18px;
+        background: rgba(17, 28, 40, 0.86);
+      }
+
+      .level-title-wrap {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+      }
+
+      .level-dot {
+        width: 14px;
+        height: 14px;
+        border-radius: 50%;
+        box-shadow: 0 0 0 3px rgba(255, 255, 255, 0.06);
+      }
+
+      .level-name {
+        font-size: 1rem;
+        font-weight: 700;
+      }
+
+      .level-meta {
+        color: var(--muted);
+        font-size: 0.86rem;
+      }
+
+      .level-actions {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 8px;
+      }
+
+      .level-action {
+        cursor: pointer;
+        border: 1px solid var(--line-soft);
+        border-radius: 999px;
+        background: rgba(12, 24, 37, 0.9);
+        color: var(--muted);
+        padding: 8px 12px;
+        font: inherit;
+        font-size: 0.8rem;
+        font-weight: 700;
+      }
+
+      .level-action:hover,
+      .level-action:focus-visible {
+        border-color: var(--accent-2);
+        color: var(--text);
+        outline: none;
+      }
+
+      .level-body {
+        display: grid;
+        gap: 10px;
+        padding: 16px 18px 18px;
+      }
+
+      .supply-row {
+        display: grid;
+        grid-template-columns: auto minmax(0, 1fr) auto;
+        align-items: center;
+        gap: 12px;
+        padding: 12px 14px;
+        border: 1px solid rgba(55, 80, 106, 0.52);
+        border-radius: 14px;
+        background: rgba(12, 24, 37, 0.78);
+      }
+
+      .supply-row.is-done {
+        border-color: rgba(81, 207, 102, 0.38);
+        background: rgba(20, 45, 29, 0.34);
+      }
+
+      .supply-row input[type='checkbox'] {
+        width: 18px;
+        height: 18px;
+        margin: 0;
+        accent-color: var(--ok);
+      }
+
+      .supply-main {
+        display: grid;
+        gap: 4px;
+        min-width: 0;
+      }
+
+      .supply-code {
+        color: var(--text);
+        font-size: 0.86rem;
+        font-weight: 700;
+        letter-spacing: 0.04em;
+      }
+
+      .supply-coords {
+        color: var(--muted);
+        font-size: 0.94rem;
+      }
+
+      .supply-row.is-done .supply-code,
+      .supply-row.is-done .supply-coords {
+        text-decoration: line-through;
+        color: #a9d8b2;
+      }
+
+      .copy-button {
+        cursor: pointer;
+        border: 1px solid var(--line-soft);
+        border-radius: 999px;
+        background: rgba(8, 16, 25, 0.8);
+        color: var(--muted);
+        padding: 8px 12px;
+        font: inherit;
+        font-size: 0.78rem;
+        font-weight: 700;
+      }
+
+      .copy-button:hover,
+      .copy-button:focus-visible {
+        border-color: var(--accent-2);
+        color: var(--text);
+        outline: none;
+      }
+
+      .empty-state {
+        padding: 22px;
+        border: 1px dashed rgba(145, 164, 184, 0.32);
+        border-radius: 16px;
+        color: var(--muted);
+        text-align: center;
+      }
+
+      @media (max-width: 920px) {
+        .checklist-layout {
+          grid-template-columns: 1fr;
+        }
+      }
+
+      @media (max-width: 640px) {
+        .card-header-row,
+        .level-head,
+        .supply-row {
+          grid-template-columns: 1fr;
+        }
+
+        .status-pill,
+        .level-actions,
+        .copy-button {
+          width: 100%;
+        }
+
+        .level-actions {
+          display: grid;
+        }
+
+        .supply-row {
+          justify-items: start;
+        }
+      }
+
+      .share-banner {
+        border: 1px solid rgba(116, 192, 252, 0.35);
+        border-radius: 14px;
+        background: rgba(116, 192, 252, 0.08);
+        padding: 14px 16px;
+        display: grid;
+        gap: 10px;
+      }
+
+      .share-banner-title {
+        font-weight: 700;
+        font-size: 0.9rem;
+        color: #74c0fc;
+      }
+
+      .share-banner-text {
+        color: var(--muted);
+        font-size: 0.86rem;
+      }
+
+      .share-banner-actions {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 8px;
+      }
+
+      .is-hidden {
+        display: none !important;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="page">
+      <div class="page-top-controls">
+        <div class="logo-control">
+          <a href="index.html" aria-label="Go to homepage">
+            <img src="media/lwst.png" alt="LWST logo" class="site-logo" />
+          </a>
+        </div>
+        <div class="language-control">
+          <label for="languageSelect">Language</label>
+          <select id="languageSelect"></select>
+        </div>
+      </div>
+      <div id="google_translate_element" class="hidden-translate"></div>
+
+      <nav class="page-nav" aria-label="Calculator pages">
+        <a href="hq-upgrade-calculator.html" class="page-link">HQ Upgrade</a>
+        <details class="page-nav-dropdown" name="troop-nav">
+          <summary class="page-link page-nav-dropdown-toggle">
+            Troop Tools
+          </summary>
+          <div class="page-nav-dropdown-menu">
+            <a href="t10-troops-calculator.html" class="page-link"
+              >T10 Troops</a
+            >
+            <a href="t11-troops-calculator.html" class="page-link"
+              >T11 Troops</a
+            >
+          </div>
+        </details>
+        <details class="page-nav-dropdown" name="season-nav">
+          <summary class="page-link page-nav-dropdown-toggle">
+            Season 1 Tools
+          </summary>
+          <div class="page-nav-dropdown-menu">
+            <a href="virus-research-institute-calculator.html" class="page-link"
+              >Virus Research Institute</a
+            >
+            <a href="season-1-squad-base-calculator.html" class="page-link"
+              >Season 1 Squad Base</a
+            >
+            <a href="season-1-interactive-map.html" class="page-link"
+              >Interactive Map</a
+            >
+          </div>
+        </details>
+        <details class="page-nav-dropdown active" name="season-nav">
+          <summary class="page-link page-nav-dropdown-toggle">
+            Season 2 Tools
+          </summary>
+          <div class="page-nav-dropdown-menu">
+            <a href="last-war-furnace-upgrade-calculator.html" class="page-link"
+              >Furnace Calculator</a
+            >
+            <a href="season-2-tank-center-calculator.html" class="page-link"
+              >Season 2 Squad Base</a
+            >
+            <a href="season-2-interactive-map.html" class="page-link"
+              >Interactive Map</a
+            >
+          </div>
+        </details>
+        <details class="page-nav-dropdown" name="season-nav">
+          <summary class="page-link page-nav-dropdown-toggle">
+            Season 3 Tools
+          </summary>
+          <div class="page-nav-dropdown-menu">
+            <a href="curse-research-lab-calculator.html" class="page-link"
+              >Curse Research Lab</a
+            >
+            <a href="altar-calculator.html" class="page-link">Altar</a>
+            <a href="protectors-field-calculator.html" class="page-link"
+              >Protectors Field</a
+            >
+            <a href="season-3-interactive-map.html" class="page-link"
+              >Interactive Map</a
+            >
+          </div>
+        </details>
+        <details class="page-nav-dropdown" name="season-nav">
+          <summary class="page-link page-nav-dropdown-toggle">
+            Season 4 Tools
+          </summary>
+          <div class="page-nav-dropdown-menu">
+            <a href="optoelectronic-lab-calculator.html" class="page-link"
+              >Optoelectronic Lab</a
+            >
+            <a href="protectors-field-s4-calculator.html" class="page-link"
+              >Protector's Field S4</a
+            >
+            <a href="lighthouse-s4-calculator.html" class="page-link"
+              >Lighthouse S4</a
+            >
+            <a href="season-4-interactive-map.html" class="page-link"
+              >Interactive Map</a
+            >
+          </div>
+        </details>
+        <details class="page-nav-dropdown" name="season-nav">
+          <summary class="page-link page-nav-dropdown-toggle">
+            Season 5 Tools
+          </summary>
+          <div class="page-nav-dropdown-menu">
+            <a href="caffeine-institute-calculator.html" class="page-link"
+              >Caffeine Institute</a
+            >
+            <a href="protectors-field-s5-calculator.html" class="page-link"
+              >Protector's Field S5</a
+            >
+            <a href="season-5-squad-base-calculator.html" class="page-link"
+              >Season 5 Squad Base</a
+            >
+            <a href="season-5-interactive-map.html" class="page-link"
+              >Interactive Map</a
+            >
+          </div>
+        </details>
+      </nav>
+
+      <section class="hero">
+        <h1>Season 2 Supplies Checklist</h1>
+        <div class="sub">
+          Track every scattered supply from Season 2 by level and coordinate.
+          Your completed checks are saved locally in this browser so you can
+          work through the list over multiple sessions.
+        </div>
+      </section>
+
+      <section class="layout checklist-layout">
+        <div class="card">
+          <div class="share-banner is-hidden" id="shareBanner">
+            <div class="share-banner-title">Shared Checklist</div>
+            <div class="share-banner-text" id="shareBannerText"></div>
+            <div class="share-banner-actions">
+              <button type="button" class="action-button" id="mergeSharedButton">Merge into my list</button>
+              <button type="button" class="action-button" id="replaceSharedButton">Replace my list</button>
+              <button type="button" class="action-button subtle" id="dismissSharedButton">Dismiss</button>
+            </div>
+          </div>
+
+          <h2 class="card-title">Progress</h2>
+          <div class="summary" id="summaryTiles"></div>
+
+          <div class="field-group supply-filters">
+            <h2 class="card-title">Filters</h2>
+            <div class="field">
+              <label for="levelSelect">Level</label>
+              <div class="select-with-dot">
+                <span class="level-dot" id="selectedLevelDot"></span>
+                <select id="levelSelect"></select>
+              </div>
+            </div>
+            <div class="field">
+              <label for="searchInput">Search by coordinate or code</label>
+              <input
+                id="searchInput"
+                type="search"
+                placeholder="Examples: 535, 466 or L7-001"
+              />
+            </div>
+            <label class="toggle-row" for="hideCompletedInput">
+              <input id="hideCompletedInput" type="checkbox" />
+              Hide completed supplies
+            </label>
+          </div>
+
+          <div class="field-group">
+            <h2 class="card-title">Actions</h2>
+            <div class="action-row">
+              <button id="checkLevelButton" type="button" class="action-button">
+                Check selected level
+              </button>
+              <button id="resetLevelButton" type="button" class="action-button subtle">
+                Reset selected level
+              </button>
+              <button id="markVisibleButton" type="button" class="action-button">
+                Check visible results
+              </button>
+              <button id="clearProgressButton" type="button" class="action-button danger">
+                Clear progress
+              </button>
+            </div>
+          </div>
+
+          <div class="field-group">
+            <h2 class="card-title">Level Breakdown</h2>
+            <div class="level-progress-list" id="levelProgressList"></div>
+          </div>
+
+        </div>
+
+        <div class="card">
+          <div class="card-header-row">
+            <h2 class="card-title">Checklist</h2>
+            <div class="card-header-actions">
+              <button id="shareListButton" type="button" class="action-button">
+                Share list
+              </button>
+              <div class="status-pill" id="statusPill">Loading supplies...</div>
+            </div>
+          </div>
+          <div class="checklist-root" id="checklistRoot"></div>
+        </div>
+      </section>
+    </div>
+
+    <script>
+      const DATA_URL = "season2_supplies_api.json";
+      const STORAGE_KEY = "lastWarSeason2SuppliesChecklistV1";
+      const languageSelect = document.getElementById("languageSelect");
+      const levelSelect = document.getElementById("levelSelect");
+      const selectedLevelDot = document.getElementById("selectedLevelDot");
+      const searchInput = document.getElementById("searchInput");
+      const hideCompletedInput = document.getElementById("hideCompletedInput");
+      const summaryTiles = document.getElementById("summaryTiles");
+      const levelProgressList = document.getElementById("levelProgressList");
+      const checklistRoot = document.getElementById("checklistRoot");
+      const statusPill = document.getElementById("statusPill");
+      const checkLevelButton = document.getElementById("checkLevelButton");
+      const resetLevelButton = document.getElementById("resetLevelButton");
+      const markVisibleButton = document.getElementById("markVisibleButton");
+      const clearProgressButton = document.getElementById("clearProgressButton");
+      const shareListButton = document.getElementById("shareListButton");
+      const shareBanner = document.getElementById("shareBanner");
+      const shareBannerText = document.getElementById("shareBannerText");
+      const mergeSharedButton = document.getElementById("mergeSharedButton");
+      const replaceSharedButton = document.getElementById("replaceSharedButton");
+      const dismissSharedButton = document.getElementById("dismissSharedButton");
+
+      let preferredLanguage = "en";
+
+      const languageOptions = [
+        { code: "en", label: "English" },
+        { code: "es", label: "Spanish" },
+        { code: "fr", label: "French" },
+        { code: "de", label: "German" },
+        { code: "it", label: "Italian" },
+        { code: "pt", label: "Portuguese" },
+        { code: "ru", label: "Russian" },
+        { code: "uk", label: "Ukrainian" },
+        { code: "pl", label: "Polish" },
+        { code: "tr", label: "Turkish" },
+        { code: "ar", label: "Arabic" },
+        { code: "fa", label: "Persian" },
+        { code: "he", label: "Hebrew" },
+        { code: "hi", label: "Hindi" },
+        { code: "bn", label: "Bengali" },
+        { code: "ur", label: "Urdu" },
+        { code: "th", label: "Thai" },
+        { code: "vi", label: "Vietnamese" },
+        { code: "id", label: "Indonesian" },
+        { code: "ms", label: "Malay" },
+        { code: "fil", label: "Filipino" },
+        { code: "ja", label: "Japanese" },
+        { code: "ko", label: "Korean" },
+        { code: "zh-CN", label: "Chinese (Simplified)" },
+        { code: "zh-TW", label: "Chinese (Traditional)" },
+        { code: "el", label: "Greek" },
+        { code: "nl", label: "Dutch" },
+        { code: "sv", label: "Swedish" },
+        { code: "da", label: "Danish" },
+        { code: "fi", label: "Finnish" },
+        { code: "no", label: "Norwegian" },
+        { code: "cs", label: "Czech" },
+        { code: "ro", label: "Romanian" },
+        { code: "hu", label: "Hungarian" },
+        { code: "sk", label: "Slovak" },
+        { code: "bg", label: "Bulgarian" },
+        { code: "hr", label: "Croatian" },
+        { code: "sr", label: "Serbian" },
+        { code: "sl", label: "Slovenian" },
+        { code: "lt", label: "Lithuanian" },
+        { code: "lv", label: "Latvian" },
+        { code: "et", label: "Estonian" },
+      ];
+
+      const state = {
+        supplies: [],
+        completed: new Set(),
+        selectedLevel: null,
+        search: "",
+        hideCompleted: false,
+      };
+
+      function escapeHtml(value) {
+        return String(value)
+          .replaceAll("&", "&amp;")
+          .replaceAll("<", "&lt;")
+          .replaceAll(">", "&gt;")
+          .replaceAll('"', "&quot;")
+          .replaceAll("'", "&#39;");
+      }
+
+      function buildLanguageOptions() {
+        languageSelect.innerHTML = languageOptions
+          .map((lang) => `<option value="${lang.code}">${lang.label}</option>`)
+          .join("");
+        languageSelect.value = preferredLanguage;
+      }
+
+      function applyGoogleLanguage(languageCode, retries = 25) {
+        const combo = document.querySelector(".goog-te-combo");
+        if (!combo) {
+          if (retries > 0) {
+            setTimeout(() => applyGoogleLanguage(languageCode, retries - 1), 200);
+          }
+          return;
+        }
+
+        combo.value = languageCode;
+        combo.dispatchEvent(new Event("change"));
+      }
+
+      function loadGoogleTranslateScript() {
+        if (window.google && window.google.translate) {
+          window.googleTranslateElementInit();
+          return;
+        }
+
+        const script = document.createElement("script");
+        script.src =
+          "https://translate.google.com/translate_a/element.js?cb=googleTranslateElementInit";
+        script.async = true;
+        document.body.appendChild(script);
+      }
+
+      window.googleTranslateElementInit = function googleTranslateElementInit() {
+        new window.google.translate.TranslateElement(
+          {
+            pageLanguage: "en",
+            autoDisplay: false,
+          },
+          "google_translate_element",
+        );
+
+        applyGoogleLanguage(preferredLanguage);
+      };
+
+      function saveState() {
+        try {
+          localStorage.setItem(
+            STORAGE_KEY,
+            JSON.stringify({
+              completed: Array.from(state.completed),
+              selectedLevel: state.selectedLevel,
+              hideCompleted: state.hideCompleted,
+              language: preferredLanguage,
+            }),
+          );
+        } catch {
+          // Ignore storage errors.
+        }
+      }
+
+      function loadSavedState() {
+        try {
+          const raw = localStorage.getItem(STORAGE_KEY);
+          if (!raw) return;
+
+          const saved = JSON.parse(raw);
+          if (Array.isArray(saved.completed)) {
+            state.completed = new Set(saved.completed.map(String));
+          }
+          if (Number.isFinite(Number(saved.selectedLevel))) {
+            state.selectedLevel = Number(saved.selectedLevel);
+          }
+          if (typeof saved.hideCompleted === "boolean") {
+            state.hideCompleted = saved.hideCompleted;
+          }
+          if (
+            typeof saved.language === "string" &&
+            languageOptions.some((option) => option.code === saved.language)
+          ) {
+            preferredLanguage = saved.language;
+          }
+        } catch {
+          // Ignore malformed storage data.
+        }
+      }
+
+      function setStatus(message, isError = false) {
+        statusPill.textContent = message;
+        statusPill.classList.toggle("error", isError);
+      }
+
+      function formatNumber(value) {
+        return Number(value || 0).toLocaleString();
+      }
+
+      function formatPercent(value) {
+        return `${Math.round(value)}%`;
+      }
+
+      function getAllLevels() {
+        return Array.from(new Set(state.supplies.map((supply) => supply.level))).sort(
+          (left, right) => left - right,
+        );
+      }
+
+      function getVisibleSupplies() {
+        const query = state.search.trim().toLowerCase();
+        return state.supplies.filter((supply) => {
+          if (state.selectedLevel !== null && supply.level !== state.selectedLevel) {
+            return false;
+          }
+
+          const isDone = state.completed.has(supply.id);
+          if (state.hideCompleted && isDone) {
+            return false;
+          }
+
+          if (!query) {
+            return true;
+          }
+
+          return supply.searchable.includes(query);
+        });
+      }
+
+      function getSuppliesForLevel(level, supplies = state.supplies) {
+        return supplies.filter((supply) => supply.level === level);
+      }
+
+      function getCompletionCount(supplies) {
+        return supplies.reduce(
+          (total, supply) => total + (state.completed.has(supply.id) ? 1 : 0),
+          0,
+        );
+      }
+
+      function syncLevelSelect() {
+        const levels = getAllLevels();
+        if (levels.length === 0) {
+          levelSelect.innerHTML = "";
+          selectedLevelDot.style.background = "#ffffff";
+          return;
+        }
+
+        if (!levels.includes(state.selectedLevel)) {
+          state.selectedLevel = levels[0];
+        }
+
+        levelSelect.innerHTML = levels
+          .map((level) => `<option value="${level}">Level ${level}</option>`)
+          .join("");
+        levelSelect.value = String(state.selectedLevel);
+
+        const selectedSupply = getSuppliesForLevel(state.selectedLevel)[0];
+        selectedLevelDot.style.background = selectedSupply?.color || "#ffffff";
+      }
+
+      function renderSummary(visibleSupplies) {
+        const total = state.supplies.length;
+        const completed = state.completed.size;
+        const visibleCompleted = getCompletionCount(visibleSupplies);
+        const remaining = Math.max(0, total - completed);
+        const completionPct = total > 0 ? (completed / total) * 100 : 0;
+
+        summaryTiles.innerHTML = `
+          <div class="tile">
+            <div class="tile-key">Total Supplies</div>
+            <div class="tile-value">${formatNumber(total)}</div>
+          </div>
+          <div class="tile">
+            <div class="tile-key">Completed</div>
+            <div class="tile-value ok">${formatNumber(completed)}</div>
+          </div>
+          <div class="tile">
+            <div class="tile-key">Remaining</div>
+            <div class="tile-value warn">${formatNumber(remaining)}</div>
+          </div>
+          <div class="tile">
+            <div class="tile-key">Overall Progress</div>
+            <div class="tile-value">${formatPercent(completionPct)}</div>
+          </div>
+          <div class="tile tile-full">
+            <div class="tile-key">Visible Results</div>
+            <div class="tile-value">${formatNumber(visibleSupplies.length)} shown, ${formatNumber(visibleCompleted)} completed</div>
+          </div>
+        `;
+      }
+
+      function renderLevelProgress() {
+        const levels = getAllLevels();
+        levelProgressList.innerHTML = levels
+          .map((level) => {
+            const levelSupplies = getSuppliesForLevel(level);
+            const completed = getCompletionCount(levelSupplies);
+            const total = levelSupplies.length;
+            const percent = total > 0 ? (completed / total) * 100 : 0;
+            const color = levelSupplies[0]?.color || "#ffffff";
+
+            return `
+              <div class="level-progress-item">
+                <div class="level-progress-head">
+                  <div class="level-progress-title">
+                    <span class="level-dot" style="background:${escapeHtml(color)}"></span>
+                    Level ${level}
+                  </div>
+                  <div>${formatNumber(completed)} / ${formatNumber(total)}</div>
+                </div>
+                <div class="level-progress-bar">
+                  <div class="level-progress-fill" style="width:${percent}%; background:${escapeHtml(color)}"></div>
+                </div>
+              </div>
+            `;
+          })
+          .join("");
+      }
+
+      function renderChecklist(visibleSupplies) {
+        if (state.selectedLevel === null) {
+          checklistRoot.innerHTML = `<div class="empty-state">No supplies are available.</div>`;
+          return;
+        }
+
+        const level = state.selectedLevel;
+        const levelSupplies = getSuppliesForLevel(level, visibleSupplies);
+        const levelAllSupplies = getSuppliesForLevel(level);
+        const totalForLevel = levelAllSupplies.length;
+        const completedForLevel = getCompletionCount(levelAllSupplies);
+        const percent = totalForLevel > 0 ? (completedForLevel / totalForLevel) * 100 : 0;
+        const isComplete = totalForLevel > 0 && completedForLevel === totalForLevel;
+        const color = levelAllSupplies[0]?.color || "#ffffff";
+
+        const rows = levelSupplies.length
+          ? levelSupplies
+              .map((supply) => {
+                const isDone = state.completed.has(supply.id);
+                return `
+                  <label class="supply-row${isDone ? " is-done" : ""}">
+                    <input
+                      type="checkbox"
+                      data-action="toggle-item"
+                      data-id="${escapeHtml(supply.id)}"
+                      ${isDone ? "checked" : ""}
+                    />
+                    <div class="supply-main">
+                      <div class="supply-code">${escapeHtml(supply.code)}</div>
+                      <div class="supply-coords">x: ${formatNumber(supply.x)}, y: ${formatNumber(supply.y)}</div>
+                    </div>
+                    <button
+                      type="button"
+                      class="copy-button"
+                      data-action="copy"
+                      data-copy="${escapeHtml(`Level ${supply.level}, x: ${supply.x}, y: ${supply.y}`)}"
+                    >
+                      Copy
+                    </button>
+                  </label>
+                `;
+              })
+              .join("")
+          : `<div class="empty-state">No supplies match the current filters for Level ${level}.</div>`;
+
+        checklistRoot.innerHTML = `
+          <section class="level-card${isComplete ? " is-complete" : ""}">
+            <div class="level-head">
+              <div class="level-title-wrap">
+                <span class="level-dot" style="background:${escapeHtml(color)}"></span>
+                <div>
+                  <div class="level-name">Level ${level}</div>
+                  <div class="level-meta">${formatNumber(completedForLevel)} / ${formatNumber(totalForLevel)} complete, ${formatPercent(percent)}</div>
+                </div>
+              </div>
+              <div class="level-actions">
+                <button type="button" class="level-action" data-action="check-level" data-level="${level}">
+                  Check level
+                </button>
+                <button type="button" class="level-action" data-action="reset-level" data-level="${level}">
+                  Reset level
+                </button>
+              </div>
+            </div>
+            <div class="level-body">
+              ${rows}
+            </div>
+          </section>
+        `;
+      }
+
+      function render() {
+        const visibleSupplies = getVisibleSupplies();
+        syncLevelSelect();
+        renderSummary(visibleSupplies);
+        renderLevelProgress();
+        renderChecklist(visibleSupplies);
+        setStatus(`${formatNumber(state.supplies.length)} supplies loaded`);
+      }
+
+      function toggleItem(id) {
+        if (state.completed.has(id)) {
+          state.completed.delete(id);
+        } else {
+          state.completed.add(id);
+        }
+        saveState();
+        render();
+      }
+
+      function setLevelCompletion(level, shouldComplete) {
+        getSuppliesForLevel(level).forEach((supply) => {
+          if (shouldComplete) {
+            state.completed.add(supply.id);
+          } else {
+            state.completed.delete(supply.id);
+          }
+        });
+        saveState();
+        render();
+      }
+
+      function setVisibleCompletion(shouldComplete) {
+        getVisibleSupplies().forEach((supply) => {
+          if (shouldComplete) {
+            state.completed.add(supply.id);
+          } else {
+            state.completed.delete(supply.id);
+          }
+        });
+        saveState();
+        render();
+      }
+
+      function setSelectedLevel(level) {
+        state.selectedLevel = level;
+        saveState();
+        render();
+      }
+
+      async function copyText(text) {
+        try {
+          await navigator.clipboard.writeText(text);
+          setStatus(`Copied ${text}`);
+        } catch {
+          setStatus("Copy failed in this browser.", true);
+        }
+      }
+
+      let pendingShareData = null;
+
+      function encodeShareState(completed, selectedLevel) {
+        const grouped = {};
+        for (const id of completed) {
+          const sep = id.indexOf(':');
+          const level = id.slice(0, sep);
+          const index = Number(id.slice(sep + 1));
+          if (!grouped[level]) grouped[level] = [];
+          grouped[level].push(index);
+        }
+        for (const level of Object.keys(grouped)) {
+          grouped[level].sort((a, b) => a - b);
+        }
+        const b64 = btoa(JSON.stringify({ c: grouped, l: selectedLevel }));
+        return b64.replace(/\+/g, '-').replace(/\//g, '_').replace(/=/g, '');
+      }
+
+      function decodeShareState(encoded) {
+        try {
+          const b64 = encoded.replace(/-/g, '+').replace(/_/g, '/');
+          const padded = b64 + '='.repeat((4 - (b64.length % 4)) % 4);
+          const obj = JSON.parse(atob(padded));
+          if (!obj || typeof obj.c !== 'object') return null;
+          const completed = new Set();
+          for (const [level, indices] of Object.entries(obj.c)) {
+            if (!Array.isArray(indices)) continue;
+            for (const index of indices) {
+              if (Number.isFinite(index)) completed.add(`${level}:${index}`);
+            }
+          }
+          const selectedLevel = Number.isFinite(Number(obj.l)) ? Number(obj.l) : null;
+          return { completed, selectedLevel };
+        } catch {
+          return null;
+        }
+      }
+
+      function generateShareUrl() {
+        const encoded = encodeShareState(state.completed, state.selectedLevel);
+        const url = new URL(window.location.href);
+        url.search = '';
+        url.searchParams.set('share', encoded);
+        return url.toString();
+      }
+
+      function dismissShareBanner() {
+        shareBanner.classList.add('is-hidden');
+        pendingShareData = null;
+        const url = new URL(window.location.href);
+        url.searchParams.delete('share');
+        history.replaceState(null, '', url.toString());
+      }
+
+      function handleShareParam() {
+        const shareParam = new URLSearchParams(window.location.search).get('share');
+        if (!shareParam) return;
+        const decoded = decodeShareState(shareParam);
+        if (!decoded) return;
+        const validIds = new Set(state.supplies.map((s) => s.id));
+        const validCompleted = new Set([...decoded.completed].filter((id) => validIds.has(id)));
+        if (validCompleted.size === 0) return;
+        pendingShareData = { completed: validCompleted, selectedLevel: decoded.selectedLevel };
+        const count = validCompleted.size;
+        shareBannerText.textContent = `${count.toLocaleString()} completed ${
+          count === 1 ? 'supply' : 'supplies'
+        } shared with you. Load them into your checklist?`;
+        shareBanner.classList.remove('is-hidden');
+      }
+
+      function normalizeSupplies(data) {
+        const strongholds = Array.isArray(data?.strongholds) ? data.strongholds : [];
+        return strongholds.flatMap((group) => {
+          const coordinates = Array.isArray(group.coordinates) ? group.coordinates : [];
+          return coordinates.map((coordinate, index) => {
+            const code = `L${group.level}-${String(index + 1).padStart(3, "0")}`;
+            return {
+              id: `${group.level}:${index + 1}`,
+              code,
+              level: Number(group.level),
+              color: group.color || "#ffffff",
+              x: Number(coordinate.x),
+              y: Number(coordinate.y),
+              searchable: `${code} level ${group.level} ${coordinate.x} ${coordinate.y} ${coordinate.x},${coordinate.y} ${coordinate.x}, ${coordinate.y}`.toLowerCase(),
+            };
+          });
+        });
+      }
+
+      async function loadSupplies() {
+        setStatus("Loading supplies...");
+        try {
+          const response = await fetch(DATA_URL, { cache: "no-store" });
+          if (!response.ok) {
+            throw new Error(`HTTP ${response.status}`);
+          }
+
+          const data = await response.json();
+          state.supplies = normalizeSupplies(data);
+          if (!getAllLevels().includes(state.selectedLevel)) {
+            state.selectedLevel = getAllLevels()[0] ?? null;
+          }
+          render();
+          handleShareParam();
+        } catch (error) {
+          checklistRoot.innerHTML = `
+            <div class="empty-state">
+              Unable to load the Season 2 supplies data right now. Try refreshing the page.
+            </div>
+          `;
+          summaryTiles.innerHTML = "";
+          levelProgressList.innerHTML = "";
+          setStatus(`Failed to load supplies (${escapeHtml(error.message)})`, true);
+        }
+      }
+
+      checklistRoot.addEventListener("click", (event) => {
+        const button = event.target.closest("[data-action]");
+        if (!button) return;
+
+        const action = button.dataset.action;
+        if (action === "check-level") {
+          setLevelCompletion(Number(button.dataset.level), true);
+          return;
+        }
+
+        if (action === "reset-level") {
+          setLevelCompletion(Number(button.dataset.level), false);
+          return;
+        }
+
+        if (action === "copy") {
+          copyText(button.dataset.copy || "");
+        }
+      });
+
+      checklistRoot.addEventListener("change", (event) => {
+        const input = event.target.closest("input[data-action='toggle-item']");
+        if (!input) return;
+        toggleItem(input.dataset.id);
+      });
+
+      searchInput.addEventListener("input", () => {
+        state.search = searchInput.value;
+        render();
+      });
+
+      levelSelect.addEventListener("change", () => {
+        setSelectedLevel(Number(levelSelect.value));
+      });
+
+      hideCompletedInput.addEventListener("change", () => {
+        state.hideCompleted = hideCompletedInput.checked;
+        saveState();
+        render();
+      });
+
+      checkLevelButton.addEventListener("click", () => {
+        if (state.selectedLevel !== null) {
+          setLevelCompletion(state.selectedLevel, true);
+        }
+      });
+      resetLevelButton.addEventListener("click", () => {
+        if (state.selectedLevel !== null) {
+          setLevelCompletion(state.selectedLevel, false);
+        }
+      });
+      markVisibleButton.addEventListener("click", () => setVisibleCompletion(true));
+      clearProgressButton.addEventListener("click", () => {
+        state.completed.clear();
+        saveState();
+        render();
+      });
+
+      shareListButton.addEventListener('click', async () => {
+        const url = generateShareUrl();
+        try {
+          await navigator.clipboard.writeText(url);
+          shareListButton.textContent = 'Link copied!';
+          setTimeout(() => { shareListButton.textContent = 'Share list'; }, 2000);
+        } catch {
+          window.prompt('Copy this shareable link:', url);
+        }
+      });
+
+      mergeSharedButton.addEventListener('click', () => {
+        if (!pendingShareData) return;
+        for (const id of pendingShareData.completed) {
+          state.completed.add(id);
+        }
+        saveState();
+        render();
+        dismissShareBanner();
+      });
+
+      replaceSharedButton.addEventListener('click', () => {
+        if (!pendingShareData) return;
+        state.completed = new Set(pendingShareData.completed);
+        if (pendingShareData.selectedLevel !== null && getAllLevels().includes(pendingShareData.selectedLevel)) {
+          state.selectedLevel = pendingShareData.selectedLevel;
+        }
+        saveState();
+        render();
+        dismissShareBanner();
+      });
+
+      dismissSharedButton.addEventListener('click', dismissShareBanner);
+
+      languageSelect.addEventListener("change", () => {
+        preferredLanguage = languageSelect.value;
+        applyGoogleLanguage(preferredLanguage);
+        saveState();
+      });
+
+      loadSavedState();
+      buildLanguageOptions();
+      hideCompletedInput.checked = state.hideCompleted;
+      loadGoogleTranslateScript();
+      loadSupplies();
+    </script>
+
+    <div class="support-bar">
+      <a
+        href="https://buymeacoffee.com/dkfoy56w"
+        class="support-link"
+        target="_blank"
+        rel="noopener noreferrer"
+        >Buy Me a Coffee</a
+      >
+    </div>
+  </body>
+</html>

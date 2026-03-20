@@ -3,6 +3,8 @@
     const nav = document.querySelector('.page-nav');
     if (!nav) return;
 
+    ensureSeason2SuppliesLink(nav);
+
     const dropdowns = Array.from(nav.querySelectorAll('details.page-nav-dropdown'));
 
     if (dropdowns.length === 0) return;
@@ -38,6 +40,35 @@
       dropdowns.forEach((dropdown) => {
         dropdown.removeAttribute('open');
       });
+    });
+  }
+
+  function ensureSeason2SuppliesLink(nav) {
+    const currentPage = window.location.pathname.split('/').pop() || 'index.html';
+    const season2Dropdowns = Array.from(
+      nav.querySelectorAll('details.page-nav-dropdown'),
+    ).filter((dropdown) => {
+      const summary = dropdown.querySelector('summary.page-nav-dropdown-toggle');
+      return summary && summary.textContent.trim() === 'Season 2 Tools';
+    });
+
+    season2Dropdowns.forEach((dropdown) => {
+      const menu = dropdown.querySelector('.page-nav-dropdown-menu');
+      if (!menu) return;
+
+      let link = menu.querySelector('a[href="season-2-supplies-checklist.html"]');
+      if (!link) {
+        link = document.createElement('a');
+        link.href = 'season-2-supplies-checklist.html';
+        link.className = 'page-link';
+        link.textContent = 'Supplies Checklist';
+        menu.appendChild(link);
+      }
+
+      if (currentPage === 'season-2-supplies-checklist.html') {
+        dropdown.classList.add('active');
+        link.classList.add('active');
+      }
     });
   }
 
