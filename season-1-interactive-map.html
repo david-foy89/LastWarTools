@@ -1,4 +1,4 @@
-﻿<!doctype html>
+<!doctype html>
 <html lang="en">
   <head>
     <meta charset="UTF-8" />
@@ -657,13 +657,13 @@
           <label for="languageSelect">Language</label>
           <select id="languageSelect">
             <option value="en">English</option>
-            <option value="es">EspaÃ±ol</option>
-            <option value="fr">FranÃ§ais</option>
+            <option value="es">Español</option>
+            <option value="fr">Français</option>
             <option value="de">Deutsch</option>
-            <option value="pt">PortuguÃªs</option>
-            <option value="ru">Ð ÑƒÑÑÐºÐ¸Ð¹</option>
-            <option value="ja">æ—¥æœ¬èªž</option>
-            <option value="zh">ä¸­æ–‡</option>
+            <option value="pt">Português</option>
+            <option value="ru">Русский</option>
+            <option value="ja">日本語</option>
+            <option value="zh">中文</option>
           </select>
         </div>
       </div>
@@ -673,7 +673,7 @@
         <a href="hq-upgrade-calculator.html" class="page-link">HQ Upgrade</a>
         <details class="page-nav-dropdown" name="troop-nav">
           <summary class="page-link page-nav-dropdown-toggle">
-            Troop Calculators
+            Troop Tools
           </summary>
           <div class="page-nav-dropdown-menu">
             <a href="t10-troops-calculator.html" class="page-link"
@@ -746,6 +746,9 @@
             >
             <a href="lighthouse-s4-calculator.html" class="page-link"
               >Lighthouse S4</a
+            >
+            <a href="season-4-interactive-map.html" class="page-link"
+              >Interactive Map</a
             >
           </div>
         </details>
@@ -952,16 +955,16 @@
 
           <div class="export-format-grid">
             <button class="btn-confirm" onclick="exportAsJSON()">
-              ðŸ“‹ JSON
+              📋 JSON
             </button>
             <button class="btn-confirm" onclick="exportAsExcel()">
-              ðŸ“Š Excel
+              📊 Excel
             </button>
             <button class="btn-confirm" onclick="exportAsPNG()">
-              ðŸ–¼ï¸ PNG
+              🖼️ PNG
             </button>
             <button class="btn-confirm" onclick="exportAsPDF()">
-              ðŸ“„ PDF
+              📄 PDF
             </button>
           </div>
 
@@ -1226,7 +1229,7 @@
                             (${countAllianceTerritories(alliance.tag)} areas)
                         </span>
                     </div>
-                    <span class="alliance-remove" onclick="event.stopPropagation(); removeAlliance('${alliance.tag}')">âœ•</span>
+                    <span class="alliance-remove" onclick="event.stopPropagation(); removeAlliance('${alliance.tag}')">✕</span>
                 </div>
             `,
           )
@@ -1428,10 +1431,10 @@
             ctx.strokeRect(x + 2, y + 2, w - 4, h - 4);
           }
 
-          // Level badge colours: index = city level (1â€“6)
+          // Level badge colours: index = city level (1–6)
           const LEVEL_COLORS = [
             "",
-            "rgba(160,180,200,0.85)", // L1 â€” outer ring, dim
+            "rgba(160,180,200,0.85)", // L1 — outer ring, dim
             "rgba(120,195,225,0.9)", // L2
             "#74c0fc", // L3
             "#cd7f32", // L4 bronze
@@ -1439,7 +1442,7 @@
             "#ffd700", // L6 gold
           ];
 
-          // Capitol label â€” always visible
+          // Capitol label — always visible
           if (isCapitol) {
             ctx.fillStyle = alliance
               ? "rgba(255, 255, 255, 0.95)"
@@ -1987,3 +1990,8 @@
     </div>
   </body>
 </html>
+
+
+
+
+

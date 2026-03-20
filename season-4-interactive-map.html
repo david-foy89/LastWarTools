@@ -3,29 +3,29 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Season 3 Interactive Map - Last War Tools</title>
+    <title>Season 4 Interactive Map - Last War Tools</title>
     <meta
       name="description"
-      content="Interactive alliance map planning tool for Season 3. Manage cities, strongholds, and coordinate territories with real-time visualization and import/export functionality."
+      content="Interactive alliance map planning tool for Season 4. Manage cities, strongholds, and coordinate territories with real-time visualization and import/export functionality."
     />
     <meta
       name="canonical"
-      content="https://lastwarsurvivaltools.com/season-3-interactive-map.html"
+      content="https://lastwarsurvivaltools.com/season-4-interactive-map.html"
     />
 
     <!-- Open Graph Tags -->
     <meta property="og:type" content="website" />
     <meta
       property="og:title"
-      content="Season 3 Interactive Map - Last War Tools"
+      content="Season 4 Interactive Map - Last War Tools"
     />
     <meta
       property="og:description"
-      content="Plan your Season 3 alliance strategy with our interactive map tool. Manage territories and coordinate with allies."
+      content="Plan your Season 4 alliance strategy with our interactive map tool. Manage territories and coordinate with allies."
     />
     <meta
       property="og:url"
-      content="https://lastwarsurvivaltools.com/season-3-interactive-map.html"
+      content="https://lastwarsurvivaltools.com/season-4-interactive-map.html"
     />
     <meta
       property="og:image"
@@ -36,11 +36,11 @@
     <meta name="twitter:card" content="summary_large_image" />
     <meta
       name="twitter:title"
-      content="Season 3 Interactive Map - Last War Tools"
+      content="Season 4 Interactive Map - Last War Tools"
     />
     <meta
       name="twitter:description"
-      content="Interactive alliance map planning for Season 3"
+      content="Interactive alliance map planning for Season 4"
     />
 
     <!-- JSON-LD Structured Data -->
@@ -48,9 +48,9 @@
       {
         "@context": "https://schema.org",
         "@type": "WebPage",
-        "name": "Season 3 Interactive Map",
-        "description": "Interactive alliance map planning tool for Season 3",
-        "url": "https://lastwarsurvivaltools.com/season-3-interactive-map.html",
+        "name": "Season 4 Interactive Map",
+        "description": "Interactive alliance map planning tool for Season 4",
+        "url": "https://lastwarsurvivaltools.com/season-4-interactive-map.html",
         "image": "https://lastwarsurvivaltools.com/media/lwst.png"
       }
     </script>
@@ -715,7 +715,7 @@
             >
           </div>
         </details>
-        <details class="page-nav-dropdown active" name="season-nav">
+        <details class="page-nav-dropdown" name="season-nav">
           <summary class="page-link page-nav-dropdown-toggle">
             Season 3 Tools
           </summary>
@@ -727,12 +727,12 @@
             <a href="protectors-field-calculator.html" class="page-link"
               >Protectors Field</a
             >
-            <a href="season-3-interactive-map.html" class="page-link active"
+            <a href="season-3-interactive-map.html" class="page-link"
               >Interactive Map</a
             >
           </div>
         </details>
-        <details class="page-nav-dropdown" name="season-nav">
+        <details class="page-nav-dropdown active" name="season-nav">
           <summary class="page-link page-nav-dropdown-toggle">
             Season 4 Tools
           </summary>
@@ -746,7 +746,7 @@
             <a href="lighthouse-s4-calculator.html" class="page-link"
               >Lighthouse S4</a
             >
-            <a href="season-4-interactive-map.html" class="page-link"
+            <a href="season-4-interactive-map.html" class="page-link active"
               >Interactive Map</a
             >
           </div>
@@ -770,7 +770,7 @@
       </nav>
 
       <div class="container">
-        <h1>Season 3 Interactive Map - The Golden Realm</h1>
+        <h1>Season 4 Interactive Map - Evernight Isle</h1>
         <p style="color: rgba(217, 240, 255, 0.7); margin-bottom: 20px">
           Plan your alliance strategy with real-time territory management.
           Create alliances, assign territories, and coordinate with your team.
@@ -779,7 +779,7 @@
         <div class="top-stats-bar">
           <div class="top-stat">
             <div class="top-stat-label">Total Areas</div>
-            <div class="top-stat-value" id="topStatTotalAreas">169</div>
+            <div class="top-stat-value" id="topStatTotalAreas">187</div>
           </div>
           <div class="top-stat">
             <div class="top-stat-label">Active Alliances</div>
@@ -840,7 +840,7 @@
               <div class="stats-panel">
                 <div class="stats-row">
                   <span class="stat-label">Total Areas:</span>
-                  <span class="stat-value" id="statTotalAreas">169</span>
+                  <span class="stat-value" id="statTotalAreas">187</span>
                 </div>
                 <div class="stats-row">
                   <span class="stat-label">Assigned:</span>
@@ -918,25 +918,31 @@
                   <span>Stronghold</span>
                 </div>
                 <div class="legend-item">
-                  <span>Village</span>
+                  <span>Cottage</span>
                 </div>
                 <div class="legend-item">
-                  <span>Altar</span>
+                  <span>Hot Spring Town</span>
                 </div>
                 <div class="legend-item">
-                  <span>Town</span>
+                  <span>Food Street</span>
                 </div>
                 <div class="legend-item">
                   <span>Trade Post</span>
                 </div>
                 <div class="legend-item">
-                  <span>Temple of the Sun</span>
+                  <span>Baseball Field</span>
                 </div>
                 <div class="legend-item">
-                  <span>Ancient Tombs</span>
+                  <span>Sky Tower</span>
                 </div>
                 <div class="legend-item">
-                  <span>Square of Judgement</span>
+                  <span>Electropolis</span>
+                </div>
+                <div class="legend-item">
+                  <span>Holy Mountain</span>
+                </div>
+                <div class="legend-item">
+                  <span>Divine Tree</span>
                 </div>
               </div>
             </div>
@@ -965,12 +971,8 @@
             <button class="btn-confirm" onclick="exportAsExcel()">
               📊 Excel
             </button>
-            <button class="btn-confirm" onclick="exportAsPNG()">
-              🖼️ PNG
-            </button>
-            <button class="btn-confirm" onclick="exportAsPDF()">
-              📄 PDF
-            </button>
+            <button class="btn-confirm" onclick="exportAsPNG()">🖼️ PNG</button>
+            <button class="btn-confirm" onclick="exportAsPDF()">📄 PDF</button>
           </div>
 
           <div class="export-preview" id="exportPreview">
@@ -1032,7 +1034,7 @@
     <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
 
     <script src="page-nav-dropdown.js"></script>
-    <script src="season-3-territories.js"></script>
+    <script src="season-4-territories.js"></script>
     <script>
       // Initialize map data
       const state = {
@@ -1059,14 +1061,16 @@
           touchPanScrollTop: 0,
         },
         areaTypes: {
-          SH: { name: "Stronghold", count: 168 },
-          V: { name: "Village", count: 40 },
-          A: { name: "Altar", count: 31 },
-          T: { name: "Town", count: 25 },
-          TP: { name: "Trade Post", count: 20 },
-          TS: { name: "Temple of the Sun", count: 16 },
-          AT: { name: "Ancient Tombs", count: 8 },
-          SJ: { name: "Square of Judgement", count: 4 },
+          SH: { name: "Stronghold", count: 84 },
+          C: { name: "Cottage", count: 24 },
+          HST: { name: "Hot Spring Town", count: 20 },
+          TP: { name: "Trade Post", count: 16 },
+          FS: { name: "Food Street", count: 16 },
+          BF: { name: "Baseball Field", count: 12 },
+          ST: { name: "Sky Tower", count: 8 },
+          E: { name: "Electropolis", count: 4 },
+          HM: { name: "Holy Mountain", count: 1 },
+          DT: { name: "Divine Tree", count: 1 },
         },
       };
 
@@ -1077,14 +1081,16 @@
       const MAP_SIZE = 1000;
       const AREA_ABBREVIATIONS = {
         Stronghold: "SH",
-        Village: "V",
-        Altar: "A",
-        Town: "T",
+        Cottage: "C",
+        "Hot Spring Town": "HST",
+        "Food Street": "FS",
         "Trade Post": "TP",
-        "Temple of the Sun": "TS",
-        "Ancient Tombs": "AT",
-        "Square of Judgement": "SJ",
-        "Great Pyramid": "GP",
+        "Baseball Field": "BF",
+        "Sky Tower": "ST",
+        Electropolis: "E",
+        "Holy Mountain": "HM",
+        "Divine Tree": "DT",
+        "Tenryu Castle": "TC",
       };
 
       const BUFF_LABELS = {
@@ -1281,10 +1287,8 @@
         }
 
         const resourceLabels = {
-          coal: "Coal",
-          rareSoil: "Rare Soil",
-          influence: "Influence",
-          spice: "Spice",
+          stone: "Stone",
+          copper: "Copper",
         };
 
         const entries = Object.entries(resources)
@@ -1386,7 +1390,7 @@
         mapTooltip.classList.add("show");
       }
 
-      const mapAreas = (window.SEASON_3_TERRITORIES || []).map((area) => ({
+      const mapAreas = (window.SEASON_4_TERRITORIES || []).map((area) => ({
         id: area.id,
         name: area.name,
         abbreviation: getAreaAbbreviation(area.name),
@@ -1478,7 +1482,7 @@
             ctx.textAlign = "center";
             ctx.textBaseline = "middle";
             ctx.font = "bold 14px monospace";
-            ctx.fillText("GREAT PYRAMID", x + w / 2, y + h / 2 - 10);
+            ctx.fillText(area.name.toUpperCase(), x + w / 2, y + h / 2 - 10);
             ctx.font = "11px monospace";
             ctx.fillText("LV. 7", x + w / 2, y + h / 2 + 12);
           } else if (showCities && (!isStronghold || showLabels)) {
@@ -1724,7 +1728,7 @@
       }
 
       function getExportFileName() {
-        return `season-3-map-${new Date().toISOString().split("T")[0]}`;
+        return `season-4-map-${new Date().toISOString().split("T")[0]}`;
       }
 
       function exportAsJSON() {
@@ -2018,8 +2022,3 @@
     </div>
   </body>
 </html>
-
-
-
-
-
