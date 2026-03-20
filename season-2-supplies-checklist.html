@@ -1039,8 +1039,14 @@
         }
 
         // Fallback: proximity search when query looks numeric.
-        // Supports: single number ("535"), or coordinate pair ("535, 466" / "535 466").
-        const pairMatch = query.match(/^(\d+)[,\s]+(\d+)$/);
+        // Supports: single number ("535"), coordinate pair ("535, 466" / "535 466"),
+        // or labeled pair ("x=535, y=466" / "x: 535 y: 466").
+        const namedXMatch = query.match(/(?:^|[,\s])x\s*[:=]\s*(\d+)/);
+        const namedYMatch = query.match(/(?:^|[,\s])y\s*[:=]\s*(\d+)/);
+        const pairMatch =
+          namedXMatch && namedYMatch
+            ? ["", namedXMatch[1], namedYMatch[1]]
+            : query.match(/^(\d+)[,\s]+(\d+)$/);
         const singleMatch = !pairMatch && query.match(/^\d+$/);
 
         if (!pairMatch && !singleMatch) {
