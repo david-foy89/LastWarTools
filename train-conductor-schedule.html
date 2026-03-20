@@ -902,7 +902,10 @@
                 : "",
           }));
         }
-        if (Array.isArray(saved.dayAssignments) && saved.dayAssignments.length === 7) {
+        if (
+          Array.isArray(saved.dayAssignments) &&
+          saved.dayAssignments.length === 7
+        ) {
           state.dayAssignments = saved.dayAssignments.map((v) => {
             const n = Number(v);
             return Number.isFinite(n) && n >= -1 && n <= 6 ? n : 0;
@@ -937,7 +940,8 @@
       }
 
       function getExportFileBaseName() {
-        const datePart = state.startDateStr || toDateStr(getMondayOf(new Date()));
+        const datePart =
+          state.startDateStr || toDateStr(getMondayOf(new Date()));
         return `train-conductor-schedule-${datePart}`;
       }
 
@@ -992,7 +996,11 @@
           scale: 2,
         });
         const { jsPDF } = window.jspdf;
-        const pdf = new jsPDF({ orientation: "landscape", unit: "pt", format: "a4" });
+        const pdf = new jsPDF({
+          orientation: "landscape",
+          unit: "pt",
+          format: "a4",
+        });
         const pageWidth = pdf.internal.pageSize.getWidth();
         const pageHeight = pdf.internal.pageSize.getHeight();
         const imgWidth = canvas.width;
@@ -1002,7 +1010,14 @@
         const renderHeight = imgHeight * ratio;
         const x = (pageWidth - renderWidth) / 2;
         const y = 24;
-        pdf.addImage(canvas.toDataURL("image/png"), "PNG", x, y, renderWidth, renderHeight);
+        pdf.addImage(
+          canvas.toDataURL("image/png"),
+          "PNG",
+          x,
+          y,
+          renderWidth,
+          renderHeight,
+        );
         pdf.save(`${getExportFileBaseName()}.pdf`);
       }
 
@@ -1394,7 +1409,10 @@
         event.preventDefault();
         const willOpen = exportMenu.classList.contains("is-hidden");
         exportMenu.classList.toggle("is-hidden");
-        exportMenuToggle.setAttribute("aria-expanded", willOpen ? "true" : "false");
+        exportMenuToggle.setAttribute(
+          "aria-expanded",
+          willOpen ? "true" : "false",
+        );
       });
 
       document.addEventListener("click", (event) => {
