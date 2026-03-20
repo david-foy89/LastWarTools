@@ -1072,6 +1072,16 @@
         if (pairMatch) {
           const qx = Number(pairMatch[1]);
           const qy = Number(pairMatch[2]);
+
+          // If there is an exact coordinate match for both numbers, return it directly.
+          const exactPair = pool.filter(
+            (supply) => supply.x === qx && supply.y === qy,
+          );
+          if (exactPair.length > 0) {
+            state.fuzzySearch = false;
+            return exactPair;
+          }
+
           // Top N closest by x-axis proximity, independent of y.
           const byX = [...pool]
             .sort((a, b) => Math.abs(a.x - qx) - Math.abs(b.x - qx))
@@ -1085,6 +1095,9 @@
             byX,
             byY,
             (a, b) =>
+              Math.abs(a.x - qx) +
+                Math.abs(a.y - qy) -
+                (Math.abs(b.x - qx) + Math.abs(b.y - qy)) ||
               Math.hypot(a.x - qx, a.y - qy) - Math.hypot(b.x - qx, b.y - qy),
           );
         }
