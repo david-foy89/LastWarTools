@@ -3,30 +3,29 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Season 1 Interactive Map - Last War Tools</title>
+    <title>Season 5 Interactive Map - Last War Tools</title>
     <meta
       name="description"
-      content="Interactive alli
-      ance map planning tool for Season 1 - The Crimson Plague. Manage cities, strongholds, and coordinate territories with real-time visualization and import/export functionality."
+      content="Interactive alliance map planning tool for Season 5. Manage cities, strongholds, and coordinate territories with real-time visualization and import/export functionality."
     />
     <meta
       name="canonical"
-      content="https://lastwarsurvivaltools.com/season-1-interactive-map.html"
+      content="https://lastwarsurvivaltools.com/season-5-interactive-map.html"
     />
 
     <!-- Open Graph Tags -->
     <meta property="og:type" content="website" />
     <meta
       property="og:title"
-      content="Season 1 Interactive Map - Last War Tools"
+      content="Season 5 Interactive Map - Last War Tools"
     />
     <meta
       property="og:description"
-      content="Plan your Season 1 alliance strategy with our interactive map tool. Manage territories and coordinate with allies."
+      content="Plan your Season 5 alliance strategy with our interactive map tool. Manage territories and coordinate with allies."
     />
     <meta
       property="og:url"
-      content="https://lastwarsurvivaltools.com/season-1-interactive-map.html"
+      content="https://lastwarsurvivaltools.com/season-5-interactive-map.html"
     />
     <meta
       property="og:image"
@@ -37,11 +36,11 @@
     <meta name="twitter:card" content="summary_large_image" />
     <meta
       name="twitter:title"
-      content="Season 1 Interactive Map - Last War Tools"
+      content="Season 5 Interactive Map - Last War Tools"
     />
     <meta
       name="twitter:description"
-      content="Interactive alliance map planning for Season 1 - The Crimson Plague"
+      content="Interactive alliance map planning for Season 5"
     />
 
     <!-- JSON-LD Structured Data -->
@@ -49,9 +48,9 @@
       {
         "@context": "https://schema.org",
         "@type": "WebPage",
-        "name": "Season 1 Interactive Map",
-        "description": "Interactive alliance map planning tool for Season 1",
-        "url": "https://lastwarsurvivaltools.com/season-1-interactive-map.html",
+        "name": "Season 5 Interactive Map",
+        "description": "Interactive alliance map planning tool for Season 5",
+        "url": "https://lastwarsurvivaltools.com/season-5-interactive-map.html",
         "image": "https://lastwarsurvivaltools.com/media/lwst.png"
       }
     </script>
@@ -684,7 +683,7 @@
             >
           </div>
         </details>
-        <details class="page-nav-dropdown active" name="season-nav">
+        <details class="page-nav-dropdown" name="season-nav">
           <summary class="page-link page-nav-dropdown-toggle">
             Season 1 Tools
           </summary>
@@ -695,7 +694,7 @@
             <a href="season-1-squad-base-calculator.html" class="page-link"
               >Season 1 Squad Base</a
             >
-            <a href="season-1-interactive-map.html" class="page-link active"
+            <a href="season-1-interactive-map.html" class="page-link"
               >Interactive Map</a
             >
           </div>
@@ -752,7 +751,7 @@
             >
           </div>
         </details>
-        <details class="page-nav-dropdown" name="season-nav">
+        <details class="page-nav-dropdown active" name="season-nav">
           <summary class="page-link page-nav-dropdown-toggle">
             Season 5 Tools
           </summary>
@@ -766,7 +765,7 @@
             <a href="season-5-squad-base-calculator.html" class="page-link"
               >Season 5 Squad Base</a
             >
-            <a href="season-5-interactive-map.html" class="page-link"
+            <a href="season-5-interactive-map.html" class="page-link active"
               >Interactive Map</a
             >
           </div>
@@ -774,7 +773,7 @@
       </nav>
 
       <div class="container">
-        <h1>Season 1 Interactive Map - The Crimson Plague</h1>
+        <h1>Season 5 Interactive Map - Wild West</h1>
         <p style="color: rgba(217, 240, 255, 0.7); margin-bottom: 20px">
           Plan your alliance strategy with real-time territory management.
           Create alliances, assign territories, and coordinate with your team.
@@ -783,7 +782,7 @@
         <div class="top-stats-bar">
           <div class="top-stat">
             <div class="top-stat-label">Total Areas</div>
-            <div class="top-stat-value" id="topStatTotalAreas">386</div>
+            <div class="top-stat-value" id="topStatTotalAreas">187</div>
           </div>
           <div class="top-stat">
             <div class="top-stat-label">Active Alliances</div>
@@ -844,7 +843,7 @@
               <div class="stats-panel">
                 <div class="stats-row">
                   <span class="stat-label">Total Areas:</span>
-                  <span class="stat-value" id="statTotalAreas">386</span>
+                  <span class="stat-value" id="statTotalAreas">187</span>
                 </div>
                 <div class="stats-row">
                   <span class="stat-label">Assigned:</span>
@@ -881,7 +880,7 @@
               <div class="stats-panel" id="selectedAreaPanel">
                 <div class="area-detail-hint">
                   Click any square on the map to inspect its level, buff, and
-                  influence points.
+                  resource yields.
                 </div>
               </div>
             </div>
@@ -899,7 +898,12 @@
                   <span>Show Area Labels</span>
                 </label>
                 <label class="toggle-item">
-                  <input type="checkbox" id="showGrid" onchange="renderMap()" />
+                  <input
+                    type="checkbox"
+                    id="showGrid"
+                    checked
+                    onchange="renderMap()"
+                  />
                   <span>Show Grid</span>
                 </label>
                 <label class="toggle-item">
@@ -922,19 +926,31 @@
                   <span>Stronghold</span>
                 </div>
                 <div class="legend-item">
-                  <span>Brewery</span>
+                  <span>Coyote Town</span>
                 </div>
                 <div class="legend-item">
-                  <span>Fog Shroud</span>
+                  <span>Waterhold</span>
                 </div>
                 <div class="legend-item">
-                  <span>Theme Park</span>
+                  <span>Lawless Road</span>
                 </div>
                 <div class="legend-item">
-                  <span>Art Gallery</span>
+                  <span>Derby Grounds</span>
                 </div>
                 <div class="legend-item">
-                  <span>Stadium</span>
+                  <span>Sand County</span>
+                </div>
+                <div class="legend-item">
+                  <span>Trade Post</span>
+                </div>
+                <div class="legend-item">
+                  <span>Warzone Outpost</span>
+                </div>
+                <div class="legend-item">
+                  <span>CrystalGold Mines</span>
+                </div>
+                <div class="legend-item">
+                  <span>Golden Palace</span>
                 </div>
               </div>
             </div>
@@ -963,12 +979,8 @@
             <button class="btn-confirm" onclick="exportAsExcel()">
               📊 Excel
             </button>
-            <button class="btn-confirm" onclick="exportAsPNG()">
-              🖼️ PNG
-            </button>
-            <button class="btn-confirm" onclick="exportAsPDF()">
-              📄 PDF
-            </button>
+            <button class="btn-confirm" onclick="exportAsPNG()">🖼️ PNG</button>
+            <button class="btn-confirm" onclick="exportAsPDF()">📄 PDF</button>
           </div>
 
           <div class="export-preview" id="exportPreview">
@@ -1030,7 +1042,7 @@
     <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
 
     <script src="page-nav-dropdown.js"></script>
-    <script src="season-1-territories.js"></script>
+    <script src="season-5-territories.js"></script>
     <script>
       // Initialize map data
       const state = {
@@ -1056,33 +1068,29 @@
           touchPanScrollLeft: 0,
           touchPanScrollTop: 0,
         },
-        areaTypes: {
-          SH: { name: "Stronghold", count: 305 },
-          B: { name: "Brewery", count: 24 },
-          FSA: { name: "Fog Shroud Alley", count: 20 },
-          TP: { name: "Theme Park", count: 16 },
-          AG: { name: "Art Gallery", count: 12 },
-          S: { name: "Stadium", count: 2 },
-          RS: { name: "Royal Stadium", count: 3 },
-          HN: { name: "House of Nobles", count: 3 },
-        },
+        areaTypes: {},
       };
 
       const canvas = document.getElementById("mapCanvas");
       const mapCanvasWrapper = document.getElementById("mapCanvasWrapper");
       const mapTooltip = document.getElementById("mapTooltip");
       const ctx = canvas.getContext("2d");
-      const MAP_SIZE = 1000;
       const AREA_ABBREVIATIONS = {
         Stronghold: "SH",
-        Brewery: "B",
-        "Fog Shroud Alley": "FSA",
-        "Theme Park": "TP",
-        "Art Gallery": "AG",
-        Stadium: "S",
-        "Royal Stadium": "RS",
-        "House of Nobles": "HN",
-        "Royal Palace": "RP",
+        "Coyote Town": "CT",
+        Waterhold: "WH",
+        "Lawless Road": "LR",
+        "Derby Grounds": "DG",
+        "Sand County": "SC",
+        "Trade Post": "TP",
+        "Warzone Outpost": "WO",
+        "Small CrystalGold Mine": "SCM",
+        "Medium CrystalGold Mine": "MCM",
+        "Large CrystalGold Mine": "LCM",
+        "Mega CrystalGold Mine": "XCM",
+        "Colossal CrystalGold Mine": "CCM",
+        "Golden Palace": "GP",
+        "Grand Nexus": "GN",
       };
 
       const BUFF_LABELS = {
@@ -1240,7 +1248,7 @@
 
         // Update stats
         const assignedCount = Object.keys(state.territories).length;
-        document.getElementById("statTotalAreas").textContent = "386";
+        document.getElementById("statTotalAreas").textContent = mapAreas.length;
         document.getElementById("statAssigned").textContent = assignedCount;
         document.getElementById("statAlliances").textContent =
           state.alliances.length;
@@ -1248,7 +1256,8 @@
           state.selectedAlliance || "None";
 
         // Update top stats
-        document.getElementById("topStatTotalAreas").textContent = "386";
+        document.getElementById("topStatTotalAreas").textContent =
+          mapAreas.length;
         document.getElementById("topStatAlliances").textContent =
           state.alliances.length;
         document.getElementById("topStatAssigned").textContent = assignedCount;
@@ -1272,6 +1281,26 @@
         return `${label} +${buff.percentage}%`;
       }
 
+      function formatResources(resources) {
+        if (!resources || Object.keys(resources).length === 0) {
+          return "N/A";
+        }
+
+        const resourceLabels = {
+          crystalGold: "Crystal Gold",
+          influence: "Influence",
+        };
+
+        const entries = Object.entries(resources)
+          .filter(([, value]) => typeof value === "number" && value > 0)
+          .map(([key, value]) => {
+            const label = resourceLabels[key] || key;
+            return `${label}: ${value.toLocaleString()}`;
+          });
+
+        return entries.length ? entries.join(" | ") : "N/A";
+      }
+
       function updateSelectedAreaInfo() {
         const panel = document.getElementById("selectedAreaPanel");
         if (!panel) {
@@ -1281,7 +1310,7 @@
         if (!state.selectedAreaId) {
           panel.innerHTML = `
             <div class="area-detail-hint">
-              Click any square on the map to inspect its level, buff, and influence points.
+              Click any square on the map to inspect its level, buff, and resource yields.
             </div>
           `;
           return;
@@ -1298,7 +1327,7 @@
         }
 
         const owner = state.territories[area.id] || "Unassigned";
-        const influence = area.resources?.influence ?? 0;
+        const resourceSummary = formatResources(area.resources);
 
         panel.innerHTML = `
           <div class="stats-row">
@@ -1318,8 +1347,8 @@
             <span class="area-detail-value">${formatBuff(area.buff)}</span>
           </div>
           <div class="stats-row">
-            <span class="stat-label">Influence:</span>
-            <span class="area-detail-value">${influence.toLocaleString()}</span>
+            <span class="stat-label">Resources:</span>
+            <span class="area-detail-value">${resourceSummary}</span>
           </div>
           <div class="stats-row">
             <span class="stat-label">Owner:</span>
@@ -1341,12 +1370,12 @@
         if (!mapTooltip || !area) return;
 
         const owner = state.territories[area.id] || "Unassigned";
-        const influence = area.resources?.influence ?? 0;
+        const resourceSummary = formatResources(area.resources);
 
         mapTooltip.innerHTML = `
           <div class="map-tooltip-title">${area.name} (Lv. ${area.level})</div>
           <div>Buff: ${formatBuff(area.buff)}</div>
-          <div>Influence: ${influence.toLocaleString()}</div>
+          <div>Resources: ${resourceSummary}</div>
           <div>Owner: ${owner}</div>
         `;
 
@@ -1361,7 +1390,7 @@
         mapTooltip.classList.add("show");
       }
 
-      const mapAreas = (window.SEASON_1_TERRITORIES || []).map((area) => ({
+      const mapAreas = (window.SEASON_5_TERRITORIES || []).map((area) => ({
         id: area.id,
         name: area.name,
         abbreviation: getAreaAbbreviation(area.name),
@@ -1372,10 +1401,27 @@
         coordinates: area.coordinates,
       }));
 
+      const MAP_SIZE = mapAreas.reduce((size, area) => {
+        const maxX = area.coordinates.x + area.coordinates.width;
+        const maxY = area.coordinates.y + area.coordinates.height;
+        return Math.max(size, maxX, maxY);
+      }, 1000);
+      const MAX_CANVAS_DIMENSION = 4096;
+
       function renderMap() {
         const dpr = window.devicePixelRatio || 1;
-        const cssWidth = state.view.displayWidth || MAP_SIZE;
-        const renderScale = Math.max((cssWidth / MAP_SIZE) * dpr, 1);
+        const fallbackWidth =
+          mapCanvasWrapper.clientWidth > 0
+            ? mapCanvasWrapper.clientWidth
+            : MAP_SIZE;
+        const cssWidth =
+          state.view.displayWidth || Math.min(MAP_SIZE, fallbackWidth);
+        const desiredPixelWidth = cssWidth * dpr;
+        const maxScale = MAX_CANVAS_DIMENSION / MAP_SIZE;
+        const renderScale = Math.max(
+          Math.min(desiredPixelWidth / MAP_SIZE, maxScale),
+          0.5,
+        );
 
         canvas.width = Math.round(MAP_SIZE * renderScale);
         canvas.height = Math.round(MAP_SIZE * renderScale);
@@ -1384,6 +1430,26 @@
 
         ctx.fillStyle = "rgb(20, 20, 25)";
         ctx.fillRect(0, 0, MAP_SIZE, MAP_SIZE);
+
+        if (!mapAreas.length) {
+          ctx.fillStyle = "rgba(255, 107, 107, 0.95)";
+          ctx.textAlign = "center";
+          ctx.textBaseline = "middle";
+          ctx.font = "bold 28px monospace";
+          ctx.fillText(
+            "Season 5 map data not loaded",
+            MAP_SIZE / 2,
+            MAP_SIZE / 2 - 20,
+          );
+          ctx.fillStyle = "rgba(217, 240, 255, 0.9)";
+          ctx.font = "18px monospace";
+          ctx.fillText(
+            "Reload page (Ctrl+F5)",
+            MAP_SIZE / 2,
+            MAP_SIZE / 2 + 20,
+          );
+          return;
+        }
 
         const showGrid = document.getElementById("showGrid").checked;
         const showLabels = document.getElementById("showLabels").checked;
@@ -1408,7 +1474,7 @@
             ctx.fillStyle = "rgba(255, 215, 0, 0.1)";
             ctx.globalAlpha = 1.0;
           } else {
-            ctx.fillStyle = "rgba(217, 240, 255, 0.16)";
+            ctx.fillStyle = "rgba(217, 240, 255, 0.24)";
             ctx.globalAlpha = 1.0;
           }
 
@@ -1424,9 +1490,7 @@
               ? "rgba(255, 255, 255, 0.3)"
               : "rgba(43, 61, 81, 0.95)";
           ctx.lineWidth = isCapitol ? 2.5 : alliance ? 2 : 0.75;
-          if (showGrid || alliance || isCapitol) {
-            ctx.strokeRect(x + 1, y + 1, w - 2, h - 2);
-          }
+          ctx.strokeRect(x + 1, y + 1, w - 2, h - 2);
 
           if (state.selectedAreaId === area.id) {
             ctx.strokeStyle = "rgba(116, 192, 252, 0.95)";
@@ -1453,9 +1517,9 @@
             ctx.textAlign = "center";
             ctx.textBaseline = "middle";
             ctx.font = "bold 14px monospace";
-            ctx.fillText("ROYAL PALACE", x + w / 2, y + h / 2 - 10);
+            ctx.fillText(area.name.toUpperCase(), x + w / 2, y + h / 2 - 10);
             ctx.font = "11px monospace";
-            ctx.fillText("LV. 7", x + w / 2, y + h / 2 + 12);
+            ctx.fillText(`LV. ${area.level}`, x + w / 2, y + h / 2 + 12);
           } else if (showCities && (!isStronghold || showLabels)) {
             const labelColor = alliance
               ? "rgba(255,255,255,0.95)"
@@ -1699,7 +1763,7 @@
       }
 
       function getExportFileName() {
-        return `season-1-map-${new Date().toISOString().split("T")[0]}`;
+        return `season-5-map-${new Date().toISOString().split("T")[0]}`;
       }
 
       function exportAsJSON() {
@@ -1751,7 +1815,7 @@
           // Sheet 3: Metadata
           const metaData = [
             { Key: "Export Date", Value: new Date().toLocaleString() },
-            { Key: "Total Areas", Value: 386 },
+            { Key: "Total Areas", Value: mapAreas.length },
             { Key: "Assigned Areas", Value: territoriesData.length },
             { Key: "Total Alliances", Value: data.alliances.length },
           ];
@@ -1935,8 +1999,8 @@
 
       // Initial render
       updateUI();
-      renderMap();
       updateCanvasDisplay();
+      renderMap();
 
       // Handle window resize
       window.addEventListener("resize", () => {
@@ -1993,8 +2057,3 @@
     </div>
   </body>
 </html>
-
-
-
-
-
