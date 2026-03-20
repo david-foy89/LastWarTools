@@ -2,6 +2,8 @@ LAST WAR TOOLS - SHARED MOBILE CALCULATOR WIREFRAME
 ===================================================
 
 +----------------------------------------------+
+| Top Support: [Buy Me a Coffee]               |
++----------------------------------------------+
 | Header: [LWST Logo]          [Language ▼]    |
 +----------------------------------------------+
 | Nav row: [HQ] [Troop ▼] [S1 ▼] [S2 ▼]        |
@@ -41,6 +43,5 @@ Alternative INPUT CARD pattern for troop planner pages:
 - Planner Controls
 - Quick Actions
 - Focus View
-- Notes
 
 * Optional sections shown on multi-resource pages.

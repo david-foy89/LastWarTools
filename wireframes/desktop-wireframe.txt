@@ -2,6 +2,8 @@ LAST WAR TOOLS - SHARED DESKTOP CALCULATOR WIREFRAME
 =====================================================
 
 +----------------------------------------------------------------------------------+
+| Top Support Bar: [Buy Me a Coffee]                                              |
++----------------------------------------------------------------------------------+
 | Header: [LWST Logo]                                              [Language ▼]   |
 +----------------------------------------------------------------------------------+
 | Top Nav: [HQ] [Troop ▼] [Season 1 ▼] [Season 2 ▼] [Season 3 ▼] [Season 4 ▼]    |
@@ -35,6 +37,5 @@ Alternative left-column pattern used by troop planner pages:
 - Planner Controls (mode, reduction)
 - Quick Actions buttons
 - Focus View (search + plan-only filter)
-- Notes
 
 * Optional rows used by multi-resource calculators.

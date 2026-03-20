@@ -1,6 +1,6 @@
 # Last War Tools
 
-A lightweight set of browser-based calculators for planning upgrades in Last War: Survival. The site now includes HQ, troop planners, and Season 1 through Season 5 calculator pages with shared styling and consistent navigation.
+A lightweight set of browser-based tools for planning upgrades in Last War: Survival. The site includes a dedicated homepage plus HQ, troop planners, and Season 1 through Season 5 calculator pages with shared styling and consistent navigation.
 
 ## Live Site
 
@@ -10,7 +10,7 @@ Hosted on GitHub Pages via `index.html`.
 
 | File                                       | Purpose                                               |
 | ------------------------------------------ | ----------------------------------------------------- |
-| `index.html`                               | GitHub Pages entry point                              |
+| `index.html`                               | Homepage with calculator overview and grouped links   |
 | `last-war-furnace-upgrade-calculator.html` | Furnace calculator (Season 2)                         |
 | `season-2-tank-center-calculator.html`     | Season 2 Squad Base calculator                        |
 | `season-1-squad-base-calculator.html`      | Season 1 Squad Base calculator                        |
@@ -29,6 +29,8 @@ Hosted on GitHub Pages via `index.html`.
 | `t11-troops-calculator.html`               | T11 troop research planner                            |
 | `last-war-furnace-upgrade-calculator.css`  | Shared stylesheet for all calculator pages            |
 | `page-nav-dropdown.js`                     | Shared dropdown behavior for top navigation           |
+| `sitemap.xml`                              | SEO sitemap listing all public tool pages             |
+| `robots.txt`                               | Search crawler directives and sitemap reference       |
 | `media/lwst.png`                           | Site logo                                             |
 | `media/lwst1.png`                          | Alternative logo asset                                |
 | `wireframes/desktop-wireframe.txt`         | Shared desktop wireframe pattern for calculator pages |
@@ -58,19 +60,22 @@ Hosted on GitHub Pages via `index.html`.
   - Caffeine Institute
   - Protector's Field S5
   - Squad Base
+- Dedicated homepage describing what each calculator is used for
+- Buy Me a Coffee support link at the top of every page
 - Quick Start guidance block at the top of each calculator input card
 - Level cost dropdowns showing configured costs per tier
 - Alliance tech discount support (RSS reduction %)
 - Timezone selector with live current-time display
-- Multi-language support via Google Translate (persisted)
+- Multi-language support via Google Translate dropdown on every page (persisted)
 - Separate `localStorage` persistence per calculator page
 - Responsive layout with shared styling across calculator pages
 - Shared top navigation with season-group dropdowns
-- LWST logo in the header with language selector
+- LWST logo in the header that links back to homepage
+- SEO metadata per page (description, canonical, Open Graph, Twitter, JSON-LD)
 
 ## How To Use
 
-1. Open `index.html` (or any calculator HTML file directly).
+1. Open `index.html` to view the homepage and calculator overview.
 2. Use the top navigation to choose Troop, Season 1, Season 2, Season 3, Season 4, or Season 5 calculators.
 3. Enter your current level and current resource values.
 4. For calculators with income modeling, set workshop/mine/factory levels.
@@ -86,14 +91,11 @@ Hosted on GitHub Pages via `index.html`.
 
 ## Deployment
 
-`index.html` is the GitHub Pages entry point. If you intentionally keep it as a copy of the furnace page, sync it with:
-
-```powershell
-Copy-Item -Path '.\last-war-furnace-upgrade-calculator.html' -Destination '.\index.html' -Force
-```
+`index.html` is the GitHub Pages entry point and is maintained as the dedicated homepage.
 
 ## Customization
 
 - Shared style tokens, spacing, cards, grid, and navigation: edit `last-war-furnace-upgrade-calculator.css`.
 - Calculator-specific labels, costs, output tables, and ETA logic: edit the relevant calculator HTML file.
 - Navigation links are duplicated across pages; when adding/removing a calculator page, update the nav block in each HTML file.
+- When adding/removing pages, also update `sitemap.xml` and ensure canonical URLs remain correct.
