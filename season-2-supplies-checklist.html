@@ -52,18 +52,46 @@
         grid-template-columns: minmax(280px, 320px) minmax(0, 1fr);
       }
 
+      :root {
+        --checklist-header-pill-width: 210px;
+        --checklist-header-pill-height: 44px;
+      }
+
       .card-header-row {
         display: flex;
+        flex-direction: column;
         align-items: center;
-        justify-content: space-between;
         gap: 12px;
+      }
+
+      .card-header-row .card-title {
+        align-self: flex-start;
+        text-align: left;
       }
 
       .card-header-actions {
         display: flex;
-        align-items: center;
-        flex-wrap: wrap;
+        align-items: stretch;
+        justify-content: center;
+        flex-wrap: nowrap;
         gap: 10px;
+        width: 100%;
+      }
+
+      .card-header-actions > .header-toggle,
+      .card-header-actions > .export-menu-wrap {
+        flex: 0 0 var(--checklist-header-pill-width);
+        display: flex;
+      }
+
+      .card-header-actions > .export-menu-wrap > .action-button,
+      .card-header-actions > .header-toggle {
+        box-sizing: border-box;
+        width: var(--checklist-header-pill-width);
+        height: var(--checklist-header-pill-height);
+        min-height: var(--checklist-header-pill-height);
+        padding: 0 14px;
+        justify-content: center;
       }
 
       .status-pill {
@@ -147,6 +175,31 @@
       .toggle-row input {
         width: 16px;
         height: 16px;
+        accent-color: var(--accent-2);
+      }
+
+      .header-toggle {
+        display: inline-flex;
+        align-items: center;
+        gap: 10px;
+        color: var(--text);
+      }
+
+      .header-toggle:focus-within {
+        border-color: var(--accent-2);
+        background: rgba(18, 35, 53, 0.96);
+        outline: none;
+      }
+
+      .header-toggle:has(input:checked) {
+        border-color: rgba(116, 192, 252, 0.55);
+        background: rgba(116, 192, 252, 0.14);
+      }
+
+      .header-toggle input {
+        width: 16px;
+        height: 16px;
+        margin: 0;
         accent-color: var(--accent-2);
       }
 
@@ -359,6 +412,10 @@
       }
 
       @media (max-width: 640px) {
+        .card-header-actions {
+          flex-wrap: wrap;
+        }
+
         .card-header-row,
         .level-head,
         .supply-row {
@@ -733,18 +790,6 @@
           </div>
 
           <div class="field-group">
-            <h2 class="card-title">Live Sync Settings</h2>
-            <label class="toggle-row" for="liveSyncEnabledInput">
-              <input id="liveSyncEnabledInput" type="checkbox" />
-              Enable live sync sharing
-            </label>
-            <div class="level-meta">
-              When enabled, shared links automatically include a live session ID
-              and DB endpoint so everyone on that link stays in sync.
-            </div>
-          </div>
-
-          <div class="field-group">
             <h2 class="card-title">Level Breakdown</h2>
             <div class="level-progress-list" id="levelProgressList"></div>
           </div>
@@ -754,6 +799,14 @@
           <div class="card-header-row">
             <h2 class="card-title">Checklist</h2>
             <div class="card-header-actions">
+              <label
+                class="action-button header-toggle"
+                for="liveSyncEnabledInput"
+                title="When enabled, shared links use a live session so everyone on the same link stays in sync."
+              >
+                <input id="liveSyncEnabledInput" type="checkbox" />
+                Live Sync Share
+              </label>
               <div class="export-menu-wrap" id="exportMenuWrap">
                 <button
                   id="exportMenuToggle"
@@ -793,10 +846,12 @@
                   </button>
                 </div>
               </div>
-              <div class="status-pill" id="statusPill">Loading supplies...</div>
             </div>
           </div>
           <div class="checklist-root" id="checklistRoot"></div>
+          <div class="status-pill is-hidden" id="statusPill" aria-hidden="true">
+            Loading supplies...
+          </div>
         </div>
       </section>
     </div>
