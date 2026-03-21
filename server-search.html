@@ -1,0 +1,681 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Server Search | Last War Survival Tools</title>
+    <meta
+      name="description"
+      content="Search for alliances by server number in Last War: Survival. Find which alliances are active on your server."
+    />
+    <link
+      rel="canonical"
+      href="https://lastwarsurvivaltools.com/server-search.html"
+    />
+    <meta property="og:type" content="website" />
+    <meta
+      property="og:title"
+      content="Server Search | Last War Survival Tools"
+    />
+    <meta
+      property="og:description"
+      content="Search for alliances by server number in Last War: Survival."
+    />
+    <meta
+      property="og:url"
+      content="https://lastwarsurvivaltools.com/server-search.html"
+    />
+    <meta
+      property="og:image"
+      content="https://lastwarsurvivaltools.com/media/lwst.png"
+    />
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta
+      name="twitter:title"
+      content="Server Search | Last War Survival Tools"
+    />
+    <meta
+      name="twitter:description"
+      content="Search for alliances by server number in Last War: Survival."
+    />
+    <meta
+      name="twitter:image"
+      content="https://lastwarsurvivaltools.com/media/lwst.png"
+    />
+    <script type="application/ld+json">
+      {
+        "@context": "https://schema.org",
+        "@type": "WebPage",
+        "name": "Server Search",
+        "description": "Search for alliances by server number in Last War: Survival.",
+        "url": "https://lastwarsurvivaltools.com/server-search.html"
+      }
+    </script>
+    <link rel="stylesheet" href="last-war-furnace-upgrade-calculator.css" />
+    <script src="page-nav-dropdown.js" defer></script>
+    <script src="language-translate.js" defer></script>
+    <style>
+      /* ── Search card ──────────────────────────────────────────────────────── */
+      .search-card {
+        background: var(--panel);
+        border: 1px solid var(--line);
+        border-radius: 18px;
+        padding: 24px 28px;
+        margin-bottom: 18px;
+      }
+
+      .search-card-title {
+        margin: 0 0 16px;
+        font-size: 0.85rem;
+        color: var(--accent);
+        text-transform: uppercase;
+        letter-spacing: 0.08em;
+        font-weight: 700;
+      }
+
+      .search-mode-row {
+        display: flex;
+        gap: 8px;
+        margin-bottom: 12px;
+      }
+
+      .mode-btn {
+        background: var(--panel-2);
+        border: 1px solid var(--line);
+        border-radius: 8px;
+        color: var(--muted);
+        font-family: inherit;
+        font-size: 0.85rem;
+        font-weight: 600;
+        padding: 6px 14px;
+        cursor: pointer;
+        transition: all 0.15s;
+      }
+
+      .mode-btn.active {
+        border-color: var(--accent);
+        color: var(--accent);
+        background: rgba(116, 192, 252, 0.08);
+      }
+
+      .search-row {
+        display: flex;
+        gap: 10px;
+        flex-wrap: wrap;
+        align-items: stretch;
+      }
+
+      .search-input {
+        flex: 1 1 200px;
+        min-width: 120px;
+        background: var(--panel-2);
+        border: 1px solid var(--line-soft);
+        border-radius: 10px;
+        color: var(--text);
+        font-family: inherit;
+        font-size: 1rem;
+        padding: 10px 14px;
+        outline: none;
+        transition: border-color 0.15s;
+      }
+
+      .search-input:focus {
+        border-color: var(--accent);
+      }
+
+      .search-input::placeholder {
+        color: var(--muted);
+      }
+
+      .search-btn {
+        background: linear-gradient(180deg, var(--accent-2), #2b8fd4);
+        border: none;
+        border-radius: 10px;
+        color: #fff;
+        font-family: inherit;
+        font-size: 0.97rem;
+        font-weight: 700;
+        padding: 10px 24px;
+        cursor: pointer;
+        transition: opacity 0.15s;
+        white-space: nowrap;
+      }
+
+      .search-btn:hover {
+        opacity: 0.88;
+      }
+
+      .search-btn:disabled {
+        opacity: 0.45;
+        cursor: not-allowed;
+      }
+
+      /* ── Status messages ──────────────────────────────────────────────────── */
+      .status-msg {
+        margin-top: 14px;
+        padding: 10px 14px;
+        border-radius: 10px;
+        font-size: 0.93rem;
+        line-height: 1.5;
+      }
+
+      .status-msg.loading {
+        color: var(--muted);
+        background: rgba(255, 255, 255, 0.04);
+        border: 1px solid var(--line);
+      }
+
+      .status-msg.error {
+        color: var(--warn);
+        background: rgba(255, 146, 43, 0.08);
+        border: 1px solid rgba(255, 146, 43, 0.3);
+      }
+
+      .status-msg.info {
+        color: var(--muted);
+        background: rgba(255, 255, 255, 0.04);
+        border: 1px solid var(--line);
+      }
+
+      .status-msg.hidden {
+        display: none;
+      }
+
+      /* ── Results ──────────────────────────────────────────────────────────── */
+      .results-area {
+        display: flex;
+        flex-direction: column;
+        gap: 14px;
+      }
+
+      .result-card {
+        background: var(--panel);
+        border: 1px solid var(--line);
+        border-radius: 18px;
+        padding: 20px 24px;
+      }
+
+      .result-card.closed {
+        border-color: rgba(255, 146, 43, 0.3);
+        background: rgba(255, 146, 43, 0.04);
+      }
+
+      .result-server-label {
+        font-size: 0.78rem;
+        color: var(--accent);
+        text-transform: uppercase;
+        letter-spacing: 0.09em;
+        font-weight: 700;
+        margin-bottom: 12px;
+      }
+
+      .alliance-chips {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 8px;
+        margin-bottom: 12px;
+      }
+
+      .alliance-chip {
+        background: var(--panel-2);
+        border: 1px solid var(--line-soft);
+        border-radius: 8px;
+        color: var(--text);
+        font-size: 0.93rem;
+        font-weight: 600;
+        padding: 5px 12px;
+        letter-spacing: 0.04em;
+      }
+
+      .alliance-chip.highlight {
+        border-color: var(--accent);
+        color: var(--accent);
+        background: rgba(116, 192, 252, 0.08);
+      }
+
+      .closed-label {
+        color: var(--warn);
+        font-size: 0.9rem;
+        font-weight: 600;
+      }
+
+      .result-date {
+        font-size: 0.8rem;
+        color: var(--muted);
+        margin-top: 4px;
+      }
+
+      .no-results-msg {
+        background: var(--panel);
+        border: 1px solid var(--line);
+        border-radius: 18px;
+        padding: 28px 24px;
+        color: var(--muted);
+        text-align: center;
+        font-size: 0.95rem;
+      }
+
+      /* ── Responsive ───────────────────────────────────────────────────────── */
+      @media (max-width: 580px) {
+        .search-card,
+        .result-card {
+          padding: 18px 14px;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <div class="page">
+      <div class="page-top-controls">
+        <div class="logo-control">
+          <a href="index.html" aria-label="Go to homepage">
+            <img src="media/lwst.png" alt="LWST logo" class="site-logo" />
+          </a>
+        </div>
+        <div class="language-control">
+          <label for="languageSelect">Language</label>
+          <select id="languageSelect"></select>
+        </div>
+      </div>
+      <div id="google_translate_element" class="hidden-translate"></div>
+
+      <nav class="page-nav" aria-label="Calculator pages">
+        <a href="hq-upgrade-calculator.html" class="page-link">HQ Upgrade</a>
+        <details class="page-nav-dropdown" name="troop-nav">
+          <summary class="page-link page-nav-dropdown-toggle">
+            Troop Tools
+          </summary>
+          <div class="page-nav-dropdown-menu">
+            <a href="t10-troops-calculator.html" class="page-link"
+              >T10 Troops</a
+            >
+            <a href="t11-troops-calculator.html" class="page-link"
+              >T11 Troops</a
+            >
+          </div>
+        </details>
+        <details class="page-nav-dropdown" name="season-nav">
+          <summary class="page-link page-nav-dropdown-toggle">
+            Season 1 Tools
+          </summary>
+          <div class="page-nav-dropdown-menu">
+            <a href="virus-research-institute-calculator.html" class="page-link"
+              >Virus Research Institute</a
+            >
+            <a href="season-1-squad-base-calculator.html" class="page-link"
+              >Season 1 Squad Base</a
+            >
+            <a href="season-1-interactive-map.html" class="page-link"
+              >Interactive Map</a
+            >
+          </div>
+        </details>
+        <details class="page-nav-dropdown" name="season-nav">
+          <summary class="page-link page-nav-dropdown-toggle">
+            Season 2 Tools
+          </summary>
+          <div class="page-nav-dropdown-menu">
+            <a href="last-war-furnace-upgrade-calculator.html" class="page-link"
+              >Furnace Calculator</a
+            >
+            <a href="season-2-tank-center-calculator.html" class="page-link"
+              >Season 2 Squad Base</a
+            >
+            <a href="season-2-interactive-map.html" class="page-link"
+              >Interactive Map</a
+            >
+          </div>
+        </details>
+        <details class="page-nav-dropdown" name="season-nav">
+          <summary class="page-link page-nav-dropdown-toggle">
+            Season 3 Tools
+          </summary>
+          <div class="page-nav-dropdown-menu">
+            <a href="curse-research-lab-calculator.html" class="page-link"
+              >Curse Research Lab</a
+            >
+            <a href="altar-calculator.html" class="page-link">Altar</a>
+            <a href="protectors-field-calculator.html" class="page-link"
+              >Protectors Field</a
+            >
+            <a href="season-3-interactive-map.html" class="page-link"
+              >Interactive Map</a
+            >
+          </div>
+        </details>
+        <details class="page-nav-dropdown" name="season-nav">
+          <summary class="page-link page-nav-dropdown-toggle">
+            Season 4 Tools
+          </summary>
+          <div class="page-nav-dropdown-menu">
+            <a href="optoelectronic-lab-calculator.html" class="page-link"
+              >Optoelectronic Lab</a
+            >
+            <a href="protectors-field-s4-calculator.html" class="page-link"
+              >Protector's Field S4</a
+            >
+            <a href="lighthouse-s4-calculator.html" class="page-link"
+              >Lighthouse S4</a
+            >
+            <a href="season-4-interactive-map.html" class="page-link"
+              >Interactive Map</a
+            >
+          </div>
+        </details>
+        <details class="page-nav-dropdown" name="season-nav">
+          <summary class="page-link page-nav-dropdown-toggle">
+            Season 5 Tools
+          </summary>
+          <div class="page-nav-dropdown-menu">
+            <a href="caffeine-institute-calculator.html" class="page-link"
+              >Caffeine Institute</a
+            >
+            <a href="protectors-field-s5-calculator.html" class="page-link"
+              >Protector's Field S5</a
+            >
+            <a href="season-5-squad-base-calculator.html" class="page-link"
+              >Season 5 Squad Base</a
+            >
+            <a href="season-5-interactive-map.html" class="page-link"
+              >Interactive Map</a
+            >
+          </div>
+        </details>
+      </nav>
+
+      <section class="hero">
+        <h1>Server Search</h1>
+        <div class="sub">
+          Enter your server number to find alliances on that server, or search
+          by alliance tag to find which server it belongs to. Data is pulled
+          live from the community alliance registry.
+        </div>
+      </section>
+
+      <!-- Search card -->
+      <div class="search-card">
+        <h2 class="search-card-title">Search by Server Number</h2>
+        <div class="search-mode-row">
+          <button class="mode-btn active" id="modeBtnServer" type="button">
+            Server #
+          </button>
+          <button class="mode-btn" id="modeBtnAlliance" type="button">
+            Alliance Tag
+          </button>
+        </div>
+        <div class="search-row">
+          <input
+            type="text"
+            id="serverInput"
+            class="search-input"
+            placeholder="Enter server number (e.g. 1234)"
+            aria-label="Search query"
+            autocomplete="off"
+            spellcheck="false"
+          />
+          <button id="searchBtn" class="search-btn" type="button" disabled>
+            Search
+          </button>
+        </div>
+        <div
+          id="statusMsg"
+          class="status-msg loading"
+          role="status"
+          aria-live="polite"
+        >
+          Loading data&hellip;
+        </div>
+      </div>
+
+      <!-- Results card -->
+      <div id="resultsArea" class="results-area" aria-live="polite"></div>
+    </div>
+
+    <script>
+      // ── Config ────────────────────────────────────────────────────────────────
+      const SHEET_ID = "1JWa6CzPfT2hRRKwv9zJCZ-nV5Xy9r1ydFf8YEPbO0KI";
+      const GID = "0";
+      const SERVER_NUMBER_OFFSET = 3;
+
+      // ── State ─────────────────────────────────────────────────────────────────
+      // The source sheet has two intro rows before the server registry.
+      // The Visualization API skips them, so sheetRows[0] maps to sheet row 3.
+      // Each row: indices 0–9 = alliance tags (cols A–J), index 10 = date (col K).
+      let sheetRows = [];
+      let dataReady = false;
+      let searchMode = "server"; // 'server' | 'alliance'
+
+      // ── DOM refs ──────────────────────────────────────────────────────────────
+      const serverInput = document.getElementById("serverInput");
+      const searchBtn = document.getElementById("searchBtn");
+      const statusMsg = document.getElementById("statusMsg");
+      const resultsArea = document.getElementById("resultsArea");
+      const modeBtnServer = document.getElementById("modeBtnServer");
+      const modeBtnAlliance = document.getElementById("modeBtnAlliance");
+
+      // ── Helpers ───────────────────────────────────────────────────────────────
+      function setStatus(msg, type) {
+        if (!msg) {
+          statusMsg.className = "status-msg hidden";
+          statusMsg.textContent = "";
+          return;
+        }
+        statusMsg.className = "status-msg " + type;
+        statusMsg.textContent = msg;
+      }
+
+      function escapeHtml(str) {
+        return String(str)
+          .replace(/&/g, "&amp;")
+          .replace(/</g, "&lt;")
+          .replace(/>/g, "&gt;")
+          .replace(/"/g, "&quot;");
+      }
+
+      // ── Mode toggle ───────────────────────────────────────────────────────────
+      function setMode(mode) {
+        searchMode = mode;
+        if (mode === "server") {
+          modeBtnServer.classList.add("active");
+          modeBtnAlliance.classList.remove("active");
+          serverInput.placeholder = "Enter server number (e.g. 1234)";
+          serverInput.inputMode = "numeric";
+        } else {
+          modeBtnAlliance.classList.add("active");
+          modeBtnServer.classList.remove("active");
+          serverInput.placeholder = "Enter alliance tag (e.g. CLG)";
+          serverInput.inputMode = "text";
+        }
+        resultsArea.innerHTML = "";
+        serverInput.value = "";
+        serverInput.focus();
+      }
+
+      // ── Data loading ──────────────────────────────────────────────────────────
+      async function loadSheetData() {
+        const url =
+          "https://docs.google.com/spreadsheets/d/" +
+          SHEET_ID +
+          "/gviz/tq?tqx=out:json&gid=" +
+          GID;
+
+        const resp = await fetch(url);
+        if (!resp.ok) {
+          throw new Error("Server responded with status " + resp.status);
+        }
+
+        const text = await resp.text();
+        const match = text.match(
+          /google\.visualization\.Query\.setResponse\(([\s\S]*)\)\s*;?\s*$/,
+        );
+        if (!match) {
+          throw new Error("Unexpected response format from Google Sheets.");
+        }
+
+        const payload = JSON.parse(match[1]);
+        if (payload.status !== "ok") {
+          const errMsg =
+            payload.errors?.[0]?.detailed_message ||
+            payload.errors?.[0]?.message ||
+            "The spreadsheet returned an error.";
+          throw new Error(errMsg);
+        }
+
+        const table = payload.table;
+        sheetRows = (table.rows || []).map((row) =>
+          table.cols.map((_, i) => {
+            const cell = row.c?.[i];
+            if (!cell || cell.v === null || cell.v === undefined) return "";
+            return String(cell.f ?? cell.v);
+          }),
+        );
+
+        dataReady = true;
+      }
+
+      // ── Alliance tags from a row (columns 0–9, skip blanks and dashes) ────────
+      function getAllianceTags(row) {
+        return row.slice(0, 10).filter((v) => v && v !== "-");
+      }
+
+      // ── Build a result card DOM element ───────────────────────────────────────
+      function buildServerCard(serverNum, row, highlightTag) {
+        const isClosed = row[0] === "Closed server";
+        const tags = isClosed ? [] : getAllianceTags(row);
+        const dateStr = row[10] || "";
+
+        const card = document.createElement("div");
+        card.className = "result-card" + (isClosed ? " closed" : "");
+
+        const label = document.createElement("div");
+        label.className = "result-server-label";
+        label.textContent = "Server " + serverNum;
+        card.appendChild(label);
+
+        if (isClosed) {
+          const cl = document.createElement("div");
+          cl.className = "closed-label";
+          cl.textContent = "Closed server \u2014 no alliances";
+          card.appendChild(cl);
+        } else if (tags.length === 0) {
+          const cl = document.createElement("div");
+          cl.className = "closed-label";
+          cl.textContent = "No alliances listed for this server yet.";
+          card.appendChild(cl);
+        } else {
+          const chips = document.createElement("div");
+          chips.className = "alliance-chips";
+          tags.forEach((tag) => {
+            const chip = document.createElement("span");
+            chip.className =
+              "alliance-chip" +
+              (highlightTag && tag.toLowerCase() === highlightTag.toLowerCase()
+                ? " highlight"
+                : "");
+            chip.textContent = tag;
+            chips.appendChild(chip);
+          });
+          card.appendChild(chips);
+        }
+
+        if (dateStr) {
+          const d = document.createElement("div");
+          d.className = "result-date";
+          d.textContent = "Last updated: " + dateStr;
+          card.appendChild(d);
+        }
+
+        return card;
+      }
+
+      // ── Search ────────────────────────────────────────────────────────────────
+      function doSearch() {
+        if (!dataReady) return;
+
+        const raw = serverInput.value.trim();
+        if (!raw) {
+          setStatus(
+            "Please enter a " +
+              (searchMode === "server" ? "server number" : "alliance tag") +
+              ".",
+            "info",
+          );
+          resultsArea.innerHTML = "";
+          return;
+        }
+
+        resultsArea.innerHTML = "";
+        setStatus("", "");
+
+        if (searchMode === "server") {
+          const serverNum = parseInt(raw.replace(/^[Ss]/, ""), 10);
+          if (isNaN(serverNum) || serverNum < 1) {
+            setStatus("Please enter a valid server number.", "info");
+            return;
+          }
+          const rowIndex = serverNum - SERVER_NUMBER_OFFSET;
+          if (rowIndex < 0 || rowIndex >= sheetRows.length) {
+            const msg = document.createElement("div");
+            msg.className = "no-results-msg";
+            msg.textContent =
+              "Server " + serverNum + " is not in the registry yet.";
+            resultsArea.appendChild(msg);
+          } else {
+            resultsArea.appendChild(
+              buildServerCard(serverNum, sheetRows[rowIndex], null),
+            );
+          }
+        } else {
+          const query = raw.toLowerCase();
+          const matches = [];
+          sheetRows.forEach((row, idx) => {
+            if (getAllianceTags(row).some((t) => t.toLowerCase() === query)) {
+              matches.push({ serverNum: idx + SERVER_NUMBER_OFFSET, row });
+            }
+          });
+          if (matches.length === 0) {
+            const msg = document.createElement("div");
+            msg.className = "no-results-msg";
+            msg.textContent =
+              "No server found with alliance tag \u201c" +
+              escapeHtml(raw) +
+              "\u201d.";
+            resultsArea.appendChild(msg);
+          } else {
+            matches.forEach(({ serverNum, row }) => {
+              resultsArea.appendChild(buildServerCard(serverNum, row, raw));
+            });
+          }
+        }
+      }
+
+      // ── Events ────────────────────────────────────────────────────────────────
+      searchBtn.addEventListener("click", doSearch);
+      serverInput.addEventListener("keydown", (e) => {
+        if (e.key === "Enter") doSearch();
+      });
+      modeBtnServer.addEventListener("click", () => setMode("server"));
+      modeBtnAlliance.addEventListener("click", () => setMode("alliance"));
+
+      // ── Init ──────────────────────────────────────────────────────────────────
+      setStatus("Loading data\u2026", "loading");
+
+      loadSheetData()
+        .then(() => {
+          searchBtn.disabled = false;
+          setStatus(
+            "Ready. Enter a server number above and press Search.",
+            "info",
+          );
+        })
+        .catch((err) => {
+          setStatus(
+            "Could not load sheet data: " +
+              err.message +
+              " Make sure the spreadsheet is shared as \u201cAnyone with the link can view\u201d.",
+            "error",
+          );
+        });
+    </script>
+  </body>
+</html>

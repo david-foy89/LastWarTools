@@ -5,6 +5,7 @@
 
     ensureSeason2SuppliesLink(nav);
     ensureTrainConductorLink(nav);
+    ensureServerSearchLink(nav);
 
     const dropdowns = Array.from(nav.querySelectorAll('details.page-nav-dropdown'));
 
@@ -55,6 +56,22 @@
       nav.appendChild(link);
     }
     if (currentPage === 'train-conductor-schedule.html') {
+      link.classList.add('active');
+      link.setAttribute('aria-current', 'page');
+    }
+  }
+
+  function ensureServerSearchLink(nav) {
+    const currentPage = window.location.pathname.split('/').pop() || 'index.html';
+    let link = nav.querySelector('a[href="server-search.html"]');
+    if (!link) {
+      link = document.createElement('a');
+      link.href = 'server-search.html';
+      link.className = 'page-link';
+      link.textContent = 'Server Search';
+      nav.appendChild(link);
+    }
+    if (currentPage === 'server-search.html') {
       link.classList.add('active');
       link.setAttribute('aria-current', 'page');
     }
