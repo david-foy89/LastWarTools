@@ -51,12 +51,39 @@
         "url": "https://lastwarsurvivaltools.com/train-conductor-schedule.html"
       }
     </script>
+    <script>
+      // Alliance Members Export Logic (Excel only, single instance)
+      document.addEventListener("DOMContentLoaded", function() {
+        const exportAllianceMembersButton = document.getElementById("exportAllianceMembersButton");
+        if (exportAllianceMembersButton) {
+          exportAllianceMembersButton.addEventListener("click", () => {
+            if (!state.allianceMembers || !state.allianceMembers.length) {
+              alert("No alliance members to export.");
+              return;
+            }
+            if (!window.XLSX) {
+              alert("Excel library is still loading. Please wait a moment and try again.");
+              return;
+            }
+            const fileBase = getExportFileBaseName() + "-alliance-members";
+            const ws = XLSX.utils.aoa_to_sheet([["Name"], ...state.allianceMembers.map(n => [n])]);
+            const wb = XLSX.utils.book_new();
+            XLSX.utils.book_append_sheet(wb, ws, "Alliance Members");
+            XLSX.writeFile(wb, fileBase + ".xlsx");
+          });
+        }
+      });
+    </script>
+    <!-- Removed legacy exportAllianceMembersButton and exportAllianceMembers code. Only DOMContentLoaded handler remains. -->
+    </script>
     <link rel="stylesheet" href="last-war-furnace-upgrade-calculator.css" />
     <script src="page-nav-dropdown.js" defer></script>
     <script src="language-translate.js" defer></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/mammoth@1.8.0/mammoth.browser.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/tesseract.js@5/dist/tesseract.min.js"></script>
     <style>
       .conductor-layout {
         grid-template-columns: minmax(200px, 240px) minmax(0, 1fr);
@@ -420,6 +447,320 @@
         background: rgba(255, 146, 43, 0.12);
       }
 
+      .alliance-members-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        gap: 8px;
+        margin-bottom: 8px;
+      }
+
+      .alliance-members-count {
+        font-size: 0.75rem;
+        color: var(--muted);
+      }
+
+      .alliance-members-add {
+        display: grid;
+        grid-template-columns: 1fr auto;
+        gap: 8px;
+        margin-bottom: 8px;
+      }
+
+      .alliance-members-actions {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 8px;
+        margin-bottom: 10px;
+      }
+
+      .alliance-members-actions .action-button {
+        border-radius: 10px;
+        padding: 8px 10px;
+        font-size: 0.76rem;
+      }
+
+      .alliance-members-target {
+        display: grid;
+        gap: 8px;
+        margin-bottom: 10px;
+      }
+
+      .alliance-members-target-row {
+        display: grid;
+        grid-template-columns: 1fr;
+        gap: 8px;
+      }
+
+      .alliance-members-search {
+        margin-bottom: 8px;
+      }
+
+      .alliance-import-status {
+        margin-top: 8px;
+        min-height: 18px;
+        font-size: 0.74rem;
+        color: var(--muted);
+      }
+
+      .alliance-import-status.is-busy {
+        color: var(--accent);
+      }
+
+      .alliance-members-list {
+        max-height: 240px;
+        overflow-y: auto;
+        border: 1px solid var(--line);
+        border-radius: 10px;
+        background: rgba(8, 16, 25, 0.45);
+      }
+
+      .alliance-member-item {
+        display: grid;
+        grid-template-columns: 1fr auto;
+        align-items: center;
+        gap: 8px;
+        padding: 8px 10px;
+        border-top: 1px solid var(--line);
+      }
+
+      .alliance-member-item.is-editing {
+        grid-template-columns: 1fr;
+      }
+
+      .alliance-member-item:first-child {
+        border-top: none;
+      }
+
+      .alliance-member-pick {
+        border: none;
+        background: transparent;
+        color: var(--text);
+        text-align: left;
+        font: inherit;
+        font-size: 0.84rem;
+        cursor: pointer;
+        padding: 0;
+      }
+
+      .alliance-member-pick:hover,
+      .alliance-member-pick:focus-visible {
+        color: var(--accent);
+        outline: none;
+      }
+
+      .alliance-member-name-col {
+        display: flex;
+        flex-direction: column;
+        min-width: 0;
+      }
+
+      .alliance-member-info {
+        align-self: center;
+        max-width: 100%;
+        margin-top: 1px;
+        overflow: hidden;
+        color: var(--muted, #888);
+        font-size: 0.71rem;
+        text-align: center;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+      }
+
+      .alliance-member-remove {
+        border: 1px solid var(--line-soft);
+        border-radius: 999px;
+        background: rgba(12, 24, 37, 0.88);
+        color: #ffa8a8;
+        font: inherit;
+        font-size: 0.72rem;
+        padding: 3px 8px;
+        cursor: pointer;
+      }
+
+      .alliance-member-remove:hover,
+      .alliance-member-remove:focus-visible {
+        border-color: rgba(255, 168, 168, 0.55);
+        outline: none;
+      }
+
+      .alliance-member-controls {
+        display: flex;
+        gap: 6px;
+      }
+
+      .alliance-member-edit {
+        border: 1px solid var(--line-soft);
+        border-radius: 999px;
+        background: rgba(12, 24, 37, 0.88);
+        color: var(--text);
+        font: inherit;
+        font-size: 0.72rem;
+        padding: 3px 8px;
+        cursor: pointer;
+      }
+
+      .alliance-member-edit:hover,
+      .alliance-member-edit:focus-visible {
+        border-color: rgba(116, 192, 252, 0.55);
+        outline: none;
+      }
+
+      .alliance-member-edit-row {
+        display: grid;
+        grid-template-columns: 1fr auto auto;
+        gap: 6px;
+        align-items: center;
+      }
+
+      .alliance-member-edit-input {
+        width: 100%;
+        min-width: 0;
+        border: 1px solid var(--line-soft);
+        border-radius: 8px;
+        background: rgba(7, 23, 38, 0.78);
+        color: var(--text);
+        font: inherit;
+        padding: 6px 8px;
+      }
+
+      .alliance-member-edit-input:focus {
+        outline: none;
+        border-color: rgba(116, 192, 252, 0.6);
+      }
+
+      .alliance-members-empty {
+        padding: 10px;
+        color: var(--muted);
+        font-size: 0.8rem;
+        font-style: italic;
+      }
+
+      .import-preview-modal {
+        position: fixed;
+        inset: 0;
+        z-index: 1200;
+        display: none;
+        align-items: center;
+        justify-content: center;
+        padding: 14px;
+        background: rgba(3, 8, 13, 0.78);
+      }
+
+      .import-preview-modal.show {
+        display: flex;
+      }
+
+      .import-preview-dialog {
+        width: min(560px, 100%);
+        max-height: min(80vh, 760px);
+        display: grid;
+        grid-template-rows: auto auto 1fr auto;
+        gap: 10px;
+        border: 1px solid var(--line-soft);
+        border-radius: 14px;
+        background: rgba(12, 24, 37, 0.98);
+        padding: 14px;
+      }
+
+      .import-preview-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        gap: 8px;
+      }
+
+      .import-preview-header h3 {
+        margin: 0;
+        font-size: 1rem;
+      }
+
+      .import-preview-sub {
+        color: var(--muted);
+        font-size: 0.8rem;
+      }
+
+      .import-preview-actions {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 8px;
+      }
+
+      .import-preview-list {
+        border: 1px solid var(--line);
+        border-radius: 10px;
+        overflow: auto;
+        background: rgba(8, 16, 25, 0.5);
+        padding: 6px;
+      }
+
+      .import-preview-item {
+        display: grid;
+        grid-template-columns: auto 1fr;
+        gap: 8px;
+        align-items: center;
+        padding: 6px 8px;
+        border-radius: 8px;
+      }
+
+      .import-preview-name-input {
+        width: 100%;
+        min-width: 0;
+        border-radius: 8px;
+        border: 1px solid rgba(116, 192, 252, 0.22);
+        background: rgba(7, 23, 38, 0.78);
+        color: var(--text);
+        padding: 7px 10px;
+        font: inherit;
+      }
+
+      .import-preview-name-input:focus {
+        outline: none;
+        border-color: rgba(116, 192, 252, 0.6);
+        box-shadow: 0 0 0 2px rgba(116, 192, 252, 0.15);
+      }
+
+      .import-preview-item:hover {
+        background: rgba(116, 192, 252, 0.08);
+      }
+
+      .import-preview-footer {
+        display: flex;
+        justify-content: flex-end;
+        gap: 8px;
+      }
+
+      .bulk-add-dialog {
+        width: min(720px, 100%);
+        max-height: min(82vh, 840px);
+        display: grid;
+        grid-template-rows: auto auto 1fr auto;
+        gap: 10px;
+        border: 1px solid var(--line-soft);
+        border-radius: 14px;
+        background: rgba(12, 24, 37, 0.98);
+        padding: 14px;
+      }
+
+      .bulk-add-textarea {
+        width: 100%;
+        min-height: min(46vh, 420px);
+        resize: vertical;
+        border: 1px solid rgba(116, 192, 252, 0.22);
+        border-radius: 10px;
+        background: rgba(7, 23, 38, 0.82);
+        color: var(--text);
+        font: inherit;
+        line-height: 1.35;
+        padding: 10px 12px;
+      }
+
+      .bulk-add-textarea:focus {
+        outline: none;
+        border-color: rgba(116, 192, 252, 0.62);
+        box-shadow: 0 0 0 2px rgba(116, 192, 252, 0.15);
+      }
+
       @media (max-width: 920px) {
         .conductor-layout {
           grid-template-columns: 1fr;
@@ -715,8 +1056,196 @@
               </table>
             </div>
           </div>
+
+          <div class="field-group" style="margin-top: 16px">
+            <div class="alliance-members-header">
+              <h2 class="card-title" style="margin-bottom: 0">
+                Alliance Members
+              </h2>
+              <span class="alliance-members-count" id="allianceMembersCount"
+                >0 / 100</span
+              >
+            </div>
+
+            <div class="alliance-members-add">
+              <input
+                type="text"
+                id="allianceMemberInput"
+                placeholder="Add member name"
+                aria-label="Add alliance member"
+              />
+              <button
+                type="button"
+                class="action-button schedule-action-button"
+                id="addAllianceMemberButton"
+              >
+                Add
+              </button>
+            </div>
+
+            <div class="alliance-members-actions">
+              <button
+                type="button"
+                class="action-button schedule-action-button"
+                id="bulkAddAllianceMembersButton"
+              >
+                Bulk Add
+              </button>
+              <button
+                type="button"
+                class="action-button schedule-action-button"
+                id="clearAllianceMembersButton"
+              >
+                Clear List
+              </button>
+            </div>
+
+            <div class="alliance-members-actions" style="margin-top: -4px">
+              <button
+                type="button"
+                class="action-button schedule-action-button"
+                id="importAllianceMembersButton"
+                style="grid-column: 1 / -1"
+              >
+                Import File
+              </button>
+              <input
+                type="file"
+                id="allianceMembersFileInput"
+                accept=".xlsx,.xls,.csv,.txt,.doc,.docx,.rtf,image/*"
+                style="display: none"
+              />
+              <button
+                type="button"
+                class="action-button schedule-action-button"
+                id="exportAllianceMembersButton"
+                style="grid-column: 1 / -1; margin-top: 6px"
+              >
+                Export File
+              </button>
+            </div>
+
+            <div class="alliance-members-target">
+              <label for="allianceFillTargetSelect">Click fills</label>
+              <div class="alliance-members-target-row">
+                <select
+                  id="allianceFillTargetSelect"
+                  aria-label="Auto fill target"
+                >
+                  <option value="conductor">Conductor Name</option>
+                  <option value="vip">VIP/Guardian</option>
+                </select>
+                <select
+                  id="allianceFillConductorSelect"
+                  aria-label="Fallback conductor"
+                ></select>
+              </div>
+            </div>
+
+            <div class="alliance-members-search">
+              <input
+                type="text"
+                id="allianceMemberSearchInput"
+                maxlength="40"
+                placeholder="Search members"
+                aria-label="Search alliance members"
+              />
+            </div>
+
+            <div class="alliance-members-list" id="allianceMembersList"></div>
+            <div class="alliance-import-status" id="allianceImportStatus"></div>
+          </div>
         </div>
       </section>
+    </div>
+
+    <div
+      id="importPreviewModal"
+      class="import-preview-modal"
+      role="dialog"
+      aria-modal="true"
+      aria-labelledby="importPreviewTitle"
+    >
+      <div class="import-preview-dialog">
+        <div class="import-preview-header">
+          <h3 id="importPreviewTitle">Import Preview</h3>
+          <span class="import-preview-sub" id="importPreviewFileName"></span>
+        </div>
+        <div class="import-preview-sub" id="importPreviewSummary"></div>
+        <div class="import-preview-actions">
+          <button
+            type="button"
+            class="action-button schedule-action-button"
+            id="importPreviewSelectAllButton"
+          >
+            Select All
+          </button>
+          <button
+            type="button"
+            class="action-button schedule-action-button"
+            id="importPreviewSelectNoneButton"
+          >
+            Select None
+          </button>
+        </div>
+        <div class="import-preview-list" id="importPreviewList"></div>
+        <div class="import-preview-footer">
+          <button
+            type="button"
+            class="action-button schedule-action-button"
+            id="importPreviewCancelButton"
+          >
+            Cancel
+          </button>
+          <button
+            type="button"
+            class="action-button schedule-action-button"
+            id="importPreviewConfirmButton"
+          >
+            Import Selected
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <div
+      id="bulkAddModal"
+      class="import-preview-modal"
+      role="dialog"
+      aria-modal="true"
+      aria-labelledby="bulkAddTitle"
+    >
+      <div class="bulk-add-dialog">
+        <div class="import-preview-header">
+          <h3 id="bulkAddTitle">Bulk Add Members</h3>
+        </div>
+        <div class="import-preview-sub">
+          Paste one or more names. Supported separators: new lines, commas, and
+          semicolons.
+        </div>
+        <textarea
+          id="bulkAddTextarea"
+          class="bulk-add-textarea"
+          placeholder="Example:\nBig Boy Style\nPPO\n저승사자GRIM"
+          maxlength="8000"
+        ></textarea>
+        <div class="import-preview-footer">
+          <button
+            type="button"
+            class="action-button schedule-action-button"
+            id="bulkAddCancelButton"
+          >
+            Cancel
+          </button>
+          <button
+            type="button"
+            class="action-button schedule-action-button"
+            id="bulkAddConfirmButton"
+          >
+            Add Names
+          </button>
+        </div>
+      </div>
     </div>
 
     <script>
@@ -754,6 +1283,17 @@
         "Conductor 6",
         "Conductor 7",
       ];
+      const MAX_ALLIANCE_MEMBERS = 100;
+      const OCR_PASS_CONFIGS = [
+        { lang: "kor+eng", psm: "6" },
+        { lang: "kor+eng", psm: "11" },
+        { lang: "eng+kor", psm: "6" },
+        { lang: "eng", psm: "6" },
+      ];
+      const OCR_LANG_PATHS = [
+        "https://tessdata.projectnaptha.com/4.0.0",
+        "https://tessdata.projectnaptha.com/4.0.0_best",
+      ];
 
       const state = {
         weeks: 2,
@@ -770,6 +1310,12 @@
         // dayAssignments[0..6] = conductor index, 0=Monday 6=Sunday, -1=none
         dayAssignments: [0, 1, 2, 3, 4, 5, 6],
         showVip: true,
+        allianceMembers: [],
+        memberHistory: [],
+        allianceMemberSearch: "",
+        allianceFillTarget: "conductor",
+        allianceFillConductorIdx: 0,
+        lastFocusedFill: { type: "conductor", idx: 0 },
       };
 
       const startDateInput = document.getElementById("startDateInput");
@@ -791,6 +1337,74 @@
       const exportMenuWrap = document.getElementById("exportMenuWrap");
       const exportMenuToggle = document.getElementById("exportMenuToggle");
       const exportMenu = document.getElementById("exportMenu");
+      const allianceMembersCount = document.getElementById(
+        "allianceMembersCount",
+      );
+      const allianceMemberInput = document.getElementById(
+        "allianceMemberInput",
+      );
+      const addAllianceMemberButton = document.getElementById(
+        "addAllianceMemberButton",
+      );
+      const bulkAddAllianceMembersButton = document.getElementById(
+        "bulkAddAllianceMembersButton",
+      );
+      const clearAllianceMembersButton = document.getElementById(
+        "clearAllianceMembersButton",
+      );
+      const importAllianceMembersButton = document.getElementById(
+        "importAllianceMembersButton",
+      );
+      const allianceMembersFileInput = document.getElementById(
+        "allianceMembersFileInput",
+      );
+      const allianceImportStatus = document.getElementById(
+        "allianceImportStatus",
+      );
+      const allianceFillTargetSelect = document.getElementById(
+        "allianceFillTargetSelect",
+      );
+      const allianceFillConductorSelect = document.getElementById(
+        "allianceFillConductorSelect",
+      );
+      const allianceMemberSearchInput = document.getElementById(
+        "allianceMemberSearchInput",
+      );
+      const allianceMembersList = document.getElementById(
+        "allianceMembersList",
+      );
+      const importPreviewModal = document.getElementById("importPreviewModal");
+      const importPreviewFileName = document.getElementById(
+        "importPreviewFileName",
+      );
+      const importPreviewSummary = document.getElementById(
+        "importPreviewSummary",
+      );
+      const importPreviewList = document.getElementById("importPreviewList");
+      const importPreviewSelectAllButton = document.getElementById(
+        "importPreviewSelectAllButton",
+      );
+      const importPreviewSelectNoneButton = document.getElementById(
+        "importPreviewSelectNoneButton",
+      );
+      const importPreviewCancelButton = document.getElementById(
+        "importPreviewCancelButton",
+      );
+      const importPreviewConfirmButton = document.getElementById(
+        "importPreviewConfirmButton",
+      );
+      const bulkAddModal = document.getElementById("bulkAddModal");
+      const bulkAddTextarea = document.getElementById("bulkAddTextarea");
+      const bulkAddCancelButton = document.getElementById(
+        "bulkAddCancelButton",
+      );
+      const bulkAddConfirmButton = document.getElementById(
+        "bulkAddConfirmButton",
+      );
+
+      let pendingImportCandidates = [];
+      let pendingImportFileName = "";
+      let editingAllianceMemberIdx = -1;
 
       function getConductorName(weekIdx, conductorIdx) {
         const week = state.conductorNamesByWeek[weekIdx] || [];
@@ -833,6 +1447,1420 @@
           .replace(/"/g, "&quot;");
       }
 
+      function sanitizeMemberName(value) {
+        return String(value || "")
+          .trim()
+          .slice(0, 40);
+      }
+
+      function setAllianceImportStatus(message, busy = false) {
+        allianceImportStatus.textContent = message || "";
+        allianceImportStatus.classList.toggle("is-busy", busy);
+      }
+
+      function normalizeMemberName(value) {
+        return sanitizeMemberName(value).toLowerCase();
+      }
+
+      function normalizeMemberHistoryEntries(entries) {
+        if (!Array.isArray(entries)) {
+          return [];
+        }
+
+        return entries
+          .map((entry) => {
+            const name = sanitizeMemberName(entry?.name);
+            const role = entry?.role === "vip" ? "vip" : "conductor";
+            const conductorIdx = Number(entry?.conductorIdx);
+            const weekIdx = Number(entry?.weekIdx);
+            const at = Number(entry?.at);
+
+            if (
+              !name ||
+              !Number.isFinite(conductorIdx) ||
+              conductorIdx < 0 ||
+              conductorIdx > 6
+            ) {
+              return null;
+            }
+
+            if (!Number.isFinite(at) || at <= 0) {
+              return null;
+            }
+
+            return {
+              name,
+              role,
+              conductorIdx,
+              weekIdx:
+                role === "conductor" &&
+                Number.isFinite(weekIdx) &&
+                weekIdx >= 0 &&
+                weekIdx <= 3
+                  ? weekIdx
+                  : null,
+              at,
+            };
+          })
+          .filter(Boolean)
+          .slice(-500);
+      }
+
+      function recordMemberHistory(
+        memberName,
+        role,
+        conductorIdx,
+        weekIdx = null,
+      ) {
+        const name = sanitizeMemberName(memberName);
+        if (!name) {
+          return;
+        }
+
+        const normalizedName = normalizeMemberName(name);
+        const lastEntry =
+          state.memberHistory[state.memberHistory.length - 1] || null;
+        const normalizedWeekIdx =
+          role === "conductor" && Number.isFinite(Number(weekIdx))
+            ? Math.max(0, Math.min(3, Number(weekIdx)))
+            : null;
+        const now = Date.now();
+
+        if (
+          lastEntry &&
+          normalizeMemberName(lastEntry.name) === normalizedName &&
+          lastEntry.role === role &&
+          lastEntry.conductorIdx === conductorIdx &&
+          lastEntry.weekIdx === normalizedWeekIdx &&
+          now - lastEntry.at < 1500
+        ) {
+          return;
+        }
+
+        state.memberHistory.push({
+          name,
+          role,
+          conductorIdx,
+          weekIdx: normalizedWeekIdx,
+          at: now,
+        });
+
+        if (state.memberHistory.length > 500) {
+          state.memberHistory = state.memberHistory.slice(-500);
+        }
+      }
+
+      function formatHistoryDate(value) {
+        const date = new Date(value);
+        if (isNaN(date.getTime())) {
+          return "";
+        }
+
+        return date.toLocaleDateString(undefined, {
+          month: "short",
+          day: "numeric",
+        });
+      }
+
+      function containsUnicodeLetter(value) {
+        try {
+          return /\p{L}/u.test(value);
+        } catch {
+          return /[A-Za-z]/.test(value);
+        }
+      }
+
+      function normalizeImportedToken(value) {
+        return (
+          sanitizeMemberName(value)
+            .replace(/^[\d\s.)\]-]+/, "")
+            .replace(/^[*+•·]+\s*/, "")
+            // Strip lone leading icon characters (e.g. "이| ", "🔑 ") before main name.
+            .replace(/^[가-힣]{1,3}[|｜\s]+/, "")
+            .replace(/^[^\w가-힣]*/, "")
+            .replace(
+              /\b(power|lv|lvl|online|offline|manage|member|alliance|rank|score|kills|date|time)\b.*$/i,
+              "",
+            )
+            .replace(/\s+/g, " ")
+            .trim()
+        );
+      }
+
+      function collapseRepeatedWords(value) {
+        const tokens = String(value || "")
+          .split(/\s+/)
+          .filter(Boolean);
+        if (tokens.length >= 2) {
+          const unique = [];
+          tokens.forEach((token) => {
+            if (unique.length === 0 || unique[unique.length - 1] !== token) {
+              unique.push(token);
+            }
+          });
+          return unique.join(" ");
+        }
+        return String(value || "");
+      }
+
+      function cleanTrailingOcrFragments(value) {
+        const tokens = String(value || "")
+          .split(/\s+/)
+          .filter(Boolean);
+
+        // Remove OCR tail fragments like "STYLE STYL" where the last token is
+        // an incomplete duplicate of the previous token.
+        while (tokens.length >= 2) {
+          const last = tokens[tokens.length - 1].toLowerCase();
+          const prev = tokens[tokens.length - 2].toLowerCase();
+          if (last.length >= 3 && prev.startsWith(last) && prev !== last) {
+            tokens.pop();
+            continue;
+          }
+          if (
+            last.length >= 2 &&
+            last.length <= 3 &&
+            prev.startsWith(last) &&
+            prev !== last
+          ) {
+            tokens.pop();
+            continue;
+          }
+          break;
+        }
+
+        // Drop trailing one-letter OCR junk token (e.g. "... OF O").
+        if (tokens.length >= 3 && tokens[tokens.length - 1].length === 1) {
+          tokens.pop();
+        }
+
+        return tokens.join(" ").trim();
+      }
+
+      function isPowerLikeNoise(value) {
+        const compact = String(value || "")
+          .toLowerCase()
+          .replace(/[^a-z]/g, "");
+        if (!compact) {
+          return false;
+        }
+        return /^(power|bower|pawer|rower|pwer|powar|bouwer|bouier|bouwier)$/.test(
+          compact,
+        );
+      }
+
+      function estimateExpectedOcrNameCount(texts) {
+        const merged = Array.isArray(texts)
+          ? texts.join("\n")
+          : String(texts || "");
+        const lines = merged
+          .split(/\r?\n/)
+          .map((line) => line.trim())
+          .filter(Boolean);
+        let count = 0;
+        lines.forEach((line) => {
+          if (/\b(?:power|bower|pawer|rower)\b/i.test(line)) {
+            count += 1;
+            return;
+          }
+          if (
+            /\blv\.?\s*\d+\b/i.test(line) &&
+            /\b\d+\.?\d*[mk]?\b/i.test(line)
+          ) {
+            count += 1;
+          }
+        });
+        return Math.min(Math.max(count, 0), 30);
+      }
+
+      function isLikelyMemberName(value, strict = false) {
+        const candidate = cleanTrailingOcrFragments(
+          collapseRepeatedWords(normalizeImportedToken(value)),
+        );
+        if (!candidate) {
+          return false;
+        }
+
+        const tokens = candidate.split(/\s+/).filter(Boolean);
+        const singleLetterTokens = tokens.filter(
+          (token) => token.length === 1,
+        ).length;
+        if (tokens.length >= 2 && singleLetterTokens >= 2) {
+          return false;
+        }
+
+        if (candidate.length < 3 || candidate.length > 24) {
+          return false;
+        }
+
+        if (!containsUnicodeLetter(candidate)) {
+          return false;
+        }
+
+        if (isPowerLikeNoise(candidate)) {
+          return false;
+        }
+
+        if (/\d{2,}/.test(candidate)) {
+          return false;
+        }
+
+        // Reject garbled stat-line reads like "LYI3" (Lv.30): if a candidate
+        // includes digits, it should still contain enough letter content.
+        if (/\d/.test(candidate)) {
+          const letterCount = (candidate.match(/[A-Za-z\u00C0-\uFFFF]/g) || [])
+            .length;
+          if (letterCount < 4) {
+            return false;
+          }
+        }
+
+        if (
+          /(vip|guardian|score|power|rank|name|level|kills|server|alliance|member|date|time|total|online|offline)/i.test(
+            candidate,
+          )
+        ) {
+          return false;
+        }
+
+        if (/^(id|uid|no|#|lv)$/i.test(candidate)) {
+          return false;
+        }
+
+        // Reject rows that look like OCR debris around a missing Korean prefix,
+        // e.g. "XA AFKIGRIM" or "XS AXIGRIM".
+        if (
+          tokens.length > 1 &&
+          /grim$/i.test(candidate) &&
+          tokens.slice(0, -1).every((token) => token.length <= 3)
+        ) {
+          return false;
+        }
+
+        if (strict) {
+          try {
+            if (!/^[\p{L}][\p{L}\p{N}_.' -]*$/u.test(candidate)) {
+              return false;
+            }
+          } catch {
+            if (!/^[A-Za-z][A-Za-z0-9_.' -]*$/.test(candidate)) {
+              return false;
+            }
+          }
+        }
+
+        return true;
+      }
+
+      function pruneRedundantCandidates(names) {
+        const normalizedEntries = dedupeNames(names)
+          .map((raw) =>
+            cleanTrailingOcrFragments(
+              collapseRepeatedWords(normalizeImportedToken(raw)),
+            ),
+          )
+          .filter(Boolean)
+          .map((name) => ({
+            raw: name,
+            normalized: normalizeMemberName(name),
+            wordSet: new Set(name.toLowerCase().split(/\s+/).filter(Boolean)),
+          }));
+
+        const phraseEntries = normalizedEntries.filter((entry) =>
+          entry.raw.includes(" "),
+        );
+
+        const kept = normalizedEntries.filter((entry) => {
+          const words = entry.raw.split(/\s+/).filter(Boolean);
+
+          // Drop single words that already appear as part of a longer detected name.
+          if (words.length === 1) {
+            const lowerWord = words[0].toLowerCase();
+            const coveredByPhrase = phraseEntries.some((phrase) =>
+              phrase.wordSet.has(lowerWord),
+            );
+            if (coveredByPhrase) {
+              return false;
+            }
+          }
+
+          // Drop candidates that are clearly contained in a longer candidate.
+          const coveredByLonger = normalizedEntries.some((other) => {
+            if (other.normalized === entry.normalized) {
+              return false;
+            }
+            if (other.raw.length <= entry.raw.length) {
+              return false;
+            }
+            if (other.normalized.includes(entry.normalized)) {
+              return true;
+            }
+            if (other.normalized.startsWith(entry.normalized + " ")) {
+              return true;
+            }
+
+            const entryTokens = entry.raw
+              .toLowerCase()
+              .split(/\s+/)
+              .filter(Boolean);
+            const otherTokens = new Set(
+              other.raw.toLowerCase().split(/\s+/).filter(Boolean),
+            );
+            if (
+              entryTokens.length > 0 &&
+              entryTokens.every((token) => otherTokens.has(token))
+            ) {
+              return true;
+            }
+
+            return false;
+          });
+          if (coveredByLonger) {
+            return false;
+          }
+
+          // Prune multi-word entries whose longest word (>=4 chars) is a substring
+          // of a mixed-script (Korean+Latin) single-token candidate. These are OCR
+          // garbage assembled around the Latin portion of a Korean name
+          // (e.g. "AMZ ALL GRIM" when "저승사자GRIM" is present).
+          if (words.length > 1) {
+            const longestWord = [...words].sort(
+              (a, b) => b.length - a.length,
+            )[0];
+            if (longestWord && longestWord.length >= 4) {
+              const lowerLongest = longestWord.toLowerCase();
+              const coveredByMixedScript = normalizedEntries.some((other) => {
+                if (other.normalized === entry.normalized) return false;
+                if (!/[^\x00-\x7F]/.test(other.raw)) return false;
+                return other.normalized.includes(lowerLongest);
+              });
+              if (coveredByMixedScript) return false;
+            }
+          }
+
+          return true;
+        });
+
+        return dedupeNames(kept.map((entry) => entry.raw));
+      }
+
+      function extractUnicodeFallbackCandidates(rawText) {
+        const lines = String(rawText || "")
+          .split(/\r?\n/)
+          .map((line) => normalizeImportedToken(line))
+          .filter(Boolean);
+
+        const candidates = [];
+        lines.forEach((line) => {
+          const cleaned = cleanTrailingOcrFragments(
+            collapseRepeatedWords(line),
+          );
+          if (!cleaned) {
+            return;
+          }
+
+          // Keep the left-most phrase before obvious UI fields.
+          const head = cleaned
+            .split(/\b(?:power|lv|lvl|online|offline|manage|rank|score)\b/i)[0]
+            .trim();
+
+          if (/[가-힣]/.test(head)) {
+            const compactHead = sanitizeMemberName(head);
+            if (compactHead.length >= 2) {
+              candidates.push(compactHead);
+            }
+          }
+
+          if (
+            head &&
+            containsUnicodeLetter(head) &&
+            isLikelyMemberName(head, false)
+          ) {
+            candidates.push(head);
+          }
+
+          // Capture mixed-script chunks (e.g., Korean + Latin names).
+          const mixedChunks = getNameLikeChunks(cleaned);
+          mixedChunks.forEach((chunk) => {
+            const normalizedChunk = normalizeImportedToken(chunk);
+            if (isLikelyMemberName(normalizedChunk, false)) {
+              candidates.push(normalizedChunk);
+            }
+          });
+        });
+
+        return pruneRedundantCandidates(candidates);
+      }
+
+      function rankCandidatesForPreview(candidates) {
+        const collapseGrimNoiseVariants = (names) => {
+          const list = dedupeNames(names);
+          const grimVariants = list.filter((name) => {
+            const compact = String(name || "").trim();
+            if (!/^[A-Za-z]{2,8}grim$/i.test(compact)) return false;
+            if (/[^\x00-\x7F]/.test(compact)) return false;
+            return true;
+          });
+
+          if (grimVariants.length < 2) {
+            return list;
+          }
+
+          const hasMixedScriptGrim = list.some((name) => {
+            if (!/grim/i.test(name)) return false;
+            return /[^\x00-\x7F]/.test(name);
+          });
+
+          if (hasMixedScriptGrim) {
+            return list.filter((name) => !grimVariants.includes(name));
+          }
+
+          const withoutVariants = list.filter(
+            (name) => !grimVariants.includes(name),
+          );
+          withoutVariants.push("GRIM");
+          return dedupeNames(withoutVariants);
+        };
+
+        const scored = collapseGrimNoiseVariants(
+          pruneRedundantCandidates(candidates),
+        ).map((name) => {
+          const words = name.split(/\s+/).filter(Boolean);
+          const hasUnicode = containsUnicodeLetter(name);
+          const hasDigits = /\d/.test(name);
+          const lengthScore = Math.min(name.length, 20);
+          const wordScore = words.length > 1 ? 8 : 2;
+          const unicodeBonus = hasUnicode ? 4 : 0;
+          const digitPenalty = hasDigits ? -2 : 0;
+          return {
+            name,
+            score: lengthScore + wordScore + unicodeBonus + digitPenalty,
+          };
+        });
+
+        scored.sort(
+          (a, b) => b.score - a.score || a.name.localeCompare(b.name),
+        );
+        return scored.map((entry) => entry.name);
+      }
+
+      function getNameLikeChunks(value) {
+        const text = String(value || "");
+        try {
+          const re = new RegExp("[\\p{L}\\p{N}_.'-]{2,24}", "gu");
+          return text.match(re) || [];
+        } catch {
+          return text.match(/[A-Za-z0-9_.'-]{2,24}/g) || [];
+        }
+      }
+
+      function extractMemberNamesFromText(rawText, options = {}) {
+        const strict = !!options.strict;
+        return String(rawText || "")
+          .split(/[\n,;\t]+/)
+          .map((value) => normalizeImportedToken(value))
+          .filter((value) => isLikelyMemberName(value, strict))
+          .filter(Boolean);
+      }
+
+      function extractMemberCandidatesFromLines(rawText, options = {}) {
+        const strict = !!options.strict;
+        const lines = String(rawText || "")
+          .split(/\r?\n/)
+          .map((line) => line.trim())
+          .filter(Boolean);
+
+        const results = [];
+        lines.forEach((line) => {
+          const lineCandidates = [line];
+
+          const tabOrWideSpaceSplit = line.split(/\t+|\s{2,}/).filter(Boolean);
+          if (tabOrWideSpaceSplit.length > 1) {
+            lineCandidates.push(tabOrWideSpaceSplit[0]);
+          }
+
+          const beforeNumber = line.split(/\s\d{2,}/)[0];
+          if (beforeNumber && beforeNumber !== line) {
+            lineCandidates.push(beforeNumber);
+          }
+
+          lineCandidates.forEach((candidate) => {
+            const normalized = normalizeImportedToken(candidate);
+            if (isLikelyMemberName(normalized, strict)) {
+              results.push(normalized);
+            }
+          });
+        });
+
+        return results;
+      }
+
+      function dedupeNames(names) {
+        const seen = new Set();
+        const output = [];
+        names.forEach((name) => {
+          const normalized = normalizeMemberName(name);
+          if (!normalized || seen.has(normalized)) {
+            return;
+          }
+          seen.add(normalized);
+          output.push(name);
+        });
+        return output;
+      }
+
+      function extractMemberCandidatesBySource(rawText, source) {
+        if (source !== "ocr") {
+          return pruneRedundantCandidates(extractMemberNamesFromText(rawText));
+        }
+
+        const strictPass = dedupeNames([
+          ...extractMemberNamesFromText(rawText, { strict: true }),
+          ...extractMemberCandidatesFromLines(rawText, { strict: true }),
+        ]);
+        if (strictPass.length > 0) {
+          return pruneRedundantCandidates(strictPass);
+        }
+
+        return pruneRedundantCandidates([
+          ...extractMemberNamesFromText(rawText, { strict: false }),
+          ...extractMemberCandidatesFromLines(rawText, { strict: false }),
+        ]);
+      }
+
+      function extractMemberCandidatesFromOcrWordSets(wordSets) {
+        // Process each OCR pass's wordSet independently to prevent cross-pass word
+        // contamination (Korean-pass words mixing with English-pass garbage into one row).
+        const noiseWordRegex =
+          /^(online|offline|manage|power|bower|pawer|lv|lvl|rank|server|alliance|member|id|uid)$/i;
+        const collapseSpacedLetters = (value) => {
+          const text = String(value || "").trim();
+          if (/^(?:[A-Za-z]\s+){1,}[A-Za-z]$/.test(text)) {
+            return text.replace(/\s+/g, "");
+          }
+          return text;
+        };
+
+        const processSingleWordSet = (set) => {
+          const width = Number(set?.imageWidth) || 0;
+          const height = Number(set?.imageHeight) || 0;
+          const words = Array.isArray(set?.words) ? set.words : [];
+          const cleanedWords = [];
+
+          words.forEach((word) => {
+            const text = normalizeImportedToken(word?.text || "");
+            const confidence = Number(word?.confidence);
+            if (!text || text.length < 2 || text.length > 24) return;
+            if (!containsUnicodeLetter(text)) return;
+            if (noiseWordRegex.test(text)) return;
+            if (Number.isFinite(confidence) && confidence < 35) return;
+
+            const bbox = word?.bbox || {};
+            const x0 = Number.isFinite(Number(bbox.x0)) ? Number(bbox.x0) : 0;
+            const x1 = Number.isFinite(Number(bbox.x1)) ? Number(bbox.x1) : x0;
+            const y0 = Number.isFinite(Number(bbox.y0)) ? Number(bbox.y0) : 0;
+            const y1 = Number.isFinite(Number(bbox.y1)) ? Number(bbox.y1) : y0;
+            const xMid = (x0 + x1) / 2;
+            const yMid = (y0 + y1) / 2;
+
+            if (width > 0 && (xMid < width * 0.18 || xMid > width * 0.8))
+              return;
+            if (height > 0 && (yMid < height * 0.05 || yMid > height * 0.98))
+              return;
+
+            cleanedWords.push({ text, xMid, yMid });
+          });
+
+          if (!cleanedWords.length) return [];
+
+          cleanedWords.sort((a, b) => a.yMid - b.yMid || a.xMid - b.xMid);
+          const groups = [];
+          const yTolerance = 18;
+          cleanedWords.forEach((entry) => {
+            const currentGroup = groups[groups.length - 1];
+            if (
+              !currentGroup ||
+              Math.abs(currentGroup.yRef - entry.yMid) > yTolerance
+            ) {
+              groups.push({ yRef: entry.yMid, words: [entry] });
+              return;
+            }
+            currentGroup.words.push(entry);
+            currentGroup.yRef = (currentGroup.yRef + entry.yMid) / 2;
+          });
+
+          const setCandidates = [];
+          groups.forEach((group) => {
+            const line = group.words
+              .sort((a, b) => a.xMid - b.xMid)
+              .map((word) => word.text)
+              .join(" ")
+              .trim();
+            const normalizedLine = collapseSpacedLetters(
+              collapseRepeatedWords(normalizeImportedToken(line)),
+            );
+            if (isLikelyMemberName(normalizedLine, false)) {
+              setCandidates.push(normalizedLine);
+            }
+          });
+          return setCandidates;
+        };
+
+        const allCandidates = [];
+        wordSets.forEach((set) => {
+          processSingleWordSet(set).forEach((c) => allCandidates.push(c));
+        });
+        return pruneRedundantCandidates(allCandidates);
+      }
+
+      function closeImportPreview() {
+        importPreviewModal.classList.remove("show");
+      }
+
+      function openBulkAddModal() {
+        bulkAddTextarea.value = "";
+        bulkAddModal.classList.add("show");
+        window.setTimeout(() => {
+          bulkAddTextarea.focus();
+        }, 0);
+      }
+
+      function closeBulkAddModal() {
+        bulkAddModal.classList.remove("show");
+      }
+
+      function commitBulkAddFromTextarea() {
+        const raw = bulkAddTextarea.value;
+        const addedCount = addAllianceMembersBulk(raw);
+        if (!addedCount) {
+          const parsedCandidates = dedupeNames([
+            ...extractMemberCandidatesBySource(raw, "text"),
+            ...extractMemberNamesFromText(raw),
+          ]);
+          if (!parsedCandidates.length) {
+            alert("No valid names were found in your paste.");
+          } else {
+            alert(
+              "No new members were added (all detected names already exist).\nTip: use Edit on existing rows if you need to rename them.",
+            );
+          }
+          return;
+        }
+
+        closeBulkAddModal();
+        saveState();
+        renderAllianceMembers();
+        setAllianceImportStatus(
+          `Added ${addedCount} member(s) from bulk paste.`,
+        );
+      }
+
+      function openImportPreview(fileName, candidates) {
+        pendingImportFileName = fileName;
+        pendingImportCandidates = candidates.map((name) => ({
+          name,
+          selected: true,
+        }));
+
+        importPreviewFileName.textContent = fileName;
+        importPreviewSummary.textContent = `${pendingImportCandidates.length} names detected. Uncheck any names you do not want to import.`;
+        renderImportPreviewList();
+        importPreviewModal.classList.add("show");
+      }
+
+      function renderImportPreviewList() {
+        if (!pendingImportCandidates.length) {
+          importPreviewList.innerHTML = `<div class="alliance-members-empty">No names detected.</div>`;
+          return;
+        }
+
+        importPreviewList.innerHTML = pendingImportCandidates
+          .map(
+            (entry, idx) => `<label class="import-preview-item">
+            <input type="checkbox" data-preview-idx="${idx}" ${entry.selected ? "checked" : ""} />
+            <input class="import-preview-name-input" type="text" data-preview-name-idx="${idx}" value="${escapeHtml(entry.name)}" maxlength="40" />
+          </label>`,
+          )
+          .join("");
+      }
+
+      function commitPreviewImport() {
+        const chosen = dedupeNames(
+          pendingImportCandidates
+            .filter((entry) => entry.selected)
+            .map((entry) => entry.name),
+        );
+
+        let addedCount = 0;
+        chosen.forEach((name) => {
+          if (
+            state.allianceMembers.length < MAX_ALLIANCE_MEMBERS &&
+            addAllianceMember(name)
+          ) {
+            addedCount += 1;
+          }
+        });
+
+        saveState();
+        renderAllianceMembers();
+        closeImportPreview();
+
+        if (addedCount > 0) {
+          setAllianceImportStatus(
+            `Imported ${addedCount} member(s) from ${pendingImportFileName}.`,
+          );
+        } else {
+          setAllianceImportStatus(
+            `No new members were imported from ${pendingImportFileName}.`,
+          );
+        }
+      }
+
+      function syncAllianceFillConductorOptions() {
+        allianceFillConductorSelect.innerHTML = state.conductors
+          .map(
+            (_, idx) => `<option value="${idx}">Conductor ${idx + 1}</option>`,
+          )
+          .join("");
+        allianceFillConductorSelect.value = String(
+          state.allianceFillConductorIdx,
+        );
+      }
+
+      function getFilteredAllianceMembers() {
+        const q = state.allianceMemberSearch.trim().toLowerCase();
+        if (!q) {
+          return state.allianceMembers;
+        }
+
+        return state.allianceMembers.filter((name) =>
+          name.toLowerCase().includes(q),
+        );
+      }
+
+      function getMemberScheduleInfo(memberName) {
+        const normalizedName = normalizeMemberName(memberName);
+        const result = {
+          lastConductorAt: null,
+          lastVipAt: null,
+          nextConducting: null,
+          currentWeeks: [],
+          isCurrentVipGuardian: false,
+        };
+
+        if (!normalizedName) {
+          return result;
+        }
+
+        state.memberHistory.forEach((entry) => {
+          if (normalizeMemberName(entry.name) !== normalizedName) {
+            return;
+          }
+
+          if (entry.role === "vip") {
+            result.lastVipAt = Math.max(result.lastVipAt || 0, entry.at);
+            return;
+          }
+
+          result.lastConductorAt = Math.max(
+            result.lastConductorAt || 0,
+            entry.at,
+          );
+        });
+
+        for (let i = 0; i < state.conductors.length; i++) {
+          const vipName = state.conductors[i].vipGuardian || "";
+          if (normalizeMemberName(vipName) === normalizedName) {
+            result.isCurrentVipGuardian = true;
+          }
+        }
+
+        for (let weekIdx = 0; weekIdx < state.weeks; weekIdx++) {
+          for (
+            let conductorIdx = 0;
+            conductorIdx < state.conductors.length;
+            conductorIdx++
+          ) {
+            const conductorName =
+              (state.conductorNamesByWeek[weekIdx] || [])[conductorIdx] || "";
+            if (normalizeMemberName(conductorName) !== normalizedName) {
+              continue;
+            }
+
+            result.currentWeeks.push(weekIdx + 1);
+          }
+        }
+
+        if (state.startDateStr) {
+          const startDate = new Date(state.startDateStr + "T00:00:00");
+          if (!isNaN(startDate.getTime())) {
+            const today = new Date();
+            today.setHours(0, 0, 0, 0);
+            let lastScheduledDate = null;
+
+            for (let weekIdx = 0; weekIdx < state.weeks; weekIdx++) {
+              for (
+                let conductorIdx = 0;
+                conductorIdx < state.conductors.length;
+                conductorIdx++
+              ) {
+                const conductorName =
+                  (state.conductorNamesByWeek[weekIdx] || [])[conductorIdx] ||
+                  "";
+                if (normalizeMemberName(conductorName) !== normalizedName) {
+                  continue;
+                }
+
+                for (let dayIdx = 0; dayIdx < 7; dayIdx++) {
+                  if (state.dayAssignments[dayIdx] !== conductorIdx) {
+                    continue;
+                  }
+
+                  const date = new Date(startDate);
+                  date.setDate(startDate.getDate() + weekIdx * 7 + dayIdx);
+
+                  if (date < today) {
+                    if (!lastScheduledDate || date > lastScheduledDate) {
+                      lastScheduledDate = date;
+                    }
+                  } else if (
+                    !result.nextConducting ||
+                    date < result.nextConducting
+                  ) {
+                    result.nextConducting = date;
+                  }
+                }
+              }
+            }
+
+            if (!result.lastConductorAt && lastScheduledDate) {
+              result.lastConductorAt = lastScheduledDate.getTime();
+            }
+          }
+        }
+
+        result.currentWeeks = [...new Set(result.currentWeeks)].sort(
+          (a, b) => a - b,
+        );
+        return result;
+      }
+
+      function renderAllianceMembers() {
+        allianceMembersCount.textContent = `${state.allianceMembers.length} / ${MAX_ALLIANCE_MEMBERS}`;
+        allianceFillTargetSelect.value = state.allianceFillTarget;
+        allianceMemberSearchInput.value = state.allianceMemberSearch;
+        syncAllianceFillConductorOptions();
+
+        const filtered = getFilteredAllianceMembers();
+        if (!filtered.length) {
+          allianceMembersList.innerHTML = `<div class="alliance-members-empty">No members found.</div>`;
+          return;
+        }
+
+        allianceMembersList.innerHTML = filtered
+          .map((name) => {
+            const actualIdx = state.allianceMembers.findIndex(
+              (n) => n === name,
+            );
+            if (actualIdx === editingAllianceMemberIdx) {
+              return `<div class="alliance-member-item is-editing">
+                <div class="alliance-member-edit-row">
+                  <input class="alliance-member-edit-input" data-edit-input-idx="${actualIdx}" value="${escapeHtml(name)}" maxlength="40" />
+                  <button type="button" class="alliance-member-edit" data-edit-save-idx="${actualIdx}">Save</button>
+                  <button type="button" class="alliance-member-remove" data-edit-cancel-idx="${actualIdx}">Cancel</button>
+                </div>
+              </div>`;
+            }
+
+            return `<div class="alliance-member-item">
+              <div class="alliance-member-name-col">
+                <button type="button" class="alliance-member-pick" data-name="${escapeHtml(name)}">${escapeHtml(name)}</button>
+                ${(function () {
+                  const info = getMemberScheduleInfo(name);
+                  const parts = [];
+                  if (info.lastConductorAt)
+                    parts.push(
+                      "Train: " + formatHistoryDate(info.lastConductorAt),
+                    );
+                  else if (info.currentWeeks.length)
+                    parts.push(
+                      "Scheduled: " +
+                        info.currentWeeks.map((week) => "W" + week).join(", "),
+                    );
+                  if (info.lastVipAt)
+                    parts.push(
+                      "VIP/Guardian: " + formatHistoryDate(info.lastVipAt),
+                    );
+                  else if (info.isCurrentVipGuardian)
+                    parts.push("Current VIP/Guardian");
+                  if (info.nextConducting)
+                    parts.push(
+                      "Next train: " + formatHistoryDate(info.nextConducting),
+                    );
+                  return parts.length
+                    ? `<span class="alliance-member-info">${escapeHtml(parts.join(" · "))}</span>`
+                    : "";
+                })()}
+              </div>
+              <div class="alliance-member-controls">
+                <button type="button" class="alliance-member-edit" data-edit-idx="${actualIdx}">Edit</button>
+                <button type="button" class="alliance-member-remove" data-remove-idx="${actualIdx}">Remove</button>
+              </div>
+            </div>`;
+          })
+          .join("");
+
+        if (editingAllianceMemberIdx >= 0) {
+          const input = allianceMembersList.querySelector(
+            `[data-edit-input-idx="${editingAllianceMemberIdx}"]`,
+          );
+          if (input) {
+            input.focus();
+            input.select();
+          }
+        }
+      }
+
+      function commitAllianceMemberEdit(idx, rawValue) {
+        if (
+          !Number.isFinite(idx) ||
+          idx < 0 ||
+          idx >= state.allianceMembers.length
+        ) {
+          return;
+        }
+
+        const trimmed = sanitizeMemberName(rawValue);
+        if (!trimmed) {
+          setAllianceImportStatus("Name cannot be empty.");
+          return;
+        }
+
+        const normalized = normalizeMemberName(trimmed);
+        const duplicateIdx = state.allianceMembers.findIndex(
+          (existing, existingIdx) =>
+            existingIdx !== idx && normalizeMemberName(existing) === normalized,
+        );
+        if (duplicateIdx !== -1) {
+          setAllianceImportStatus(
+            "That name already exists in the member list.",
+          );
+          return;
+        }
+
+        state.allianceMembers[idx] = trimmed;
+        editingAllianceMemberIdx = -1;
+        saveState();
+        renderAllianceMembers();
+      }
+
+      function addAllianceMember(name) {
+        const trimmed = sanitizeMemberName(name);
+        if (!trimmed) {
+          return false;
+        }
+
+        if (state.allianceMembers.length >= MAX_ALLIANCE_MEMBERS) {
+          alert(
+            `You can only store up to ${MAX_ALLIANCE_MEMBERS} alliance members.`,
+          );
+          return false;
+        }
+
+        const normalized = normalizeMemberName(trimmed);
+        const exists = state.allianceMembers.some(
+          (member) => normalizeMemberName(member) === normalized,
+        );
+        if (exists) {
+          return "duplicate";
+        }
+
+        state.allianceMembers.push(trimmed);
+        state.allianceMembers.sort((a, b) =>
+          a.localeCompare(b, undefined, { sensitivity: "base" }),
+        );
+        return true;
+      }
+
+      function addAllianceMembersBulk(rawText, options = {}) {
+        const raw = String(rawText || "");
+        const parts = dedupeNames([
+          ...extractMemberCandidatesBySource(raw, "text"),
+          ...extractMemberNamesFromText(raw, options),
+        ]);
+
+        let added = 0;
+        parts.forEach((name) => {
+          if (
+            state.allianceMembers.length < MAX_ALLIANCE_MEMBERS &&
+            addAllianceMember(name)
+          ) {
+            added += 1;
+          }
+        });
+        return added;
+      }
+
+      function collectWorkbookText(workbook) {
+        const values = [];
+        workbook.SheetNames.forEach((sheetName) => {
+          const sheet = workbook.Sheets[sheetName];
+          if (!sheet || !sheet["!ref"]) {
+            return;
+          }
+
+          const range = XLSX.utils.decode_range(sheet["!ref"]);
+          for (let row = range.s.r; row <= range.e.r; row += 1) {
+            for (let col = range.s.c; col <= range.e.c; col += 1) {
+              const cellAddress = XLSX.utils.encode_cell({ r: row, c: col });
+              const cell = sheet[cellAddress];
+              if (!cell || cell.v === undefined || cell.v === null) {
+                continue;
+              }
+              values.push(String(cell.v));
+            }
+          }
+        });
+        return values.join("\n");
+      }
+
+      async function readMembersFromFile(file) {
+        const fileName = (file?.name || "").toLowerCase();
+        const isImage = file?.type?.startsWith("image/");
+
+        if (
+          fileName.endsWith(".xlsx") ||
+          fileName.endsWith(".xls") ||
+          fileName.endsWith(".csv")
+        ) {
+          const buffer = await file.arrayBuffer();
+          const workbook = XLSX.read(buffer, { type: "array" });
+          const text = collectWorkbookText(workbook);
+          return { text, texts: [text], source: "spreadsheet" };
+        }
+
+        if (fileName.endsWith(".docx")) {
+          if (!window.mammoth) {
+            throw new Error("Word importer is not available.");
+          }
+          const buffer = await file.arrayBuffer();
+          const result = await window.mammoth.extractRawText({
+            arrayBuffer: buffer,
+          });
+          const text = result.value || "";
+          return { text, texts: [text], source: "word" };
+        }
+
+        if (
+          fileName.endsWith(".txt") ||
+          fileName.endsWith(".rtf") ||
+          fileName.endsWith(".doc")
+        ) {
+          const text = await file.text();
+          return { text, texts: [text], source: "text" };
+        }
+
+        if (isImage) {
+          if (!window.Tesseract) {
+            throw new Error("OCR importer is not available.");
+          }
+
+          const performOcr = async (imageSource, lang, psm) => {
+            let lastError = null;
+            for (const langPath of OCR_LANG_PATHS) {
+              let worker = null;
+              try {
+                worker = await window.Tesseract.createWorker(lang, 1, {
+                  langPath,
+                });
+                await worker.setParameters({
+                  tessedit_pageseg_mode: psm,
+                  preserve_interword_spaces: "1",
+                });
+                const result = await worker.recognize(imageSource);
+                await worker.terminate();
+                return {
+                  text: result?.data?.text || "",
+                  words: Array.isArray(result?.data?.words)
+                    ? result.data.words
+                    : [],
+                  langPath,
+                };
+              } catch (error) {
+                lastError = error;
+                if (worker) {
+                  try {
+                    await worker.terminate();
+                  } catch (_) {}
+                }
+              }
+            }
+
+            throw lastError || new Error("OCR pass failed");
+          };
+
+          const createEnhancedImageCanvas = async (imageFile) => {
+            const bitmap = await createImageBitmap(imageFile);
+            const scale = 2;
+            const canvas = document.createElement("canvas");
+            canvas.width = Math.max(1, Math.floor(bitmap.width * scale));
+            canvas.height = Math.max(1, Math.floor(bitmap.height * scale));
+
+            const context = canvas.getContext("2d", {
+              willReadFrequently: true,
+            });
+            context.imageSmoothingEnabled = false;
+            context.drawImage(bitmap, 0, 0, canvas.width, canvas.height);
+
+            const imageData = context.getImageData(
+              0,
+              0,
+              canvas.width,
+              canvas.height,
+            );
+            const data = imageData.data;
+            for (let i = 0; i < data.length; i += 4) {
+              const luminance =
+                0.299 * data[i] + 0.587 * data[i + 1] + 0.114 * data[i + 2];
+              const contrast = (luminance - 128) * 1.8 + 128;
+              // Invert: produce dark text on white background (OCR-friendly).
+              // Bright pixels (text on dark UI) become black; dark background becomes white.
+              // Threshold 128: gold text (~lum 183) and teal Korean (~lum 138) both
+              // become black; dark background (~lum 30) becomes white. OCR-friendly.
+              const threshold = contrast > 128 ? 0 : 255;
+              data[i] = threshold;
+              data[i + 1] = threshold;
+              data[i + 2] = threshold;
+            }
+            context.putImageData(imageData, 0, 0);
+            bitmap.close();
+            return canvas;
+          };
+
+          const texts = [];
+          const wordSets = [];
+          const passErrors = [];
+          let koreanPassSucceeded = false;
+
+          for (const pass of OCR_PASS_CONFIGS) {
+            try {
+              setAllianceImportStatus(
+                `Running OCR (${pass.lang.toUpperCase()}, PSM ${pass.psm}) on ${file.name}...`,
+                true,
+              );
+              const directResult = await performOcr(file, pass.lang, pass.psm);
+              if (directResult.text.trim()) {
+                texts.push(directResult.text);
+                // Direct OCR has no reliable image dimensions for column filtering;
+                // its text goes to the fallback pipeline instead.
+              }
+
+              const enhancedCanvas = await createEnhancedImageCanvas(file);
+              const enhancedResult = await performOcr(
+                enhancedCanvas,
+                pass.lang,
+                pass.psm,
+              );
+              if (enhancedResult.text.trim()) {
+                texts.push(enhancedResult.text);
+                wordSets.push({
+                  words: enhancedResult.words,
+                  imageWidth: enhancedCanvas.width,
+                  imageHeight: enhancedCanvas.height,
+                });
+              }
+              if (pass.lang.includes("kor")) {
+                koreanPassSucceeded = true;
+              }
+            } catch {
+              passErrors.push(`${pass.lang}:${pass.psm}`);
+              // Keep going so fallback passes can still return candidates.
+            }
+          }
+
+          const mergedText = texts.join("\n");
+          if (
+            !mergedText.trim() &&
+            passErrors.length === OCR_PASS_CONFIGS.length
+          ) {
+            throw new Error(
+              "OCR could not run for this image. Please try a clearer screenshot or file import.",
+            );
+          }
+
+          return {
+            text: mergedText,
+            texts,
+            source: "ocr",
+            wordSets,
+            koreanPassSucceeded,
+            passErrors,
+            hasHangul: /[가-힣]/.test(mergedText),
+          };
+        }
+
+        throw new Error("Unsupported file type.");
+      }
+
+      async function importAllianceMembersFromFile(file) {
+        if (!file) {
+          return;
+        }
+
+        try {
+          setAllianceImportStatus(`Importing ${file.name}...`, true);
+          const importResult = await readMembersFromFile(file);
+          const candidateMap = new Map();
+          const sourceTexts = Array.isArray(importResult.texts)
+            ? importResult.texts
+            : [importResult.text || ""];
+
+          if (importResult.source === "ocr") {
+            // For OCR, prefer structured row extraction to avoid fragment-heavy results.
+            const structuredCandidates = extractMemberCandidatesFromOcrWordSets(
+              importResult.wordSets || [],
+            );
+            structuredCandidates.forEach((candidate) => {
+              const normalized = normalizeMemberName(candidate);
+              if (!normalized) return;
+              if (!candidateMap.has(normalized)) {
+                candidateMap.set(normalized, candidate);
+              }
+            });
+
+            // Also run text-based extraction to catch names the structured pass missed.
+            sourceTexts.forEach((sourceText) => {
+              extractUnicodeFallbackCandidates(sourceText).forEach(
+                (candidate) => {
+                  const normalized = normalizeMemberName(candidate);
+                  if (!normalized) return;
+                  if (!candidateMap.has(normalized)) {
+                    candidateMap.set(normalized, candidate);
+                  }
+                },
+              );
+            });
+          } else {
+            sourceTexts.forEach((sourceText) => {
+              extractMemberCandidatesBySource(
+                sourceText,
+                importResult.source,
+              ).forEach((candidate) => {
+                const normalized = normalizeMemberName(candidate);
+                if (!normalized) return;
+                if (!candidateMap.has(normalized)) {
+                  candidateMap.set(normalized, candidate);
+                }
+              });
+            });
+          }
+
+          let candidates = rankCandidatesForPreview(
+            Array.from(candidateMap.values()),
+          );
+
+          if (importResult.source === "ocr") {
+            const expectedCount = estimateExpectedOcrNameCount(sourceTexts);
+            if (expectedCount >= 3 && candidates.length > expectedCount + 2) {
+              const reduced = candidates.filter((name) => {
+                if (isPowerLikeNoise(name)) {
+                  return false;
+                }
+                const parts = name.split(/\s+/).filter(Boolean);
+                if (
+                  parts.length > 1 &&
+                  /grim$/i.test(name) &&
+                  parts.slice(0, -1).every((part) => part.length <= 3)
+                ) {
+                  return false;
+                }
+                return true;
+              });
+              candidates = rankCandidatesForPreview(reduced).slice(
+                0,
+                expectedCount,
+              );
+            }
+          }
+
+          if (!candidates.length) {
+            setAllianceImportStatus(
+              `No names were detected from ${file.name}. Try a clearer crop or zoomed screenshot.`,
+            );
+            return;
+          }
+
+          setAllianceImportStatus(
+            `${candidates.length} possible names found. Review and confirm import.`,
+          );
+
+          if (
+            importResult.source === "ocr" &&
+            importResult.koreanPassSucceeded === false
+          ) {
+            setAllianceImportStatus(
+              `${candidates.length} possible names found. Korean OCR pass failed; results may miss Korean characters.`,
+            );
+          }
+
+          if (
+            importResult.source === "ocr" &&
+            importResult.koreanPassSucceeded !== false &&
+            importResult.hasHangul === false
+          ) {
+            setAllianceImportStatus(
+              `${candidates.length} possible names found. OCR did not detect Korean characters from this image. Try zooming/cropping the name column.`,
+            );
+          }
+
+          openImportPreview(file.name, candidates);
+        } catch (error) {
+          setAllianceImportStatus("");
+          alert(`Import failed: ${error.message}`);
+        } finally {
+          allianceMembersFileInput.value = "";
+          allianceImportStatus.classList.remove("is-busy");
+        }
+      }
+
+      function applyAllianceMemberToTarget(memberName) {
+        const active = document.activeElement;
+        let targetType = state.allianceFillTarget;
+        let idx = state.allianceFillConductorIdx;
+
+        if (active?.classList?.contains("conductor-name-input")) {
+          targetType = "conductor";
+          idx = Number(active.dataset.idx);
+        } else if (active?.classList?.contains("conductor-vip-input")) {
+          targetType = "vip";
+          idx = Number(active.dataset.idx);
+        } else if (
+          state.lastFocusedFill &&
+          Number.isFinite(state.lastFocusedFill.idx)
+        ) {
+          targetType = state.lastFocusedFill.type;
+          idx = state.lastFocusedFill.idx;
+        }
+
+        if (!Number.isFinite(idx) || idx < 0 || idx > 6) {
+          idx = 0;
+        }
+
+        if (targetType === "vip") {
+          state.conductors[idx].vipGuardian = memberName.slice(0, 50);
+          recordMemberHistory(memberName, "vip", idx);
+        } else {
+          state.conductorNamesByWeek[state.nameEditWeek][idx] =
+            memberName || DEFAULT_NAMES[idx];
+          recordMemberHistory(memberName, "conductor", idx, state.nameEditWeek);
+        }
+
+        saveState();
+        renderConductors();
+        renderSchedule();
+        renderAllianceMembers();
+      }
+
       function hexToRgba(hex, alpha) {
         const m = /^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(hex || "");
         if (!m) return `rgba(8, 16, 25, ${alpha})`;
@@ -851,6 +2879,11 @@
           conductors: state.conductors,
           dayAssignments: state.dayAssignments,
           showVip: state.showVip,
+          allianceMembers: state.allianceMembers,
+          memberHistory: state.memberHistory,
+          allianceMemberSearch: state.allianceMemberSearch,
+          allianceFillTarget: state.allianceFillTarget,
+          allianceFillConductorIdx: state.allianceFillConductorIdx,
         };
         return btoa(unescape(encodeURIComponent(JSON.stringify(payload))));
       }
@@ -914,6 +2947,37 @@
         }
         if (typeof saved.showVip === "boolean") {
           state.showVip = saved.showVip;
+        }
+        if (Array.isArray(saved.allianceMembers)) {
+          state.allianceMembers = dedupeNames(
+            saved.allianceMembers
+              .map((name) => sanitizeMemberName(name))
+              .filter(Boolean),
+          )
+            .slice(0, MAX_ALLIANCE_MEMBERS)
+            .sort((a, b) =>
+              a.localeCompare(b, undefined, { sensitivity: "base" }),
+            );
+        }
+        if (Array.isArray(saved.memberHistory)) {
+          state.memberHistory = normalizeMemberHistoryEntries(
+            saved.memberHistory,
+          );
+        }
+        if (typeof saved.allianceMemberSearch === "string") {
+          state.allianceMemberSearch = sanitizeMemberName(
+            saved.allianceMemberSearch,
+          );
+        }
+        if (
+          saved.allianceFillTarget === "vip" ||
+          saved.allianceFillTarget === "conductor"
+        ) {
+          state.allianceFillTarget = saved.allianceFillTarget;
+        }
+        if (Number.isFinite(Number(saved.allianceFillConductorIdx))) {
+          const idx = Number(saved.allianceFillConductorIdx);
+          state.allianceFillConductorIdx = idx >= 0 && idx <= 6 ? idx : 0;
         }
         return true;
       }
@@ -1061,6 +3125,11 @@
               conductors: state.conductors,
               dayAssignments: state.dayAssignments,
               showVip: state.showVip,
+              allianceMembers: state.allianceMembers,
+              memberHistory: state.memberHistory,
+              allianceMemberSearch: state.allianceMemberSearch,
+              allianceFillTarget: state.allianceFillTarget,
+              allianceFillConductorIdx: state.allianceFillConductorIdx,
             }),
           );
         } catch {
@@ -1144,6 +3213,37 @@
           }
           if (typeof saved.showVip === "boolean") {
             state.showVip = saved.showVip;
+          }
+          if (Array.isArray(saved.allianceMembers)) {
+            state.allianceMembers = dedupeNames(
+              saved.allianceMembers
+                .map((name) => sanitizeMemberName(name))
+                .filter(Boolean),
+            )
+              .slice(0, MAX_ALLIANCE_MEMBERS)
+              .sort((a, b) =>
+                a.localeCompare(b, undefined, { sensitivity: "base" }),
+              );
+          }
+          if (Array.isArray(saved.memberHistory)) {
+            state.memberHistory = normalizeMemberHistoryEntries(
+              saved.memberHistory,
+            );
+          }
+          if (typeof saved.allianceMemberSearch === "string") {
+            state.allianceMemberSearch = sanitizeMemberName(
+              saved.allianceMemberSearch,
+            );
+          }
+          if (
+            saved.allianceFillTarget === "vip" ||
+            saved.allianceFillTarget === "conductor"
+          ) {
+            state.allianceFillTarget = saved.allianceFillTarget;
+          }
+          if (Number.isFinite(Number(saved.allianceFillConductorIdx))) {
+            const idx = Number(saved.allianceFillConductorIdx);
+            state.allianceFillConductorIdx = idx >= 0 && idx <= 6 ? idx : 0;
           }
         } catch {
           // ignore
@@ -1234,6 +3334,17 @@
                 inp.value.trim().slice(0, 40) || DEFAULT_NAMES[idx];
               saveState();
               renderSchedule();
+              renderAllianceMembers();
+            });
+
+            inp.addEventListener("change", () => {
+              const idx = Number(inp.dataset.idx);
+              const name = sanitizeMemberName(inp.value);
+              if (name) {
+                recordMemberHistory(name, "conductor", idx, state.nameEditWeek);
+                saveState();
+              }
+              renderAllianceMembers();
             });
           });
 
@@ -1245,6 +3356,17 @@
               state.conductors[idx].vipGuardian = inp.value.slice(0, 50);
               saveState();
               renderSchedule();
+              renderAllianceMembers();
+            });
+
+            inp.addEventListener("change", () => {
+              const idx = Number(inp.dataset.idx);
+              const name = sanitizeMemberName(inp.value);
+              if (name) {
+                recordMemberHistory(name, "vip", idx);
+                saveState();
+              }
+              renderAllianceMembers();
             });
           });
       }
@@ -1351,6 +3473,7 @@
       function render() {
         renderWeekButtons();
         renderConductors();
+        renderAllianceMembers();
         renderSchedule();
       }
 
@@ -1364,6 +3487,7 @@
       startDateInput.value = state.startDateStr;
       vipToggleInput.checked = state.showVip;
       conductorWeekSelect.value = String(state.nameEditWeek);
+      allianceFillTargetSelect.value = state.allianceFillTarget;
 
       render();
 
@@ -1463,6 +3587,281 @@
         saveState();
         renderConductors();
         renderSchedule();
+      });
+
+      conductorsList.addEventListener("focusin", (event) => {
+        const target = event.target;
+        if (target?.classList?.contains("conductor-name-input")) {
+          state.lastFocusedFill = {
+            type: "conductor",
+            idx: Number(target.dataset.idx) || 0,
+          };
+          return;
+        }
+
+        if (target?.classList?.contains("conductor-vip-input")) {
+          state.lastFocusedFill = {
+            type: "vip",
+            idx: Number(target.dataset.idx) || 0,
+          };
+        }
+      });
+
+      addAllianceMemberButton.addEventListener("click", () => {
+        const names = allianceMemberInput.value
+          .split(",")
+          .map((s) => s.trim())
+          .filter(Boolean);
+        let anyAdded = false;
+        const duplicates = [];
+        for (const name of names) {
+          const result = addAllianceMember(name);
+          if (result === true) anyAdded = true;
+          else if (result === "duplicate") duplicates.push(name);
+        }
+        if (anyAdded) {
+          allianceMemberInput.value = "";
+          saveState();
+          renderAllianceMembers();
+        }
+        if (duplicates.length > 0) {
+          const list = duplicates.map((n) => `"${n}"`).join(", ");
+          alert(`Already added: ${list}`);
+        }
+      });
+
+      allianceMemberInput.addEventListener("keydown", (event) => {
+        if (event.key === "Enter") {
+          event.preventDefault();
+          addAllianceMemberButton.click();
+        }
+      });
+
+      bulkAddAllianceMembersButton.addEventListener("click", () => {
+        openBulkAddModal();
+      });
+
+      bulkAddCancelButton.addEventListener("click", () => {
+        closeBulkAddModal();
+      });
+
+      bulkAddConfirmButton.addEventListener("click", () => {
+        commitBulkAddFromTextarea();
+      });
+
+      bulkAddTextarea.addEventListener("keydown", (event) => {
+        if ((event.ctrlKey || event.metaKey) && event.key === "Enter") {
+          event.preventDefault();
+          commitBulkAddFromTextarea();
+          return;
+        }
+
+        if (event.key === "Escape") {
+          event.preventDefault();
+          closeBulkAddModal();
+        }
+      });
+
+      clearAllianceMembersButton.addEventListener("click", () => {
+        if (!state.allianceMembers.length) {
+          return;
+        }
+        if (!confirm("Clear the entire alliance member list?")) {
+          return;
+        }
+        state.allianceMembers = [];
+        saveState();
+        renderAllianceMembers();
+      });
+
+      importAllianceMembersButton.addEventListener("click", () => {
+        allianceMembersFileInput.click();
+      });
+
+      allianceMembersFileInput.addEventListener("change", () => {
+        const file = allianceMembersFileInput.files?.[0] || null;
+        importAllianceMembersFromFile(file);
+      });
+
+      allianceFillTargetSelect.addEventListener("change", () => {
+        state.allianceFillTarget =
+          allianceFillTargetSelect.value === "vip" ? "vip" : "conductor";
+        saveState();
+      });
+
+      allianceFillConductorSelect.addEventListener("change", () => {
+        const idx = Number(allianceFillConductorSelect.value);
+        state.allianceFillConductorIdx = Number.isFinite(idx)
+          ? Math.max(0, Math.min(6, idx))
+          : 0;
+        saveState();
+      });
+
+      allianceMemberSearchInput.addEventListener("input", () => {
+        state.allianceMemberSearch = sanitizeMemberName(
+          allianceMemberSearchInput.value,
+        );
+        renderAllianceMembers();
+      });
+
+      allianceMembersList.addEventListener("click", (event) => {
+        const editBtn = event.target.closest("[data-edit-idx]");
+        if (editBtn) {
+          const idx = Number(editBtn.dataset.editIdx);
+          if (
+            Number.isFinite(idx) &&
+            idx >= 0 &&
+            idx < state.allianceMembers.length
+          ) {
+            editingAllianceMemberIdx = idx;
+            renderAllianceMembers();
+          }
+          return;
+        }
+
+        const saveEditBtn = event.target.closest("[data-edit-save-idx]");
+        if (saveEditBtn) {
+          const idx = Number(saveEditBtn.dataset.editSaveIdx);
+          const input = allianceMembersList.querySelector(
+            `[data-edit-input-idx="${idx}"]`,
+          );
+          commitAllianceMemberEdit(idx, input?.value || "");
+          return;
+        }
+
+        const cancelEditBtn = event.target.closest("[data-edit-cancel-idx]");
+        if (cancelEditBtn) {
+          editingAllianceMemberIdx = -1;
+          renderAllianceMembers();
+          return;
+        }
+
+        const removeBtn = event.target.closest("[data-remove-idx]");
+        if (removeBtn) {
+          const idx = Number(removeBtn.dataset.removeIdx);
+          if (
+            Number.isFinite(idx) &&
+            idx >= 0 &&
+            idx < state.allianceMembers.length
+          ) {
+            state.allianceMembers.splice(idx, 1);
+            if (editingAllianceMemberIdx === idx) {
+              editingAllianceMemberIdx = -1;
+            }
+            saveState();
+            renderAllianceMembers();
+          }
+          return;
+        }
+
+        const pickBtn = event.target.closest("[data-name]");
+        if (pickBtn) {
+          const name = sanitizeMemberName(pickBtn.dataset.name);
+          if (name) {
+            applyAllianceMemberToTarget(name);
+          }
+        }
+      });
+
+      allianceMembersList.addEventListener("keydown", (event) => {
+        const editInput = event.target.closest("[data-edit-input-idx]");
+        if (!editInput) {
+          return;
+        }
+
+        const idx = Number(editInput.dataset.editInputIdx);
+        if (event.key === "Enter") {
+          event.preventDefault();
+          commitAllianceMemberEdit(idx, editInput.value);
+          return;
+        }
+
+        if (event.key === "Escape") {
+          event.preventDefault();
+          editingAllianceMemberIdx = -1;
+          renderAllianceMembers();
+        }
+      });
+
+      importPreviewList.addEventListener("change", (event) => {
+        const checkbox = event.target.closest("[data-preview-idx]");
+        if (checkbox) {
+          const idx = Number(checkbox.dataset.previewIdx);
+          if (
+            !Number.isFinite(idx) ||
+            idx < 0 ||
+            idx >= pendingImportCandidates.length
+          ) {
+            return;
+          }
+          pendingImportCandidates[idx].selected = checkbox.checked;
+          return;
+        }
+
+        const nameInput = event.target.closest("[data-preview-name-idx]");
+        if (!nameInput) {
+          return;
+        }
+        const idx = Number(nameInput.dataset.previewNameIdx);
+        if (
+          !Number.isFinite(idx) ||
+          idx < 0 ||
+          idx >= pendingImportCandidates.length
+        ) {
+          return;
+        }
+        pendingImportCandidates[idx].name = sanitizeMemberName(nameInput.value);
+      });
+
+      importPreviewList.addEventListener("input", (event) => {
+        const nameInput = event.target.closest("[data-preview-name-idx]");
+        if (!nameInput) {
+          return;
+        }
+        const idx = Number(nameInput.dataset.previewNameIdx);
+        if (
+          !Number.isFinite(idx) ||
+          idx < 0 ||
+          idx >= pendingImportCandidates.length
+        ) {
+          return;
+        }
+        pendingImportCandidates[idx].name = sanitizeMemberName(nameInput.value);
+      });
+
+      importPreviewSelectAllButton.addEventListener("click", () => {
+        pendingImportCandidates.forEach((entry) => {
+          entry.selected = true;
+        });
+        renderImportPreviewList();
+      });
+
+      importPreviewSelectNoneButton.addEventListener("click", () => {
+        pendingImportCandidates.forEach((entry) => {
+          entry.selected = false;
+        });
+        renderImportPreviewList();
+      });
+
+      importPreviewCancelButton.addEventListener("click", () => {
+        closeImportPreview();
+        setAllianceImportStatus("Import canceled.");
+      });
+
+      importPreviewConfirmButton.addEventListener("click", () => {
+        commitPreviewImport();
+      });
+
+      importPreviewModal.addEventListener("click", (event) => {
+        if (event.target === importPreviewModal) {
+          closeImportPreview();
+        }
+      });
+
+      bulkAddModal.addEventListener("click", (event) => {
+        if (event.target === bulkAddModal) {
+          closeBulkAddModal();
+        }
       });
     </script>
   </body>
