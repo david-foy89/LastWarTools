@@ -352,6 +352,7 @@
       </section>
     </div>
 
+    <script src="lwst-common.js"></script>
     <script>
       const t11Research = [
         {
@@ -439,34 +440,6 @@
       const languageSelect = document.getElementById("languageSelect");
       let preferredLanguage = "en";
 
-      const languageOptions = [
-        { code: "en", label: "English" },
-        { code: "es", label: "Spanish" },
-        { code: "fr", label: "French" },
-        { code: "de", label: "German" },
-        { code: "it", label: "Italian" },
-        { code: "pt", label: "Portuguese" },
-        { code: "ru", label: "Russian" },
-        { code: "uk", label: "Ukrainian" },
-        { code: "pl", label: "Polish" },
-        { code: "tr", label: "Turkish" },
-        { code: "ar", label: "Arabic" },
-        { code: "fa", label: "Persian" },
-        { code: "he", label: "Hebrew" },
-        { code: "hi", label: "Hindi" },
-        { code: "bn", label: "Bengali" },
-        { code: "ur", label: "Urdu" },
-        { code: "th", label: "Thai" },
-        { code: "vi", label: "Vietnamese" },
-        { code: "id", label: "Indonesian" },
-        { code: "ms", label: "Malay" },
-        { code: "fil", label: "Filipino" },
-        { code: "ja", label: "Japanese" },
-        { code: "ko", label: "Korean" },
-        { code: "zh-CN", label: "Chinese (Simplified)" },
-        { code: "zh-TW", label: "Chinese (Traditional)" },
-      ];
-
       function formatNumber(value) {
         return Math.round(Number(value) || 0).toLocaleString();
       }
@@ -498,53 +471,12 @@
       }
 
       function buildLanguageOptions() {
-        languageSelect.innerHTML = languageOptions
-          .map((lang) => `<option value="${lang.code}">${lang.label}</option>`)
-          .join("");
-        languageSelect.value = preferredLanguage;
+        window.LWSTCommon.buildLanguageOptions(languageSelect, preferredLanguage);
       }
 
       function applyGoogleLanguage(languageCode, retries = 25) {
-        const combo = document.querySelector(".goog-te-combo");
-        if (!combo) {
-          if (retries > 0) {
-            setTimeout(
-              () => applyGoogleLanguage(languageCode, retries - 1),
-              200,
-            );
-          }
-          return;
-        }
-
-        combo.value = languageCode;
-        combo.dispatchEvent(new Event("change"));
+        window.LWSTCommon.applyGoogleLanguage(languageCode, retries);
       }
-
-      function loadGoogleTranslateScript() {
-        if (window.google && window.google.translate) {
-          window.googleTranslateElementInit();
-          return;
-        }
-
-        const script = document.createElement("script");
-        script.src =
-          "https://translate.google.com/translate_a/element.js?cb=googleTranslateElementInit";
-        script.async = true;
-        document.body.appendChild(script);
-      }
-
-      window.googleTranslateElementInit =
-        function googleTranslateElementInit() {
-          new window.google.translate.TranslateElement(
-            {
-              pageLanguage: "en",
-              autoDisplay: false,
-            },
-            "google_translate_element",
-          );
-
-          applyGoogleLanguage(preferredLanguage);
-        };
 
       function buildChecklist() {
         researchChecklist.innerHTML = t11Research
@@ -599,38 +531,35 @@
       }
 
       function saveState() {
-        try {
-          const state = {};
-          t11Research.forEach((item) => {
-            state[item.id] = getProgress(item.id);
-          });
-          state.language = languageSelect.value;
-          localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
-        } catch {}
+        const state = {};
+        t11Research.forEach((item) => {
+          state[item.id] = getProgress(item.id);
+        });
+        state.language = languageSelect.value;
+        window.LWSTCommon.storageSetJson(STORAGE_KEY, state);
       }
 
       function loadState() {
-        try {
-          const raw = localStorage.getItem(STORAGE_KEY);
-          if (!raw) {
-            return;
-          }
+        const state = window.LWSTCommon.storageGetJson(STORAGE_KEY, null);
+        if (!state) {
+          return;
+        }
 
-          const state = JSON.parse(raw);
-          if (
-            state.language &&
-            languageOptions.some((option) => option.code === state.language)
-          ) {
-            preferredLanguage = state.language;
-            languageSelect.value = state.language;
-          }
+        if (
+          state.language &&
+          window.LWSTCommon.LANGUAGE_OPTIONS.some(
+            (option) => option.code === state.language,
+          )
+        ) {
+          preferredLanguage = state.language;
+          languageSelect.value = state.language;
+        }
 
-          t11Research.forEach((item) => {
-            document.getElementById(`progress-${item.id}`).value = String(
-              normalizeStoredProgress(state[item.id]),
-            );
-          });
-        } catch {}
+        t11Research.forEach((item) => {
+          document.getElementById(`progress-${item.id}`).value = String(
+            normalizeStoredProgress(state[item.id]),
+          );
+        });
       }
 
       function setCompletionState(ids, percentage) {
@@ -728,7 +657,7 @@
       loadState();
       buildLanguageOptions();
       updateCalculator();
-      loadGoogleTranslateScript();
+      window.LWSTCommon.initGoogleTranslate(preferredLanguage);
 
       markAllNeededButton.addEventListener("click", () => {
         setCompletionState([], 100);
