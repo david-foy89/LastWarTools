@@ -427,6 +427,10 @@ select:focus {
   font-weight: 700;
 }
 
+.home-page .row-value {
+  text-align: right;
+}
+
 .home-page .row-value a {
   color: #d9f0ff;
   text-decoration-color: rgba(217, 240, 255, 0.72);

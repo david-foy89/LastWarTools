@@ -963,12 +963,8 @@
             <button class="btn-confirm" onclick="exportAsExcel()">
               📊 Excel
             </button>
-            <button class="btn-confirm" onclick="exportAsPNG()">
-              🖼️ PNG
-            </button>
-            <button class="btn-confirm" onclick="exportAsPDF()">
-              📄 PDF
-            </button>
+            <button class="btn-confirm" onclick="exportAsPNG()">🖼️ PNG</button>
+            <button class="btn-confirm" onclick="exportAsPDF()">📄 PDF</button>
           </div>
 
           <div class="export-preview" id="exportPreview">
@@ -1079,6 +1075,9 @@
       const mapTooltip = document.getElementById("mapTooltip");
       const ctx = canvas.getContext("2d");
       const MAP_SIZE = 1000;
+      const CURRENT_SEASON = 1;
+      const MAX_ALLIANCES = 12;
+      const SHARED_ALLIANCE_TAGS_KEY = "lwst-shared-alliance-tags-v1";
       const AREA_ABBREVIATIONS = {
         Stronghold: "SH",
         Brewery: "B",
@@ -1174,6 +1173,90 @@
         return Math.hypot(deltaX, deltaY);
       }
 
+      function getSharedAllianceTags() {
+        try {
+          const raw = localStorage.getItem(SHARED_ALLIANCE_TAGS_KEY);
+          if (!raw) {
+            return [];
+          }
+
+          const parsed = JSON.parse(raw);
+          if (!Array.isArray(parsed)) {
+            return [];
+          }
+
+          return parsed
+            .map((entry) => {
+              if (!entry || typeof entry !== "object") {
+                return null;
+              }
+
+              const tag = String(entry.tag || "")
+                .trim()
+                .toUpperCase();
+              const firstSeason = Number.parseInt(entry.firstSeason, 10);
+              if (!tag || Number.isNaN(firstSeason)) {
+                return null;
+              }
+
+              return {
+                tag,
+                firstSeason,
+                color: entry.color || null,
+              };
+            })
+            .filter(Boolean);
+        } catch {
+          return [];
+        }
+      }
+
+      function setSharedAllianceTags(entries) {
+        localStorage.setItem(SHARED_ALLIANCE_TAGS_KEY, JSON.stringify(entries));
+      }
+
+      function loadAllianceTagsForSeason() {
+        const sharedTags = getSharedAllianceTags()
+          .filter((entry) => entry.firstSeason <= CURRENT_SEASON)
+          .sort(
+            (a, b) =>
+              a.firstSeason - b.firstSeason || a.tag.localeCompare(b.tag),
+          )
+          .slice(0, MAX_ALLIANCES);
+
+        state.alliances = sharedTags.map((entry, index) => ({
+          tag: entry.tag,
+          color: entry.color || allianceColors[index % allianceColors.length],
+          cities: 0,
+          strongholds: 0,
+        }));
+      }
+
+      function syncSharedAllianceTagsFromState() {
+        const sharedByTag = new Map(
+          getSharedAllianceTags().map((entry) => [entry.tag, entry]),
+        );
+
+        state.alliances.forEach((alliance, index) => {
+          const existing = sharedByTag.get(alliance.tag);
+          sharedByTag.set(alliance.tag, {
+            tag: alliance.tag,
+            firstSeason: existing
+              ? Math.min(existing.firstSeason, CURRENT_SEASON)
+              : CURRENT_SEASON,
+            color:
+              (existing && existing.color) ||
+              alliance.color ||
+              allianceColors[index % allianceColors.length],
+          });
+        });
+
+        const merged = Array.from(sharedByTag.values()).sort(
+          (a, b) => a.firstSeason - b.firstSeason || a.tag.localeCompare(b.tag),
+        );
+        setSharedAllianceTags(merged);
+      }
+
       function addAlliance() {
         const input = document.getElementById("allianceInput");
         const tag = input.value.trim().toUpperCase();
@@ -1183,8 +1266,8 @@
           alert("Alliance already exists!");
           return;
         }
-        if (state.alliances.length >= 12) {
-          alert("Maximum 12 alliances allowed!");
+        if (state.alliances.length >= MAX_ALLIANCES) {
+          alert(`Maximum ${MAX_ALLIANCES} alliances allowed!`);
           return;
         }
 
@@ -1196,6 +1279,7 @@
         };
 
         state.alliances.push(alliance);
+        syncSharedAllianceTagsFromState();
         input.value = "";
         updateUI();
         renderMap();
@@ -1965,6 +2049,7 @@
           state.alliances = data.alliances;
           state.territories = data.territories;
           state.selectedAlliance = null;
+          syncSharedAllianceTagsFromState();
 
           closeImportModal();
           updateUI();
@@ -2038,6 +2123,7 @@
       };
 
       // Initial render
+      loadAllianceTagsForSeason();
       updateUI();
       renderMap();
       updateCanvasDisplay();
@@ -2097,8 +2183,3 @@
     </div>
   </body>
 </html>
-
-
-
-
-
