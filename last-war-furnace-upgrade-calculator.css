@@ -911,3 +911,62 @@ body {
   background-color: transparent !important;
   box-shadow: none !important;
 }
+
+/* Interactive map: multi-tab slots */
+.map-tabs-wrap {
+  margin-bottom: 18px;
+}
+
+.map-tabs-label {
+  font-size: 0.78rem;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--muted);
+  margin-bottom: 8px;
+}
+
+.map-tabs-strip {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  align-items: center;
+}
+
+.map-tab {
+  padding: 6px 12px;
+  font-size: 0.82rem;
+  font-family: inherit;
+  color: var(--muted);
+  background: rgba(8, 16, 25, 0.66);
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  cursor: pointer;
+  transition:
+    color 0.15s ease,
+    border-color 0.15s ease,
+    background 0.15s ease;
+  max-width: 140px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.map-tab:hover {
+  color: var(--text);
+  border-color: var(--accent-2);
+  background: rgba(12, 24, 37, 0.92);
+}
+
+.map-tab-active {
+  color: var(--text);
+  border-color: rgba(116, 192, 252, 0.55);
+  background: rgba(18, 32, 48, 0.95);
+  box-shadow: 0 0 0 1px rgba(116, 192, 252, 0.2);
+}
+
+.map-tabs-hint {
+  margin: 10px 0 0;
+  font-size: 0.78rem;
+  color: rgba(217, 240, 255, 0.45);
+  line-height: 1.35;
+}

@@ -806,6 +806,20 @@
           </div>
         </div>
 
+        <div class="map-tabs-wrap">
+          <div class="map-tabs-label">Maps (up to 10)</div>
+          <div
+            class="map-tabs-strip"
+            id="mapTabsStrip"
+            role="tablist"
+            aria-label="Map slots"
+          ></div>
+          <p class="map-tabs-hint">
+            Click a tab to switch. Double-click a tab to rename. Each tab keeps
+            its own alliances, territories, zoom, and scroll position.
+          </p>
+        </div>
+
         <div class="controls-top">
           <button class="btn-action" onclick="clearAllTerritories()">
             Clear Map
@@ -825,7 +839,7 @@
           </div>
         </div>
 
-        <div class="map-container">
+        <div class="map-container" id="mapTabPanel">
           <div class="map-canvas-wrapper" id="mapCanvasWrapper">
             <canvas id="mapCanvas" width="1000" height="1000"></canvas>
             <div class="map-tooltip" id="mapTooltip"></div>
@@ -1038,6 +1052,7 @@
 
     <script src="page-nav-dropdown.js"></script>
     <script src="season-1-territories.js"></script>
+    <script src="interactive-map-tabs.js"></script>
     <script>
       // Initialize map data
       const state = {
@@ -2065,6 +2080,9 @@
           closeImportModal();
           updateUI();
           renderMap();
+          if (typeof saveInteractiveMapTabs === "function") {
+            saveInteractiveMapTabs();
+          }
         } catch (e) {
           alert("Invalid import data: " + e.message);
         }
@@ -2133,11 +2151,18 @@
         );
       };
 
-      // Initial render
-      loadAllianceTagsForSeason();
-      updateUI();
-      renderMap();
-      updateCanvasDisplay();
+      // Initial render (multi-tab map slots)
+      initInteractiveMapTabs({
+        storageKey: "lwst-interactive-map-tabs-s1-v1",
+        state: state,
+        mapCanvasWrapper: mapCanvasWrapper,
+        loadAllianceTagsForSeason: loadAllianceTagsForSeason,
+        updateUI: updateUI,
+        renderMap: renderMap,
+        updateCanvasDisplay: updateCanvasDisplay,
+        setZoom: setZoom,
+        syncSharedAllianceTagsFromState: syncSharedAllianceTagsFromState,
+      });
 
       // Handle window resize
       window.addEventListener("resize", () => {
