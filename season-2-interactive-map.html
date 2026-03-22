@@ -857,9 +857,6 @@
           <button class="btn-action" onclick="showExportModal()">
             Export Plan
           </button>
-          <button class="btn-action" onclick="showImportModal()">
-            Import Plan
-          </button>
           <button class="btn-action" onclick="resetView()">Reset View</button>
           <label
             style="
@@ -1887,6 +1884,18 @@
                   }
                 });
                 if (autoMappings.length) {
+                  // Ensure Import button is enabled and context-aware
+                  const importBtn = document.querySelector('.import-modal .btn-confirm, #importModal .btn-confirm');
+                  if (importBtn) {
+                    importBtn.disabled = false;
+                    importBtn.classList.remove('disabled');
+                    // Visually indicate mappings are ready
+                    importBtn.textContent = 'Import (Apply Mappings)';
+                  }
+                  // Force modal to reflow so Import button sees mappings
+                  setTimeout(() => {
+                    if (importBtn) importBtn.focus();
+                  }, 100);
                   mappingSummary += "\nAuto-mapped (territory → alliance):\n";
                   autoMappings.forEach((m) => {
                     mappingSummary += m.area + " → " + m.alliance + "\n";
@@ -2624,7 +2633,14 @@
 
           if (alliance) {
             const allianceObj = state.alliances.find((a) => a.tag === alliance);
-            ctx.fillStyle = allianceObj.color;
+            if (allianceObj && allianceObj.color) {
+              ctx.fillStyle = allianceObj.color;
+            } else {
+              // fallback color for missing/invalid alliance
+              ctx.fillStyle = "#6cf";
+              // Optionally, clean up invalid mapping:
+              // delete state.territories[area.id];
+            }
             ctx.globalAlpha = isCapitol ? 0.85 : 0.7;
           } else if (isCapitol) {
             ctx.fillStyle = "rgba(255, 215, 0, 0.1)";
@@ -3193,13 +3209,49 @@
       }
 
       function importPlan() {
+        // If mapping table or auto-mappings are present, apply mappings instead of importing JSON
+        const mappingTable = document.getElementById("mappingsEditTable");
+        const applyBtn = document.getElementById("applyScreenshotMappingsBtn");
+        if ((mappingTable && applyBtn) || window._lastScreenshotAutoMappings) {
+          if (applyBtn) {
+            applyBtn.click();
+            return;
+          }
+          // Fallback: if auto-mappings exist but no button (e.g. after link/screenshot import), apply them directly
+          if (window._lastScreenshotAutoMappings && Array.isArray(window._lastScreenshotAutoMappings)) {
+            let applied = 0;
+            window._lastScreenshotAutoMappings.forEach(m => {
+              if (m.area && m.alliance) {
+                state.territories[m.area] = m.alliance;
+                applied++;
+              }
+            });
+            updateUI();
+            renderMap();
+            window._lastScreenshotAutoMappings = null;
+            // Visually reset Import button
+            const importBtn = document.querySelector('.import-modal .btn-confirm, #importModal .btn-confirm');
+            if (importBtn) importBtn.textContent = 'Import';
+            closeImportModal();
+            return;
+          }
+        }
         try {
-          const data = JSON.parse(document.getElementById("importText").value);
-
+          const raw = document.getElementById("importText").value.trim();
+          if (!raw) {
+            alert("Import data is empty. Please paste or upload a valid plan.");
+            return;
+          }
+          let data;
+          try {
+            data = JSON.parse(raw);
+          } catch (e) {
+            alert("Import data is not valid JSON. Please check your input.");
+            return;
+          }
           if (!data.alliances || !data.territories) {
             throw new Error("Invalid plan format");
           }
-
           state.alliances = data.alliances;
           state.territories = data.territories;
           state.selectedAlliance = null;
@@ -3208,7 +3260,6 @@
             : [];
           state.selectedPinId = null;
           syncSharedAllianceTagsFromState();
-
           closeImportModal();
           updateUI();
           renderMap();
