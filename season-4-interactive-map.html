@@ -1206,6 +1206,11 @@
           id="importText"
           placeholder="Paste JSON plan here..."
         ></textarea>
+        <div style="margin: 10px 0; text-align: left;">
+          <label style="font-size:0.95em; color:rgba(217,240,255,0.8);">Or import Excel (.xlsx):
+            <input type="file" id="importExcelInput" accept=".xlsx,.xls,.csv" style="margin-top:6px;display:block;" onchange="handleExcelImport(event)">
+          </label>
+        </div>
         <div class="modal-buttons">
           <button class="btn-confirm" onclick="importPlan()">Import</button>
           <button class="btn-cancel" onclick="closeImportModal()">
@@ -1225,6 +1230,65 @@
     <script src="interactive-map-tabs.js"></script>
     <script src="interactive-strategy-pins.js"></script>
     <script>
+      // Excel import handler for Import Plan modal
+      function handleExcelImport(event) {
+        const file = event.target.files[0];
+        if (!file) return;
+        if (!window.XLSX) {
+          alert('Excel library is still loading. Please wait and try again.');
+          return;
+        }
+        const reader = new FileReader();
+        reader.onload = function(e) {
+          try {
+            const data = new Uint8Array(e.target.result);
+            const workbook = XLSX.read(data, { type: 'array' });
+            // Try to find a sheet with alliances and one with territories
+            let alliances = [];
+            let territories = {};
+            // Alliances sheet: columns Alliance, Color (optional)
+            if (workbook.SheetNames.includes('Alliances')) {
+              const alliancesSheet = XLSX.utils.sheet_to_json(workbook.Sheets['Alliances']);
+              alliances = alliancesSheet.map((row, i) => ({
+                tag: String(row.Alliance || '').toUpperCase(),
+                color: row.Color || undefined
+              })).filter(a => a.tag);
+            }
+            // Territories sheet: columns AreaIndex, Alliance
+            if (workbook.SheetNames.includes('Territories')) {
+              const territoriesSheet = XLSX.utils.sheet_to_json(workbook.Sheets['Territories']);
+              territoriesSheet.forEach(row => {
+                if (row.AreaIndex && row.Alliance) {
+                  territories[String(row.AreaIndex)] = String(row.Alliance).toUpperCase();
+                }
+              });
+            }
+            if (!alliances.length || !Object.keys(territories).length) {
+              alert('Excel file must have "Alliances" and "Territories" sheets with proper columns.');
+              return;
+            }
+            // Update state and UI
+            state.alliances = alliances;
+            state.territories = territories;
+            state.selectedAlliance = null;
+            state.strategyPins = [];
+            state.selectedPinId = null;
+            syncSharedAllianceTagsFromState();
+            closeImportModal();
+            updateUI();
+            renderMap();
+            if (window.LWStrategyPins && typeof window.LWStrategyPins.updatePinsList === 'function') {
+              window.LWStrategyPins.updatePinsList();
+            }
+            if (typeof saveInteractiveMapTabs === 'function') {
+              saveInteractiveMapTabs();
+            }
+          } catch (err) {
+            alert('Failed to import Excel: ' + err.message);
+          }
+        };
+        reader.readAsArrayBuffer(file);
+      }
       // Sidebar hide/show toggle
       document.addEventListener("DOMContentLoaded", function () {
         const hideSidebarBtn = document.getElementById("hideSidebarBtn");
