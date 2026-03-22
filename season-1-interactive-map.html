@@ -74,7 +74,7 @@
         background: linear-gradient(
           180deg,
           var(--panel) 0%,
-          var(--panel-2) 100%
+        <div id="allianceDebugPanel" style="display:none;">
         );
         border: 1px solid var(--line-soft);
         border-radius: 16px;
@@ -1566,7 +1566,10 @@
         // Optionally show status in your UI
         if (window.allianceDebugContent) {
           window.allianceDebugContent.textContent = message;
-          document.getElementById("allianceDebugPanel").style.display = "block";
+          // Only show debug panel if a special flag is set
+          if (window.SHOW_ALLIANCE_DEBUG_PANEL) {
+            document.getElementById("allianceDebugPanel").style.display = "block";
+          }
         }
       }
       document.addEventListener("DOMContentLoaded", function () {
@@ -2268,6 +2271,20 @@
           .slice(0, MAX_ALLIANCES);
         state.alliances = filtered.map((entry, index) => ({
           tag: entry.tag,
+        }));
+        // Only show debug panel if a special flag is set
+        if (window.SHOW_ALLIANCE_DEBUG_PANEL && debugPanel && debugContent) {
+          debugPanel.style.display = "block";
+          debugContent.textContent =
+            "Raw from localStorage:\n" +
+            JSON.stringify(raw, null, 2) +
+            "\n\nFiltered (firstSeason <= " +
+            CURRENT_SEASON +
+            "):\n" +
+            JSON.stringify(filtered, null, 2);
+        } else if (debugPanel) {
+          debugPanel.style.display = "none";
+        }
           color: entry.color || allianceColors[index % allianceColors.length],
           cities: 0,
           strongholds: 0,
