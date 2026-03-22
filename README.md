@@ -44,7 +44,7 @@ Hosted on GitHub Pages via `index.html`.
 - HQ upgrade calculator with prerequisite tracking
 - Troop planners:
   - T10 research path planner with quick actions and focus filters
-A lightweight set of browser-based tools for planning upgrades in Last War: Survival. The site includes a dedicated homepage plus HQ, troop planners, and Season 1 through Season 5 calculator pages with unified styling, navigation, and map layouts.
+    A lightweight set of browser-based tools for planning upgrades in Last War: Survival. The site includes a dedicated homepage plus HQ, troop planners, and Season 1 through Season 5 calculator pages with unified styling, navigation, and map layouts.
 - Season 1 calculators and planning tools:
   - Virus Research Institute
   - Squad Base
@@ -79,6 +79,7 @@ A lightweight set of browser-based tools for planning upgrades in Last War: Surv
   - Text search by coordinate or supply code
   - Hide completed toggle
   - Per-level and overall progress bars
+
 ## Features
 
 - Unified interactive map tools for Seasons 1–5:
@@ -95,9 +96,11 @@ A lightweight set of browser-based tools for planning upgrades in Last War: Surv
   - Squad Base
 
 ## How To Use
+
 ## Wireframes
 
 See `wireframes/desktop-wireframe.txt` and `wireframes/mobile-wireframe.txt` for shared layout patterns. All interactive map and calculator pages now use a unified sidebar and map/grid sizing for a consistent experience across all seasons.
+
 1. Open `index.html` to view the homepage and calculator overview.
 2. Use the top navigation to choose Troop, Season 1, Season 2, Season 3, Season 4, or Season 5 calculators.
 3. Enter your current level and current resource values.
