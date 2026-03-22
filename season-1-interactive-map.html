@@ -675,6 +675,26 @@
     </style>
   </head>
   <body>
+    <div
+      id="allianceDebugPanel"
+      style="
+        background: #222;
+        color: #fff;
+        padding: 12px 16px;
+        margin: 18px auto 18px auto;
+        border-radius: 10px;
+        max-width: 700px;
+        font-size: 1em;
+        word-break: break-all;
+        display: none;
+        border: 2px solid #e74c3c;
+        z-index: 9999;
+        position: relative;
+      "
+    >
+      <b style="color: #e74c3c; font-size: 1.1em">Alliance Debug Panel</b><br />
+      <span id="allianceDebugContent"></span>
+    </div>
     <div class="page">
       <div class="page-top-controls">
         <div class="logo-control">
@@ -1220,6 +1240,20 @@
     <script src="season-1-territories.js"></script>
     <script src="interactive-map-tabs.js"></script>
     <script src="interactive-strategy-pins.js"></script>
+    <div
+      id="allianceDebugPanel"
+      style="
+        background: #222;
+        color: #fff;
+        padding: 8px 12px;
+        margin: 12px 0;
+        border-radius: 8px;
+        max-width: 420px;
+        font-size: 0.9em;
+        word-break: break-all;
+        display: none;
+      "
+    ></div>
     <script>
       // Initialize map data
       const state = {
@@ -1418,20 +1452,35 @@
       }
 
       function loadAllianceTagsForSeason() {
-        const sharedTags = getSharedAllianceTags()
+        const debugPanel = document.getElementById("allianceDebugPanel");
+        const debugContent = document.getElementById("allianceDebugContent");
+        const raw = getSharedAllianceTags();
+        const filtered = raw
           .filter((entry) => entry.firstSeason <= CURRENT_SEASON)
           .sort(
             (a, b) =>
               a.firstSeason - b.firstSeason || a.tag.localeCompare(b.tag),
           )
           .slice(0, MAX_ALLIANCES);
-
-        state.alliances = sharedTags.map((entry, index) => ({
+        state.alliances = filtered.map((entry, index) => ({
           tag: entry.tag,
           color: entry.color || allianceColors[index % allianceColors.length],
           cities: 0,
           strongholds: 0,
         }));
+        // Debug output
+        if (debugPanel && debugContent) {
+          debugPanel.style.display = "block";
+          debugContent.innerHTML =
+            '<b>Raw from localStorage:</b><br><pre style="color:#fff;white-space:pre-wrap;">' +
+            JSON.stringify(raw, null, 2) +
+            "</pre>" +
+            "<b>Filtered (firstSeason <= " +
+            CURRENT_SEASON +
+            '):</b><br><pre style="color:#fff;white-space:pre-wrap;">' +
+            JSON.stringify(filtered, null, 2) +
+            "</pre>";
+        }
       }
 
       function syncSharedAllianceTagsFromState() {
@@ -1693,6 +1742,14 @@
         const showGrid = document.getElementById("showGrid").checked;
         const showLabels = document.getElementById("showLabels").checked;
         const showCities = document.getElementById("showCities").checked;
+
+        // Always fill canvas with dark background before drawing
+        ctx.save();
+        ctx.setTransform(1, 0, 0, 1, 0, 0);
+        ctx.globalAlpha = 1.0;
+        ctx.fillStyle = "#0a1420";
+        ctx.fillRect(0, 0, canvas.width, canvas.height);
+        ctx.restore();
 
         // Draw territories
         mapAreas.forEach((area) => {
@@ -2372,6 +2429,8 @@
         );
       };
 
+      // Always load alliances from shared storage on page load
+      loadAllianceTagsForSeason();
       // Initial render (multi-tab map slots)
       initInteractiveMapTabs({
         storageKey: "lwst-interactive-map-tabs-s1-v1",
@@ -2384,6 +2443,31 @@
         setZoom: setZoom,
         syncSharedAllianceTagsFromState: syncSharedAllianceTagsFromState,
       });
+
+      // Listen for alliance changes in other tabs
+      window.addEventListener("storage", function (e) {
+        if (e.key === SHARED_ALLIANCE_TAGS_KEY) {
+          loadAllianceTagsForSeason();
+          updateUI();
+          renderMap();
+        }
+      });
+
+      // After adding/removing alliances, reload from shared storage
+      const origAddAlliance = addAlliance;
+      window.addAlliance = function () {
+        origAddAlliance();
+        loadAllianceTagsForSeason();
+        updateUI();
+        renderMap();
+      };
+      const origRemoveAlliance = removeAlliance;
+      window.removeAlliance = function (tag) {
+        origRemoveAlliance(tag);
+        loadAllianceTagsForSeason();
+        updateUI();
+        renderMap();
+      };
 
       if (typeof LWStrategyPinsInit === "function") {
         LWStrategyPinsInit({

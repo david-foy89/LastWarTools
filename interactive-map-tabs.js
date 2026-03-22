@@ -146,15 +146,15 @@
         if (placementCb0) {
           placementCb0.checked = false;
         }
-        loadAllianceTagsForSeason();
         mapCanvasWrapper.scrollLeft = 0;
         mapCanvasWrapper.scrollTop = 0;
         setZoom(1);
+        // Always load shared alliances
+        loadAllianceTagsForSeason();
         syncShared();
         return;
       }
 
-      state.alliances = cloneAlliances(slot.alliances);
       state.territories = Object.assign({}, slot.territories || {});
       state.selectedAlliance = slot.selectedAlliance;
       state.selectedAreaId = slot.selectedAreaId;
@@ -168,6 +168,8 @@
       mapCanvasWrapper.scrollLeft = slot.scrollLeft || 0;
       mapCanvasWrapper.scrollTop = slot.scrollTop || 0;
       setZoom(typeof slot.zoom === "number" ? slot.zoom : 1);
+      // Always load shared alliances for every tab
+      loadAllianceTagsForSeason();
       syncShared();
     }
 
