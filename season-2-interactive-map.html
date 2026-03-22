@@ -1,7 +1,39 @@
-        <label style="font-size:0.95em; color:rgba(217,240,255,0.8); display:block; margin-bottom:6px;">Or import from a link (JSON, Excel, or image):
-          <input type="text" id="importLinkInput" placeholder="Paste file URL here..." style="width:80%;margin-top:4px;background:#222;color:#b0e0ff;border:1px solid #333;padding:4px 8px;">
-          <button id="importLinkBtn" style="margin-left:8px;background:#1e2a38;color:#b0e0ff;border:1px solid #00e0ff;padding:4px 12px;border-radius:5px;cursor:pointer;">Import</button>
-        </label>
+<label
+  style="
+    font-size: 0.95em;
+    color: rgba(217, 240, 255, 0.8);
+    display: block;
+    margin-bottom: 6px;
+  "
+  >Or import from a link (JSON, Excel, or image):
+  <input
+    type="text"
+    id="importLinkInput"
+    placeholder="Paste file URL here..."
+    style="
+      width: 80%;
+      margin-top: 4px;
+      background: #222;
+      color: #b0e0ff;
+      border: 1px solid #333;
+      padding: 4px 8px;
+    "
+  />
+  <button
+    id="importLinkBtn"
+    style="
+      margin-left: 8px;
+      background: #1e2a38;
+      color: #b0e0ff;
+      border: 1px solid #00e0ff;
+      padding: 4px 12px;
+      border-radius: 5px;
+      cursor: pointer;
+    "
+  >
+    Import
+  </button>
+</label>
 <!doctype html>
 <html lang="en">
   <head>
@@ -1271,49 +1303,68 @@
     <script src="interactive-strategy-pins.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/tesseract.js@5.0.1/dist/tesseract.min.js"></script>
     <script>
-            // Import from link handler
-            document.addEventListener('DOMContentLoaded', function() {
-              const btn = document.getElementById('importLinkBtn');
-              if (btn) {
-                btn.onclick = async function() {
-                  const url = document.getElementById('importLinkInput').value.trim();
-                  const statusDiv = document.getElementById('screenshotOcrStatus') || document.getElementById('importStatus') || btn.parentNode;
-                  if (!url) { statusDiv.textContent = 'Please enter a link.'; return; }
-                  statusDiv.textContent = 'Fetching file...';
-                  try {
-                    const resp = await fetch(url);
-                    if (!resp.ok) throw new Error('Failed to fetch: ' + resp.status);
-                    const contentType = resp.headers.get('content-type') || '';
-                    if (contentType.includes('application/json') || url.match(/\.json($|\?)/i)) {
-                      const json = await resp.json();
-                      // Import as JSON plan
-                      document.getElementById('importText').value = JSON.stringify(json, null, 2);
-                      statusDiv.textContent = 'JSON loaded. Click Import to apply.';
-                    } else if (contentType.includes('sheet') || url.match(/\.(xlsx|xls|csv)($|\?)/i)) {
-                      // Excel file
-                      const blob = await resp.blob();
-                      const file = new File([blob], 'import.xlsx');
-                      // Simulate file input for Excel
-                      const fakeEvent = { target: { files: [file] } };
-                      handleExcelImport(fakeEvent);
-                      statusDiv.textContent = 'Excel file loaded.';
-                    } else if (contentType.startsWith('image/') || url.match(/\.(png|jpg|jpeg)($|\?)/i)) {
-                      // Image file
-                      const blob = await resp.blob();
-                      const file = new File([blob], 'import.png');
-                      // Simulate file input for screenshot
-                      const fakeEvent = { target: { files: [file] } };
-                      handleScreenshotImport(fakeEvent);
-                      statusDiv.textContent = 'Image loaded.';
-                    } else {
-                      statusDiv.textContent = 'Unsupported file type.';
-                    }
-                  } catch (err) {
-                    statusDiv.textContent = 'Import failed: ' + err.message;
-                  }
-                };
+      // Import from link handler
+      document.addEventListener("DOMContentLoaded", function () {
+        const btn = document.getElementById("importLinkBtn");
+        if (btn) {
+          btn.onclick = async function () {
+            const url = document.getElementById("importLinkInput").value.trim();
+            const statusDiv =
+              document.getElementById("screenshotOcrStatus") ||
+              document.getElementById("importStatus") ||
+              btn.parentNode;
+            if (!url) {
+              statusDiv.textContent = "Please enter a link.";
+              return;
+            }
+            statusDiv.textContent = "Fetching file...";
+            try {
+              const resp = await fetch(url);
+              if (!resp.ok) throw new Error("Failed to fetch: " + resp.status);
+              const contentType = resp.headers.get("content-type") || "";
+              if (
+                contentType.includes("application/json") ||
+                url.match(/\.json($|\?)/i)
+              ) {
+                const json = await resp.json();
+                // Import as JSON plan
+                document.getElementById("importText").value = JSON.stringify(
+                  json,
+                  null,
+                  2,
+                );
+                statusDiv.textContent = "JSON loaded. Click Import to apply.";
+              } else if (
+                contentType.includes("sheet") ||
+                url.match(/\.(xlsx|xls|csv)($|\?)/i)
+              ) {
+                // Excel file
+                const blob = await resp.blob();
+                const file = new File([blob], "import.xlsx");
+                // Simulate file input for Excel
+                const fakeEvent = { target: { files: [file] } };
+                handleExcelImport(fakeEvent);
+                statusDiv.textContent = "Excel file loaded.";
+              } else if (
+                contentType.startsWith("image/") ||
+                url.match(/\.(png|jpg|jpeg)($|\?)/i)
+              ) {
+                // Image file
+                const blob = await resp.blob();
+                const file = new File([blob], "import.png");
+                // Simulate file input for screenshot
+                const fakeEvent = { target: { files: [file] } };
+                handleScreenshotImport(fakeEvent);
+                statusDiv.textContent = "Image loaded.";
+              } else {
+                statusDiv.textContent = "Unsupported file type.";
               }
-            });
+            } catch (err) {
+              statusDiv.textContent = "Import failed: " + err.message;
+            }
+          };
+        }
+      });
       // --- Drag-and-drop support for detected tags/numbers ---
       let dragState = null;
 
