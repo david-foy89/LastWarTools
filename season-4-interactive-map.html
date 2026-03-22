@@ -63,6 +63,7 @@
         gap: 20px;
         margin-top: 20px;
         align-items: start;
+        overflow-x: hidden;
       }
 
       .map-canvas-wrapper {
@@ -867,20 +868,25 @@
 
           <div class="sidebar">
             <!-- Help -->
-            <div class="sidebar-section">
-              <div class="sidebar-title">How to Use</div>
-              <p
-                style="
-                  font-size: 0.8rem;
-                  color: rgba(217, 240, 255, 0.6);
-                  line-height: 1.4;
-                "
-              >
-                1. Add alliances using the input field<br />
-                2. Select an alliance in the list<br />
-                3. Click on map areas to assign territories<br />
-                4. Export plan to share with your team
-              </p>
+            <div class="sidebar-section" id="howToUseSection">
+              <div class="sidebar-title" style="display: flex; align-items: center; justify-content: space-between;">
+                <span>How to Use</span>
+                <button
+                  id="hideSidebarBtn"
+                  class="btn-small"
+                  style="margin-left: 8px; padding: 6px 12px; background: rgba(8, 16, 25, 0.66); border: 1px solid var(--line); border-radius: 4px; color: var(--muted); font-size: 0.8rem; transition: all 0.2s; white-space: nowrap;"
+                >
+                  Hide
+                </button>
+              </div>
+              <div id="howToUseContent">
+                <p style="font-size: 0.8rem; color: rgba(217, 240, 255, 0.6); line-height: 1.4;">
+                  1. Add alliances using the input field<br />
+                  2. Select an alliance in the list<br />
+                  3. Click on map areas to assign territories<br />
+                  4. Export plan to share with your team
+                </p>
+              </div>
             </div>
 
             <!-- Stats -->
@@ -1196,6 +1202,69 @@
     <script src="interactive-map-tabs.js"></script>
     <script src="interactive-strategy-pins.js"></script>
     <script>
+            // Sidebar hide/show toggle
+            document.addEventListener("DOMContentLoaded", function () {
+              const hideSidebarBtn = document.getElementById("hideSidebarBtn");
+              const sidebar = hideSidebarBtn && hideSidebarBtn.closest(".sidebar");
+              const mapCanvasWrapper = document.getElementById("mapCanvasWrapper");
+              const mapContainer = document.getElementById("mapTabPanel");
+              if (hideSidebarBtn && sidebar && mapCanvasWrapper && mapContainer) {
+                // Store original grid template for restoration
+                const originalGrid = mapContainer.style.gridTemplateColumns || window.getComputedStyle(mapContainer).gridTemplateColumns;
+                hideSidebarBtn.addEventListener("click", function () {
+                  if (sidebar.style.display === "none") {
+                    sidebar.style.display = "block";
+                    hideSidebarBtn.textContent = "Hide";
+                    // Restore map container grid
+                    mapContainer.style.gridTemplateColumns = originalGrid;
+                    // Restore mapCanvasWrapper width if changed
+                    mapCanvasWrapper.style.width = "";
+                    mapCanvasWrapper.style.flex = "";
+                    const showBtn = document.getElementById("showSidebarBtn");
+                    if (showBtn) showBtn.remove();
+                    // Update map size
+                    updateCanvasDisplay();
+                    renderMap();
+                  } else {
+                    sidebar.style.display = "none";
+                    // Expand map to fill area
+                    mapContainer.style.gridTemplateColumns = "1fr";
+                    mapCanvasWrapper.style.width = "100%";
+                    mapCanvasWrapper.style.flex = "1 1 100%";
+                    // Add a show button at the top right inside map-container
+                    let showBtn = document.getElementById("showSidebarBtn");
+                    if (!showBtn) {
+                      showBtn = document.createElement("button");
+                      showBtn.id = "showSidebarBtn";
+                      showBtn.className = "btn-small";
+                      showBtn.textContent = "Show";
+                      showBtn.style.position = "absolute";
+                      showBtn.style.top = "16px";
+                      showBtn.style.right = "16px";
+                      showBtn.style.transform = "none";
+                      showBtn.style.zIndex = 2000;
+                      // Place the button relative to the map-container
+                      mapContainer.style.position = "relative";
+                      mapContainer.appendChild(showBtn);
+                      // Restore mapCanvasWrapper to full width
+                      mapCanvasWrapper.style.width = "100%";
+                      showBtn.addEventListener("click", function () {
+                        sidebar.style.display = "block";
+                        hideSidebarBtn.textContent = "Hide";
+                        mapContainer.style.gridTemplateColumns = originalGrid;
+                        mapCanvasWrapper.style.width = "";
+                        mapCanvasWrapper.style.flex = "";
+                        showBtn.remove();
+                        updateCanvasDisplay();
+                        renderMap();
+                      });
+                    }
+                    updateCanvasDisplay();
+                    renderMap();
+                  }
+                });
+              }
+            });
       // Initialize map data
       const state = {
         alliances: [],
@@ -1662,22 +1731,18 @@
       }));
 
       function renderMap() {
-        const dpr = window.devicePixelRatio || 1;
-        const cssWidth = state.view.displayWidth || MAP_SIZE;
-        const renderScale = Math.max((cssWidth / MAP_SIZE) * dpr, 1);
-
-        canvas.width = Math.round(MAP_SIZE * renderScale);
-        canvas.height = Math.round(MAP_SIZE * renderScale);
-        ctx.setTransform(renderScale, 0, 0, renderScale, 0, 0);
-        ctx.clearRect(0, 0, MAP_SIZE, MAP_SIZE);
-
-        ctx.fillStyle = "rgb(20, 20, 25)";
-        ctx.fillRect(0, 0, MAP_SIZE, MAP_SIZE);
-
+        // Dynamically scale text size if sidebar is hidden (map expanded) and with zoom
+        let fontScale = 1;
+        const sidebar = document.querySelector('.sidebar');
+        if (sidebar && sidebar.style.display === 'none') {
+          fontScale *= 1.35; // Increase text size when expanded
+        }
+        // Further scale text size based on zoom level (default zoom=1)
+        fontScale *= state.view.zoom || 1;
         const mapPx = (base) =>
           typeof mapTextPxForInteractiveMap === "function"
-            ? mapTextPxForInteractiveMap(state, MAP_SIZE, base)
-            : Math.max(5, Math.round(base));
+            ? mapTextPxForInteractiveMap(state, MAP_SIZE, base * fontScale)
+            : Math.max(5, Math.round(base * fontScale));
 
         const showGrid = document.getElementById("showGrid").checked;
         const showLabels = document.getElementById("showLabels").checked;

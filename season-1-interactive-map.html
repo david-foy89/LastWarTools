@@ -64,6 +64,7 @@
         gap: 2vw;
         margin-top: 0;
         align-items: start;
+        overflow-x: hidden;
       }
 
       .map-canvas-wrapper {
@@ -2424,7 +2425,7 @@
               mapContainer.style.gridTemplateColumns = "1fr";
               mapCanvasWrapper.style.width = "100%";
               mapCanvasWrapper.style.flex = "1 1 100%";
-              // Add a floating show button to the right of the map
+              // Add a show button at the top right inside map-container
               let showBtn = document.getElementById("showSidebarBtn");
               if (!showBtn) {
                 showBtn = document.createElement("button");
@@ -2433,11 +2434,14 @@
                 showBtn.textContent = "Show";
                 showBtn.style.position = "absolute";
                 showBtn.style.top = "16px";
-                showBtn.style.right = "-60px";
+                showBtn.style.right = "16px";
+                showBtn.style.transform = "none";
                 showBtn.style.zIndex = 2000;
-                // Place the button relative to the mapCanvasWrapper
-                mapCanvasWrapper.style.position = "relative";
-                mapCanvasWrapper.appendChild(showBtn);
+                // Place the button relative to the map-container
+                mapContainer.style.position = "relative";
+                mapContainer.appendChild(showBtn);
+                // Restore mapCanvasWrapper to full width
+                mapCanvasWrapper.style.width = "100%";
                 showBtn.addEventListener("click", function () {
                   sidebar.style.display = "block";
                   hideSidebarBtn.textContent = "Hide";
