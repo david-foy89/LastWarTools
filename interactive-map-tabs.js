@@ -14,6 +14,14 @@
     }
   }
 
+  function clonePins(pins) {
+    try {
+      return JSON.parse(JSON.stringify(pins || []));
+    } catch {
+      return [];
+    }
+  }
+
   function defaultLabel(index) {
     return "Map " + (index + 1);
   }
@@ -115,6 +123,8 @@
         zoom: state.view.zoom,
         scrollLeft: mapCanvasWrapper.scrollLeft,
         scrollTop: mapCanvasWrapper.scrollTop,
+        strategyPins: clonePins(state.strategyPins),
+        selectedPinId: state.selectedPinId || null,
       };
       tabLabels[activeIndex] = "";
     }
@@ -129,6 +139,13 @@
         state.territories = {};
         state.selectedAlliance = null;
         state.selectedAreaId = null;
+        state.strategyPins = [];
+        state.selectedPinId = null;
+        state.pinPlacementMode = false;
+        var placementCb0 = document.getElementById("strategyPinPlacement");
+        if (placementCb0) {
+          placementCb0.checked = false;
+        }
         loadAllianceTagsForSeason();
         mapCanvasWrapper.scrollLeft = 0;
         mapCanvasWrapper.scrollTop = 0;
@@ -141,6 +158,13 @@
       state.territories = Object.assign({}, slot.territories || {});
       state.selectedAlliance = slot.selectedAlliance;
       state.selectedAreaId = slot.selectedAreaId;
+      state.strategyPins = clonePins(slot.strategyPins);
+      state.selectedPinId = slot.selectedPinId || null;
+      state.pinPlacementMode = false;
+      var placementCb1 = document.getElementById("strategyPinPlacement");
+      if (placementCb1) {
+        placementCb1.checked = false;
+      }
       mapCanvasWrapper.scrollLeft = slot.scrollLeft || 0;
       mapCanvasWrapper.scrollTop = slot.scrollTop || 0;
       setZoom(typeof slot.zoom === "number" ? slot.zoom : 1);
@@ -184,6 +208,12 @@
             updateUI();
             updateCanvasDisplay();
             renderMap();
+            if (
+              global.LWStrategyPins &&
+              typeof global.LWStrategyPins.updatePinsList === "function"
+            ) {
+              global.LWStrategyPins.updatePinsList();
+            }
             persist();
             renderTabs();
           });
@@ -220,6 +250,12 @@
       updateUI();
       updateCanvasDisplay();
       renderMap();
+      if (
+        global.LWStrategyPins &&
+        typeof global.LWStrategyPins.updatePinsList === "function"
+      ) {
+        global.LWStrategyPins.updatePinsList();
+      }
       renderTabs();
     }
 

@@ -970,3 +970,123 @@ body {
   color: rgba(217, 240, 255, 0.45);
   line-height: 1.35;
 }
+
+/* Strategy pins (interactive maps) */
+.strategy-pins-toolbar {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  align-items: center;
+  margin-bottom: 10px;
+}
+
+.strategy-pins-toolbar label {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 0.8rem;
+  cursor: pointer;
+  color: var(--text);
+}
+
+.strategy-pins-list {
+  max-height: min(280px, 32vh);
+  overflow-y: auto;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: rgba(8, 16, 25, 0.35);
+  padding: 6px;
+}
+
+.strategy-pins-empty {
+  font-size: 0.78rem;
+  color: var(--muted);
+  line-height: 1.35;
+  padding: 6px 4px;
+}
+
+.strategy-pin-item {
+  padding: 8px 10px;
+  margin-bottom: 6px;
+  border-radius: 6px;
+  background: rgba(8, 16, 25, 0.55);
+  border: 1px solid transparent;
+  cursor: pointer;
+  font-size: 0.78rem;
+  color: var(--text);
+  transition:
+    border-color 0.15s ease,
+    background 0.15s ease;
+}
+
+.strategy-pin-item:last-child {
+  margin-bottom: 0;
+}
+
+.strategy-pin-item:hover {
+  border-color: rgba(116, 192, 252, 0.35);
+}
+
+.strategy-pin-item-selected {
+  border-color: rgba(252, 196, 25, 0.55);
+  background: rgba(40, 35, 18, 0.55);
+}
+
+.strategy-pin-item-title {
+  font-weight: 700;
+  color: var(--accent);
+  margin-bottom: 0.25rem;
+}
+
+.strategy-pin-meta {
+  font-size: 0.72rem;
+  color: rgba(217, 240, 255, 0.65);
+  margin-bottom: 0.25rem;
+}
+
+.strategy-pin-time {
+  font-size: 0.72rem;
+  color: #a5d8ff;
+}
+
+.strategy-pin-time.muted {
+  color: var(--muted);
+}
+
+.pin-modal-field {
+  margin-bottom: 12px;
+}
+
+.pin-modal-field label {
+  display: block;
+  font-size: 0.82rem;
+  color: var(--muted);
+  margin-bottom: 4px;
+}
+
+.pin-modal-field input[type="text"],
+.pin-modal-field input[type="datetime-local"],
+.pin-modal-field input[type="number"],
+.pin-modal-field textarea {
+  width: 100%;
+  padding: 8px 10px;
+  background: rgba(8, 16, 25, 0.66);
+  border: 1px solid var(--line);
+  border-radius: 6px;
+  color: var(--text);
+  font-size: 0.85rem;
+  font-family: inherit;
+  box-sizing: border-box;
+}
+
+.pin-modal-field textarea {
+  min-height: 72px;
+  resize: vertical;
+}
+
+.pin-modal-hint {
+  font-size: 0.78rem;
+  color: rgba(217, 240, 255, 0.45);
+  margin: 0 0 0.75rem;
+  line-height: 1.35;
+}
