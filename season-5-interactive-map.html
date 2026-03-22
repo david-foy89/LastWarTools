@@ -4,9 +4,9 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Season 5 Interactive Map - Last War Tools</title>
-      <!-- Firebase Live Sync Scripts -->
-      <script src="https://www.gstatic.com/firebasejs/10.12.5/firebase-app-compat.js"></script>
-      <script src="https://www.gstatic.com/firebasejs/10.12.5/firebase-database-compat.js"></script>
+    <!-- Firebase Live Sync Scripts -->
+    <script src="https://www.gstatic.com/firebasejs/10.12.5/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.12.5/firebase-database-compat.js"></script>
     <meta
       name="description"
       content="Interactive alliance map planning tool for Season 5. Manage cities, strongholds, and coordinate territories with real-time visualization and import/export functionality."
@@ -852,10 +852,22 @@
             Export Plan
           </button>
           <button class="btn-action" onclick="showImportModal()">
-                <label style="display:inline-flex;align-items:center;gap:6px;margin-left:10px;font-size:0.92em;">
-                  <input type="checkbox" id="liveSyncEnabledInput" style="margin-right:4px;" />
-                  Live Sync Share
-                </label>
+            <label
+              style="
+                display: inline-flex;
+                align-items: center;
+                gap: 6px;
+                margin-left: 10px;
+                font-size: 0.92em;
+              "
+            >
+              <input
+                type="checkbox"
+                id="liveSyncEnabledInput"
+                style="margin-right: 4px"
+              />
+              Live Sync Share
+            </label>
             Import Plan
           </button>
           <button class="btn-action" onclick="resetView()">Reset View</button>
@@ -1106,9 +1118,13 @@
           </div>
 
           <div class="modal-buttons">
-                  <button class="btn-confirm" id="copyLiveLinkBtn" style="display:none;">
-                    Copy Live Share Link
-                  </button>
+            <button
+              class="btn-confirm"
+              id="copyLiveLinkBtn"
+              style="display: none"
+            >
+              Copy Live Share Link
+            </button>
             <button
               class="btn-confirm"
               onclick="copyToClipboard()"
@@ -1336,242 +1352,301 @@
     <script src="season-5-territories.js"></script>
     <script src="interactive-map-tabs.js"></script>
     <script src="interactive-strategy-pins.js"></script>
-        <!-- Firebase Live Sync Logic -->
-        <script>
-        // --- Firebase Live Sync for Map ---
-        const LIVE_SYNC = {
-          defaultDatabaseUrl: "https://lastwartools-c12c8-default-rtdb.firebaseio.com/",
-          pollMs: 1200,
-          enableAnonymousAuth: false,
+    <!-- Firebase Live Sync Logic -->
+    <script>
+      // --- Firebase Live Sync for Map ---
+      const LIVE_SYNC = {
+        defaultDatabaseUrl:
+          "https://lastwartools-c12c8-default-rtdb.firebaseio.com/",
+        pollMs: 1200,
+        enableAnonymousAuth: false,
+      };
+      const liveSyncState = {
+        clientId: `${Math.random().toString(36).slice(2, 10)}-${Date.now()}`,
+        shareId: null,
+        firebaseApp: null,
+        firebaseDb: null,
+        firebaseRef: null,
+        firebaseValueHandler: null,
+        lastSeenUpdatedAt: 0,
+        applyingRemote: false,
+        dbUrl: "",
+        hadError: false,
+        enabled: false,
+      };
+      function resolveLiveSyncDbUrl() {
+        const params = new URLSearchParams(window.location.search);
+        const fromUrl = params.get("db");
+        const fromStorage = localStorage.getItem("lastWarLiveSyncDbUrl");
+        const fromGlobal = window.LWST_LIVE_SYNC_DB_URL;
+        const resolved = String(
+          fromUrl ||
+            fromStorage ||
+            fromGlobal ||
+            LIVE_SYNC.defaultDatabaseUrl ||
+            "",
+        ).trim();
+        liveSyncState.dbUrl = resolved;
+        if (resolved) {
+          localStorage.setItem("lastWarLiveSyncDbUrl", resolved);
+        }
+        const enabledRaw = localStorage.getItem("lastWarLiveSyncEnabled");
+        liveSyncState.enabled = enabledRaw === "1";
+        if (params.get("shareId")) {
+          liveSyncState.enabled = true;
+        }
+      }
+      function isLiveSyncConfigured() {
+        return Boolean(liveSyncState.dbUrl && liveSyncState.dbUrl.trim());
+      }
+      function isLiveSyncActive() {
+        return liveSyncState.enabled && isLiveSyncConfigured();
+      }
+      function sanitizeShareId(raw) {
+        const value = String(raw || "").trim();
+        return /^[a-zA-Z0-9_-]{6,64}$/.test(value) ? value : null;
+      }
+      function createShareId() {
+        return `${Date.now().toString(36)}${Math.random().toString(36).slice(2, 8)}`;
+      }
+      function getLiveEndpoint(shareId) {
+        const base = liveSyncState.dbUrl.replace(/\/$/, "");
+        return `${base}/season5-map/${encodeURIComponent(shareId)}.json`;
+      }
+      function buildLiveShareUrl(shareId) {
+        const url = new URL(window.location.href);
+        url.search = "";
+        url.searchParams.set("shareId", shareId);
+        if (isLiveSyncConfigured()) {
+          url.searchParams.set("db", liveSyncState.dbUrl);
+        }
+        return url.toString();
+      }
+      function ensureFirebaseReady() {
+        if (!isLiveSyncConfigured()) return false;
+        if (!window.firebase || !window.firebase.apps) {
+          if (!liveSyncState.hadError) {
+            setStatus && setStatus("Firebase SDK not loaded.", true);
+            liveSyncState.hadError = true;
+          }
+          return false;
+        }
+        const currentDb = liveSyncState.dbUrl.replace(/\/$/, "");
+        if (
+          liveSyncState.firebaseApp &&
+          liveSyncState.firebaseApp.options &&
+          String(liveSyncState.firebaseApp.options.databaseURL || "").replace(
+            /\/$/,
+            "",
+          ) !== currentDb
+        ) {
+          setStatus &&
+            setStatus(
+              "DB endpoint changed. Refresh page to reinitialize Firebase.",
+              true,
+            );
+          return false;
+        }
+        if (!liveSyncState.firebaseApp) {
+          const appName = `lwst-${btoa(currentDb)
+            .replace(/[^a-zA-Z0-9]/g, "")
+            .slice(0, 24)}`;
+          const existing = window.firebase.apps.find(
+            (app) => app.name === appName,
+          );
+          liveSyncState.firebaseApp =
+            existing ||
+            window.firebase.initializeApp({ databaseURL: currentDb }, appName);
+          liveSyncState.firebaseDb = window.firebase.database(
+            liveSyncState.firebaseApp,
+          );
+        }
+        return true;
+      }
+      function stopLiveSyncPolling() {
+        if (liveSyncState.firebaseRef && liveSyncState.firebaseValueHandler) {
+          liveSyncState.firebaseRef.off(
+            "value",
+            liveSyncState.firebaseValueHandler,
+          );
+        }
+        liveSyncState.firebaseRef = null;
+        liveSyncState.firebaseValueHandler = null;
+      }
+      function startLiveSync(shareId) {
+        stopLiveSyncPolling();
+        liveSyncState.shareId = shareId;
+        history.replaceState(null, "", buildLiveShareUrl(shareId));
+        if (!isLiveSyncActive() || !ensureFirebaseReady()) return;
+        liveSyncState.firebaseRef = liveSyncState.firebaseDb.ref(
+          `season5-map/${shareId}`,
+        );
+        liveSyncState.firebaseValueHandler = (snapshot) => {
+          const payload = snapshot.val();
+          if (!payload || !payload.updatedAt) return;
+          const updatedAt = Number(payload.updatedAt);
+          if (!Number.isFinite(updatedAt)) return;
+          if (updatedAt <= liveSyncState.lastSeenUpdatedAt) return;
+          liveSyncState.lastSeenUpdatedAt = updatedAt;
+          if (payload.updatedBy === liveSyncState.clientId) return;
+          liveSyncState.applyingRemote = true;
+          if (typeof applyLiveMapPayload === "function")
+            applyLiveMapPayload(payload);
+          liveSyncState.applyingRemote = false;
+          liveSyncState.hadError = false;
         };
-        const liveSyncState = {
-          clientId: `${Math.random().toString(36).slice(2, 10)}-${Date.now()}`,
-          shareId: null,
-          firebaseApp: null,
-          firebaseDb: null,
-          firebaseRef: null,
-          firebaseValueHandler: null,
-          lastSeenUpdatedAt: 0,
-          applyingRemote: false,
-          dbUrl: "",
-          hadError: false,
-          enabled: false,
-        };
-        function resolveLiveSyncDbUrl() {
-          const params = new URLSearchParams(window.location.search);
-          const fromUrl = params.get("db");
-          const fromStorage = localStorage.getItem("lastWarLiveSyncDbUrl");
-          const fromGlobal = window.LWST_LIVE_SYNC_DB_URL;
-          const resolved = String(
-            fromUrl || fromStorage || fromGlobal || LIVE_SYNC.defaultDatabaseUrl || ""
-          ).trim();
-          liveSyncState.dbUrl = resolved;
-          if (resolved) {
-            localStorage.setItem("lastWarLiveSyncDbUrl", resolved);
-          }
-          const enabledRaw = localStorage.getItem("lastWarLiveSyncEnabled");
-          liveSyncState.enabled = enabledRaw === "1";
-          if (params.get("shareId")) {
-            liveSyncState.enabled = true;
-          }
-        }
-        function isLiveSyncConfigured() {
-          return Boolean(liveSyncState.dbUrl && liveSyncState.dbUrl.trim());
-        }
-        function isLiveSyncActive() {
-          return liveSyncState.enabled && isLiveSyncConfigured();
-        }
-        function sanitizeShareId(raw) {
-          const value = String(raw || "").trim();
-          return /^[a-zA-Z0-9_-]{6,64}$/.test(value) ? value : null;
-        }
-        function createShareId() {
-          return `${Date.now().toString(36)}${Math.random().toString(36).slice(2, 8)}`;
-        }
-        function getLiveEndpoint(shareId) {
-          const base = liveSyncState.dbUrl.replace(/\/$/, "");
-          return `${base}/season5-map/${encodeURIComponent(shareId)}.json`;
-        }
-        function buildLiveShareUrl(shareId) {
-          const url = new URL(window.location.href);
-          url.search = "";
-          url.searchParams.set("shareId", shareId);
-          if (isLiveSyncConfigured()) {
-            url.searchParams.set("db", liveSyncState.dbUrl);
-          }
-          return url.toString();
-        }
-        function ensureFirebaseReady() {
-          if (!isLiveSyncConfigured()) return false;
-          if (!window.firebase || !window.firebase.apps) {
+        liveSyncState.firebaseRef.on(
+          "value",
+          liveSyncState.firebaseValueHandler,
+          (error) => {
             if (!liveSyncState.hadError) {
-              setStatus && setStatus("Firebase SDK not loaded.", true);
+              setStatus &&
+                setStatus(
+                  `Live sync read failed (${error?.code || "unknown"}). Check DB rules/URL.`,
+                  true,
+                );
               liveSyncState.hadError = true;
             }
-            return false;
-          }
-          const currentDb = liveSyncState.dbUrl.replace(/\/$/, "");
-          if (
-            liveSyncState.firebaseApp &&
-            liveSyncState.firebaseApp.options &&
-            String(liveSyncState.firebaseApp.options.databaseURL || "").replace(/\/$/, "") !== currentDb
-          ) {
-            setStatus && setStatus("DB endpoint changed. Refresh page to reinitialize Firebase.", true);
-            return false;
-          }
-          if (!liveSyncState.firebaseApp) {
-            const appName = `lwst-${btoa(currentDb).replace(/[^a-zA-Z0-9]/g, "").slice(0, 24)}`;
-            const existing = window.firebase.apps.find((app) => app.name === appName);
-            liveSyncState.firebaseApp =
-              existing || window.firebase.initializeApp({ databaseURL: currentDb }, appName);
-            liveSyncState.firebaseDb = window.firebase.database(liveSyncState.firebaseApp);
-          }
-          return true;
-        }
-        function stopLiveSyncPolling() {
-          if (liveSyncState.firebaseRef && liveSyncState.firebaseValueHandler) {
-            liveSyncState.firebaseRef.off("value", liveSyncState.firebaseValueHandler);
-          }
-          liveSyncState.firebaseRef = null;
-          liveSyncState.firebaseValueHandler = null;
-        }
-        function startLiveSync(shareId) {
-          stopLiveSyncPolling();
-          liveSyncState.shareId = shareId;
-          history.replaceState(null, "", buildLiveShareUrl(shareId));
-          if (!isLiveSyncActive() || !ensureFirebaseReady()) return;
-          liveSyncState.firebaseRef = liveSyncState.firebaseDb.ref(`season5-map/${shareId}`);
-          liveSyncState.firebaseValueHandler = (snapshot) => {
-            const payload = snapshot.val();
-            if (!payload || !payload.updatedAt) return;
-            const updatedAt = Number(payload.updatedAt);
-            if (!Number.isFinite(updatedAt)) return;
-            if (updatedAt <= liveSyncState.lastSeenUpdatedAt) return;
-            liveSyncState.lastSeenUpdatedAt = updatedAt;
-            if (payload.updatedBy === liveSyncState.clientId) return;
-            liveSyncState.applyingRemote = true;
-            if (typeof applyLiveMapPayload === "function") applyLiveMapPayload(payload);
-            liveSyncState.applyingRemote = false;
-            liveSyncState.hadError = false;
-          };
-          liveSyncState.firebaseRef.on("value", liveSyncState.firebaseValueHandler, (error) => {
-            if (!liveSyncState.hadError) {
-              setStatus && setStatus(`Live sync read failed (${error?.code || "unknown"}). Check DB rules/URL.`, true);
-              liveSyncState.hadError = true;
-            }
-          });
-        }
-        function pushLiveMapState() {
-          if (!isLiveSyncActive() || !liveSyncState.shareId || liveSyncState.applyingRemote) return;
-          if (!ensureFirebaseReady()) return;
-          const payload = getLiveMapPayload();
-          liveSyncState.firebaseRef.set(payload).then(() => {
+          },
+        );
+      }
+      function pushLiveMapState() {
+        if (
+          !isLiveSyncActive() ||
+          !liveSyncState.shareId ||
+          liveSyncState.applyingRemote
+        )
+          return;
+        if (!ensureFirebaseReady()) return;
+        const payload = getLiveMapPayload();
+        liveSyncState.firebaseRef
+          .set(payload)
+          .then(() => {
             liveSyncState.lastSeenUpdatedAt = Number(payload.updatedAt);
             liveSyncState.hadError = false;
-          }).catch(() => {
+          })
+          .catch(() => {
             if (!liveSyncState.hadError) {
-              setStatus && setStatus("Live sync write failed. Check DB rules/URL.", true);
+              setStatus &&
+                setStatus("Live sync write failed. Check DB rules/URL.", true);
               liveSyncState.hadError = true;
             }
           });
+      }
+      function getLiveMapPayload() {
+        // You may want to customize this to only sync the current tab's map data
+        return {
+          alliances: state.alliances,
+          territories: state.territories,
+          selectedAlliance: state.selectedAlliance,
+          strategyPins: state.strategyPins,
+          updatedAt: Date.now(),
+          updatedBy: liveSyncState.clientId,
+        };
+      }
+      function applyLiveMapPayload(payload) {
+        if (!payload) return;
+        if (Array.isArray(payload.alliances))
+          state.alliances = payload.alliances;
+        if (payload.territories && typeof payload.territories === "object")
+          state.territories = payload.territories;
+        if (typeof payload.selectedAlliance !== "undefined")
+          state.selectedAlliance = payload.selectedAlliance;
+        if (Array.isArray(payload.strategyPins))
+          state.strategyPins = payload.strategyPins;
+        if (typeof updateUI === "function") updateUI();
+        if (typeof renderMap === "function") renderMap();
+        if (
+          window.LWStrategyPins &&
+          typeof window.LWStrategyPins.updatePinsList === "function"
+        ) {
+          window.LWStrategyPins.updatePinsList();
         }
-        function getLiveMapPayload() {
-          // You may want to customize this to only sync the current tab's map data
-          return {
-            alliances: state.alliances,
-            territories: state.territories,
-            selectedAlliance: state.selectedAlliance,
-            strategyPins: state.strategyPins,
-            updatedAt: Date.now(),
-            updatedBy: liveSyncState.clientId,
+      }
+      function setStatus(message, isError = false) {
+        // Optionally show status in your UI
+        if (window.allianceDebugContent) {
+          window.allianceDebugContent.textContent = message;
+          document.getElementById("allianceDebugPanel").style.display = "block";
+        }
+      }
+      document.addEventListener("DOMContentLoaded", function () {
+        resolveLiveSyncDbUrl();
+        const liveSyncEnabledInput = document.getElementById(
+          "liveSyncEnabledInput",
+        );
+        const copyLiveLinkBtn = document.getElementById("copyLiveLinkBtn");
+        if (liveSyncEnabledInput) {
+          liveSyncEnabledInput.checked = liveSyncState.enabled;
+          liveSyncEnabledInput.addEventListener("change", function () {
+            liveSyncState.enabled = liveSyncEnabledInput.checked;
+            localStorage.setItem(
+              "lastWarLiveSyncEnabled",
+              liveSyncState.enabled ? "1" : "0",
+            );
+            if (!liveSyncState.enabled) {
+              stopLiveSyncPolling();
+              setStatus(
+                "Live sync is off. Shared links will be snapshot links.",
+              );
+              if (copyLiveLinkBtn) copyLiveLinkBtn.style.display = "none";
+              return;
+            }
+            resolveLiveSyncDbUrl();
+            if (!isLiveSyncConfigured()) {
+              liveSyncEnabledInput.checked = false;
+              liveSyncState.enabled = false;
+              localStorage.setItem("lastWarLiveSyncEnabled", "0");
+              setStatus(
+                "Live sync needs a configured DB URL. Ask site admin to set LIVE_SYNC.defaultDatabaseUrl.",
+                true,
+              );
+              if (copyLiveLinkBtn) copyLiveLinkBtn.style.display = "none";
+              return;
+            }
+            if (liveSyncState.shareId) {
+              startLiveSync(liveSyncState.shareId);
+            }
+            setStatus("Live sync is on.");
+            if (copyLiveLinkBtn) copyLiveLinkBtn.style.display = "inline-block";
+          });
+        }
+        if (copyLiveLinkBtn) {
+          copyLiveLinkBtn.onclick = async function () {
+            let url = window.location.href;
+            if (isLiveSyncActive()) {
+              const shareId = liveSyncState.shareId || createShareId();
+              startLiveSync(shareId);
+              pushLiveMapState();
+              url = buildLiveShareUrl(shareId);
+            }
+            try {
+              await navigator.clipboard.writeText(url);
+              copyLiveLinkBtn.textContent = "Link copied!";
+              setTimeout(() => {
+                copyLiveLinkBtn.textContent = "Copy Live Share Link";
+              }, 2000);
+            } catch {
+              window.prompt("Copy this shareable link:", url);
+            }
           };
         }
-        function applyLiveMapPayload(payload) {
-          if (!payload) return;
-          if (Array.isArray(payload.alliances)) state.alliances = payload.alliances;
-          if (payload.territories && typeof payload.territories === "object") state.territories = payload.territories;
-          if (typeof payload.selectedAlliance !== "undefined") state.selectedAlliance = payload.selectedAlliance;
-          if (Array.isArray(payload.strategyPins)) state.strategyPins = payload.strategyPins;
-          if (typeof updateUI === "function") updateUI();
-          if (typeof renderMap === "function") renderMap();
-          if (window.LWStrategyPins && typeof window.LWStrategyPins.updatePinsList === "function") {
-            window.LWStrategyPins.updatePinsList();
-          }
+        // If opening a live shared link, auto-enable live sync
+        const params = new URLSearchParams(window.location.search);
+        const shareId = sanitizeShareId(params.get("shareId"));
+        if (shareId && isLiveSyncActive()) {
+          startLiveSync(shareId);
+          setStatus("Live shared map connected");
+          if (copyLiveLinkBtn) copyLiveLinkBtn.style.display = "inline-block";
         }
-        function setStatus(message, isError = false) {
-          // Optionally show status in your UI
-          if (window.allianceDebugContent) {
-            window.allianceDebugContent.textContent = message;
-            document.getElementById("allianceDebugPanel").style.display = "block";
-          }
-        }
-        document.addEventListener("DOMContentLoaded", function () {
-          resolveLiveSyncDbUrl();
-          const liveSyncEnabledInput = document.getElementById("liveSyncEnabledInput");
-          const copyLiveLinkBtn = document.getElementById("copyLiveLinkBtn");
-          if (liveSyncEnabledInput) {
-            liveSyncEnabledInput.checked = liveSyncState.enabled;
-            liveSyncEnabledInput.addEventListener("change", function () {
-              liveSyncState.enabled = liveSyncEnabledInput.checked;
-              localStorage.setItem("lastWarLiveSyncEnabled", liveSyncState.enabled ? "1" : "0");
-              if (!liveSyncState.enabled) {
-                stopLiveSyncPolling();
-                setStatus("Live sync is off. Shared links will be snapshot links.");
-                if (copyLiveLinkBtn) copyLiveLinkBtn.style.display = "none";
-                return;
-              }
-              resolveLiveSyncDbUrl();
-              if (!isLiveSyncConfigured()) {
-                liveSyncEnabledInput.checked = false;
-                liveSyncState.enabled = false;
-                localStorage.setItem("lastWarLiveSyncEnabled", "0");
-                setStatus("Live sync needs a configured DB URL. Ask site admin to set LIVE_SYNC.defaultDatabaseUrl.", true);
-                if (copyLiveLinkBtn) copyLiveLinkBtn.style.display = "none";
-                return;
-              }
-              if (liveSyncState.shareId) {
-                startLiveSync(liveSyncState.shareId);
-              }
-              setStatus("Live sync is on.");
-              if (copyLiveLinkBtn) copyLiveLinkBtn.style.display = "inline-block";
-            });
-          }
-          if (copyLiveLinkBtn) {
-            copyLiveLinkBtn.onclick = async function () {
-              let url = window.location.href;
-              if (isLiveSyncActive()) {
-                const shareId = liveSyncState.shareId || createShareId();
-                startLiveSync(shareId);
-                pushLiveMapState();
-                url = buildLiveShareUrl(shareId);
-              }
-              try {
-                await navigator.clipboard.writeText(url);
-                copyLiveLinkBtn.textContent = "Link copied!";
-                setTimeout(() => {
-                  copyLiveLinkBtn.textContent = "Copy Live Share Link";
-                }, 2000);
-              } catch {
-                window.prompt("Copy this shareable link:", url);
-              }
-            };
-          }
-          // If opening a live shared link, auto-enable live sync
-          const params = new URLSearchParams(window.location.search);
-          const shareId = sanitizeShareId(params.get("shareId"));
-          if (shareId && isLiveSyncActive()) {
-            startLiveSync(shareId);
-            setStatus("Live shared map connected");
-            if (copyLiveLinkBtn) copyLiveLinkBtn.style.display = "inline-block";
-          }
-        });
-        // Call pushLiveMapState() after any local map change to sync
-        function syncLocalMapChanges() {
-          if (isLiveSyncActive()) pushLiveMapState();
-        }
-        // Example: after alliance/territory/pin changes, call syncLocalMapChanges()
-        // (You may need to add this call in your addAlliance, removeAlliance, assignTerritory, etc.)
-        </script>
+      });
+      // Call pushLiveMapState() after any local map change to sync
+      function syncLocalMapChanges() {
+        if (isLiveSyncActive()) pushLiveMapState();
+      }
+      // Example: after alliance/territory/pin changes, call syncLocalMapChanges()
+      // (You may need to add this call in your addAlliance, removeAlliance, assignTerritory, etc.)
+    </script>
     <script src="https://cdn.jsdelivr.net/npm/tesseract.js@5.0.1/dist/tesseract.min.js"></script>
     <script>
       // --- Drag-and-drop support for detected tags/numbers ---
