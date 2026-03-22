@@ -74,7 +74,7 @@
         background: linear-gradient(
           180deg,
           var(--panel) 0%,
-          <div id= "allianceDebugPanel" style= "display:none;" >
+        <div id="allianceDebugPanel" style="display:none;">
         );
         border: 1px solid var(--line-soft);
         border-radius: 16px;
@@ -1568,8 +1568,7 @@
           window.allianceDebugContent.textContent = message;
           // Only show debug panel if a special flag is set
           if (window.SHOW_ALLIANCE_DEBUG_PANEL) {
-            document.getElementById("allianceDebugPanel").style.display =
-              "block";
+            document.getElementById("allianceDebugPanel").style.display = "block";
           }
         }
       }
@@ -2388,7 +2387,7 @@
         allianceList.innerHTML = state.alliances
           .map(
             (alliance) => `
-                <div class="alliance-item ${state.selectedAlliance === alliance.tag ? "selected" : ""}"
+                <div class="alliance-item ${state.selectedAlliance === alliance.tag ? "selected" : ""}" 
                      onclick="selectAlliance('${alliance.tag}')">
                     <div style="display: flex; align-items: center; gap: 8px; flex: 1;">
                         <div class="alliance-color" style="background: ${alliance.color};"></div>
