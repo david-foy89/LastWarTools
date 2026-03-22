@@ -136,6 +136,12 @@ npm test
   - IDs are unique and include baseline entries (`helmet`, `body-armor`, `accessories`, `weapon`, `unlock`)
   - totals (`materials`, `cores`, `oil`) are finite and non-negative
   - stage cost labels (`early`, `mid`, `final`, `total`) exist and are non-empty strings
+- `tests/lwst-common.test.js`
+  - shared utility exports exist and remain callable
+  - language helpers (`isSupportedLanguage`, `resolveLanguageCode`) handle valid/invalid codes
+  - numeric helpers (`clampNumber`, `formatRoundedNumber`) enforce bounds and rounding behavior
+  - JSON storage helpers round-trip safely and return fallback values when needed
+  - key pages include `<script src="lwst-common.js"></script>`
 
 ## Customization
 
