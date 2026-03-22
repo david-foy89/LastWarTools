@@ -84,6 +84,36 @@
     selectEl.value = exists ? preferredLanguage : "en";
   }
 
+  function isSupportedLanguage(languageCode) {
+    if (typeof languageCode !== "string" || languageCode.trim() === "") {
+      return false;
+    }
+    return LANGUAGE_OPTIONS.some((lang) => lang.code === languageCode);
+  }
+
+  function resolveLanguageCode(languageCode, fallbackCode) {
+    if (isSupportedLanguage(languageCode)) {
+      return languageCode;
+    }
+    if (isSupportedLanguage(fallbackCode)) {
+      return fallbackCode;
+    }
+    return "en";
+  }
+
+  function clampNumber(value, minimum, maximum, fallbackValue) {
+    const fallback = Number.isFinite(fallbackValue) ? fallbackValue : 0;
+    const numericValue = Number(value);
+    if (!Number.isFinite(numericValue)) {
+      return fallback;
+    }
+    return Math.min(maximum, Math.max(minimum, numericValue));
+  }
+
+  function formatRoundedNumber(value) {
+    return Math.round(Number(value) || 0).toLocaleString();
+  }
+
   function applyGoogleLanguage(languageCode, retries) {
     const attemptsRemaining = Number.isFinite(retries) ? retries : 25;
     const combo = global.document.querySelector(".goog-te-combo");
@@ -135,6 +165,10 @@
     LANGUAGE_OPTIONS,
     storageGetJson,
     storageSetJson,
+    isSupportedLanguage,
+    resolveLanguageCode,
+    clampNumber,
+    formatRoundedNumber,
     buildLanguageOptions,
     applyGoogleLanguage,
     initGoogleTranslate,

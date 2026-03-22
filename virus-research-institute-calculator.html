@@ -913,9 +913,7 @@
           }
           if (
             state.language &&
-            window.LWSTCommon.LANGUAGE_OPTIONS.some(
-              (option) => option.code === state.language,
-            )
+            window.LWSTCommon.isSupportedLanguage(state.language)
           ) {
             preferredLanguage = state.language;
           }

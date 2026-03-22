@@ -1527,7 +1527,7 @@
       let preferredLanguage = "en";
 
       function formatNumber(value) {
-        return Math.round(Number(value) || 0).toLocaleString();
+        return window.LWSTCommon.formatRoundedNumber(value);
       }
 
       function normalizeText(value) {
@@ -1677,9 +1677,7 @@
 
         if (
           state.language &&
-          window.LWSTCommon.LANGUAGE_OPTIONS.some(
-            (option) => option.code === state.language,
-          )
+          window.LWSTCommon.isSupportedLanguage(state.language)
         ) {
           preferredLanguage = state.language;
           languageSelect.value = state.language;

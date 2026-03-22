@@ -1003,9 +1003,7 @@
 
           if (
             state.language &&
-            window.LWSTCommon.LANGUAGE_OPTIONS.some(
-              (lang) => lang.code === state.language,
-            )
+            window.LWSTCommon.isSupportedLanguage(state.language)
           ) {
             preferredLanguage = state.language;
             languageSelect.value = state.language;

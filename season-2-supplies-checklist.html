@@ -1308,9 +1308,7 @@
           }
           if (
             typeof saved.language === "string" &&
-            window.LWSTCommon.LANGUAGE_OPTIONS.some(
-              (option) => option.code === saved.language,
-            )
+            window.LWSTCommon.isSupportedLanguage(saved.language)
           ) {
             preferredLanguage = saved.language;
           }

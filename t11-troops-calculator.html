@@ -441,16 +441,11 @@
       let preferredLanguage = "en";
 
       function formatNumber(value) {
-        return Math.round(Number(value) || 0).toLocaleString();
+        return window.LWSTCommon.formatRoundedNumber(value);
       }
 
       function clampPercentage(value) {
-        const numericValue = Number(value);
-        if (!Number.isFinite(numericValue)) {
-          return 0;
-        }
-
-        return Math.min(100, Math.max(0, numericValue));
+        return window.LWSTCommon.clampNumber(value, 0, 100, 0);
       }
 
       function normalizeStoredProgress(value) {
@@ -547,9 +542,7 @@
 
         if (
           state.language &&
-          window.LWSTCommon.LANGUAGE_OPTIONS.some(
-            (option) => option.code === state.language,
-          )
+          window.LWSTCommon.isSupportedLanguage(state.language)
         ) {
           preferredLanguage = state.language;
           languageSelect.value = state.language;
