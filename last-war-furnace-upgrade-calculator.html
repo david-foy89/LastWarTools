@@ -299,6 +299,26 @@
               <div class="row-key">Timezone Used</div>
               <div class="row-value" id="timeZoneValue">Local</div>
             </div>
+            <div class="row">
+              <div class="row-key">Selected Furnace Level</div>
+              <div class="row-value" id="furnaceStatsLevelValue">Level 1</div>
+            </div>
+            <div class="row">
+              <div class="row-key">Selected Furnace Power</div>
+              <div class="row-value" id="furnacePowerValue">-</div>
+            </div>
+            <div class="row">
+              <div class="row-key">Selected Furnace Resistance</div>
+              <div class="row-value" id="furnaceResistanceValue">-</div>
+            </div>
+            <div class="row">
+              <div class="row-key">Selected Furnace Heat</div>
+              <div class="row-value" id="furnaceHeatValue">-</div>
+            </div>
+            <div class="row">
+              <div class="row-key">Selected Furnace Overdrive</div>
+              <div class="row-value" id="furnaceOverdriveValue">-</div>
+            </div>
           </div>
 
           <div class="table-wrap">
@@ -310,38 +330,42 @@
     </div>
 
     <script>
-      const titaniumCosts = [
-        { level: 1, titanium: 2800 },
-        { level: 2, titanium: 11200 },
-        { level: 3, titanium: 22400 },
-        { level: 4, titanium: 44800 },
-        { level: 5, titanium: 89600 },
-        { level: 6, titanium: 125400 },
-        { level: 7, titanium: 163100 },
-        { level: 8, titanium: 195700 },
-        { level: 9, titanium: 234800 },
-        { level: 10, titanium: 281800 },
-        { level: 11, titanium: 338100 },
-        { level: 12, titanium: 405800 },
-        { level: 13, titanium: 486900 },
-        { level: 14, titanium: 584300 },
-        { level: 15, titanium: 701200 },
-        { level: 16, titanium: 771300 },
-        { level: 17, titanium: 848400 },
-        { level: 18, titanium: 933300 },
-        { level: 19, titanium: 1030000 },
-        { level: 20, titanium: 1130000 },
-        { level: 21, titanium: 1240000 },
-        { level: 22, titanium: 1370000 },
-        { level: 23, titanium: 1500000 },
-        { level: 24, titanium: 1650000 },
-        { level: 25, titanium: 1820000 },
-        { level: 26, titanium: 2160000 },
-        { level: 27, titanium: 2510000 },
-        { level: 28, titanium: 2860000 },
-        { level: 29, titanium: 3460000 },
-        { level: 30, titanium: 4320000 },
+      const furnaceStats = [
+        { level: 1, titanium: 2800, power: 400, resistance: 100, heat: 5.5, overdrive: 8 },
+        { level: 2, titanium: 11200, power: 800, resistance: 200, heat: 6, overdrive: 9 },
+        { level: 3, titanium: 22400, power: 1300, resistance: 300, heat: 6.5, overdrive: 9.5 },
+        { level: 4, titanium: 44800, power: 2000, resistance: 400, heat: 7, overdrive: 10.5 },
+        { level: 5, titanium: 89600, power: 3000, resistance: 500, heat: 7.5, overdrive: 11 },
+        { level: 6, titanium: 125400, power: 4200, resistance: 750, heat: 8, overdrive: 12 },
+        { level: 7, titanium: 163100, power: 5600, resistance: 1000, heat: 8.5, overdrive: 12.5 },
+        { level: 8, titanium: 195700, power: 7100, resistance: 1250, heat: 9, overdrive: 13.5 },
+        { level: 9, titanium: 234800, power: 8800, resistance: 1500, heat: 9.5, overdrive: 14 },
+        { level: 10, titanium: 281800, power: 10700, resistance: 1750, heat: 10, overdrive: 15 },
+        { level: 11, titanium: 338100, power: 12800, resistance: 2000, heat: 10.5, overdrive: 15.5 },
+        { level: 12, titanium: 405800, power: 15200, resistance: 2250, heat: 11, overdrive: 16.5 },
+        { level: 13, titanium: 486900, power: 17800, resistance: 2500, heat: 11.5, overdrive: 17 },
+        { level: 14, titanium: 584300, power: 20700, resistance: 2750, heat: 12, overdrive: 18 },
+        { level: 15, titanium: 701200, power: 24000, resistance: 3000, heat: 12.5, overdrive: 18.5 },
+        { level: 16, titanium: 771300, power: 27500, resistance: 3400, heat: 13, overdrive: 19.5 },
+        { level: 17, titanium: 848400, power: 31200, resistance: 3800, heat: 13.5, overdrive: 20 },
+        { level: 18, titanium: 933300, power: 35100, resistance: 4200, heat: 14, overdrive: 21 },
+        { level: 19, titanium: 1026600, power: 39200, resistance: 4600, heat: 14.5, overdrive: 21.5 },
+        { level: 20, titanium: 1129300, power: 43500, resistance: 5000, heat: 15, overdrive: 22.5 },
+        { level: 21, titanium: 1242200, power: 48100, resistance: 5500, heat: 15.5, overdrive: 23 },
+        { level: 22, titanium: 1366400, power: 53000, resistance: 6000, heat: 16, overdrive: 24 },
+        { level: 23, titanium: 1503000, power: 58100, resistance: 6500, heat: 16.5, overdrive: 24.5 },
+        { level: 24, titanium: 1653300, power: 63500, resistance: 7000, heat: 17, overdrive: 25.5 },
+        { level: 25, titanium: 1818700, power: 69200, resistance: 7500, heat: 17.5, overdrive: 26 },
+        { level: 26, titanium: 2159600, power: 75600, resistance: 8000, heat: 18, overdrive: 27 },
+        { level: 27, titanium: 2505100, power: 82600, resistance: 8500, heat: 18.5, overdrive: 27.5 },
+        { level: 28, titanium: 2855300, power: 90100, resistance: 9000, heat: 19, overdrive: 28.5 },
+        { level: 29, titanium: 3460600, power: 98500, resistance: 9500, heat: 19.5, overdrive: 29 },
+        { level: 30, titanium: 4321100, power: 108100, resistance: 10000, heat: 20, overdrive: 30 },
       ];
+      const titaniumCosts = furnaceStats.map(({ level, titanium }) => ({
+        level,
+        titanium,
+      }));
 
       const coalMineOutputs = [
         { level: 1, output: 720 },
@@ -388,6 +412,17 @@
       const statusValue = document.getElementById("statusValue");
       const mineRateValue = document.getElementById("mineRateValue");
       const timeZoneValue = document.getElementById("timeZoneValue");
+      const furnaceStatsLevelValue = document.getElementById(
+        "furnaceStatsLevelValue",
+      );
+      const furnacePowerValue = document.getElementById("furnacePowerValue");
+      const furnaceResistanceValue = document.getElementById(
+        "furnaceResistanceValue",
+      );
+      const furnaceHeatValue = document.getElementById("furnaceHeatValue");
+      const furnaceOverdriveValue = document.getElementById(
+        "furnaceOverdriveValue",
+      );
       const currentTimeValue = document.getElementById("currentTimeValue");
       const costLevelSelect = document.getElementById("costLevelSelect");
       const mineList = document.getElementById("mineList");
@@ -701,6 +736,30 @@
         return levels.join(",");
       }
 
+      function updateSelectedFurnaceStats() {
+        const selectedLevel = Number(costLevelSelect.value);
+        const selectedStats = furnaceStats.find(
+          (row) => row.level === selectedLevel,
+        );
+
+        if (!selectedStats) {
+          furnaceStatsLevelValue.textContent = "-";
+          furnacePowerValue.textContent = "-";
+          furnaceResistanceValue.textContent = "-";
+          furnaceHeatValue.textContent = "-";
+          furnaceOverdriveValue.textContent = "-";
+          return;
+        }
+
+        furnaceStatsLevelValue.textContent = `Level ${selectedStats.level}`;
+        furnacePowerValue.textContent = formatTitanium(selectedStats.power);
+        furnaceResistanceValue.textContent = formatTitanium(
+          selectedStats.resistance,
+        );
+        furnaceHeatValue.textContent = String(selectedStats.heat);
+        furnaceOverdriveValue.textContent = String(selectedStats.overdrive);
+      }
+
       function buildTable() {
         costLevelSelect.innerHTML = titaniumCosts
           .map(
@@ -708,6 +767,7 @@
               `<option value="${row.level}">Level ${row.level} - ${formatTitanium(row.titanium)}</option>`,
           )
           .join("");
+        updateSelectedFurnaceStats();
       }
 
       function saveState() {
@@ -835,6 +895,7 @@
           costLevelSelect.value = String(
             titaniumCosts[titaniumCosts.length - 1].level,
           );
+          updateSelectedFurnaceStats();
           updateCurrentTimeDisplay();
           return;
         }
@@ -898,6 +959,7 @@
         mineRateValue.textContent = `${formatTitanium(totalOutputPerHour)}/hr`;
         timeZoneValue.textContent = selectedTimeZone;
         costLevelSelect.value = String(nextUpgrade.level);
+        updateSelectedFurnaceStats();
         updateCurrentTimeDisplay();
 
         saveState();
@@ -921,6 +983,7 @@
       currentTitaniumInput.addEventListener("input", updateCalculator);
       timeZoneSelect.addEventListener("change", updateCalculator);
       allianceTechSelect.addEventListener("change", updateMineOutput);
+      costLevelSelect.addEventListener("change", updateSelectedFurnaceStats);
       languageSelect.addEventListener("change", () => {
         preferredLanguage = languageSelect.value;
         applyGoogleLanguage(preferredLanguage);
