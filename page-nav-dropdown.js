@@ -4,8 +4,7 @@
     if (!nav) return;
 
     ensureSeason2SuppliesLink(nav);
-    ensureTrainConductorLink(nav);
-    ensureServerSearchLink(nav);
+    // Train Conductor and Server Search are now handled in the Alliance Tools dropdown in HTML
 
     const dropdowns = Array.from(nav.querySelectorAll('details.page-nav-dropdown'));
 
@@ -45,37 +44,7 @@
     });
   }
 
-  function ensureTrainConductorLink(nav) {
-    const currentPage = window.location.pathname.split('/').pop() || 'index.html';
-    let link = nav.querySelector('a[href="train-conductor-schedule.html"]');
-    if (!link) {
-      link = document.createElement('a');
-      link.href = 'train-conductor-schedule.html';
-      link.className = 'page-link';
-      link.textContent = 'Train Conductor';
-      nav.appendChild(link);
-    }
-    if (currentPage === 'train-conductor-schedule.html') {
-      link.classList.add('active');
-      link.setAttribute('aria-current', 'page');
-    }
-  }
-
-  function ensureServerSearchLink(nav) {
-    const currentPage = window.location.pathname.split('/').pop() || 'index.html';
-    let link = nav.querySelector('a[href="server-search.html"]');
-    if (!link) {
-      link = document.createElement('a');
-      link.href = 'server-search.html';
-      link.className = 'page-link';
-      link.textContent = 'Server Search';
-      nav.appendChild(link);
-    }
-    if (currentPage === 'server-search.html') {
-      link.classList.add('active');
-      link.setAttribute('aria-current', 'page');
-    }
-  }
+  // Train Conductor and Server Search links are now managed in the Alliance Tools dropdown in HTML
 
   function ensureSeason2SuppliesLink(nav) {
     const currentPage = window.location.pathname.split('/').pop() || 'index.html';
