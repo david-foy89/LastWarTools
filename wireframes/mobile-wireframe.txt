@@ -1,6 +1,8 @@
 LAST WAR TOOLS - SHARED MOBILE CALCULATOR WIREFRAME
 ===================================================
 
+[NOTE: As of 2026, all interactive map and calculator pages use a unified sidebar width and map/grid sizing for a consistent experience across all seasons. The "Export Map" feature is available on all maps, and import has been removed.]
+
 +----------------------------------------------+
 | Top Support: [Buy Me a Coffee]               |
 +----------------------------------------------+

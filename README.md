@@ -44,7 +44,7 @@ Hosted on GitHub Pages via `index.html`.
 - HQ upgrade calculator with prerequisite tracking
 - Troop planners:
   - T10 research path planner with quick actions and focus filters
-  - T11 percentage-based research planner with prorated remaining totals
+A lightweight set of browser-based tools for planning upgrades in Last War: Survival. The site includes a dedicated homepage plus HQ, troop planners, and Season 1 through Season 5 calculator pages with unified styling, navigation, and map layouts.
 - Season 1 calculators and planning tools:
   - Virus Research Institute
   - Squad Base
@@ -79,16 +79,25 @@ Hosted on GitHub Pages via `index.html`.
   - Text search by coordinate or supply code
   - Hide completed toggle
   - Per-level and overall progress bars
-  - Shareable link encoding completed state in the URL (merge or replace on open)
-  - Export options: shareable link copy, CSV download, Print/PDF, PNG screenshot
-  - Progress persisted in `localStorage`
-- Responsive layout with shared styling across calculator pages
-- Shared top navigation with season-group dropdowns
-- LWST logo in the header that links back to homepage
-- SEO metadata per page (description, canonical, Open Graph, Twitter, JSON-LD)
+## Features
+
+- Unified interactive map tools for Seasons 1–5:
+  - Consistent sidebar width and map area sizing across all seasons
+  - "Export Map" feature for sharing plans (replaces "Export Plan")
+  - Import feature removed for simplicity and reliability
+  - Shared navigation, styling, and layout for all calculators
+- HQ upgrade calculator with prerequisite tracking
+- Troop planners:
+  - T10 research path planner with quick actions and focus filters
+  - T11 percentage-based research planner with prorated remaining totals
+- Season calculators and planning tools:
+  - Virus Research Institute
+  - Squad Base
 
 ## How To Use
+## Wireframes
 
+See `wireframes/desktop-wireframe.txt` and `wireframes/mobile-wireframe.txt` for shared layout patterns. All interactive map and calculator pages now use a unified sidebar and map/grid sizing for a consistent experience across all seasons.
 1. Open `index.html` to view the homepage and calculator overview.
 2. Use the top navigation to choose Troop, Season 1, Season 2, Season 3, Season 4, or Season 5 calculators.
 3. Enter your current level and current resource values.
