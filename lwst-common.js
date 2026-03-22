@@ -126,7 +126,7 @@
       return;
     }
     combo.value = languageCode;
-    combo.dispatchEvent(new Event("change"));
+    combo.dispatchEvent(new global.Event("change"));
   }
 
   function initGoogleTranslate(preferredLanguage) {
