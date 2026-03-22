@@ -1885,12 +1885,14 @@
                 });
                 if (autoMappings.length) {
                   // Ensure Import button is enabled and context-aware
-                  const importBtn = document.querySelector('.import-modal .btn-confirm, #importModal .btn-confirm');
+                  const importBtn = document.querySelector(
+                    ".import-modal .btn-confirm, #importModal .btn-confirm",
+                  );
                   if (importBtn) {
                     importBtn.disabled = false;
-                    importBtn.classList.remove('disabled');
+                    importBtn.classList.remove("disabled");
                     // Visually indicate mappings are ready
-                    importBtn.textContent = 'Import (Apply Mappings)';
+                    importBtn.textContent = "Import (Apply Mappings)";
                   }
                   // Force modal to reflow so Import button sees mappings
                   setTimeout(() => {
@@ -3218,9 +3220,12 @@
             return;
           }
           // Fallback: if auto-mappings exist but no button (e.g. after link/screenshot import), apply them directly
-          if (window._lastScreenshotAutoMappings && Array.isArray(window._lastScreenshotAutoMappings)) {
+          if (
+            window._lastScreenshotAutoMappings &&
+            Array.isArray(window._lastScreenshotAutoMappings)
+          ) {
             let applied = 0;
-            window._lastScreenshotAutoMappings.forEach(m => {
+            window._lastScreenshotAutoMappings.forEach((m) => {
               if (m.area && m.alliance) {
                 state.territories[m.area] = m.alliance;
                 applied++;
@@ -3230,8 +3235,10 @@
             renderMap();
             window._lastScreenshotAutoMappings = null;
             // Visually reset Import button
-            const importBtn = document.querySelector('.import-modal .btn-confirm, #importModal .btn-confirm');
-            if (importBtn) importBtn.textContent = 'Import';
+            const importBtn = document.querySelector(
+              ".import-modal .btn-confirm, #importModal .btn-confirm",
+            );
+            if (importBtn) importBtn.textContent = "Import";
             closeImportModal();
             return;
           }
