@@ -74,7 +74,7 @@
         background: linear-gradient(
           180deg,
           var(--panel) 0%,
-        <div id="allianceDebugPanel" style="display:none;">
+          var(--panel-2) 100%
         );
         border: 1px solid var(--line-soft);
         border-radius: 16px;
@@ -1568,7 +1568,8 @@
           window.allianceDebugContent.textContent = message;
           // Only show debug panel if a special flag is set
           if (window.SHOW_ALLIANCE_DEBUG_PANEL) {
-            document.getElementById("allianceDebugPanel").style.display = "block";
+            document.getElementById("allianceDebugPanel").style.display =
+              "block";
           }
         }
       }
@@ -2285,23 +2286,6 @@
         } else if (debugPanel) {
           debugPanel.style.display = "none";
         }
-          color: entry.color || allianceColors[index % allianceColors.length],
-          cities: 0,
-          strongholds: 0,
-        }));
-        // Debug output
-        if (debugPanel && debugContent) {
-          debugPanel.style.display = "block";
-          debugContent.innerHTML =
-            '<b>Raw from localStorage:</b><br><pre style="color:#fff;white-space:pre-wrap;">' +
-            JSON.stringify(raw, null, 2) +
-            "</pre>" +
-            "<b>Filtered (firstSeason <= " +
-            CURRENT_SEASON +
-            '):</b><br><pre style="color:#fff;white-space:pre-wrap;">' +
-            JSON.stringify(filtered, null, 2) +
-            "</pre>";
-        }
       }
 
       function syncSharedAllianceTagsFromState() {
@@ -2387,7 +2371,7 @@
         allianceList.innerHTML = state.alliances
           .map(
             (alliance) => `
-                <div class="alliance-item ${state.selectedAlliance === alliance.tag ? "selected" : ""}" 
+                <div class="alliance-item ${state.selectedAlliance === alliance.tag ? "selected" : ""}"
                      onclick="selectAlliance('${alliance.tag}')">
                     <div style="display: flex; align-items: center; gap: 8px; flex: 1;">
                         <div class="alliance-color" style="background: ${alliance.color};"></div>
