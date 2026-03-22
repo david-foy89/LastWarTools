@@ -1663,7 +1663,6 @@
         coordinates: area.coordinates,
       }));
 
-
       function renderMap() {
         const dpr = window.devicePixelRatio || 1;
         const cssWidth = state.view.displayWidth || MAP_SIZE;
@@ -1679,8 +1678,8 @@
 
         // Dynamically scale text size if sidebar is hidden (map expanded) and with zoom
         let fontScale = 1;
-        const sidebar = document.querySelector('.sidebar');
-        if (sidebar && sidebar.style.display === 'none') {
+        const sidebar = document.querySelector(".sidebar");
+        if (sidebar && sidebar.style.display === "none") {
           fontScale *= 1.35; // Increase text size when expanded
         }
         // Further scale text size based on zoom level (default zoom=1)
@@ -2402,7 +2401,9 @@
         const mapContainer = document.getElementById("mapTabPanel");
         if (hideSidebarBtn && sidebar && mapCanvasWrapper && mapContainer) {
           // Store original grid template for restoration
-          const originalGrid = mapContainer.style.gridTemplateColumns || window.getComputedStyle(mapContainer).gridTemplateColumns;
+          const originalGrid =
+            mapContainer.style.gridTemplateColumns ||
+            window.getComputedStyle(mapContainer).gridTemplateColumns;
           hideSidebarBtn.addEventListener("click", function () {
             if (sidebar.style.display === "none") {
               sidebar.style.display = "block";
