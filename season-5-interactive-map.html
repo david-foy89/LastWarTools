@@ -1211,9 +1211,16 @@
           id="importText"
           placeholder="Paste JSON plan here..."
         ></textarea>
-        <div style="margin: 10px 0; text-align: left;">
-          <label style="font-size:0.95em; color:rgba(217,240,255,0.8);">Or import Excel (.xlsx):
-            <input type="file" id="importExcelInput" accept=".xlsx,.xls,.csv" style="margin-top:6px;display:block;" onchange="handleExcelImport(event)">
+        <div style="margin: 10px 0; text-align: left">
+          <label style="font-size: 0.95em; color: rgba(217, 240, 255, 0.8)"
+            >Or import Excel (.xlsx):
+            <input
+              type="file"
+              id="importExcelInput"
+              accept=".xlsx,.xls,.csv"
+              style="margin-top: 6px; display: block"
+              onchange="handleExcelImport(event)"
+            />
           </label>
         </div>
         <div class="modal-buttons">
@@ -1240,36 +1247,46 @@
         const file = event.target.files[0];
         if (!file) return;
         if (!window.XLSX) {
-          alert('Excel library is still loading. Please wait and try again.');
+          alert("Excel library is still loading. Please wait and try again.");
           return;
         }
         const reader = new FileReader();
-        reader.onload = function(e) {
+        reader.onload = function (e) {
           try {
             const data = new Uint8Array(e.target.result);
-            const workbook = XLSX.read(data, { type: 'array' });
+            const workbook = XLSX.read(data, { type: "array" });
             // Try to find a sheet with alliances and one with territories
             let alliances = [];
             let territories = {};
             // Alliances sheet: columns Alliance, Color (optional)
-            if (workbook.SheetNames.includes('Alliances')) {
-              const alliancesSheet = XLSX.utils.sheet_to_json(workbook.Sheets['Alliances']);
-              alliances = alliancesSheet.map((row, i) => ({
-                tag: String(row.Alliance || '').toUpperCase(),
-                color: row.Color || undefined
-              })).filter(a => a.tag);
+            if (workbook.SheetNames.includes("Alliances")) {
+              const alliancesSheet = XLSX.utils.sheet_to_json(
+                workbook.Sheets["Alliances"],
+              );
+              alliances = alliancesSheet
+                .map((row, i) => ({
+                  tag: String(row.Alliance || "").toUpperCase(),
+                  color: row.Color || undefined,
+                }))
+                .filter((a) => a.tag);
             }
             // Territories sheet: columns AreaIndex, Alliance
-            if (workbook.SheetNames.includes('Territories')) {
-              const territoriesSheet = XLSX.utils.sheet_to_json(workbook.Sheets['Territories']);
-              territoriesSheet.forEach(row => {
+            if (workbook.SheetNames.includes("Territories")) {
+              const territoriesSheet = XLSX.utils.sheet_to_json(
+                workbook.Sheets["Territories"],
+              );
+              territoriesSheet.forEach((row) => {
                 if (row.AreaIndex && row.Alliance) {
-                  territories[String(row.AreaIndex)] = String(row.Alliance).toUpperCase();
+                  territories[String(row.AreaIndex)] = String(
+                    row.Alliance,
+                  ).toUpperCase();
                 }
               });
             }
             if (!alliances.length || !Object.keys(territories).length) {
-              alert('Excel file must have "Alliances" and "Territories" sheets with proper columns.');
+              alert(
+                'Excel file must have "Alliances" and "Territories" sheets with proper columns.',
+              );
               return;
             }
             // Update state and UI
@@ -1282,14 +1299,17 @@
             closeImportModal();
             updateUI();
             renderMap();
-            if (window.LWStrategyPins && typeof window.LWStrategyPins.updatePinsList === 'function') {
+            if (
+              window.LWStrategyPins &&
+              typeof window.LWStrategyPins.updatePinsList === "function"
+            ) {
               window.LWStrategyPins.updatePinsList();
             }
-            if (typeof saveInteractiveMapTabs === 'function') {
+            if (typeof saveInteractiveMapTabs === "function") {
               saveInteractiveMapTabs();
             }
           } catch (err) {
-            alert('Failed to import Excel: ' + err.message);
+            alert("Failed to import Excel: " + err.message);
           }
         };
         reader.readAsArrayBuffer(file);
