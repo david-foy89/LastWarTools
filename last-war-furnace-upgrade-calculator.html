@@ -1219,13 +1219,14 @@
         if (!ready && Number.isFinite(estimatedHours)) {
           readyAtTimestamp = Date.now() + etaMs;
         }
+        // Always display the live calculated readyAtTimestamp, never use lockedReadyAtTimestampMs for display
         readyAtValue.textContent = ready
           ? "Now"
           : readyAtTimestamp
             ? formatReadyAtFromTimestamp(readyAtTimestamp, timeZoneSelect.value)
             : formatReadyAt(estimatedHours, timeZoneSelect.value);
         readyAtValue.className = `tile-value ${ready ? "ok" : totalOutputPerHour > 0 ? "" : "warn"}`;
-        // Maintain lastCalcSignature and lockedReadyAtTimestampMs for state save/restore
+        // Maintain lastCalcSignature and lockedReadyAtTimestampMs for state save/restore only
         if (calcSignature !== lastCalcSignature) {
           if (!ready && Number.isFinite(estimatedHours)) {
             lockedReadyAtTimestampMs = readyAtTimestamp;
