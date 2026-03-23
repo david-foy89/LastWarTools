@@ -215,6 +215,10 @@
             <select id="currentLevel"></select>
           </div>
           <div class="field">
+            <label for="targetLevel">Target Furnace Level</label>
+            <select id="targetLevel"></select>
+          </div>
+          <div class="field">
             <label for="currentTitanium">Current Titanium</label>
             <input
               id="currentTitanium"
@@ -402,6 +406,7 @@
 
       const currentLevelInput = document.getElementById("currentLevel");
       const currentTitaniumInput = document.getElementById("currentTitanium");
+      const targetLevelInput = document.getElementById("targetLevel");
       const nextLevelValue = document.getElementById("nextLevelValue");
       const requiredValue = document.getElementById("requiredValue");
       const ownedValue = document.getElementById("ownedValue");
@@ -652,11 +657,22 @@
 
       function buildLevelOptions() {
         currentLevelInput.innerHTML = "";
+        targetLevelInput.innerHTML = "";
         for (let level = 1; level <= titaniumCosts.length; level += 1) {
           const option = new Option(`Level ${level}`, String(level));
-          currentLevelInput.appendChild(option);
+          currentLevelInput.appendChild(option.cloneNode(true));
+          targetLevelInput.appendChild(option);
         }
         currentLevelInput.value = "1";
+        // Set default target to next level above current
+        targetLevelInput.value = String(Math.min(Number(currentLevelInput.value) + 1, titaniumCosts.length));
+      }
+
+      // After loading saved state, ensure target is at least current+1
+      function ensureTargetLevelValid() {
+        if (Number(targetLevelInput.value) <= Number(currentLevelInput.value)) {
+          targetLevelInput.value = String(Math.min(Number(currentLevelInput.value) + 1, titaniumCosts.length));
+        }
       }
 
       function buildAllianceTechOptions() {
@@ -872,43 +888,15 @@
 
       function updateCalculator() {
         const currentLevel = Number(currentLevelInput.value);
-        const currentTitanium = Math.max(
-          0,
-          Number(currentTitaniumInput.value) || 0,
-        );
-        const nextUpgrade = titaniumCosts.find(
-          (row) => row.level === currentLevel + 1,
-        );
-
-        if (!nextUpgrade) {
-          nextLevelValue.textContent = "Max";
-          requiredValue.textContent = "0";
-          ownedValue.textContent = formatTitanium(currentTitanium);
-          deficitValue.textContent = "0";
-          deficitValue.className = "tile-value ok";
-          etaValue.textContent = "-";
-          readyAtValue.textContent = "-";
-          pathValue.textContent = "Maximum configured level reached";
-          statusValue.textContent = "No higher level in this table";
-          mineRateValue.textContent = `${formatTitanium(getTotalMineOutput())}/hr`;
-          timeZoneValue.textContent = timeZoneSelect.value;
-          costLevelSelect.value = String(
-            titaniumCosts[titaniumCosts.length - 1].level,
-          );
-          updateSelectedFurnaceStats();
-          updateCurrentTimeDisplay();
-          return;
-        }
-
+        const targetLevel = Math.max(Number(targetLevelInput.value), currentLevel + 1);
+        const currentTitanium = Math.max(0, Number(currentTitaniumInput.value) || 0);
         const allianceTechPct = Number(allianceTechSelect.value || 0);
-        const requiredTitanium = Math.max(
-          0,
-          Math.round(nextUpgrade.titanium * (1 - allianceTechPct / 100)),
-        );
-        const remainingTitanium = Math.max(
-          0,
-          requiredTitanium - currentTitanium,
-        );
+        let requiredTitanium = 0;
+        for (let lvl = currentLevel + 1; lvl <= targetLevel; lvl++) {
+          const row = titaniumCosts.find((r) => r.level === lvl);
+          if (row) requiredTitanium += Math.round(row.titanium * (1 - allianceTechPct / 100));
+        }
+        const remainingTitanium = Math.max(0, requiredTitanium - currentTitanium);
         const ready = remainingTitanium === 0;
         const totalOutputPerHour = getTotalMineOutput();
         const estimatedHours = ready
@@ -921,6 +909,7 @@
         // Lock the ready-at time until values that affect the calculation change.
         const calcSignature = [
           currentLevel,
+          targetLevel,
           currentTitanium,
           allianceTechPct,
           getMineLevelsSignature(),
@@ -928,15 +917,14 @@
 
         if (calcSignature !== lastCalcSignature) {
           if (!ready && Number.isFinite(estimatedHours)) {
-            lockedReadyAtTimestampMs =
-              Date.now() + estimatedHours * 3600 * 1000;
+            lockedReadyAtTimestampMs = Date.now() + estimatedHours * 3600 * 1000;
           } else {
             lockedReadyAtTimestampMs = null;
           }
           lastCalcSignature = calcSignature;
         }
 
-        nextLevelValue.textContent = `Lv ${currentLevel + 1}`;
+        nextLevelValue.textContent = `Lv ${targetLevel}`;
         requiredValue.textContent = formatTitanium(requiredTitanium);
         ownedValue.textContent = formatTitanium(currentTitanium);
         deficitValue.textContent = formatTitanium(remainingTitanium);
@@ -946,19 +934,16 @@
         readyAtValue.textContent = ready
           ? "Now"
           : Number.isFinite(lockedReadyAtTimestampMs)
-            ? formatReadyAtFromTimestamp(
-                lockedReadyAtTimestampMs,
-                selectedTimeZone,
-              )
+            ? formatReadyAtFromTimestamp(lockedReadyAtTimestampMs, selectedTimeZone)
             : formatReadyAt(estimatedHours, selectedTimeZone);
         readyAtValue.className = `tile-value ${ready ? "ok" : totalOutputPerHour > 0 ? "" : "warn"}`;
-        pathValue.textContent = `Level ${currentLevel} -> Level ${currentLevel + 1}`;
+        pathValue.textContent = `Level ${currentLevel} -> Level ${targetLevel}`;
         statusValue.textContent = ready
           ? "You already have enough titanium alloy"
           : "Need more titanium alloy";
         mineRateValue.textContent = `${formatTitanium(totalOutputPerHour)}/hr`;
         timeZoneValue.textContent = selectedTimeZone;
-        costLevelSelect.value = String(nextUpgrade.level);
+        costLevelSelect.value = String(targetLevel);
         updateSelectedFurnaceStats();
         updateCurrentTimeDisplay();
 
@@ -971,6 +956,7 @@
       buildAllianceTechOptions();
       buildMineSelectors();
       loadSavedState();
+      ensureTargetLevelValid();
       buildLanguageOptions();
       buildTable();
       updateCalculator();
@@ -979,7 +965,20 @@
       loadGoogleTranslateScript();
       setInterval(updateCurrentTimeDisplay, 1000);
 
-      currentLevelInput.addEventListener("change", updateCalculator);
+      currentLevelInput.addEventListener("change", () => {
+        // If user hasn't picked a higher target, always set target to next level above current
+        if (Number(targetLevelInput.value) <= Number(currentLevelInput.value)) {
+          targetLevelInput.value = String(Math.min(Number(currentLevelInput.value) + 1, titaniumCosts.length));
+        }
+        updateCalculator();
+      });
+      targetLevelInput.addEventListener("change", () => {
+        // Prevent target from being below or equal to current
+        if (Number(targetLevelInput.value) <= Number(currentLevelInput.value)) {
+          targetLevelInput.value = String(Math.min(Number(currentLevelInput.value) + 1, titaniumCosts.length));
+        }
+        updateCalculator();
+      });
       currentTitaniumInput.addEventListener("input", updateCalculator);
       timeZoneSelect.addEventListener("change", updateCalculator);
       allianceTechSelect.addEventListener("change", updateMineOutput);
