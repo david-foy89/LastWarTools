@@ -221,6 +221,10 @@
             <select id="currentLevel"></select>
           </div>
           <div class="field">
+            <label for="targetLevel">Target Curse Research Lab Level</label>
+            <select id="targetLevel"></select>
+          </div>
+          <div class="field">
             <label for="currentSacredWater">Current Sacred Water</label>
             <input
               id="currentSacredWater"
@@ -383,6 +387,15 @@
       ];
 
       const currentLevelInput = document.getElementById("currentLevel");
+      const targetLevelInput = document.createElement("select");
+      // Attach to DOM after currentLevel
+      (function attachTargetLevel() {
+        const el = document.getElementById("targetLevel");
+        if (el) {
+          targetLevelInput.id = "targetLevel";
+          el.replaceWith(targetLevelInput);
+        }
+      })();
       const currentSacredWaterInput =
         document.getElementById("currentSacredWater");
       const nextLevelValue = document.getElementById("nextLevelValue");
@@ -624,11 +637,22 @@
 
       function buildLevelOptions() {
         currentLevelInput.innerHTML = "";
+        targetLevelInput.innerHTML = "";
         for (let level = 1; level <= sacredWaterCosts.length; level += 1) {
           const option = new Option(`Level ${level}`, String(level));
-          currentLevelInput.appendChild(option);
+          currentLevelInput.appendChild(option.cloneNode(true));
+          targetLevelInput.appendChild(option);
         }
         currentLevelInput.value = "1";
+        // Set default target to next level above current
+        targetLevelInput.value = String(Math.min(Number(currentLevelInput.value) + 1, sacredWaterCosts.length));
+      }
+
+      // After loading saved state, ensure target is at least current+1
+      function ensureTargetLevelValid() {
+        if (Number(targetLevelInput.value) <= Number(currentLevelInput.value)) {
+          targetLevelInput.value = String(Math.min(Number(currentLevelInput.value) + 1, sacredWaterCosts.length));
+        }
       }
 
       function buildAllianceTechOptions() {
@@ -721,6 +745,7 @@
       }
 
       function saveState() {
+        // Save targetLevel
         try {
           const mineLevels = [];
           for (let index = 1; index <= 5; index += 1) {
@@ -730,6 +755,7 @@
 
           const state = {
             currentLevel: Number(currentLevelInput.value || 1),
+            targetLevel: Number(targetLevelInput.value || 2),
             currentSacredWater: Number(currentSacredWaterInput.value || 0),
             timeZone: timeZoneSelect.value,
             allianceTech: Number(allianceTechSelect.value || 0),
@@ -759,6 +785,14 @@
             )
           ) {
             currentLevelInput.value = String(state.currentLevel);
+          }
+          if (
+            state.targetLevel &&
+            targetLevelInput.querySelector(
+              `option[value="${state.targetLevel}"]`,
+            )
+          ) {
+            targetLevelInput.value = String(state.targetLevel);
           }
 
           if (Number.isFinite(Number(state.currentSacredWater))) {
@@ -820,17 +854,39 @@
         }
       }
 
+      let etaCountdownTimer = null;
+      let etaMs = 0;
+      let etaReady = false;
+      let lastEtaCurrentLevel = null;
+      function clearEtaCountdown() {
+        if (etaCountdownTimer) {
+          clearInterval(etaCountdownTimer);
+          etaCountdownTimer = null;
+        }
+      }
+
       function updateCalculator() {
         const currentLevel = Number(currentLevelInput.value);
+        const targetLevel = Number(targetLevelInput.value);
         const currentSacredWater = Math.max(
           0,
           Number(currentSacredWaterInput.value) || 0,
         );
-        const nextUpgrade = sacredWaterCosts.find(
-          (row) => row.level === currentLevel + 1,
-        );
-
-        if (!nextUpgrade) {
+        // If target is not above current, set to next level
+        if (targetLevel <= currentLevel) {
+          targetLevelInput.value = String(Math.min(currentLevel + 1, sacredWaterCosts.length));
+        }
+        const actualTargetLevel = Number(targetLevelInput.value);
+        const upgradePath = [];
+        let totalRequired = 0;
+        for (let lvl = currentLevel + 1; lvl <= actualTargetLevel; lvl++) {
+          const row = sacredWaterCosts.find((r) => r.level === lvl);
+          if (row) {
+            upgradePath.push(lvl);
+            totalRequired += row.sacredWater;
+          }
+        }
+        if (upgradePath.length === 0) {
           nextLevelValue.textContent = "Max";
           requiredValue.textContent = "0";
           ownedValue.textContent = formatResource(currentSacredWater);
@@ -846,13 +902,13 @@
             sacredWaterCosts[sacredWaterCosts.length - 1].level,
           );
           updateCurrentTimeDisplay();
+          saveState();
           return;
         }
-
         const allianceTechPct = Number(allianceTechSelect.value || 0);
         const requiredSacredWater = Math.max(
           0,
-          Math.round(nextUpgrade.sacredWater * (1 - allianceTechPct / 100)),
+          Math.round(totalRequired * (1 - allianceTechPct / 100)),
         );
         const remainingSacredWater = Math.max(
           0,
@@ -866,14 +922,13 @@
             ? remainingSacredWater / totalOutputPerHour
             : Infinity;
         const selectedTimeZone = timeZoneSelect.value;
-
         const calcSignature = [
           currentLevel,
+          actualTargetLevel,
           currentSacredWater,
           allianceTechPct,
           getMineLevelsSignature(),
         ].join("|");
-
         if (calcSignature !== lastCalcSignature) {
           if (!ready && Number.isFinite(estimatedHours)) {
             lockedReadyAtTimestampMs =
@@ -883,41 +938,100 @@
           }
           lastCalcSignature = calcSignature;
         }
-
-        nextLevelValue.textContent = `Lv ${currentLevel + 1}`;
+        nextLevelValue.textContent = `Lv ${actualTargetLevel}`;
         requiredValue.textContent = formatResource(requiredSacredWater);
         ownedValue.textContent = formatResource(currentSacredWater);
         deficitValue.textContent = formatResource(remainingSacredWater);
         deficitValue.className = `tile-value ${ready ? "ok" : "warn"}`;
-        etaValue.textContent = formatTimeFromHours(estimatedHours);
-        etaValue.className = `tile-value ${ready ? "ok" : totalOutputPerHour > 0 ? "" : "warn"}`;
-        readyAtValue.textContent = ready
+        // ETA countdown logic
+        let restartEta = false;
+        if (lastEtaCurrentLevel === null || lastEtaCurrentLevel !== currentLevel) {
+          restartEta = true;
+          lastEtaCurrentLevel = currentLevel;
+        }
+        if (restartEta || etaMs === 0) {
+          if (!ready && totalOutputPerHour > 0) {
+            etaMs = Math.max(0, Math.round(remainingSacredWater / totalOutputPerHour * 3600 * 1000));
+          } else {
+            etaMs = 0;
+          }
+        } else {
+          if (!ready && totalOutputPerHour > 0) {
+            etaMs = Math.max(0, Math.round(remainingSacredWater / totalOutputPerHour * 3600 * 1000));
+          } else {
+            etaMs = 0;
+          }
+        }
+        etaReady = ready;
+        clearEtaCountdown();
+        function formatCountdown(ms) {
+          if (!Number.isFinite(ms) || ms <= 0) return "Ready now";
+          let totalSeconds = Math.floor(ms / 1000);
+          const days = Math.floor(totalSeconds / 86400);
+          totalSeconds %= 86400;
+          const hours = Math.floor(totalSeconds / 3600);
+          totalSeconds %= 3600;
+          const minutes = Math.floor(totalSeconds / 60);
+          const seconds = totalSeconds % 60;
+          let out = "";
+          if (days > 0) out += `${days}d `;
+          if (hours > 0 || days > 0) out += `${hours}h `;
+          if (minutes > 0 || hours > 0 || days > 0) out += `${minutes}m `;
+          out += `${seconds}s`;
+          return out.trim();
+        }
+        function updateEtaField() {
+          if (etaReady || etaMs <= 0) {
+            etaValue.textContent = "Ready now";
+            etaValue.className = "tile-value ok";
+          } else {
+            etaValue.textContent = formatCountdown(etaMs);
+            etaValue.className = `tile-value ${totalOutputPerHour > 0 ? "" : "warn"}`;
+            etaMs -= 1000;
+          }
+        }
+        updateEtaField();
+        if (!etaReady && etaMs > 0) {
+          etaCountdownTimer = setInterval(updateEtaField, 1000);
+        }
+        // Ready At logic
+        let readyAtTimestamp = null;
+        if (!etaReady && totalOutputPerHour > 0 && etaMs > 0) {
+          readyAtTimestamp = Date.now() + etaMs;
+        }
+        readyAtValue.textContent = etaReady
           ? "Now"
-          : Number.isFinite(lockedReadyAtTimestampMs)
-            ? formatReadyAtFromTimestamp(
-                lockedReadyAtTimestampMs,
-                selectedTimeZone,
-              )
+          : readyAtTimestamp
+            ? new Intl.DateTimeFormat(undefined, {
+                timeZone: selectedTimeZone,
+                month: "short",
+                day: "numeric",
+                hour: "numeric",
+                minute: "2-digit",
+                hour12: true,
+              }).format(new Date(readyAtTimestamp))
             : formatReadyAt(estimatedHours, selectedTimeZone);
-        readyAtValue.className = `tile-value ${ready ? "ok" : totalOutputPerHour > 0 ? "" : "warn"}`;
-        pathValue.textContent = `Level ${currentLevel} -> Level ${currentLevel + 1}`;
+        readyAtValue.className = `tile-value ${etaReady ? "ok" : totalOutputPerHour > 0 ? "" : "warn"}`;
+        pathValue.textContent = `Level ${currentLevel} -> Level ${actualTargetLevel}`;
         statusValue.textContent = ready
           ? "You already have enough sacred water"
           : "Need more sacred water";
         mineRateValue.textContent = `${formatResource(totalOutputPerHour)}/hr`;
         timeZoneValue.textContent = selectedTimeZone;
-        costLevelSelect.value = String(nextUpgrade.level);
+        costLevelSelect.value = String(actualTargetLevel);
         updateCurrentTimeDisplay();
-
         saveState();
       }
 
       buildLevelOptions();
+      // After loading state, ensure target is at least current+1
+      ensureTargetLevelValid();
       buildTimeZoneOptions();
       buildLanguageOptions();
       buildAllianceTechOptions();
       buildMineSelectors();
       loadSavedState();
+      ensureTargetLevelValid();
       buildLanguageOptions();
       buildTable();
       updateCalculator();
@@ -926,7 +1040,14 @@
       loadGoogleTranslateScript();
       setInterval(updateCurrentTimeDisplay, 1000);
 
-      currentLevelInput.addEventListener("change", updateCalculator);
+      currentLevelInput.addEventListener("change", () => {
+        // If user hasn't picked a higher target, always set target to next level above current
+        if (Number(targetLevelInput.value) <= Number(currentLevelInput.value)) {
+          targetLevelInput.value = String(Math.min(Number(currentLevelInput.value) + 1, sacredWaterCosts.length));
+        }
+        updateCalculator();
+      });
+      targetLevelInput.addEventListener("change", updateCalculator);
       currentSacredWaterInput.addEventListener("input", updateCalculator);
       timeZoneSelect.addEventListener("change", updateCalculator);
       allianceTechSelect.addEventListener("change", updateMineOutput);

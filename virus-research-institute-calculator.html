@@ -599,6 +599,28 @@
       const targetCostValue = document.getElementById("targetCostValue");
       const targetDeficitValue = document.getElementById("targetDeficitValue");
       const targetTimeValue = document.getElementById("targetTimeValue");
+      // Add ETA and Ready At fields
+      let etaCountdownTimer = null;
+      let etaMs = 0;
+      let etaReady = false;
+      let lastEtaCurrentLevel = null;
+      function clearEtaCountdown() {
+        if (etaCountdownTimer) {
+          clearInterval(etaCountdownTimer);
+          etaCountdownTimer = null;
+        }
+      }
+      // Add Ready At field to UI if not present
+      if (!document.getElementById('readyAtValue')) {
+        const detailsDiv = document.querySelector('.details');
+        if (detailsDiv) {
+          const readyAtRow = document.createElement('div');
+          readyAtRow.className = 'row';
+          readyAtRow.innerHTML = '<div class="row-key">Upgrade Ready At</div><div class="row-value" id="readyAtValue">-</div>';
+          detailsDiv.insertBefore(readyAtRow, detailsDiv.firstChild);
+        }
+      }
+      const readyAtValue = document.getElementById('readyAtValue');
       const targetXpValue = document.getElementById("targetXpValue");
       const farmOutputTileValue = document.getElementById(
         "farmOutputTileValue",
@@ -1000,6 +1022,88 @@
           0,
           targetCostReduced - ownedImmuneProtein,
         );
+
+        // ETA countdown logic for targetDeficit
+        let restartEta = false;
+        const currentLevel = Math.max(1, Number(currentLevelSelect.value) || 1);
+        if (lastEtaCurrentLevel === null || lastEtaCurrentLevel !== currentLevel) {
+          restartEta = true;
+          lastEtaCurrentLevel = currentLevel;
+        }
+        if (restartEta || etaMs === 0) {
+          if (targetDeficit > 0 && totalFarmOutput > 0) {
+            etaMs = Math.max(0, Math.round(targetDeficit / totalFarmOutput * 3600 * 1000));
+          } else {
+            etaMs = 0;
+          }
+        } else {
+          if (targetDeficit > 0 && totalFarmOutput > 0) {
+            etaMs = Math.max(0, Math.round(targetDeficit / totalFarmOutput * 3600 * 1000));
+          } else {
+            etaMs = 0;
+          }
+        }
+        etaReady = targetDeficit === 0;
+        clearEtaCountdown();
+        function formatCountdown(ms) {
+          if (!Number.isFinite(ms) || ms <= 0) return "Ready now";
+          let totalSeconds = Math.floor(ms / 1000);
+          const days = Math.floor(totalSeconds / 86400);
+          totalSeconds %= 86400;
+          const hours = Math.floor(totalSeconds / 3600);
+          totalSeconds %= 3600;
+          const minutes = Math.floor(totalSeconds / 60);
+          const seconds = totalSeconds % 60;
+          let out = "";
+          if (days > 0) out += `${days}d `;
+          if (hours > 0 || days > 0) out += `${hours}h `;
+          if (minutes > 0 || hours > 0 || days > 0) out += `${minutes}m `;
+          out += `${seconds}s`;
+          return out.trim();
+        }
+        function updateEtaField() {
+          const etaField = document.getElementById('etaValue');
+          if (!etaField) return;
+          if (etaReady || etaMs <= 0) {
+            etaField.textContent = "Ready now";
+            etaField.className = "tile-value ok";
+          } else {
+            etaField.textContent = formatCountdown(etaMs);
+            etaField.className = `tile-value ${totalFarmOutput > 0 ? "" : "warn"}`;
+            etaMs -= 1000;
+          }
+        }
+        // Add ETA field to UI if not present
+        if (!document.getElementById('etaValue')) {
+          const summaryDiv = document.querySelector('.summary');
+          if (summaryDiv) {
+            const etaTile = document.createElement('div');
+            etaTile.className = 'tile';
+            etaTile.innerHTML = '<div class="tile-key">Estimated Time</div><div class="tile-value" id="etaValue">-</div>';
+            summaryDiv.appendChild(etaTile);
+          }
+        }
+        updateEtaField();
+        if (!etaReady && etaMs > 0) {
+          etaCountdownTimer = setInterval(updateEtaField, 1000);
+        }
+        // Ready At logic
+        let readyAtTimestamp = null;
+        if (!etaReady && totalFarmOutput > 0 && etaMs > 0) {
+          readyAtTimestamp = Date.now() + etaMs;
+        }
+        readyAtValue.textContent = etaReady
+          ? "Now"
+          : readyAtTimestamp
+            ? new Intl.DateTimeFormat(undefined, {
+                month: "short",
+                day: "numeric",
+                hour: "numeric",
+                minute: "2-digit",
+                hour12: true,
+              }).format(new Date(readyAtTimestamp))
+            : "-";
+        readyAtValue.className = `row-value ${etaReady ? "ok" : totalFarmOutput > 0 ? "" : "warn"}`;
 
         nextLevelValue.textContent = `Lv ${nextLevel}`;
         nextCostValue.textContent = formatNumber(nextCostReduced);

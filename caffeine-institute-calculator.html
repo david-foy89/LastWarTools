@@ -217,6 +217,10 @@
             <label for="currentLevel">Current Caffeine Institute Level</label>
             <select id="currentLevel"></select>
           </div>
+          <div class="field">
+            <label for="targetLevel">Target Caffeine Institute Level</label>
+            <select id="targetLevel"></select>
+          </div>
           <div class="dual-field-grid">
             <div class="field">
               <label for="currentCoffee">Current Coffee</label>
@@ -419,6 +423,15 @@
       }));
 
       const currentLevelInput = document.getElementById("currentLevel");
+      const targetLevelInput = document.createElement("select");
+      // Attach to DOM after currentLevel
+      (function attachTargetLevel() {
+        const el = document.getElementById("targetLevel");
+        if (el) {
+          targetLevelInput.id = "targetLevel";
+          el.replaceWith(targetLevelInput);
+        }
+      })();
       const currentCoffeeInput = document.getElementById("currentCoffee");
       const currentCoffeeOldInput = document.getElementById("currentCoffeeOld");
       const nextLevelValue = document.getElementById("nextLevelValue");
@@ -532,27 +545,21 @@
         return Math.round(Number(value) || 0).toLocaleString();
       }
 
-      function formatTimeFromHours(hours) {
-        if (!Number.isFinite(hours)) {
-          return "No output";
-        }
-        if (hours <= 0) {
-          return "Ready now";
-        }
-
-        const totalMinutes = Math.round(hours * 60);
-        const days = Math.floor(totalMinutes / 1440);
-        const remainingMinutes = totalMinutes % 1440;
-        const wholeHours = Math.floor(remainingMinutes / 60);
-        const minutes = remainingMinutes % 60;
-
-        if (days > 0) {
-          return `${days}d ${wholeHours}h`;
-        }
-        if (wholeHours > 0) {
-          return `${wholeHours}h ${minutes}m`;
-        }
-        return `${minutes}m`;
+      function formatCountdown(ms) {
+        if (!Number.isFinite(ms) || ms <= 0) return "Ready now";
+        let totalSeconds = Math.floor(ms / 1000);
+        const days = Math.floor(totalSeconds / 86400);
+        totalSeconds %= 86400;
+        const hours = Math.floor(totalSeconds / 3600);
+        totalSeconds %= 3600;
+        const minutes = Math.floor(totalSeconds / 60);
+        const seconds = totalSeconds % 60;
+        let out = "";
+        if (days > 0) out += `${days}d `;
+        if (hours > 0 || days > 0) out += `${hours}h `;
+        if (minutes > 0 || hours > 0 || days > 0) out += `${minutes}m `;
+        out += `${seconds}s`;
+        return out.trim();
       }
 
       function formatReadyAtFromTimestamp(timestampMs, timeZone) {
@@ -655,16 +662,22 @@
 
       function buildLevelOptions() {
         currentLevelInput.innerHTML = "";
-        for (
-          let level = 1;
-          level <= caffeineInstituteCosts.length;
-          level += 1
-        ) {
-          currentLevelInput.appendChild(
-            new Option(`Level ${level}`, String(level)),
-          );
+        targetLevelInput.innerHTML = "";
+        for (let level = 1; level <= caffeineInstituteCosts.length; level += 1) {
+          const option = new Option(`Level ${level}`, String(level));
+          currentLevelInput.appendChild(option.cloneNode(true));
+          targetLevelInput.appendChild(option);
         }
         currentLevelInput.value = "1";
+        // Set default target to next level above current
+        targetLevelInput.value = String(Math.min(Number(currentLevelInput.value) + 1, caffeineInstituteCosts.length));
+      }
+
+      // After loading saved state, ensure target is at least current+1
+      function ensureTargetLevelValid() {
+        if (Number(targetLevelInput.value) <= Number(currentLevelInput.value)) {
+          targetLevelInput.value = String(Math.min(Number(currentLevelInput.value) + 1, caffeineInstituteCosts.length));
+        }
       }
 
       function buildAllianceTechOptions() {
@@ -769,6 +782,7 @@
             STORAGE_KEY,
             JSON.stringify({
               currentLevel: Number(currentLevelInput.value || 1),
+              targetLevel: Number(targetLevelInput.value || 2),
               currentCoffee: Number(currentCoffeeInput.value || 0),
               currentCoffeeOld: Number(currentCoffeeOldInput.value || 0),
               timeZone: timeZoneSelect.value,
@@ -799,6 +813,14 @@
             )
           ) {
             currentLevelInput.value = String(state.currentLevel);
+          }
+          if (
+            state.targetLevel &&
+            targetLevelInput.querySelector(
+              `option[value="${state.targetLevel}"]`,
+            )
+          ) {
+            targetLevelInput.value = String(state.targetLevel);
           }
 
           if (Number.isFinite(Number(state.currentCoffee))) {
@@ -874,8 +896,22 @@
         } catch {}
       }
 
+      let etaCountdownTimer = null;
+      let coffeeEtaMs = 0;
+      let coffeeOldEtaMs = 0;
+      let coffeeEtaReady = false;
+      let coffeeOldEtaReady = false;
+      let lastEtaCurrentLevel = null;
+      function clearEtaCountdown() {
+        if (etaCountdownTimer) {
+          clearInterval(etaCountdownTimer);
+          etaCountdownTimer = null;
+        }
+      }
+
       function updateCalculator() {
         const currentLevel = Number(currentLevelInput.value);
+        const targetLevel = Number(targetLevelInput.value);
         const currentCoffee = Math.max(
           0,
           Number(currentCoffeeInput.value) || 0,
@@ -884,11 +920,23 @@
           0,
           Number(currentCoffeeOldInput.value) || 0,
         );
-        const nextUpgrade = caffeineInstituteCosts.find(
-          (row) => row.level === currentLevel + 1,
-        );
-
-        if (!nextUpgrade) {
+        // If target is not above current, set to next level
+        if (targetLevel <= currentLevel) {
+          targetLevelInput.value = String(Math.min(currentLevel + 1, caffeineInstituteCosts.length));
+        }
+        const actualTargetLevel = Number(targetLevelInput.value);
+        const upgradePath = [];
+        let totalRequiredCoffee = 0;
+        let totalRequiredCoffeeOld = 0;
+        for (let lvl = currentLevel + 1; lvl <= actualTargetLevel; lvl++) {
+          const row = caffeineInstituteCosts.find((r) => r.level === lvl);
+          if (row) {
+            upgradePath.push(lvl);
+            totalRequiredCoffee += row.coffee;
+            totalRequiredCoffeeOld += row.coffeeOld;
+          }
+        }
+        if (upgradePath.length === 0) {
           nextLevelValue.textContent = "Max";
           requiredCoffeeValue.textContent = "0";
           ownedCoffeeValue.textContent = formatResource(currentCoffee);
@@ -910,23 +958,20 @@
             caffeineInstituteCosts[caffeineInstituteCosts.length - 1].level,
           );
           updateCurrentTimeDisplay();
+          saveState();
           return;
         }
-
         const allianceTechPct = Number(allianceTechSelect.value || 0);
         const requiredCoffee = Math.max(
           0,
-          Math.round(nextUpgrade.coffee * (1 - allianceTechPct / 100)),
+          Math.round(totalRequiredCoffee * (1 - allianceTechPct / 100)),
         );
         const requiredCoffeeOld = Math.max(
           0,
-          Math.round(nextUpgrade.coffeeOld * (1 - allianceTechPct / 100)),
+          Math.round(totalRequiredCoffeeOld * (1 - allianceTechPct / 100)),
         );
         const remainingCoffee = Math.max(0, requiredCoffee - currentCoffee);
-        const remainingCoffeeOld = Math.max(
-          0,
-          requiredCoffeeOld - currentCoffeeOld,
-        );
+        const remainingCoffeeOld = Math.max(0, requiredCoffeeOld - currentCoffeeOld);
         const coffeeReady = remainingCoffee === 0;
         const coffeeOldReady = remainingCoffeeOld === 0;
         const totalOutputPerHour = getTotalMineOutput();
@@ -943,12 +988,12 @@
         const selectedTimeZone = timeZoneSelect.value;
         const calcSignature = [
           currentLevel,
+          actualTargetLevel,
           currentCoffee,
           currentCoffeeOld,
           allianceTechPct,
           getMineLevelsSignature(),
         ].join("|");
-
         if (calcSignature !== lastCalcSignature) {
           lockedCoffeeReadyAtTimestampMs =
             !coffeeReady && Number.isFinite(coffeeEtaHours)
@@ -960,8 +1005,7 @@
               : null;
           lastCalcSignature = calcSignature;
         }
-
-        nextLevelValue.textContent = `Lv ${currentLevel + 1}`;
+        nextLevelValue.textContent = `Lv ${actualTargetLevel}`;
         requiredCoffeeValue.textContent = formatResource(requiredCoffee);
         ownedCoffeeValue.textContent = formatResource(currentCoffee);
         deficitCoffeeValue.textContent = formatResource(remainingCoffee);
@@ -970,10 +1014,47 @@
         ownedCoffeeOldValue.textContent = formatResource(currentCoffeeOld);
         deficitCoffeeOldValue.textContent = formatResource(remainingCoffeeOld);
         deficitCoffeeOldValue.className = `tile-value ${coffeeOldReady ? "ok" : "warn"}`;
-        coffeeEtaValue.textContent = formatTimeFromHours(coffeeEtaHours);
-        coffeeEtaValue.className = `tile-value ${coffeeReady ? "ok" : totalOutputPerHour > 0 ? "" : "warn"}`;
-        coffeeOldEtaValue.textContent = formatTimeFromHours(coffeeOldEtaHours);
-        coffeeOldEtaValue.className = `tile-value ${coffeeOldReady ? "ok" : totalOutputPerHour > 0 ? "" : "warn"}`;
+        // ETA countdown logic
+        let restartEta = false;
+        if (lastEtaCurrentLevel === null || lastEtaCurrentLevel !== currentLevel) {
+          restartEta = true;
+          lastEtaCurrentLevel = currentLevel;
+        }
+        if (restartEta || coffeeEtaMs === 0) {
+          coffeeEtaMs = Number.isFinite(coffeeEtaHours) && !coffeeReady ? Math.max(0, Math.round(coffeeEtaHours * 3600 * 1000)) : 0;
+        } else {
+          coffeeEtaMs = Number.isFinite(coffeeEtaHours) && !coffeeReady ? Math.max(0, Math.round(remainingCoffee / totalOutputPerHour * 3600 * 1000)) : 0;
+        }
+        if (restartEta || coffeeOldEtaMs === 0) {
+          coffeeOldEtaMs = Number.isFinite(coffeeOldEtaHours) && !coffeeOldReady ? Math.max(0, Math.round(coffeeOldEtaHours * 3600 * 1000)) : 0;
+        } else {
+          coffeeOldEtaMs = Number.isFinite(coffeeOldEtaHours) && !coffeeOldReady ? Math.max(0, Math.round(remainingCoffeeOld / totalOutputPerHour * 3600 * 1000)) : 0;
+        }
+        coffeeEtaReady = coffeeReady;
+        coffeeOldEtaReady = coffeeOldReady;
+        clearEtaCountdown();
+        function updateEtaFields() {
+          if (coffeeEtaReady || coffeeEtaMs <= 0) {
+            coffeeEtaValue.textContent = "Ready now";
+            coffeeEtaValue.className = "tile-value ok";
+          } else {
+            coffeeEtaValue.textContent = formatCountdown(coffeeEtaMs);
+            coffeeEtaValue.className = `tile-value ${totalOutputPerHour > 0 ? "" : "warn"}`;
+            coffeeEtaMs -= 1000;
+          }
+          if (coffeeOldEtaReady || coffeeOldEtaMs <= 0) {
+            coffeeOldEtaValue.textContent = "Ready now";
+            coffeeOldEtaValue.className = "tile-value ok";
+          } else {
+            coffeeOldEtaValue.textContent = formatCountdown(coffeeOldEtaMs);
+            coffeeOldEtaValue.className = `tile-value ${totalOutputPerHour > 0 ? "" : "warn"}`;
+            coffeeOldEtaMs -= 1000;
+          }
+        }
+        updateEtaFields();
+        if ((!coffeeEtaReady && coffeeEtaMs > 0) || (!coffeeOldEtaReady && coffeeOldEtaMs > 0)) {
+          etaCountdownTimer = setInterval(updateEtaFields, 1000);
+        }
         coffeeReadyAtValue.textContent = coffeeReady
           ? "Now"
           : Number.isFinite(lockedCoffeeReadyAtTimestampMs)
@@ -992,8 +1073,7 @@
               )
             : "No output";
         coffeeOldReadyAtValue.className = `tile-value ${coffeeOldReady ? "ok" : totalOutputPerHour > 0 ? "" : "warn"}`;
-        pathValue.textContent = `Level ${currentLevel} -> Level ${currentLevel + 1}`;
-
+        pathValue.textContent = `Level ${currentLevel} -> Level ${actualTargetLevel}`;
         if (coffeeReady && coffeeOldReady) {
           statusValue.textContent =
             "You already have enough resources for both server tracks";
@@ -1007,29 +1087,40 @@
           }
           statusValue.textContent = `Need more ${missing.join(" and ")}`;
         }
-
         mineRateValue.textContent = `${formatResource(totalOutputPerHour)}/hr`;
         timeZoneValue.textContent = selectedTimeZone;
-        costLevelSelect.value = String(nextUpgrade.level);
+        costLevelSelect.value = String(actualTargetLevel);
         updateCurrentTimeDisplay();
         saveState();
       }
 
       buildLevelOptions();
+      // After loading state, ensure target is at least current+1
+      ensureTargetLevelValid();
       buildTimeZoneOptions();
       buildLanguageOptions();
       buildAllianceTechOptions();
       buildMineSelectors();
       loadSavedState();
+      ensureTargetLevelValid();
       buildLanguageOptions();
       buildTable();
       updateCalculator();
+      // Clear countdown timer on page unload
+      window.addEventListener("beforeunload", clearEtaCountdown);
       updateMineOutput();
       updateCurrentTimeDisplay();
       loadGoogleTranslateScript();
       setInterval(updateCurrentTimeDisplay, 1000);
 
-      currentLevelInput.addEventListener("change", updateCalculator);
+      currentLevelInput.addEventListener("change", () => {
+        // If user hasn't picked a higher target, always set target to next level above current
+        if (Number(targetLevelInput.value) <= Number(currentLevelInput.value)) {
+          targetLevelInput.value = String(Math.min(Number(currentLevelInput.value) + 1, caffeineInstituteCosts.length));
+        }
+        updateCalculator();
+      });
+      targetLevelInput.addEventListener("change", updateCalculator);
       currentCoffeeInput.addEventListener("input", updateCalculator);
       currentCoffeeOldInput.addEventListener("input", updateCalculator);
       timeZoneSelect.addEventListener("change", updateCalculator);

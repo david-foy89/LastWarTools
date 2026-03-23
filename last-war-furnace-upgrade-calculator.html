@@ -723,28 +723,21 @@
         return Math.round(Number(value) || 0).toLocaleString();
       }
 
-      function formatTimeFromHours(hours) {
-        if (!Number.isFinite(hours)) {
-          return "No output";
-        }
-
-        if (hours <= 0) {
-          return "Ready now";
-        }
-
-        const totalMinutes = Math.round(hours * 60);
-        const days = Math.floor(totalMinutes / 1440);
-        const remainingMinutes = totalMinutes % 1440;
-        const wholeHours = Math.floor(remainingMinutes / 60);
-        const minutes = remainingMinutes % 60;
-
-        if (days > 0) {
-          return `${days}d ${wholeHours}h`;
-        }
-        if (wholeHours > 0) {
-          return `${wholeHours}h ${minutes}m`;
-        }
-        return `${minutes}m`;
+      function formatCountdown(ms) {
+        if (!Number.isFinite(ms) || ms <= 0) return "Ready now";
+        let totalSeconds = Math.floor(ms / 1000);
+        const days = Math.floor(totalSeconds / 86400);
+        totalSeconds %= 86400;
+        const hours = Math.floor(totalSeconds / 3600);
+        totalSeconds %= 3600;
+        const minutes = Math.floor(totalSeconds / 60);
+        const seconds = totalSeconds % 60;
+        let out = "";
+        if (days > 0) out += `${days}d `;
+        if (hours > 0 || days > 0) out += `${hours}h `;
+        if (minutes > 0 || hours > 0 || days > 0) out += `${minutes}m `;
+        out += `${seconds}s`;
+        return out.trim();
       }
 
       function formatReadyAt(hours, timeZone) {
@@ -945,7 +938,8 @@
         }
 
         totalMineOutput.textContent = `${formatTitanium(totalOutput)}/hr`;
-        updateCalculator();
+        // When mine output changes, adjust ETA countdown based on new output/hr
+        updateCalculator({ preserveEta: true });
       }
 
       function getTotalMineOutput() {
@@ -1100,7 +1094,21 @@
         }
       }
 
-      function updateCalculator() {
+
+      let etaCountdownTimer = null;
+      let etaMs = 0;
+      let etaReady = false;
+      let lastEtaCurrentLevel = null;
+      let lastEtaMs = 0;
+      function clearEtaCountdown() {
+        if (etaCountdownTimer) {
+          clearInterval(etaCountdownTimer);
+          etaCountdownTimer = null;
+        }
+      }
+
+
+      function updateCalculator(opts = {}) {
         const currentLevel = Number(currentLevelInput.value);
         const targetLevel = Math.max(
           Number(targetLevelInput.value),
@@ -1125,13 +1133,14 @@
         );
         const ready = remainingTitanium === 0;
         const totalOutputPerHour = getTotalMineOutput();
-        const estimatedHours = ready
-          ? 0
-          : totalOutputPerHour > 0
-            ? remainingTitanium / totalOutputPerHour
-            : Infinity;
-        const selectedTimeZone = timeZoneSelect.value;
-
+        let estimatedHours;
+        if (ready) {
+          estimatedHours = 0;
+        } else if (totalOutputPerHour > 0) {
+          estimatedHours = remainingTitanium / totalOutputPerHour;
+        } else {
+          estimatedHours = Infinity;
+        }
         // Lock the ready-at time until values that affect the calculation change.
         const calcSignature = [
           currentLevel,
@@ -1141,14 +1150,11 @@
           getMineLevelsSignature(),
         ].join("|");
 
-        if (calcSignature !== lastCalcSignature) {
-          if (!ready && Number.isFinite(estimatedHours)) {
-            lockedReadyAtTimestampMs =
-              Date.now() + estimatedHours * 3600 * 1000;
-          } else {
-            lockedReadyAtTimestampMs = null;
-          }
-          lastCalcSignature = calcSignature;
+        // Only restart ETA if currentLevel changes
+        let restartEta = false;
+        if (lastEtaCurrentLevel === null || lastEtaCurrentLevel !== currentLevel) {
+          restartEta = true;
+          lastEtaCurrentLevel = currentLevel;
         }
 
         nextLevelValue.textContent = `Lv ${targetLevel}`;
@@ -1156,27 +1162,70 @@
         ownedValue.textContent = formatTitanium(currentTitanium);
         deficitValue.textContent = formatTitanium(remainingTitanium);
         deficitValue.className = `tile-value ${ready ? "ok" : "warn"}`;
-        etaValue.textContent = formatTimeFromHours(estimatedHours);
-        etaValue.className = `tile-value ${ready ? "ok" : totalOutputPerHour > 0 ? "" : "warn"}`;
+
+        // ETA countdown logic
+        if (restartEta || etaMs === 0) {
+          // Start fresh if currentLevel changed or first run
+          if (!ready && totalOutputPerHour > 0) {
+            etaMs = Math.max(0, Math.round(remainingTitanium / totalOutputPerHour * 3600 * 1000));
+          } else {
+            etaMs = Number.isFinite(estimatedHours) && !ready ? Math.max(0, Math.round(estimatedHours * 3600 * 1000)) : 0;
+          }
+        } else {
+          // For all other changes, adjust etaMs proportionally
+          if (!ready && totalOutputPerHour > 0) {
+            // Calculate how much time remains based on previous etaMs and new output
+            // Use the remaining titanium and new output/hr
+            etaMs = Math.max(0, Math.round(remainingTitanium / totalOutputPerHour * 3600 * 1000));
+          } else {
+            etaMs = Number.isFinite(estimatedHours) && !ready ? Math.max(0, Math.round(estimatedHours * 3600 * 1000)) : 0;
+          }
+        }
+        etaReady = ready;
+        clearEtaCountdown();
+        function updateEtaField() {
+          if (etaReady || etaMs <= 0) {
+            etaValue.textContent = "Ready now";
+            etaValue.className = "tile-value ok";
+          } else {
+            etaValue.textContent = formatCountdown(etaMs);
+            etaValue.className = `tile-value ${totalOutputPerHour > 0 ? "" : "warn"}`;
+            etaMs -= 1000;
+          }
+        }
+        updateEtaField();
+        if (!etaReady && etaMs > 0) {
+          etaCountdownTimer = setInterval(updateEtaField, 1000);
+        }
+        // Always update ready at time based on latest inputs
+        let readyAtTimestamp = null;
+        if (!ready && Number.isFinite(estimatedHours)) {
+          readyAtTimestamp = Date.now() + etaMs;
+        }
         readyAtValue.textContent = ready
           ? "Now"
-          : Number.isFinite(lockedReadyAtTimestampMs)
-            ? formatReadyAtFromTimestamp(
-                lockedReadyAtTimestampMs,
-                selectedTimeZone,
-              )
-            : formatReadyAt(estimatedHours, selectedTimeZone);
+          : readyAtTimestamp
+            ? formatReadyAtFromTimestamp(readyAtTimestamp, timeZoneSelect.value)
+            : formatReadyAt(estimatedHours, timeZoneSelect.value);
         readyAtValue.className = `tile-value ${ready ? "ok" : totalOutputPerHour > 0 ? "" : "warn"}`;
+        // Maintain lastCalcSignature and lockedReadyAtTimestampMs for state save/restore
+        if (calcSignature !== lastCalcSignature) {
+          if (!ready && Number.isFinite(estimatedHours)) {
+            lockedReadyAtTimestampMs = readyAtTimestamp;
+          } else {
+            lockedReadyAtTimestampMs = null;
+          }
+          lastCalcSignature = calcSignature;
+        }
         pathValue.textContent = `Level ${currentLevel} -> Level ${targetLevel}`;
         statusValue.textContent = ready
           ? "You already have enough titanium alloy"
           : "Need more titanium alloy";
         mineRateValue.textContent = `${formatTitanium(totalOutputPerHour)}/hr`;
-        timeZoneValue.textContent = selectedTimeZone;
+        timeZoneValue.textContent = timeZoneSelect.value;
         costLevelSelect.value = String(targetLevel);
         updateSelectedFurnaceStats();
         updateCurrentTimeDisplay();
-
         saveState();
       }
 
@@ -1190,6 +1239,8 @@
       buildLanguageOptions();
       buildTable();
       updateCalculator();
+      // Clear countdown timer on page unload
+      window.addEventListener("beforeunload", clearEtaCountdown);
       updateMineOutput();
       updateCurrentTimeDisplay();
       loadGoogleTranslateScript();
