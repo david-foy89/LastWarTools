@@ -645,13 +645,23 @@
         }
         currentLevelInput.value = "1";
         // Set default target to next level above current
-        targetLevelInput.value = String(Math.min(Number(currentLevelInput.value) + 1, sacredWaterCosts.length));
+        targetLevelInput.value = String(
+          Math.min(
+            Number(currentLevelInput.value) + 1,
+            sacredWaterCosts.length,
+          ),
+        );
       }
 
       // After loading saved state, ensure target is at least current+1
       function ensureTargetLevelValid() {
         if (Number(targetLevelInput.value) <= Number(currentLevelInput.value)) {
-          targetLevelInput.value = String(Math.min(Number(currentLevelInput.value) + 1, sacredWaterCosts.length));
+          targetLevelInput.value = String(
+            Math.min(
+              Number(currentLevelInput.value) + 1,
+              sacredWaterCosts.length,
+            ),
+          );
         }
       }
 
@@ -874,7 +884,9 @@
         );
         // If target is not above current, set to next level
         if (targetLevel <= currentLevel) {
-          targetLevelInput.value = String(Math.min(currentLevel + 1, sacredWaterCosts.length));
+          targetLevelInput.value = String(
+            Math.min(currentLevel + 1, sacredWaterCosts.length),
+          );
         }
         const actualTargetLevel = Number(targetLevelInput.value);
         const upgradePath = [];
@@ -945,19 +957,32 @@
         deficitValue.className = `tile-value ${ready ? "ok" : "warn"}`;
         // ETA countdown logic
         let restartEta = false;
-        if (lastEtaCurrentLevel === null || lastEtaCurrentLevel !== currentLevel) {
+        if (
+          lastEtaCurrentLevel === null ||
+          lastEtaCurrentLevel !== currentLevel
+        ) {
           restartEta = true;
           lastEtaCurrentLevel = currentLevel;
         }
         if (restartEta || etaMs === 0) {
           if (!ready && totalOutputPerHour > 0) {
-            etaMs = Math.max(0, Math.round(remainingSacredWater / totalOutputPerHour * 3600 * 1000));
+            etaMs = Math.max(
+              0,
+              Math.round(
+                (remainingSacredWater / totalOutputPerHour) * 3600 * 1000,
+              ),
+            );
           } else {
             etaMs = 0;
           }
         } else {
           if (!ready && totalOutputPerHour > 0) {
-            etaMs = Math.max(0, Math.round(remainingSacredWater / totalOutputPerHour * 3600 * 1000));
+            etaMs = Math.max(
+              0,
+              Math.round(
+                (remainingSacredWater / totalOutputPerHour) * 3600 * 1000,
+              ),
+            );
           } else {
             etaMs = 0;
           }
@@ -1043,7 +1068,12 @@
       currentLevelInput.addEventListener("change", () => {
         // If user hasn't picked a higher target, always set target to next level above current
         if (Number(targetLevelInput.value) <= Number(currentLevelInput.value)) {
-          targetLevelInput.value = String(Math.min(Number(currentLevelInput.value) + 1, sacredWaterCosts.length));
+          targetLevelInput.value = String(
+            Math.min(
+              Number(currentLevelInput.value) + 1,
+              sacredWaterCosts.length,
+            ),
+          );
         }
         updateCalculator();
       });

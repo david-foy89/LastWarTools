@@ -1094,7 +1094,6 @@
         }
       }
 
-
       let etaCountdownTimer = null;
       let etaMs = 0;
       let etaReady = false;
@@ -1106,7 +1105,6 @@
           etaCountdownTimer = null;
         }
       }
-
 
       function updateCalculator(opts = {}) {
         const currentLevel = Number(currentLevelInput.value);
@@ -1152,7 +1150,10 @@
 
         // Only restart ETA if currentLevel changes
         let restartEta = false;
-        if (lastEtaCurrentLevel === null || lastEtaCurrentLevel !== currentLevel) {
+        if (
+          lastEtaCurrentLevel === null ||
+          lastEtaCurrentLevel !== currentLevel
+        ) {
           restartEta = true;
           lastEtaCurrentLevel = currentLevel;
         }
@@ -1167,18 +1168,34 @@
         if (restartEta || etaMs === 0) {
           // Start fresh if currentLevel changed or first run
           if (!ready && totalOutputPerHour > 0) {
-            etaMs = Math.max(0, Math.round(remainingTitanium / totalOutputPerHour * 3600 * 1000));
+            etaMs = Math.max(
+              0,
+              Math.round(
+                (remainingTitanium / totalOutputPerHour) * 3600 * 1000,
+              ),
+            );
           } else {
-            etaMs = Number.isFinite(estimatedHours) && !ready ? Math.max(0, Math.round(estimatedHours * 3600 * 1000)) : 0;
+            etaMs =
+              Number.isFinite(estimatedHours) && !ready
+                ? Math.max(0, Math.round(estimatedHours * 3600 * 1000))
+                : 0;
           }
         } else {
           // For all other changes, adjust etaMs proportionally
           if (!ready && totalOutputPerHour > 0) {
             // Calculate how much time remains based on previous etaMs and new output
             // Use the remaining titanium and new output/hr
-            etaMs = Math.max(0, Math.round(remainingTitanium / totalOutputPerHour * 3600 * 1000));
+            etaMs = Math.max(
+              0,
+              Math.round(
+                (remainingTitanium / totalOutputPerHour) * 3600 * 1000,
+              ),
+            );
           } else {
-            etaMs = Number.isFinite(estimatedHours) && !ready ? Math.max(0, Math.round(estimatedHours * 3600 * 1000)) : 0;
+            etaMs =
+              Number.isFinite(estimatedHours) && !ready
+                ? Math.max(0, Math.round(estimatedHours * 3600 * 1000))
+                : 0;
           }
         }
         etaReady = ready;

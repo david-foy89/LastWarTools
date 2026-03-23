@@ -611,16 +611,17 @@
         }
       }
       // Add Ready At field to UI if not present
-      if (!document.getElementById('readyAtValue')) {
-        const detailsDiv = document.querySelector('.details');
+      if (!document.getElementById("readyAtValue")) {
+        const detailsDiv = document.querySelector(".details");
         if (detailsDiv) {
-          const readyAtRow = document.createElement('div');
-          readyAtRow.className = 'row';
-          readyAtRow.innerHTML = '<div class="row-key">Upgrade Ready At</div><div class="row-value" id="readyAtValue">-</div>';
+          const readyAtRow = document.createElement("div");
+          readyAtRow.className = "row";
+          readyAtRow.innerHTML =
+            '<div class="row-key">Upgrade Ready At</div><div class="row-value" id="readyAtValue">-</div>';
           detailsDiv.insertBefore(readyAtRow, detailsDiv.firstChild);
         }
       }
-      const readyAtValue = document.getElementById('readyAtValue');
+      const readyAtValue = document.getElementById("readyAtValue");
       const targetXpValue = document.getElementById("targetXpValue");
       const farmOutputTileValue = document.getElementById(
         "farmOutputTileValue",
@@ -1026,19 +1027,28 @@
         // ETA countdown logic for targetDeficit
         let restartEta = false;
         const currentLevel = Math.max(1, Number(currentLevelSelect.value) || 1);
-        if (lastEtaCurrentLevel === null || lastEtaCurrentLevel !== currentLevel) {
+        if (
+          lastEtaCurrentLevel === null ||
+          lastEtaCurrentLevel !== currentLevel
+        ) {
           restartEta = true;
           lastEtaCurrentLevel = currentLevel;
         }
         if (restartEta || etaMs === 0) {
           if (targetDeficit > 0 && totalFarmOutput > 0) {
-            etaMs = Math.max(0, Math.round(targetDeficit / totalFarmOutput * 3600 * 1000));
+            etaMs = Math.max(
+              0,
+              Math.round((targetDeficit / totalFarmOutput) * 3600 * 1000),
+            );
           } else {
             etaMs = 0;
           }
         } else {
           if (targetDeficit > 0 && totalFarmOutput > 0) {
-            etaMs = Math.max(0, Math.round(targetDeficit / totalFarmOutput * 3600 * 1000));
+            etaMs = Math.max(
+              0,
+              Math.round((targetDeficit / totalFarmOutput) * 3600 * 1000),
+            );
           } else {
             etaMs = 0;
           }
@@ -1062,7 +1072,7 @@
           return out.trim();
         }
         function updateEtaField() {
-          const etaField = document.getElementById('etaValue');
+          const etaField = document.getElementById("etaValue");
           if (!etaField) return;
           if (etaReady || etaMs <= 0) {
             etaField.textContent = "Ready now";
@@ -1074,12 +1084,13 @@
           }
         }
         // Add ETA field to UI if not present
-        if (!document.getElementById('etaValue')) {
-          const summaryDiv = document.querySelector('.summary');
+        if (!document.getElementById("etaValue")) {
+          const summaryDiv = document.querySelector(".summary");
           if (summaryDiv) {
-            const etaTile = document.createElement('div');
-            etaTile.className = 'tile';
-            etaTile.innerHTML = '<div class="tile-key">Estimated Time</div><div class="tile-value" id="etaValue">-</div>';
+            const etaTile = document.createElement("div");
+            etaTile.className = "tile";
+            etaTile.innerHTML =
+              '<div class="tile-key">Estimated Time</div><div class="tile-value" id="etaValue">-</div>';
             summaryDiv.appendChild(etaTile);
           }
         }

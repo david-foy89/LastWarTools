@@ -663,20 +663,34 @@
       function buildLevelOptions() {
         currentLevelInput.innerHTML = "";
         targetLevelInput.innerHTML = "";
-        for (let level = 1; level <= caffeineInstituteCosts.length; level += 1) {
+        for (
+          let level = 1;
+          level <= caffeineInstituteCosts.length;
+          level += 1
+        ) {
           const option = new Option(`Level ${level}`, String(level));
           currentLevelInput.appendChild(option.cloneNode(true));
           targetLevelInput.appendChild(option);
         }
         currentLevelInput.value = "1";
         // Set default target to next level above current
-        targetLevelInput.value = String(Math.min(Number(currentLevelInput.value) + 1, caffeineInstituteCosts.length));
+        targetLevelInput.value = String(
+          Math.min(
+            Number(currentLevelInput.value) + 1,
+            caffeineInstituteCosts.length,
+          ),
+        );
       }
 
       // After loading saved state, ensure target is at least current+1
       function ensureTargetLevelValid() {
         if (Number(targetLevelInput.value) <= Number(currentLevelInput.value)) {
-          targetLevelInput.value = String(Math.min(Number(currentLevelInput.value) + 1, caffeineInstituteCosts.length));
+          targetLevelInput.value = String(
+            Math.min(
+              Number(currentLevelInput.value) + 1,
+              caffeineInstituteCosts.length,
+            ),
+          );
         }
       }
 
@@ -922,7 +936,9 @@
         );
         // If target is not above current, set to next level
         if (targetLevel <= currentLevel) {
-          targetLevelInput.value = String(Math.min(currentLevel + 1, caffeineInstituteCosts.length));
+          targetLevelInput.value = String(
+            Math.min(currentLevel + 1, caffeineInstituteCosts.length),
+          );
         }
         const actualTargetLevel = Number(targetLevelInput.value);
         const upgradePath = [];
@@ -971,7 +987,10 @@
           Math.round(totalRequiredCoffeeOld * (1 - allianceTechPct / 100)),
         );
         const remainingCoffee = Math.max(0, requiredCoffee - currentCoffee);
-        const remainingCoffeeOld = Math.max(0, requiredCoffeeOld - currentCoffeeOld);
+        const remainingCoffeeOld = Math.max(
+          0,
+          requiredCoffeeOld - currentCoffeeOld,
+        );
         const coffeeReady = remainingCoffee === 0;
         const coffeeOldReady = remainingCoffeeOld === 0;
         const totalOutputPerHour = getTotalMineOutput();
@@ -1016,19 +1035,44 @@
         deficitCoffeeOldValue.className = `tile-value ${coffeeOldReady ? "ok" : "warn"}`;
         // ETA countdown logic
         let restartEta = false;
-        if (lastEtaCurrentLevel === null || lastEtaCurrentLevel !== currentLevel) {
+        if (
+          lastEtaCurrentLevel === null ||
+          lastEtaCurrentLevel !== currentLevel
+        ) {
           restartEta = true;
           lastEtaCurrentLevel = currentLevel;
         }
         if (restartEta || coffeeEtaMs === 0) {
-          coffeeEtaMs = Number.isFinite(coffeeEtaHours) && !coffeeReady ? Math.max(0, Math.round(coffeeEtaHours * 3600 * 1000)) : 0;
+          coffeeEtaMs =
+            Number.isFinite(coffeeEtaHours) && !coffeeReady
+              ? Math.max(0, Math.round(coffeeEtaHours * 3600 * 1000))
+              : 0;
         } else {
-          coffeeEtaMs = Number.isFinite(coffeeEtaHours) && !coffeeReady ? Math.max(0, Math.round(remainingCoffee / totalOutputPerHour * 3600 * 1000)) : 0;
+          coffeeEtaMs =
+            Number.isFinite(coffeeEtaHours) && !coffeeReady
+              ? Math.max(
+                  0,
+                  Math.round(
+                    (remainingCoffee / totalOutputPerHour) * 3600 * 1000,
+                  ),
+                )
+              : 0;
         }
         if (restartEta || coffeeOldEtaMs === 0) {
-          coffeeOldEtaMs = Number.isFinite(coffeeOldEtaHours) && !coffeeOldReady ? Math.max(0, Math.round(coffeeOldEtaHours * 3600 * 1000)) : 0;
+          coffeeOldEtaMs =
+            Number.isFinite(coffeeOldEtaHours) && !coffeeOldReady
+              ? Math.max(0, Math.round(coffeeOldEtaHours * 3600 * 1000))
+              : 0;
         } else {
-          coffeeOldEtaMs = Number.isFinite(coffeeOldEtaHours) && !coffeeOldReady ? Math.max(0, Math.round(remainingCoffeeOld / totalOutputPerHour * 3600 * 1000)) : 0;
+          coffeeOldEtaMs =
+            Number.isFinite(coffeeOldEtaHours) && !coffeeOldReady
+              ? Math.max(
+                  0,
+                  Math.round(
+                    (remainingCoffeeOld / totalOutputPerHour) * 3600 * 1000,
+                  ),
+                )
+              : 0;
         }
         coffeeEtaReady = coffeeReady;
         coffeeOldEtaReady = coffeeOldReady;
@@ -1052,7 +1096,10 @@
           }
         }
         updateEtaFields();
-        if ((!coffeeEtaReady && coffeeEtaMs > 0) || (!coffeeOldEtaReady && coffeeOldEtaMs > 0)) {
+        if (
+          (!coffeeEtaReady && coffeeEtaMs > 0) ||
+          (!coffeeOldEtaReady && coffeeOldEtaMs > 0)
+        ) {
           etaCountdownTimer = setInterval(updateEtaFields, 1000);
         }
         coffeeReadyAtValue.textContent = coffeeReady
@@ -1116,7 +1163,12 @@
       currentLevelInput.addEventListener("change", () => {
         // If user hasn't picked a higher target, always set target to next level above current
         if (Number(targetLevelInput.value) <= Number(currentLevelInput.value)) {
-          targetLevelInput.value = String(Math.min(Number(currentLevelInput.value) + 1, caffeineInstituteCosts.length));
+          targetLevelInput.value = String(
+            Math.min(
+              Number(currentLevelInput.value) + 1,
+              caffeineInstituteCosts.length,
+            ),
+          );
         }
         updateCalculator();
       });
