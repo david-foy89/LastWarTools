@@ -1011,7 +1011,24 @@
         // Ready At logic
         let readyAtTimestamp = null;
         if (!etaReady && totalOutputPerHour > 0 && etaMs > 0) {
-          readyAtTimestamp = Date.now() + etaMs;
+          // If the signature changed, recalculate and lock a new readyAtTimestamp
+          if (calcSignature !== lastCalcSignature) {
+            readyAtTimestamp = Date.now() + etaMs;
+            lockedReadyAtTimestampMs = readyAtTimestamp;
+            lastCalcSignature = calcSignature;
+          } else if (
+            lockedReadyAtTimestampMs &&
+            lockedReadyAtTimestampMs > Date.now()
+          ) {
+            // If signature is the same and we have a locked timestamp in the future, use it
+            readyAtTimestamp = lockedReadyAtTimestampMs;
+          } else {
+            // Fallback: recalculate
+            readyAtTimestamp = Date.now() + etaMs;
+            lockedReadyAtTimestampMs = readyAtTimestamp;
+          }
+        } else {
+          lockedReadyAtTimestampMs = null;
         }
         readyAtValue.textContent = etaReady
           ? "Now"
