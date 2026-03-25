@@ -1,3 +1,80 @@
+/* Transfer Tracker Table Styles */
+.transfer-table-container {
+  margin-top: 18px;
+  border: 1px solid var(--line);
+  border-radius: 16px;
+  background: linear-gradient(180deg, var(--panel) 0%, var(--panel-2) 100%);
+  box-shadow: 0 8px 32px rgba(0,0,0,0.18);
+  padding: 18px 10px 24px 10px;
+  overflow-x: auto;
+  width: 100%;
+  max-width: 100%;
+  margin-left: 0;
+  margin-right: 0;
+}
+
+.transfer-table {
+  width: 100%;
+  border-collapse: collapse;
+  min-width: 900px;
+  background: rgba(8, 16, 25, 0.65);
+  font-size: 0.97rem;
+  table-layout: auto;
+}
+
+.transfer-table th,
+.transfer-table td {
+  padding: 12px 14px;
+  border-top: 1px solid var(--line);
+  text-align: left;
+  vertical-align: top;
+}
+
+.transfer-table th {
+  border-top: none;
+  color: var(--muted);
+  font-size: 0.78rem;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  background: #0d1722;
+  font-weight: 700;
+}
+
+.transfer-table tr:nth-child(even) td {
+  background: rgba(116, 192, 252, 0.04);
+}
+
+.transfer-table tr:hover td {
+  background: rgba(116, 192, 252, 0.10);
+}
+
+@media (max-width: 1100px) {
+  .transfer-table {
+    min-width: 700px;
+    font-size: 0.93rem;
+  }
+}
+
+@media (max-width: 800px) {
+  .transfer-table-container {
+    padding: 10px 2px 16px 2px;
+  }
+  .transfer-table {
+    min-width: 600px;
+    font-size: 0.91rem;
+  }
+}
+
+@media (max-width: 600px) {
+  .transfer-table {
+    min-width: 420px;
+    font-size: 0.88rem;
+  }
+  .transfer-table th,
+  .transfer-table td {
+    padding: 8px 6px;
+  }
+}
 :root {
   --bg: #081019;
   --panel: #111c28;

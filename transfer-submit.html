@@ -1,0 +1,69 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Submit Alliance Transfer Info</title>
+    <meta name="description" content="Submit your alliance transfer information via a unique link." />
+    <link rel="stylesheet" href="last-war-furnace-upgrade-calculator.css" />
+  </head>
+  <body>
+    <div class="page">
+      <section class="hero">
+        <h1>Alliance Transfer Submission</h1>
+        <div class="sub">Fill out your transfer info. When submitted, it will be sent to the requesting user.</div>
+      </section>
+      <section class="layout" style="display: block; padding: 0;">
+        <form id="transferSubmitForm" style="max-width: 700px; margin: 0 auto; background: linear-gradient(180deg, var(--panel) 0%, var(--panel-2) 100%); border: 1px solid var(--line-soft); border-radius: 16px; box-shadow: 0 8px 32px rgba(0,0,0,0.10); padding: 18px 14px 14px 14px;">
+          <div class="field"><label>Display Name (Please use the same name)<input name="displayName" required></label></div>
+          <div class="field"><label>Server Number<input name="serverNumber" required></label></div>
+          <div class="field"><label>Current Alliance Name<input name="currentAlliance" required></label></div>
+          <div class="field"><label>Best Squad Power with optimized setup (Ex: 23.6m)<input name="bestSquadPower" required></label></div>
+          <div class="field"><label>Total Hero Power (Ex: 105.6 million)<input name="totalHeroPower" required></label></div>
+          <div class="field"><label>Which Alliance are you interested in joining?<input name="allianceInterested" required></label></div>
+          <div class="field"><label>If known, what is your transfer status?
+            <select name="transferStatus">
+              <option value="">-- Select Status --</option>
+              <option value="Gold">Gold</option>
+              <option value="Purple">Purple</option>
+              <option value="Blue">Blue</option>
+              <option value="White">White</option>
+            </select>
+          </label></div>
+          <div class="field"><label>Additional Info you want considered?<textarea name="additionalInfo"></textarea></label></div>
+          <button type="submit" class="action-button">Submit Transfer Info</button>
+          <div id="submitResult" style="margin-top: 14px;"></div>
+        </form>
+      </section>
+    </div>
+    <script>
+    // Get the unique id from the URL
+    function getId() {
+      const params = new URLSearchParams(window.location.search);
+      return params.get('id');
+    }
+    document.getElementById('transferSubmitForm').addEventListener('submit', function(e) {
+      e.preventDefault();
+      const id = getId();
+      if (!id) {
+        document.getElementById('submitResult').textContent = 'Invalid or missing link ID.';
+        return;
+      }
+      const data = {
+        displayName: this.displayName.value,
+        serverNumber: this.serverNumber.value,
+        currentAlliance: this.currentAlliance.value,
+        bestSquadPower: this.bestSquadPower.value,
+        totalHeroPower: this.totalHeroPower.value,
+        allianceInterested: this.allianceInterested.value,
+        transferStatus: this.transferStatus.value,
+        additionalInfo: this.additionalInfo.value
+      };
+      // Save to localStorage under a key for the id
+      localStorage.setItem('transferSubmission_' + id, JSON.stringify(data));
+      document.getElementById('submitResult').innerHTML = '<span style="color:var(--ok);font-weight:700;">Thank you! Your info has been submitted.</span>';
+      this.reset();
+    });
+    </script>
+  </body>
+</html>

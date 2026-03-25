@@ -74,6 +74,7 @@
               >Train Conductor</a
             >
             <a href="server-search.html" class="page-link">Server Search</a>
+            <a href="transfer-tracker.html" class="page-link">Transfer Tracker</a>
           </div>
         </details>
         <details class="page-nav-dropdown" name="troop-nav">
@@ -1217,24 +1218,12 @@
         // Always update ready at time based on latest inputs
         let readyAtTimestamp = null;
         if (!ready && Number.isFinite(estimatedHours)) {
-          // If the signature changed, recalculate and lock a new readyAtTimestamp
-          if (calcSignature !== lastCalcSignature) {
-            readyAtTimestamp = Date.now() + etaMs;
-            lockedReadyAtTimestampMs = readyAtTimestamp;
-            lastCalcSignature = calcSignature;
-          } else if (
-            lockedReadyAtTimestampMs &&
-            lockedReadyAtTimestampMs > Date.now()
-          ) {
-            // If signature is the same and we have a locked timestamp in the future, use it
+          // If the calculation signature matches the last one and we have a locked timestamp, use it
+          if (calcSignature === lastCalcSignature && Number.isFinite(lockedReadyAtTimestampMs)) {
             readyAtTimestamp = lockedReadyAtTimestampMs;
           } else {
-            // Fallback: recalculate
             readyAtTimestamp = Date.now() + etaMs;
-            lockedReadyAtTimestampMs = readyAtTimestamp;
           }
-        } else {
-          lockedReadyAtTimestampMs = null;
         }
         readyAtValue.textContent = ready
           ? "Now"
@@ -1242,6 +1231,15 @@
             ? formatReadyAtFromTimestamp(readyAtTimestamp, timeZoneSelect.value)
             : formatReadyAt(estimatedHours, timeZoneSelect.value);
         readyAtValue.className = `tile-value ${ready ? "ok" : totalOutputPerHour > 0 ? "" : "warn"}`;
+        // Maintain lastCalcSignature and lockedReadyAtTimestampMs for state save/restore only
+        if (calcSignature !== lastCalcSignature) {
+          if (!ready && Number.isFinite(estimatedHours)) {
+            lockedReadyAtTimestampMs = readyAtTimestamp;
+          } else {
+            lockedReadyAtTimestampMs = null;
+          }
+          lastCalcSignature = calcSignature;
+        }
         pathValue.textContent = `Level ${currentLevel} -> Level ${targetLevel}`;
         statusValue.textContent = ready
           ? "You already have enough titanium alloy"
