@@ -180,28 +180,37 @@
           <button type="submit" class="action-button">
             Generate Unique Link
           </button>
-          <div id="shareableLinkResult" style="margin-top: 12px; word-break: break-all"></div>
+          <div
+            id="shareableLinkResult"
+            style="margin-top: 12px; word-break: break-all"
+          ></div>
         </form>
-                <script type="module">
-                  import { initializeApp } from "https://www.gstatic.com/firebasejs/9.22.2/firebase-app.js";
-                  import { getFirestore, collection, onSnapshot, query, orderBy } from "https://www.gstatic.com/firebasejs/9.22.2/firebase-firestore.js";
+        <script type="module">
+          import { initializeApp } from "https://www.gstatic.com/firebasejs/9.22.2/firebase-app.js";
+          import {
+            getFirestore,
+            collection,
+            onSnapshot,
+            query,
+            orderBy,
+          } from "https://www.gstatic.com/firebasejs/9.22.2/firebase-firestore.js";
 
-                  // Your web app's Firebase configuration
-                  const firebaseConfig = {
-                    apiKey: "AIzaSyDow8S7fv4cwDxXVzWzqOUa9G8swBC0jNI",
-                    authDomain: "lastwartools-c12c8.firebaseapp.com",
-                    projectId: "lastwartools-c12c8",
-                    storageBucket: "lastwartools-c12c8.firebasestorage.app",
-                    messagingSenderId: "536808421567",
-                    appId: "1:536808421567:web:fae01f7b3852176a7aae0a",
-                    measurementId: "G-34RS45FLKS"
-                  };
-                  const app = initializeApp(firebaseConfig);
-                  const db = getFirestore(app);
+          // Your web app's Firebase configuration
+          const firebaseConfig = {
+            apiKey: "AIzaSyDow8S7fv4cwDxXVzWzqOUa9G8swBC0jNI",
+            authDomain: "lastwartools-c12c8.firebaseapp.com",
+            projectId: "lastwartools-c12c8",
+            storageBucket: "lastwartools-c12c8.firebasestorage.app",
+            messagingSenderId: "536808421567",
+            appId: "1:536808421567:web:fae01f7b3852176a7aae0a",
+            measurementId: "G-34RS45FLKS",
+          };
+          const app = initializeApp(firebaseConfig);
+          const db = getFirestore(app);
 
-                  // Helper to render a row
-                  function renderRow(data) {
-                    return `<tr>
+          // Helper to render a row
+          function renderRow(data) {
+            return `<tr>
                       <td>${data.displayName || ""}</td>
                       <td>${data.serverNumber || ""}</td>
                       <td>${data.currentAlliance || ""}</td>
@@ -211,52 +220,57 @@
                       <td>${data.transferStatus || ""}</td>
                       <td>${data.additionalInfo || ""}</td>
                     </tr>`;
-                  }
+          }
 
-                  // Listen for changes in Firestore and update the table
-                  function listenForTransfers() {
-                    const tbody = document.querySelector('.transfer-table tbody');
-                    const q = query(collection(db, 'transferSubmissions'), orderBy('submittedAt', 'desc'));
-                    onSnapshot(q, (snapshot) => {
-                      let html = '';
-                      snapshot.forEach(doc => {
-                        html += renderRow(doc.data());
-                      });
-                      tbody.innerHTML = html || '<tr><td colspan="8" style="text-align:center;color:var(--muted);">No submissions yet.</td></tr>';
-                    });
-                  }
-                  listenForTransfers();
+          // Listen for changes in Firestore and update the table
+          function listenForTransfers() {
+            const tbody = document.querySelector(".transfer-table tbody");
+            const q = query(
+              collection(db, "transferSubmissions"),
+              orderBy("submittedAt", "desc"),
+            );
+            onSnapshot(q, (snapshot) => {
+              let html = "";
+              snapshot.forEach((doc) => {
+                html += renderRow(doc.data());
+              });
+              tbody.innerHTML =
+                html ||
+                '<tr><td colspan="8" style="text-align:center;color:var(--muted);">No submissions yet.</td></tr>';
+            });
+          }
+          listenForTransfers();
 
-                  // Helper to generate a random ID
-                  function generateId(len = 12) {
-                    const chars = "abcdefghijklmnopqrstuvwxyz0123456789";
-                    let out = "";
-                    for (let i = 0; i < len; ++i)
-                      out += chars[Math.floor(Math.random() * chars.length)];
-                    return out;
-                  }
+          // Helper to generate a random ID
+          function generateId(len = 12) {
+            const chars = "abcdefghijklmnopqrstuvwxyz0123456789";
+            let out = "";
+            for (let i = 0; i < len; ++i)
+              out += chars[Math.floor(Math.random() * chars.length)];
+            return out;
+          }
 
-                  document
-                    .getElementById("generateLinkForm")
-                    .addEventListener("submit", function (e) {
-                      e.preventDefault();
-                      const id = generateId();
-                      const url = `${window.location.origin}/transfer-submit.html?id=${id}`;
-                      document.getElementById("shareableLinkResult").innerHTML =
-                        `<strong>Share this link:</strong><br><a href="${url}" target="_blank" style="display:inline-block; margin-top:8px; padding:10px 16px; background:linear-gradient(90deg, var(--accent), var(--accent-2)); color:#0a1420; font-weight:700; border-radius:10px; font-size:1.08rem; text-decoration:none; word-break:break-all; box-shadow:0 2px 8px rgba(0,0,0,0.10);">${url}</a>`;
-                      // Optionally, store the id in localStorage to track submissions
-                      let pending = JSON.parse(
-                        localStorage.getItem("pendingTransferLinks") || "[]",
-                      );
-                      if (!pending.includes(id)) {
-                        pending.push(id);
-                        localStorage.setItem(
-                          "pendingTransferLinks",
-                          JSON.stringify(pending),
-                        );
-                      }
-                    });
-                </script>
+          document
+            .getElementById("generateLinkForm")
+            .addEventListener("submit", function (e) {
+              e.preventDefault();
+              const id = generateId();
+              const url = `${window.location.origin}/transfer-submit.html?id=${id}`;
+              document.getElementById("shareableLinkResult").innerHTML =
+                `<strong>Share this link:</strong><br><a href="${url}" target="_blank" style="display:inline-block; margin-top:8px; padding:10px 16px; background:linear-gradient(90deg, var(--accent), var(--accent-2)); color:#0a1420; font-weight:700; border-radius:10px; font-size:1.08rem; text-decoration:none; word-break:break-all; box-shadow:0 2px 8px rgba(0,0,0,0.10);">${url}</a>`;
+              // Optionally, store the id in localStorage to track submissions
+              let pending = JSON.parse(
+                localStorage.getItem("pendingTransferLinks") || "[]",
+              );
+              if (!pending.includes(id)) {
+                pending.push(id);
+                localStorage.setItem(
+                  "pendingTransferLinks",
+                  JSON.stringify(pending),
+                );
+              }
+            });
+        </script>
         <div
           class="transfer-table-container"
           style="max-width: 100%; margin-left: 0; margin-right: 0"
