@@ -80,7 +80,9 @@
               >Train Conductor</a
             >
             <a href="server-search.html" class="page-link">Server Search</a>
-            <a href="transfer-tracker.html" class="page-link">Transfer Tracker</a>
+            <a href="transfer-tracker.html" class="page-link"
+              >Transfer Tracker</a
+            >
           </div>
         </details>
         <details class="page-nav-dropdown" name="troop-nav">
@@ -1023,7 +1025,10 @@
         // Ready At logic
         let readyAtTimestamp = null;
         if (!etaReady && totalOutputPerHour > 0 && etaMs > 0) {
-          if (calcSignature === lastCalcSignature && Number.isFinite(lockedReadyAtTimestampMs)) {
+          if (
+            calcSignature === lastCalcSignature &&
+            Number.isFinite(lockedReadyAtTimestampMs)
+          ) {
             readyAtTimestamp = lockedReadyAtTimestampMs;
           } else {
             readyAtTimestamp = Date.now() + etaMs;

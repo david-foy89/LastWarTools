@@ -74,7 +74,9 @@
               >Train Conductor</a
             >
             <a href="server-search.html" class="page-link">Server Search</a>
-            <a href="transfer-tracker.html" class="page-link">Transfer Tracker</a>
+            <a href="transfer-tracker.html" class="page-link"
+              >Transfer Tracker</a
+            >
           </div>
         </details>
         <details class="page-nav-dropdown" name="troop-nav">
@@ -1219,7 +1221,10 @@
         let readyAtTimestamp = null;
         if (!ready && Number.isFinite(estimatedHours)) {
           // If the calculation signature matches the last one and we have a locked timestamp, use it
-          if (calcSignature === lastCalcSignature && Number.isFinite(lockedReadyAtTimestampMs)) {
+          if (
+            calcSignature === lastCalcSignature &&
+            Number.isFinite(lockedReadyAtTimestampMs)
+          ) {
             readyAtTimestamp = lockedReadyAtTimestampMs;
           } else {
             readyAtTimestamp = Date.now() + etaMs;
