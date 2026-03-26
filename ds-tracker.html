@@ -1,0 +1,1765 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Desert Storm Tracker/Planner</title>
+    <meta
+      name="description"
+      content="Track Desert Storm (DS) player scores and import screenshot data with OCR."
+    />
+    <link rel="stylesheet" href="last-war-furnace-upgrade-calculator.css" />
+    <script src="page-nav-dropdown.js" defer></script>
+    <script src="language-translate.js" defer></script>
+    <script src="https://cdn.jsdelivr.net/npm/tesseract.js@5/dist/tesseract.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
+    <style>
+      .ds-wrap {
+        display: grid;
+        gap: 16px;
+      }
+      .ds-card {
+        background: linear-gradient(180deg, var(--panel) 0%, var(--panel-2) 100%);
+        border: 1px solid var(--line-soft);
+        border-radius: 14px;
+        box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+        padding: 16px;
+      }
+      .ds-actions {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 12px;
+        align-items: center;
+      }
+      .ds-actions-break {
+        flex-basis: 100%;
+        height: 0;
+      }
+      .ds-table-wrap {
+        overflow-x: hidden;
+      }
+      .ds-score-nav {
+        display: flex;
+        flex-wrap: wrap;
+        align-items: center;
+        gap: 10px;
+        border: 1px solid var(--line-soft);
+        border-radius: 8px;
+        padding: 8px 10px;
+        margin: 0 0 10px;
+        width: 100%;
+      }
+      .ds-score-nav-label {
+        font-size: 0.86rem;
+        color: var(--muted);
+        white-space: nowrap;
+        margin-right: 4px;
+      }
+      .ds-score-nav-arrows {
+        display: inline-flex;
+        gap: 8px;
+        align-items: center;
+      }
+      .ds-score-nav-actions {
+        display: inline-flex;
+        gap: 10px;
+        align-items: center;
+        flex-wrap: wrap;
+        margin-left: auto;
+      }
+      .ds-score-nav .action-button {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        min-height: 32px;
+        line-height: 1;
+        text-transform: none;
+        letter-spacing: normal;
+      }
+      .ds-score-nav-arrows .action-button {
+        width: 34px;
+        min-width: 34px;
+        padding: 4px 0;
+      }
+      .ds-score-nav-actions .action-button {
+        width: 168px;
+        min-width: 168px;
+      }
+      .ds-table {
+        width: 100%;
+        border-collapse: collapse;
+        table-layout: fixed;
+        min-width: 0;
+      }
+      .ds-table-tools {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 10px;
+        align-items: center;
+        margin: 2px 0 12px;
+      }
+      .ds-table-tools label {
+        font-size: 0.82rem;
+        color: var(--muted);
+      }
+      .ds-table-tools input,
+      .ds-table-tools select {
+        padding: 6px 8px;
+        border-radius: 8px;
+        border: 1px solid var(--line-soft);
+        background: var(--panel-2);
+        color: var(--text);
+        font-size: 0.84rem;
+      }
+      .ds-table th,
+      .ds-table td {
+        border-bottom: 1px solid var(--line-soft);
+        padding: 8px 6px;
+        text-align: left;
+        vertical-align: middle;
+        overflow-wrap: anywhere;
+        word-break: break-word;
+        font-size: 0.88rem;
+      }
+      .ds-table th:last-child,
+      .ds-table td:last-child {
+        width: 92px;
+        text-align: center;
+        white-space: nowrap;
+        vertical-align: top;
+      }
+      .ds-table th:nth-child(3),
+      .ds-table td:nth-child(3) {
+        width: 86px;
+        min-width: 86px;
+      }
+      .ds-table th:nth-child(4),
+      .ds-table td:nth-child(4),
+      .ds-table th:nth-child(5),
+      .ds-table td:nth-child(5),
+      .ds-table th:nth-child(6),
+      .ds-table td:nth-child(6),
+      .ds-table th:nth-child(7),
+      .ds-table td:nth-child(7) {
+        width: 78px;
+        min-width: 78px;
+      }
+      .ds-table th:nth-child(2),
+      .ds-table td:nth-child(2) {
+        width: 90px;
+        min-width: 90px;
+      }
+      .ds-table input {
+        width: 100%;
+        padding: 8px 10px;
+        min-height: 38px;
+        line-height: 1.2;
+        border-radius: 8px;
+        border: 1px solid var(--line-soft);
+        background: var(--panel-2);
+        color: var(--text);
+        font-size: 0.96rem;
+      }
+      .ds-table select {
+        width: 100%;
+        padding: 8px 10px;
+        min-height: 38px;
+        line-height: 1.2;
+        border-radius: 8px;
+        border: 1px solid var(--line-soft);
+        background: var(--panel-2);
+        color: var(--text);
+        font-size: 0.96rem;
+      }
+      .ds-table td:nth-child(4) input[data-k="s1"],
+      .ds-table td:nth-child(5) input[data-k="s2"],
+      .ds-table td:nth-child(6) input[data-k="s3"],
+      .ds-table td:nth-child(7) input[data-k="s4"] {
+        padding: 7px 8px;
+      }
+      .ds-table td:nth-child(2) input[data-k="power"] {
+        padding: 7px 8px;
+      }
+      .ds-table td:nth-child(3) select[data-k="r2b"] {
+        padding: 7px 6px;
+        font-size: 0.92rem;
+      }
+      .ds-table .ds-del-btn {
+        min-width: auto;
+        padding: 5px 8px;
+        font-size: 0.76rem;
+      }
+      .ds-presence-wrap {
+        margin-top: 8px;
+        display: grid;
+        gap: 6px;
+        justify-items: center;
+      }
+      .ds-presence-wrap label {
+        display: inline-flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 2px;
+        font-size: 0.72rem;
+        color: var(--muted);
+        white-space: nowrap;
+      }
+      .ds-presence-wrap input[type="checkbox"] {
+        width: 13px;
+        height: 13px;
+        margin: 0;
+        accent-color: #dc3545;
+      }
+      .ds-presence-wrap input[type="checkbox"]:checked + span {
+        color: #ff6b6b;
+        font-weight: 700;
+      }
+      #ocrStatus {
+        font-size: 0.92rem;
+        color: var(--muted);
+      }
+      .ds-map-modal {
+        position: fixed;
+        inset: 0;
+        display: none;
+        align-items: center;
+        justify-content: center;
+        background: rgba(0, 0, 0, 0.72);
+        z-index: 1100;
+        padding: 16px;
+      }
+      .ds-map-modal.open {
+        display: flex;
+      }
+      .ds-map-modal-card {
+        position: relative;
+        width: min(96vw, 1050px);
+        max-height: 92vh;
+        border: 1px solid var(--line-soft);
+        border-radius: 12px;
+        background: var(--panel);
+        box-shadow: 0 16px 40px rgba(0, 0, 0, 0.35);
+        overflow: hidden;
+      }
+      .ds-map-toolbar {
+        display: flex;
+        flex-wrap: wrap;
+        align-items: center;
+        gap: 8px;
+        padding: 10px 12px;
+        border-bottom: 1px solid var(--line-soft);
+        background: var(--panel-2);
+      }
+      .ds-map-toolbar select {
+        padding: 6px 8px;
+        border-radius: 8px;
+        border: 1px solid var(--line-soft);
+        background: var(--panel);
+        color: var(--text);
+        min-width: 150px;
+      }
+      .ds-map-toolbar .hint {
+        color: var(--muted);
+        font-size: 0.84rem;
+      }
+      .ds-map-modal-close {
+        position: absolute;
+        top: 8px;
+        right: 8px;
+        z-index: 2;
+      }
+      .ds-map-stage {
+        position: relative;
+      }
+      .ds-map-overlay {
+        position: absolute;
+        inset: 0;
+        pointer-events: auto;
+      }
+      .ds-map-pin {
+        position: absolute;
+        transform: translate(-50%, -50%);
+        pointer-events: auto;
+        border: 1px solid var(--line-soft);
+        border-radius: 8px;
+        padding: 3px 6px;
+        font-size: 0.74rem;
+        line-height: 1.2;
+        background: rgba(7, 20, 36, 0.9);
+        color: #fff;
+        white-space: nowrap;
+        cursor: pointer;
+        user-select: none;
+      }
+      .ds-map-pin small {
+        display: block;
+        opacity: 0.9;
+        font-size: 0.68rem;
+      }
+      .ds-map-modal-img {
+        display: block;
+        width: 100%;
+        height: auto;
+        max-height: 92vh;
+        object-fit: contain;
+        background: #0a1420;
+      }
+      @media (max-width: 720px) {
+        .ds-actions .action-button {
+          flex: 1 1 48%;
+          min-width: 0;
+        }
+        .ds-table th,
+        .ds-table td {
+          padding: 5px;
+          font-size: 0.78rem;
+        }
+        .ds-table input {
+          padding: 7px 8px;
+          min-height: 34px;
+          font-size: 0.9rem;
+        }
+        .ds-table select {
+          padding: 7px 8px;
+          min-height: 34px;
+          font-size: 0.9rem;
+        }
+        .ds-table .action-button {
+          font-size: 0.74rem;
+          padding: 4px 5px;
+          min-width: auto;
+        }
+        .ds-score-nav {
+          gap: 6px;
+          padding: 6px;
+        }
+        .ds-score-nav-label {
+          margin-right: 0;
+        }
+        .ds-score-nav-actions {
+          display: flex;
+          width: 100%;
+          gap: 6px;
+          margin-left: 0;
+        }
+        .ds-score-nav-actions .action-button {
+          flex: 1 1 48%;
+          text-align: center;
+          min-width: 0;
+          width: auto;
+        }
+        .ds-table-tools input,
+        .ds-table-tools select {
+          flex: 1 1 48%;
+          min-width: 0;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <div class="page">
+      <div class="page-top-controls">
+        <div class="logo-control">
+          <a href="index.html" aria-label="Go to homepage">
+            <img src="media/lwst.png" alt="LWST logo" class="site-logo" />
+          </a>
+        </div>
+        <div class="language-control">
+          <label for="languageSelect">Language</label>
+          <select id="languageSelect"></select>
+        </div>
+      </div>
+      <div id="google_translate_element" class="hidden-translate"></div>
+
+      <nav class="page-nav" aria-label="Calculator pages">
+        <a href="hq-upgrade-calculator.html" class="page-link">HQ Upgrade</a>
+        <details class="page-nav-dropdown" name="alliance-nav">
+          <summary class="page-link page-nav-dropdown-toggle">
+            Alliance Tools
+          </summary>
+          <div class="page-nav-dropdown-menu">
+            <a href="train-conductor-schedule.html" class="page-link"
+              >Train Conductor</a
+            >
+            <a href="transfer-tracker.html" class="page-link">Transfer Tracker</a>
+            <a href="ds-tracker.html" class="page-link active">Desert Storm Tracker/Planner</a>
+            <a href="server-search.html" class="page-link">Server Search</a>
+          </div>
+        </details>
+      </nav>
+
+      <section class="hero">
+        <h1>Desert Storm Tracker/Planner</h1>
+        <div class="sub">
+          Track DS players and import screenshots to auto-fill rows with OCR.
+        </div>
+      </section>
+
+      <section class="layout ds-wrap" style="display: block; padding: 0">
+        <div class="ds-card">
+          <div style="font-weight: 800; color: var(--accent); margin-bottom: 10px">
+            Import screenshots
+          </div>
+          <div class="ds-actions">
+            <label
+              for="dsDayPicker"
+              style="font-size:0.92rem;color:var(--muted);white-space:nowrap;"
+              >DS day</label
+            >
+            <input
+              type="date"
+              id="dsDayPicker"
+              style="
+                padding: 7px 10px;
+                border-radius: 8px;
+                border: 1px solid var(--line-soft);
+                background: var(--panel-2);
+                color: var(--text);
+                font-size: 0.9rem;
+              "
+            />
+            <button type="button" id="dsSaveDayBtn" class="action-button">
+              Save day
+            </button>
+            <button type="button" id="dsLoadDayBtn" class="action-button">
+              Load day
+            </button>
+            <button type="button" id="dsDeleteDayBtn" class="action-button">
+              Delete day
+            </button>
+            <div class="ds-actions-break"></div>
+            <label for="dsImageInput" class="action-button">Choose screenshot(s)</label>
+            <button type="button" id="dsRunOcrBtn" class="action-button">
+              Import with OCR
+            </button>
+            <input
+              type="file"
+              id="dsImageInput"
+              accept="image/*"
+              multiple
+              style="display: none"
+            />
+            <input
+              type="file"
+              id="dsPlayerListInput"
+              accept=".csv,.txt,.xlsx,.xls"
+              style="display: none"
+            />
+            <label
+              for="dsOcrLang"
+              style="font-size:0.92rem;color:var(--muted);white-space:nowrap;"
+              >OCR language</label
+            >
+            <select
+              id="dsOcrLang"
+              style="
+                padding: 7px 10px;
+                border-radius: 8px;
+                border: 1px solid var(--line-soft);
+                background: var(--panel-2);
+                color: var(--text);
+                font-size: 0.9rem;
+                min-width: 220px;
+              "
+            >
+              <option value="eng+kor+jpn+chi_sim+chi_tra" selected>
+                Auto (English + Asian languages)
+              </option>
+              <option value="eng">English (fast)</option>
+              <option value="kor+jpn+chi_sim+chi_tra">Korean/Japanese/Chinese</option>
+              <option value="eng+spa+fra+deu+por+ita+rus+tur+pol+ukr+vie+tha+ara+hin">
+                Broad multilingual (slower)
+              </option>
+            </select>
+            <button type="button" id="dsAddRowBtn" class="action-button">
+              Add row
+            </button>
+            <button type="button" id="dsClearBtn" class="action-button">
+              Clear all
+            </button>
+            <button type="button" id="dsExportBtn" class="action-button">
+              Export CSV
+            </button>
+            <span id="ocrStatus"></span>
+          </div>
+        </div>
+
+        <div class="ds-card ds-table-wrap">
+          <div class="ds-score-nav">
+            <span class="ds-score-nav-label">Score dates</span>
+            <div class="ds-score-nav-arrows">
+              <button type="button" id="dsScoreLeftBtn" class="action-button" title="Older days">
+                ◀
+              </button>
+              <button type="button" id="dsScoreRightBtn" class="action-button" title="Newer days">
+                ▶
+              </button>
+            </div>
+            <label for="dsPlayerListInput" class="action-button">Import player list</label>
+            <div class="ds-score-nav-actions">
+              <button type="button" id="dsMapBtn" class="action-button">Map</button>
+            </div>
+          </div>
+          <div class="ds-table-tools">
+            <label for="dsFilterField">Filter</label>
+            <select id="dsFilterField">
+              <option value="name">Player Name</option>
+              <option value="power">Total Hero Power</option>
+              <option value="r2b">Request</option>
+              <option value="s1">Score 1</option>
+              <option value="s2">Score 2</option>
+              <option value="s3">Score 3</option>
+              <option value="s4">Score 4</option>
+            </select>
+            <input id="dsFilterValue" placeholder="Filter value" />
+            <label for="dsSortField">Sort</label>
+            <select id="dsSortField">
+              <option value="">None</option>
+              <option value="name">Player Name</option>
+              <option value="power">Total Hero Power</option>
+              <option value="r2b">Request</option>
+              <option value="s1">Score 1</option>
+              <option value="s2">Score 2</option>
+              <option value="s3">Score 3</option>
+              <option value="s4">Score 4</option>
+            </select>
+            <select id="dsSortDir">
+              <option value="asc">A-Z / Low-High</option>
+              <option value="desc">Z-A / High-Low</option>
+            </select>
+            <button type="button" id="dsFilterClearBtn" class="action-button">Clear</button>
+            <button type="button" id="dsClearPlayerListBtn" class="action-button">
+              Clear player list
+            </button>
+          </div>
+          <table class="ds-table" id="dsTable">
+            <thead>
+              <tr>
+                <th>Player Name</th>
+                <th>Total Hero Power (M)</th>
+                <th>Request</th>
+                <th id="dsScoreHead1">Score 1</th>
+                <th id="dsScoreHead2">Score 2</th>
+                <th id="dsScoreHead3">Score 3</th>
+                <th id="dsScoreHead4">Score 4</th>
+                <th>Assignment</th>
+                <th></th>
+              </tr>
+            </thead>
+            <tbody id="dsTbody">
+              <tr>
+                <td><input data-k="name" /></td>
+                <td><input data-k="power" /></td>
+                <td>
+                  <select data-k="r2b">
+                    <option value=""></option>
+                    <option value="A">A</option>
+                    <option value="B">B</option>
+                    <option value="A-S">A-S</option>
+                    <option value="A-X">A-X</option>
+                    <option value="B-S">B-S</option>
+                    <option value="B-X">B-X</option>
+                  </select>
+                </td>
+                <td><input data-k="s1" /></td>
+                <td><input data-k="s2" /></td>
+                <td><input data-k="s3" /></td>
+                <td><input data-k="s4" /></td>
+                <td><input data-k="assignment" /></td>
+                <td>
+                  <div class="ds-presence-wrap">
+                    <label><input type="checkbox" data-k="noshow" /><span>No show</span></label>
+                  </div>
+                  <button type="button" class="action-button ds-del-btn">Delete</button>
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </section>
+    </div>
+    <div class="ds-map-modal" id="dsMapModal" aria-hidden="true">
+      <div class="ds-map-modal-card">
+        <button type="button" id="dsMapCloseBtn" class="action-button ds-map-modal-close">
+          Close
+        </button>
+        <div class="ds-map-toolbar">
+          <label for="dsMapTeamSelect">Team</label>
+          <select id="dsMapTeamSelect">
+            <option value="A">Team A</option>
+            <option value="B">Team B</option>
+          </select>
+          <label for="dsMapPlayerSelect">Player</label>
+          <select id="dsMapPlayerSelect"></select>
+          <button type="button" id="dsMapClearTeamBtn" class="action-button">Clear team</button>
+          <button type="button" id="dsMapExportBtn" class="action-button">Export map image</button>
+          <span class="hint">Click map to place. Click a marker to remove it.</span>
+        </div>
+        <div class="ds-map-stage" id="dsMapStage">
+          <img src="media/ds-map.png" alt="DS map" class="ds-map-modal-img" id="dsMapImage" />
+          <div class="ds-map-overlay" id="dsMapOverlay"></div>
+        </div>
+      </div>
+    </div>
+
+    <script>
+      (function () {
+        const tbody = document.getElementById("dsTbody");
+        const imageInput = document.getElementById("dsImageInput");
+        const playerListInput = document.getElementById("dsPlayerListInput");
+        const runBtn = document.getElementById("dsRunOcrBtn");
+        const langSel = document.getElementById("dsOcrLang");
+        const dayPicker = document.getElementById("dsDayPicker");
+        const saveDayBtn = document.getElementById("dsSaveDayBtn");
+        const loadDayBtn = document.getElementById("dsLoadDayBtn");
+        const deleteDayBtn = document.getElementById("dsDeleteDayBtn");
+        const scoreLeftBtn = document.getElementById("dsScoreLeftBtn");
+        const scoreRightBtn = document.getElementById("dsScoreRightBtn");
+        const addBtn = document.getElementById("dsAddRowBtn");
+        const clearBtn = document.getElementById("dsClearBtn");
+        const exportBtn = document.getElementById("dsExportBtn");
+        const filterFieldEl = document.getElementById("dsFilterField");
+        const filterValueEl = document.getElementById("dsFilterValue");
+        const sortFieldEl = document.getElementById("dsSortField");
+        const sortDirEl = document.getElementById("dsSortDir");
+        const filterClearBtn = document.getElementById("dsFilterClearBtn");
+        const clearPlayerListBtn = document.getElementById("dsClearPlayerListBtn");
+        const statusEl = document.getElementById("ocrStatus");
+        const scoreHead1 = document.getElementById("dsScoreHead1");
+        const scoreHead2 = document.getElementById("dsScoreHead2");
+        const scoreHead3 = document.getElementById("dsScoreHead3");
+        const scoreHead4 = document.getElementById("dsScoreHead4");
+        const mapBtn = document.getElementById("dsMapBtn");
+        const mapModal = document.getElementById("dsMapModal");
+        const mapCloseBtn = document.getElementById("dsMapCloseBtn");
+        const mapTeamSelect = document.getElementById("dsMapTeamSelect");
+        const mapPlayerSelect = document.getElementById("dsMapPlayerSelect");
+        const mapClearTeamBtn = document.getElementById("dsMapClearTeamBtn");
+        const mapExportBtn = document.getElementById("dsMapExportBtn");
+        const mapStage = document.getElementById("dsMapStage");
+        const mapImage = document.getElementById("dsMapImage");
+        const mapOverlay = document.getElementById("dsMapOverlay");
+        const HISTORY_KEY = "dsTrackerHistoryV1";
+        const PLAYER_LIST_KEY = "dsTrackerPlayersV1";
+        const MAP_PLAN_KEY = "dsMapPlanV1";
+
+        function setStatus(msg) {
+          statusEl.textContent = msg || "";
+        }
+
+        function addRow(values) {
+          const row = document.createElement("tr");
+          const v = values || {};
+          row.innerHTML = `
+            <td><input data-k="name" value="${escapeHtml(v.name || "")}" /></td>
+            <td><input data-k="power" value="${escapeHtml(formatMillions0000(v.power || ""))}" /></td>
+            <td>
+              <select data-k="r2b">
+                <option value="" ${!v.r2b ? "selected" : ""}></option>
+                <option value="A" ${v.r2b === "A" ? "selected" : ""}>A</option>
+                <option value="B" ${v.r2b === "B" ? "selected" : ""}>B</option>
+                <option value="A-S" ${v.r2b === "A-S" ? "selected" : ""}>A-S</option>
+                <option value="A-X" ${v.r2b === "A-X" ? "selected" : ""}>A-X</option>
+                <option value="B-S" ${v.r2b === "B-S" ? "selected" : ""}>B-S</option>
+                <option value="B-X" ${v.r2b === "B-X" ? "selected" : ""}>B-X</option>
+              </select>
+            </td>
+            <td><input data-k="s1" value="${escapeHtml(v.s1 || "")}" /></td>
+            <td><input data-k="s2" value="${escapeHtml(v.s2 || "")}" /></td>
+            <td><input data-k="s3" value="${escapeHtml(v.s3 || "")}" /></td>
+            <td><input data-k="s4" value="${escapeHtml(v.s4 || "")}" /></td>
+            <td><input data-k="assignment" value="${escapeHtml(v.assignment || "")}" /></td>
+            <td>
+              <div class="ds-presence-wrap">
+                <label><input type="checkbox" data-k="noshow" ${(v.noshow || v.show) ? "checked" : ""} /><span>No show</span></label>
+              </div>
+              <button type="button" class="action-button ds-del-btn">Delete</button>
+            </td>
+          `;
+          tbody.appendChild(row);
+        }
+
+        function escapeHtml(v) {
+          return String(v ?? "")
+            .replace(/&/g, "&amp;")
+            .replace(/</g, "&lt;")
+            .replace(/>/g, "&gt;")
+            .replace(/"/g, "&quot;");
+        }
+
+        function normalizeNum(s) {
+          const n = Number(String(s || "").replace(/,/g, ""));
+          if (!Number.isFinite(n)) return "";
+          return String(Math.round(n));
+        }
+
+        function parsePowerNumber(v) {
+          const str = String(v ?? "");
+          const numMatch = str.replace(/,/g, "").match(/(\d+(\.\d+)?)/);
+          const n = numMatch ? Number(numMatch[1]) : NaN;
+          if (!Number.isFinite(n)) return 0;
+          return n >= 1_000_000 ? n / 1_000_000 : n;
+        }
+
+        function formatMillions0000(v) {
+          const n = parsePowerNumber(v);
+          const fixed = n.toFixed(2);
+          let out = fixed.replace(/^0+(?=\d)/, "");
+          if (out.startsWith(".")) out = "0" + out;
+          return out;
+        }
+
+        function formatYmd(d) {
+          const pad = (n) => String(n).padStart(2, "0");
+          return (
+            d.getFullYear() + "-" + pad(d.getMonth() + 1) + "-" + pad(d.getDate())
+          );
+        }
+
+        function formatMd(d) {
+          return `${d.getMonth() + 1}/${d.getDate()}`;
+        }
+
+        function getSelectedDay() {
+          const v = dayPicker && dayPicker.value ? String(dayPicker.value) : "";
+          if (/^\d{4}-\d{2}-\d{2}$/.test(v)) return v;
+          return formatYmd(new Date());
+        }
+
+        function updateScoreHeaders(dayStr) {
+          const base = new Date(`${dayStr}T00:00:00`);
+          if (!Number.isFinite(base.getTime())) return;
+          const d2 = new Date(base);
+          d2.setDate(d2.getDate() + 7);
+          const d3 = new Date(base);
+          d3.setDate(d3.getDate() + 14);
+          const d4 = new Date(base);
+          d4.setDate(d4.getDate() + 21);
+          if (scoreHead1) scoreHead1.textContent = `Score ${formatMd(base)}`;
+          if (scoreHead2) scoreHead2.textContent = `Score ${formatMd(d2)}`;
+          if (scoreHead3) scoreHead3.textContent = `Score ${formatMd(d3)}`;
+          if (scoreHead4) scoreHead4.textContent = `Score ${formatMd(d4)}`;
+        }
+
+        function shiftSelectedDay(deltaDays) {
+          const current = getSelectedDay();
+          const d = new Date(`${current}T00:00:00`);
+          if (!Number.isFinite(d.getTime())) return;
+          d.setDate(d.getDate() + Number(deltaDays || 0));
+          if (dayPicker) dayPicker.value = formatYmd(d);
+          loadSelectedDay();
+        }
+
+        function openMapModal() {
+          if (!mapModal) return;
+          mapModal.classList.add("open");
+          mapModal.setAttribute("aria-hidden", "false");
+        }
+
+        function closeMapModal() {
+          if (!mapModal) return;
+          mapModal.classList.remove("open");
+          mapModal.setAttribute("aria-hidden", "true");
+        }
+
+        function loadMapPlan() {
+          try {
+            const raw = localStorage.getItem(MAP_PLAN_KEY);
+            if (!raw) return {};
+            const obj = JSON.parse(raw);
+            return obj && typeof obj === "object" ? obj : {};
+          } catch {
+            return {};
+          }
+        }
+
+        function saveMapPlan(plan) {
+          try {
+            localStorage.setItem(MAP_PLAN_KEY, JSON.stringify(plan || {}));
+          } catch {
+            // ignore
+          }
+        }
+
+        function currentMapKey() {
+          const day = getSelectedDay();
+          const team = mapTeamSelect ? String(mapTeamSelect.value || "A") : "A";
+          return `${day}|${team}`;
+        }
+
+        function mapPlayersFromTable() {
+          return collectRows()
+            .map((r) => ({
+              name: cleanName(r.name),
+              assignment: String(r.assignment || "").trim(),
+              r2b: String(r.r2b || "").trim().toUpperCase(),
+            }))
+            .filter((r) => r.name);
+        }
+
+        function allowedRequestsForTeam(team) {
+          const t = String(team || "A").toUpperCase();
+          if (t === "B") return new Set(["B", "B-S"]);
+          return new Set(["A", "A-S"]);
+        }
+
+        function refreshMapPlayerSelect() {
+          if (!mapPlayerSelect) return;
+          const team = mapTeamSelect ? String(mapTeamSelect.value || "A") : "A";
+          const allowed = allowedRequestsForTeam(team);
+          const players = mapPlayersFromTable().filter((p) => allowed.has(p.r2b));
+          const prev = mapPlayerSelect.value;
+          const options = players
+            .map((p) => {
+              const label = p.assignment ? `${p.name} - ${p.assignment}` : p.name;
+              return `<option value="${escapeHtml(p.name)}">${escapeHtml(label)}</option>`;
+            })
+            .join("");
+          mapPlayerSelect.innerHTML = options || `<option value="">No players</option>`;
+          if (prev && Array.from(mapPlayerSelect.options).some((o) => o.value === prev)) {
+            mapPlayerSelect.value = prev;
+          }
+        }
+
+        function currentPlacementList(planObj) {
+          const plan = planObj || loadMapPlan();
+          const key = currentMapKey();
+          if (!Array.isArray(plan[key])) plan[key] = [];
+          return plan[key];
+        }
+
+        function renderMapPins() {
+          if (!mapOverlay) return;
+          const pins = getResolvedPinsForCurrentTeamDay();
+          mapOverlay.innerHTML = pins
+            .map((pin, idx) => {
+              const name = String(pin.name || "");
+              const assignment = String(pin.assignment || "");
+              const left = Math.max(0, Math.min(100, Number(pin.x || 0)));
+              const top = Math.max(0, Math.min(100, Number(pin.y || 0)));
+              return `
+                <button type="button" class="ds-map-pin" data-map-index="${idx}" style="left:${left}%;top:${top}%;">
+                  ${escapeHtml(name)}
+                  ${assignment ? `<small>${escapeHtml(assignment)}</small>` : ""}
+                </button>
+              `;
+            })
+            .join("");
+        }
+
+        function getResolvedPinsForCurrentTeamDay() {
+          const plan = loadMapPlan();
+          const pins = currentPlacementList(plan);
+          const byName = new Map(
+            mapPlayersFromTable().map((p) => [normalizeMatchName(p.name), p]),
+          );
+          return pins.map((pin) => {
+            const live = byName.get(normalizeMatchName(pin.name || ""));
+            return {
+              name: live ? live.name : String(pin.name || ""),
+              assignment: live ? live.assignment : String(pin.assignment || ""),
+              x: Number(pin.x || 0),
+              y: Number(pin.y || 0),
+            };
+          });
+        }
+
+        function placeSelectedPlayerAt(clientX, clientY) {
+          if (!mapImage || !mapPlayerSelect) return;
+          const name = cleanName(mapPlayerSelect.value || "");
+          if (!name) {
+            setStatus("Select a player first.");
+            return;
+          }
+          const rect = mapImage.getBoundingClientRect();
+          if (!rect.width || !rect.height) return;
+          const x = ((clientX - rect.left) / rect.width) * 100;
+          const y = ((clientY - rect.top) / rect.height) * 100;
+          if (x < 0 || x > 100 || y < 0 || y > 100) return;
+
+          const players = mapPlayersFromTable();
+          const picked = players.find((p) => normalizeMatchName(p.name) === normalizeMatchName(name));
+          const plan = loadMapPlan();
+          const list = currentPlacementList(plan);
+          const key = normalizeMatchName(name);
+          const existingIdx = list.findIndex((p) => normalizeMatchName(p.name || "") === key);
+          const nextPin = {
+            name: picked ? picked.name : name,
+            assignment: picked ? picked.assignment : "",
+            x: Number(x.toFixed(2)),
+            y: Number(y.toFixed(2)),
+          };
+          if (existingIdx >= 0) list[existingIdx] = nextPin;
+          else list.push(nextPin);
+          saveMapPlan(plan);
+          renderMapPins();
+        }
+
+        function removeMapPinByIndex(idx) {
+          const n = Number(idx);
+          if (!Number.isInteger(n)) return;
+          const plan = loadMapPlan();
+          const list = currentPlacementList(plan);
+          if (n < 0 || n >= list.length) return;
+          list.splice(n, 1);
+          saveMapPlan(plan);
+          renderMapPins();
+        }
+
+        function clearCurrentTeamPins() {
+          const plan = loadMapPlan();
+          const key = currentMapKey();
+          plan[key] = [];
+          saveMapPlan(plan);
+          renderMapPins();
+        }
+
+        function exportCurrentMapImage() {
+          if (!mapImage) return;
+          const width = mapImage.naturalWidth || 1200;
+          const height = mapImage.naturalHeight || 800;
+          const canvas = document.createElement("canvas");
+          canvas.width = width;
+          canvas.height = height;
+          const ctx = canvas.getContext("2d");
+          if (!ctx) return;
+          ctx.drawImage(mapImage, 0, 0, width, height);
+
+          const pins = getResolvedPinsForCurrentTeamDay();
+          ctx.textBaseline = "middle";
+          ctx.font = "bold 18px Arial";
+          pins.forEach((pin) => {
+            const x = (Math.max(0, Math.min(100, pin.x)) / 100) * width;
+            const y = (Math.max(0, Math.min(100, pin.y)) / 100) * height;
+            const line1 = String(pin.name || "");
+            const line2 = String(pin.assignment || "");
+            const w1 = ctx.measureText(line1).width;
+            const w2 = line2 ? ctx.measureText(line2).width : 0;
+            const boxW = Math.max(w1, w2) + 20;
+            const boxH = line2 ? 44 : 28;
+            const bx = Math.max(4, Math.min(width - boxW - 4, x - boxW / 2));
+            const by = Math.max(4, Math.min(height - boxH - 4, y - boxH / 2));
+
+            ctx.fillStyle = "rgba(7, 20, 36, 0.9)";
+            ctx.strokeStyle = "rgba(134, 181, 255, 0.9)";
+            ctx.lineWidth = 1;
+            ctx.beginPath();
+            ctx.roundRect(bx, by, boxW, boxH, 8);
+            ctx.fill();
+            ctx.stroke();
+
+            ctx.fillStyle = "#ffffff";
+            ctx.fillText(line1, bx + 10, by + 14);
+            if (line2) {
+              ctx.font = "14px Arial";
+              ctx.fillStyle = "#d7e9ff";
+              ctx.fillText(line2, bx + 10, by + 31);
+              ctx.font = "bold 18px Arial";
+            }
+          });
+
+          const day = getSelectedDay();
+          const team = mapTeamSelect ? String(mapTeamSelect.value || "A") : "A";
+          const a = document.createElement("a");
+          a.href = canvas.toDataURL("image/png");
+          a.download = `ds-map-${day}-team-${team}.png`;
+          document.body.appendChild(a);
+          a.click();
+          a.remove();
+        }
+
+        function loadHistoryMap() {
+          try {
+            const raw = localStorage.getItem(HISTORY_KEY);
+            if (!raw) return {};
+            const obj = JSON.parse(raw);
+            return obj && typeof obj === "object" ? obj : {};
+          } catch {
+            return {};
+          }
+        }
+
+        function loadPlayerList() {
+          try {
+            const raw = localStorage.getItem(PLAYER_LIST_KEY);
+            if (!raw) return [];
+            const arr = JSON.parse(raw);
+            return Array.isArray(arr) ? arr : [];
+          } catch {
+            return [];
+          }
+        }
+
+        function savePlayerList(players) {
+          try {
+            localStorage.setItem(PLAYER_LIST_KEY, JSON.stringify(players || []));
+          } catch {
+            // ignore
+          }
+        }
+
+        function sortByName(a, b) {
+          return String(a || "").localeCompare(String(b || ""), undefined, {
+            sensitivity: "base",
+          });
+        }
+
+        function mergePlayersIntoRows(rows, players) {
+          const arr = Array.isArray(rows) ? rows : [];
+          const roster = Array.isArray(players) ? players : [];
+          const byName = new Map();
+          arr.forEach((r) => {
+            const name = String((r && r.name) || "").trim();
+            if (!name) return;
+            byName.set(name.toLowerCase(), {
+              name,
+              s1: String((r && r.s1) || ""),
+              s2: String((r && r.s2) || ""),
+              s3: String((r && r.s3) || ""),
+              s4: String((r && r.s4) || ""),
+              power: String((r && r.power) || ""),
+              r2b: String((r && r.r2b) || ""),
+              assignment: String((r && r.assignment) || ""),
+              noshow: Boolean(r && (r.noshow || r.show)),
+            });
+          });
+          roster.forEach((name) => {
+            const clean = String(name || "").trim();
+            if (!clean) return;
+            const key = clean.toLowerCase();
+            if (!byName.has(key)) {
+              byName.set(key, {
+                name: clean,
+                s1: "",
+                s2: "",
+                s3: "",
+                s4: "",
+                power: "",
+                r2b: "",
+                assignment: "",
+                noshow: false,
+              });
+            }
+          });
+          return Array.from(byName.values()).sort((a, b) => sortByName(a.name, b.name));
+        }
+
+        function hasNonNameData(row) {
+          const r = row || {};
+          return Boolean(
+            String(r.s1 || "").trim() ||
+              String(r.s2 || "").trim() ||
+              String(r.s3 || "").trim() ||
+              String(r.s4 || "").trim() ||
+              String(r.power || "").trim() ||
+              String(r.r2b || "").trim() ||
+              String(r.assignment || "").trim(),
+          );
+        }
+
+        function saveHistoryMap(map) {
+          try {
+            localStorage.setItem(HISTORY_KEY, JSON.stringify(map || {}));
+          } catch {
+            // ignore
+          }
+        }
+
+        function getCellValue(tr, key) {
+          const input = tr.querySelector(`input[data-k="${key}"]`);
+          if (input) return String(input.value || "").trim();
+          const select = tr.querySelector(`select[data-k="${key}"]`);
+          if (select) return String(select.value || "").trim();
+          return "";
+        }
+
+        function isNumericKey(k) {
+          return k === "power" || k === "s1" || k === "s2" || k === "s3" || k === "s4";
+        }
+
+        function toNumberOrZero(v) {
+          const n = Number(String(v || "").replace(/,/g, "").trim());
+          return Number.isFinite(n) ? n : 0;
+        }
+
+        function applyTableFiltersAndSort() {
+          const rows = Array.from(tbody.querySelectorAll("tr"));
+          if (!rows.length) return;
+
+          const filterField = filterFieldEl ? String(filterFieldEl.value || "name") : "name";
+          const filterValue = filterValueEl
+            ? String(filterValueEl.value || "").trim().toLowerCase()
+            : "";
+          const sortField = sortFieldEl ? String(sortFieldEl.value || "") : "";
+          const sortDir = sortDirEl ? String(sortDirEl.value || "asc") : "asc";
+          const dir = sortDir === "desc" ? -1 : 1;
+
+          const mapped = rows.map((tr, idx) => {
+            const values = {
+              name: getCellValue(tr, "name"),
+              power: getCellValue(tr, "power"),
+              r2b: getCellValue(tr, "r2b"),
+              s1: getCellValue(tr, "s1"),
+              s2: getCellValue(tr, "s2"),
+              s3: getCellValue(tr, "s3"),
+              s4: getCellValue(tr, "s4"),
+            };
+            return { tr, idx, values };
+          });
+
+          mapped.forEach((row) => {
+            if (!filterValue) {
+              row.tr.style.display = "";
+              return;
+            }
+            const hay = String(row.values[filterField] || "").toLowerCase();
+            row.tr.style.display = hay.includes(filterValue) ? "" : "none";
+          });
+
+          if (!sortField) return;
+
+          mapped.sort((a, b) => {
+            const av = a.values[sortField];
+            const bv = b.values[sortField];
+            let cmp = 0;
+            if (isNumericKey(sortField)) {
+              cmp = toNumberOrZero(av) - toNumberOrZero(bv);
+            } else {
+              cmp = String(av || "").localeCompare(String(bv || ""), undefined, {
+                sensitivity: "base",
+              });
+            }
+            if (cmp === 0) return a.idx - b.idx;
+            return cmp * dir;
+          });
+
+          mapped.forEach((row) => tbody.appendChild(row.tr));
+        }
+
+        function collectRows() {
+          return Array.from(tbody.querySelectorAll("tr")).map((tr) => ({
+            name: getCellValue(tr, "name"),
+            s1: getCellValue(tr, "s1"),
+            s2: getCellValue(tr, "s2"),
+            s3: getCellValue(tr, "s3"),
+            s4: getCellValue(tr, "s4"),
+            power: formatMillions0000(getCellValue(tr, "power")),
+            r2b: getCellValue(tr, "r2b"),
+            assignment: getCellValue(tr, "assignment"),
+            noshow: !!tr.querySelector('input[data-k="noshow"]')?.checked,
+          }));
+        }
+
+        function renderRows(rows) {
+          tbody.innerHTML = "";
+          const arr = Array.isArray(rows) ? rows : [];
+          if (!arr.length) {
+            addRow();
+            applyTableFiltersAndSort();
+            return;
+          }
+          arr.forEach((r) => addRow(r));
+          applyTableFiltersAndSort();
+        }
+
+        function saveCurrentDay(silent) {
+          const day = getSelectedDay();
+          const map = loadHistoryMap();
+          map[day] = mergePlayersIntoRows(collectRows(), loadPlayerList());
+          saveHistoryMap(map);
+          if (!silent) setStatus(`Saved ${map[day].length} row(s) for ${day}.`);
+        }
+
+        function loadSelectedDay() {
+          const day = getSelectedDay();
+          updateScoreHeaders(day);
+          const map = loadHistoryMap();
+          const merged = mergePlayersIntoRows(map[day] || [], loadPlayerList());
+          renderRows(merged);
+          map[day] = merged;
+          saveHistoryMap(map);
+          if (map[day]) setStatus(`Loaded ${map[day].length} row(s) for ${day}.`);
+          else setStatus(`No saved data for ${day}.`);
+        }
+
+        async function parsePlayerListFile(file) {
+          const names = [];
+          const seen = new Set();
+
+          const maybePush = (raw) => {
+            const candidate = cleanName(raw);
+            const low = candidate.toLowerCase();
+            if (!candidate) return;
+            if (low === "player" || low === "name" || low === "player name") return;
+            if (seen.has(low)) return;
+            seen.add(low);
+            names.push(candidate);
+          };
+
+          const lowerName = String((file && file.name) || "").toLowerCase();
+          const isExcel = lowerName.endsWith(".xlsx") || lowerName.endsWith(".xls");
+
+          if (isExcel && typeof XLSX !== "undefined") {
+            const ab = await file.arrayBuffer();
+            const wb = XLSX.read(ab, { type: "array" });
+            const firstSheetName = wb.SheetNames && wb.SheetNames[0];
+            if (!firstSheetName) return [];
+            const ws = wb.Sheets[firstSheetName];
+            const rows = XLSX.utils.sheet_to_json(ws, { header: 1, raw: false });
+            if (!Array.isArray(rows) || !rows.length) return [];
+
+            const header = Array.isArray(rows[0]) ? rows[0].map((c) => String(c || "").trim()) : [];
+            let colIdx = header.findIndex((c) => /^(player|name|player name)$/i.test(c));
+            if (colIdx < 0) colIdx = 0;
+
+            rows.forEach((r, idx) => {
+              if (!Array.isArray(r)) return;
+              if (idx === 0 && header.length) return;
+              maybePush(r[colIdx]);
+            });
+            return names.sort(sortByName);
+          }
+
+          const text = await file.text();
+          const lines = String(text || "")
+            .split(/\r?\n/)
+            .map((x) => String(x || "").trim())
+            .filter(Boolean);
+          if (!lines.length) return [];
+
+          const first = lines[0];
+          const looksCsv = first.includes(",") || first.includes(";");
+
+          if (looksCsv) {
+            let csvColIdx = 0;
+            lines.forEach((line, idx) => {
+              const cols = line
+                .split(/[;,]/)
+                .map((x) => String(x || "").trim().replace(/^"|"$/g, ""));
+              if (!cols.length) return;
+              if (idx === 0) {
+                const headerIdx = cols.findIndex((c) =>
+                  /^(player|name|player name)$/i.test(c),
+                );
+                if (headerIdx >= 0) {
+                  csvColIdx = headerIdx;
+                  return;
+                }
+              }
+              maybePush(cols[csvColIdx]);
+            });
+          } else {
+            lines.forEach((line) => maybePush(line));
+          }
+          return names.sort(sortByName);
+        }
+
+        function cleanName(raw) {
+          let s = String(raw || "").replace(/\s+/g, " ").trim();
+          s = s.replace(/^\d+\s*[.)-]?\s*/, "");
+          // Remove leading alliance tag like [OATH]
+          s = s.replace(/^\[[^\]]+\]\s*/g, "");
+          return s.trim();
+        }
+
+        function looksLikeName(line) {
+          const s = String(line || "").trim();
+          if (!s) return false;
+          if (!/\p{L}/u.test(s)) return false;
+          if (/^\d{4}[-/]\d{1,2}[-/]\d{1,2}/.test(s)) return false;
+          return true;
+        }
+
+        function parseOcrRows(text) {
+          const lines = String(text || "")
+            .split(/\r?\n/)
+            .map((x) => String(x || "").replace(/\s+/g, " ").trim())
+            .filter(Boolean);
+          const out = [];
+          const seen = new Set();
+
+          for (let i = 0; i < lines.length; i++) {
+            const line = lines[i];
+            const oneLine = line.match(/^(.*?)(-?\d[\d,]{5,}(?:\.\d+)?)$/);
+            if (oneLine && looksLikeName(oneLine[1])) {
+              const name = cleanName(oneLine[1]);
+              const score = normalizeNum(oneLine[2]);
+              const key = `${name}|${score}`;
+              if (name && score && !seen.has(key)) {
+                seen.add(key);
+                out.push({
+                  name,
+                  s1: score,
+                  s2: "",
+                  s3: "",
+                  s4: "",
+                  power: "",
+                  r2b: "",
+                  assignment: "",
+                });
+              }
+              continue;
+            }
+
+            if (!looksLikeName(line)) continue;
+            const next = lines[i + 1] || "";
+            const scoreMatch = next.match(/(-?\d[\d,]{5,}(?:\.\d+)?)/);
+            if (!scoreMatch) continue;
+            const name = cleanName(line);
+            const score = normalizeNum(scoreMatch[1]);
+            const key = `${name}|${score}`;
+            if (name && score && !seen.has(key)) {
+              seen.add(key);
+              out.push({
+                name,
+                s1: score,
+                s2: "",
+                s3: "",
+                s4: "",
+                power: "",
+                r2b: "",
+                assignment: "",
+              });
+            }
+          }
+          return out;
+        }
+
+        function parseOcrRowsByScoreAnchor(text) {
+          const lines = String(text || "")
+            .split(/\r?\n/)
+            .map((x) => String(x || "").replace(/\s+/g, " ").trim())
+            .filter(Boolean);
+          const out = [];
+          const seen = new Set();
+          for (let i = 0; i < lines.length; i++) {
+            const scoreMatch = lines[i].match(/\b(\d[\d,]{5,})\b/);
+            if (!scoreMatch) continue;
+            const score = normalizeNum(scoreMatch[1]);
+            if (!score) continue;
+            let name = "";
+            for (let j = i - 1; j >= Math.max(0, i - 2); j--) {
+              if (looksLikeName(lines[j])) {
+                name = cleanName(lines[j]);
+                break;
+              }
+            }
+            if (!name) continue;
+            const key = `${name}|${score}`;
+            if (seen.has(key)) continue;
+            seen.add(key);
+            out.push({
+              name,
+              s1: score,
+              s2: "",
+              s3: "",
+              s4: "",
+              power: "",
+              r2b: "",
+              assignment: "",
+            });
+          }
+          return out;
+        }
+
+        function normalizeMatchName(raw) {
+          return cleanName(raw)
+            .toLowerCase()
+            .normalize("NFKD")
+            .replace(/[\u0300-\u036f]/g, "")
+            .replace(/[^\p{L}\p{N}]/gu, "");
+        }
+
+        function getNamedTableRows() {
+          return Array.from(tbody.querySelectorAll("tr"))
+            .map((tr) => {
+              const nameInput = tr.querySelector('input[data-k="name"]');
+              const s1Input = tr.querySelector('input[data-k="s1"]');
+              const name = cleanName(nameInput ? nameInput.value : "");
+              return {
+                tr,
+                s1Input,
+                name,
+                key: normalizeMatchName(name),
+              };
+            })
+            .filter((x) => x.name && x.key && x.s1Input);
+        }
+
+        function findBestRowForOcrName(ocrName, namedRows) {
+          const rows = Array.isArray(namedRows) ? namedRows : [];
+          const ocrKey = normalizeMatchName(ocrName);
+          if (!ocrKey) return null;
+
+          // 1) Exact normalized match
+          const exact = rows.find((r) => r.key === ocrKey);
+          if (exact) return exact;
+
+          // 2) Substring match (helps common OCR truncation/extra chars)
+          const partial = rows
+            .filter((r) => r.key.includes(ocrKey) || ocrKey.includes(r.key))
+            .sort((a, b) => Math.abs(a.key.length - ocrKey.length) - Math.abs(b.key.length - ocrKey.length));
+          if (partial.length) return partial[0];
+
+          return null;
+        }
+
+        async function preprocessImage(file) {
+          const img = new Image();
+          const url = URL.createObjectURL(file);
+          await new Promise((resolve, reject) => {
+            img.onload = resolve;
+            img.onerror = reject;
+            img.src = url;
+          });
+          const scale = 2;
+          // Crop to the text-heavy area (ignore most rank/avatar artifacts).
+          const sx = Math.floor(img.width * 0.34);
+          const sy = Math.floor(img.height * 0.02);
+          const sw = Math.max(1, Math.floor(img.width * 0.62));
+          const sh = Math.max(1, Math.floor(img.height * 0.90));
+          const canvas = document.createElement("canvas");
+          canvas.width = Math.max(1, Math.floor(sw * scale));
+          canvas.height = Math.max(1, Math.floor(sh * scale));
+          const ctx = canvas.getContext("2d");
+          ctx.drawImage(img, sx, sy, sw, sh, 0, 0, canvas.width, canvas.height);
+          const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
+          const d = imageData.data;
+          for (let i = 0; i < d.length; i += 4) {
+            const gray = d[i] * 0.299 + d[i + 1] * 0.587 + d[i + 2] * 0.114;
+            const boosted = Math.max(0, Math.min(255, (gray - 128) * 1.35 + 128));
+            d[i] = boosted;
+            d[i + 1] = boosted;
+            d[i + 2] = boosted;
+          }
+          ctx.putImageData(imageData, 0, 0);
+          URL.revokeObjectURL(url);
+          return canvas;
+        }
+
+        async function runOcrOnFile(file) {
+          const langsPrimary =
+            (langSel && String(langSel.value || "").trim()) ||
+            "eng+kor+jpn+chi_sim+chi_tra";
+          const langsFallback = "eng+kor+jpn+chi_sim+chi_tra";
+          const source = await preprocessImage(file);
+          const out = await Tesseract.recognize(source, langsPrimary, {
+            tessedit_pageseg_mode: "6",
+            preserve_interword_spaces: "1",
+          });
+          const text = (out && out.data && out.data.text) || "";
+          let rows = parseOcrRows(text);
+          if (!rows.length) rows = parseOcrRowsByScoreAnchor(text);
+
+          // Retry once with a broad language pack when parsing returns nothing.
+          if (!rows.length && langsPrimary !== langsFallback) {
+            const retry = await Tesseract.recognize(source, langsFallback, {
+              tessedit_pageseg_mode: "6",
+              preserve_interword_spaces: "1",
+            });
+            const retryText = (retry && retry.data && retry.data.text) || "";
+            rows = parseOcrRows(retryText);
+            if (!rows.length) rows = parseOcrRowsByScoreAnchor(retryText);
+          }
+          return rows;
+        }
+
+        addBtn.addEventListener("click", function () {
+          addRow();
+          applyTableFiltersAndSort();
+        });
+
+        clearBtn.addEventListener("click", function () {
+          const yes = confirm("Clear all rows?");
+          if (!yes) return;
+          tbody.innerHTML = "";
+          addRow();
+          saveCurrentDay(true);
+        });
+
+        tbody.addEventListener("click", function (e) {
+          const cb = e.target && e.target.closest('input[type="checkbox"][data-k]');
+          const btn = e.target.closest(".ds-del-btn");
+          if (!btn) return;
+          const tr = btn.closest("tr");
+          if (!tr) return;
+          tr.remove();
+          if (!tbody.querySelector("tr")) addRow();
+          applyTableFiltersAndSort();
+        });
+
+        exportBtn.addEventListener("click", function () {
+          const h1 = scoreHead1 ? scoreHead1.textContent : "Score 1";
+          const h2 = scoreHead2 ? scoreHead2.textContent : "Score 2";
+          const h3 = scoreHead3 ? scoreHead3.textContent : "Score 3";
+          const h4 = scoreHead4 ? scoreHead4.textContent : "Score 4";
+          const rows = Array.from(tbody.querySelectorAll("tr")).map((tr) => {
+            const get = (k) => getCellValue(tr, k);
+            return {
+              "Player Name": get("name"),
+              [h1]: normalizeNum(get("s1")),
+              [h2]: normalizeNum(get("s2")),
+              [h3]: normalizeNum(get("s3")),
+              [h4]: normalizeNum(get("s4")),
+              "Total Hero Power (M)": formatMillions0000(get("power")),
+              Request: get("r2b"),
+              Assignment: get("assignment"),
+            };
+          });
+          const headers = Object.keys(rows[0] || {});
+          const esc = (v) => {
+            const s = String(v ?? "");
+            return /[",\r\n]/.test(s) ? `"${s.replace(/"/g, '""')}"` : s;
+          };
+          let csv = headers.map(esc).join(",") + "\r\n";
+          rows.forEach((r) => {
+            csv += headers.map((h) => esc(r[h])).join(",") + "\r\n";
+          });
+          const blob = new Blob([csv], { type: "text/csv;charset=utf-8" });
+          const a = document.createElement("a");
+          a.href = URL.createObjectURL(blob);
+          a.download = "ds-tracker.csv";
+          document.body.appendChild(a);
+          a.click();
+          a.remove();
+          setTimeout(() => URL.revokeObjectURL(a.href), 30000);
+        });
+
+        runBtn.addEventListener("click", async function () {
+          const files = Array.from((imageInput && imageInput.files) || []);
+          if (!files.length) {
+            alert("Choose at least one screenshot first.");
+            return;
+          }
+          runBtn.disabled = true;
+          try {
+            let totalMatched = 0;
+            let totalAdded = 0;
+            let totalUnmatched = 0;
+            const unmatchedNames = [];
+            for (let i = 0; i < files.length; i++) {
+              setStatus(`OCR ${i + 1}/${files.length}: ${files[i].name} ...`);
+              const rows = await runOcrOnFile(files[i]);
+              let namedRows = getNamedTableRows();
+              const hasRosterRows = namedRows.length > 0;
+              rows.forEach((r) => {
+                const best = findBestRowForOcrName(r.name || "", namedRows);
+                if (best) {
+                  best.s1Input.value = r.s1 || "";
+                  totalMatched += 1;
+                  return;
+                }
+
+                // Fallback: if no player list/table names exist yet, keep old behavior.
+                if (!hasRosterRows) {
+                  addRow({
+                    name: r.name || "",
+                    s1: r.s1 || "",
+                    s2: "",
+                    s3: "",
+                    s4: "",
+                    power: "",
+                    r2b: "",
+                    assignment: "",
+                  });
+                  totalAdded += 1;
+                  namedRows = getNamedTableRows();
+                  applyTableFiltersAndSort();
+                  return;
+                }
+
+                totalUnmatched += 1;
+                if (r && r.name && unmatchedNames.length < 5) unmatchedNames.push(r.name);
+              });
+            }
+            if (totalMatched === 0 && totalAdded === 0) {
+              setStatus("No rows detected. Try Broad multilingual and a clearer screenshot.");
+            } else {
+              saveCurrentDay(true);
+              let msg = `Done. Matched ${totalMatched} OCR row(s).`;
+              if (totalAdded > 0) msg += ` Added ${totalAdded} new row(s).`;
+              if (totalUnmatched > 0) {
+                msg += ` Unmatched ${totalUnmatched}.`;
+                if (unmatchedNames.length) msg += ` Check: ${unmatchedNames.join(", ")}.`;
+              }
+              setStatus(msg);
+              applyTableFiltersAndSort();
+            }
+          } catch (err) {
+            setStatus("");
+            alert("OCR failed: " + (err && err.message ? err.message : String(err)));
+          } finally {
+            runBtn.disabled = false;
+          }
+        });
+
+        if (playerListInput) {
+          playerListInput.addEventListener("change", async function () {
+            const file = playerListInput.files && playerListInput.files[0];
+            if (!file) return;
+            try {
+              const players = await parsePlayerListFile(file);
+              if (!players.length) {
+                setStatus("No player names found in list.");
+                return;
+              }
+              savePlayerList(players);
+              const map = loadHistoryMap();
+              Object.keys(map).forEach((day) => {
+                map[day] = mergePlayersIntoRows(map[day], players);
+              });
+              saveHistoryMap(map);
+              loadSelectedDay();
+              setStatus(`Imported ${players.length} player(s). Roster now carries across all weeks.`);
+            } catch (err) {
+              setStatus("");
+              alert(
+                "Could not import player list: " +
+                  (err && err.message ? err.message : String(err)),
+              );
+            } finally {
+              playerListInput.value = "";
+            }
+          });
+        }
+
+        saveDayBtn.addEventListener("click", function () {
+          saveCurrentDay();
+        });
+
+        loadDayBtn.addEventListener("click", function () {
+          loadSelectedDay();
+        });
+
+        deleteDayBtn.addEventListener("click", function () {
+          const day = getSelectedDay();
+          const map = loadHistoryMap();
+          if (!map[day]) {
+            setStatus(`No saved data for ${day}.`);
+            return;
+          }
+          const yes = confirm(`Delete saved history for ${day}?`);
+          if (!yes) return;
+          delete map[day];
+          saveHistoryMap(map);
+          setStatus(`Deleted saved history for ${day}.`);
+        });
+
+        tbody.addEventListener("input", function () {
+          saveCurrentDay(true);
+          applyTableFiltersAndSort();
+        });
+        tbody.addEventListener("change", function () {
+          const active = document.activeElement;
+          if (active && active.matches('input[data-k="power"]')) {
+            active.value = formatMillions0000(active.value || "");
+          }
+          saveCurrentDay(true);
+          applyTableFiltersAndSort();
+        });
+
+        if (filterFieldEl) filterFieldEl.addEventListener("change", applyTableFiltersAndSort);
+        if (filterValueEl) filterValueEl.addEventListener("input", applyTableFiltersAndSort);
+        if (sortFieldEl) sortFieldEl.addEventListener("change", applyTableFiltersAndSort);
+        if (sortDirEl) sortDirEl.addEventListener("change", applyTableFiltersAndSort);
+        if (filterClearBtn) {
+          filterClearBtn.addEventListener("click", function () {
+            if (filterFieldEl) filterFieldEl.value = "name";
+            if (filterValueEl) filterValueEl.value = "";
+            if (sortFieldEl) sortFieldEl.value = "";
+            if (sortDirEl) sortDirEl.value = "asc";
+            applyTableFiltersAndSort();
+          });
+        }
+        if (clearPlayerListBtn) {
+          clearPlayerListBtn.addEventListener("click", function () {
+            const yes = confirm("Clear saved player list?");
+            if (!yes) return;
+            try {
+              localStorage.removeItem(PLAYER_LIST_KEY);
+            } catch {
+              // ignore
+            }
+            const map = loadHistoryMap();
+            Object.keys(map).forEach((day) => {
+              const rows = Array.isArray(map[day]) ? map[day] : [];
+              // Keep only rows that contain actual data beyond player name.
+              map[day] = rows.filter((r) => hasNonNameData(r));
+            });
+            saveHistoryMap(map);
+            loadSelectedDay();
+            refreshMapPlayerSelect();
+            setStatus("Player list cleared.");
+          });
+        }
+
+        if (dayPicker) {
+          dayPicker.value = formatYmd(new Date());
+          dayPicker.addEventListener("change", function () {
+            loadSelectedDay();
+          });
+        }
+
+        if (scoreLeftBtn) {
+          scoreLeftBtn.addEventListener("click", function () {
+            shiftSelectedDay(-1);
+          });
+        }
+        if (scoreRightBtn) {
+          scoreRightBtn.addEventListener("click", function () {
+            shiftSelectedDay(1);
+          });
+        }
+        if (mapBtn) {
+          mapBtn.addEventListener("click", function () {
+            refreshMapPlayerSelect();
+            renderMapPins();
+            openMapModal();
+          });
+        }
+        if (mapCloseBtn) {
+          mapCloseBtn.addEventListener("click", closeMapModal);
+        }
+        if (mapModal) {
+          mapModal.addEventListener("click", function (e) {
+            if (e.target === mapModal) closeMapModal();
+          });
+        }
+        if (mapStage) {
+          mapStage.addEventListener("click", function (e) {
+            if (e.target && e.target.closest(".ds-map-pin")) return;
+            placeSelectedPlayerAt(e.clientX, e.clientY);
+          });
+        }
+        if (mapOverlay) {
+          mapOverlay.addEventListener("click", function (e) {
+            const pin = e.target && e.target.closest(".ds-map-pin");
+            if (!pin) return;
+            removeMapPinByIndex(pin.getAttribute("data-map-index"));
+          });
+        }
+        if (mapTeamSelect) {
+          mapTeamSelect.addEventListener("change", function () {
+            refreshMapPlayerSelect();
+            renderMapPins();
+          });
+        }
+        if (mapClearTeamBtn) {
+          mapClearTeamBtn.addEventListener("click", function () {
+            const yes = confirm("Clear all map placements for this team and day?");
+            if (!yes) return;
+            clearCurrentTeamPins();
+          });
+        }
+        if (mapExportBtn) {
+          mapExportBtn.addEventListener("click", exportCurrentMapImage);
+        }
+        document.addEventListener("keydown", function (e) {
+          if (e.key === "Escape") closeMapModal();
+        });
+        loadSelectedDay();
+      })();
+    </script>
+  </body>
+</html>
+

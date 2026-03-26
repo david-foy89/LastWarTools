@@ -3,6 +3,7 @@
     const nav = document.querySelector('.page-nav');
     if (!nav) return;
 
+    ensureAllianceToolsLinks(nav);
     ensureSeason2SuppliesLink(nav);
     // Train Conductor and Server Search are now handled in the Alliance Tools dropdown in HTML
 
@@ -69,6 +70,37 @@
   }
 
   // Train Conductor and Server Search links are now managed in the Alliance Tools dropdown in HTML
+  function ensureAllianceToolsLinks(nav) {
+    const currentPage = window.location.pathname.split('/').pop() || 'index.html';
+    const allianceDropdowns = Array.from(
+      nav.querySelectorAll('details.page-nav-dropdown'),
+    ).filter((dropdown) => {
+      const summary = dropdown.querySelector('summary.page-nav-dropdown-toggle');
+      return summary && summary.textContent.trim() === 'Alliance Tools';
+    });
+
+    function ensureLink(menu, href, label) {
+      let link = menu.querySelector(`a[href="${href}"]`);
+      if (!link) {
+        link = document.createElement('a');
+        link.href = href;
+        link.className = 'page-link';
+        link.textContent = label;
+        menu.appendChild(link);
+      }
+      if (currentPage === href) {
+        link.classList.add('active');
+      }
+      return link;
+    }
+
+    allianceDropdowns.forEach((dropdown) => {
+      const menu = dropdown.querySelector('.page-nav-dropdown-menu');
+      if (!menu) return;
+      ensureLink(menu, 'transfer-tracker.html', 'Transfer Tracker');
+      ensureLink(menu, 'ds-tracker.html', 'Desert Storm Tracker/Planner');
+    });
+  }
 
   function ensureSeason2SuppliesLink(nav) {
     const currentPage = window.location.pathname.split('/').pop() || 'index.html';
