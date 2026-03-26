@@ -1178,7 +1178,7 @@
           renderRows(merged);
           map[day] = merged;
           saveHistoryMap(map);
-          if (map[day]) setStatus(`Loaded ${map[day].length} row(s) for ${day}.`);
+          if (map[day]?.length) setStatus(`Loaded ${map[day].length} row(s) for ${day}.`);
           else setStatus(`No saved data for ${day}.`);
         }
 
@@ -1422,6 +1422,10 @@
           canvas.width = Math.max(1, Math.floor(sw * scale));
           canvas.height = Math.max(1, Math.floor(sh * scale));
           const ctx = canvas.getContext("2d");
+          if (!ctx) {
+            URL.revokeObjectURL(url);
+            throw new Error("Canvas 2D context unavailable");
+          }
           ctx.drawImage(img, sx, sy, sw, sh, 0, 0, canvas.width, canvas.height);
           const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
           const d = imageData.data;
