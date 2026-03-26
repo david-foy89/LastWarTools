@@ -157,6 +157,38 @@
         white-space: normal;
       }
 
+      /* Top cards responsiveness */
+      @media (max-width: 920px) {
+        #transferTopCards {
+          gap: 14px !important;
+        }
+        #transferTopCards > * {
+          flex: 1 1 100% !important;
+        }
+        #importFileName {
+          display: block;
+          margin-left: 0 !important;
+          margin-top: 8px;
+        }
+      }
+
+      /* Table readability on smaller screens */
+      @media (max-width: 900px) {
+        .transfer-table th,
+        .transfer-table td {
+          font-size: 0.88rem;
+        }
+      }
+      @media (max-width: 720px) {
+        .transfer-table th,
+        .transfer-table td {
+          font-size: 0.82rem;
+        }
+        .transfer-table .action-button {
+          font-size: 0.82rem !important;
+        }
+      }
+
       /* Filter bar responsive layout */
       @media (max-width: 720px) {
         #transferFilterBar label[for] {
@@ -371,6 +403,7 @@
       ></div>
       <section class="layout" style="display: block; padding: 0">
         <div
+          id="transferTopCards"
           style="
             display: flex;
             flex-wrap: wrap;
