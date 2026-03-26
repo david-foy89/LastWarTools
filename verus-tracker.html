@@ -1,0 +1,1820 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Verus Tracker</title>
+    <meta
+      name="description"
+      content="Verus Tracker for Last War: Survival. Tracks players, weekly day scores, and VS Total."
+    />
+    <link rel="stylesheet" href="last-war-furnace-upgrade-calculator.css" />
+    <script src="page-nav-dropdown.js" defer></script>
+    <script src="language-translate.js" defer></script>
+    <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/tesseract.js@5/dist/tesseract.min.js"></script>
+    <style>
+      .verus-card {
+        background: linear-gradient(180deg, var(--panel) 0%, var(--panel-2) 100%);
+        border: 1px solid var(--line-soft);
+        border-radius: 14px;
+        box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+        padding: 16px;
+      }
+      .verus-actions {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 12px;
+        align-items: center;
+        margin-bottom: 12px;
+      }
+      .verus-week-row {
+        display: flex;
+        flex-wrap: wrap;
+        align-items: center;
+        gap: 10px;
+        margin-bottom: 14px;
+        padding: 10px 12px;
+        border-radius: 10px;
+        border: 1px solid var(--line-soft);
+        background: rgba(0, 0, 0, 0.12);
+      }
+      .verus-week-row label {
+        font-size: 0.92rem;
+        color: var(--muted);
+        white-space: nowrap;
+      }
+      #verusWeekPicker {
+        padding: 7px 10px;
+        border-radius: 8px;
+        border: 1px solid var(--line-soft);
+        background: var(--panel-2);
+        color: var(--text);
+        font-size: 0.92rem;
+        min-width: 160px;
+      }
+      .verus-week-arrows {
+        display: inline-flex;
+        gap: 6px;
+      }
+      .verus-week-arrows .action-button {
+        min-width: 36px;
+        padding: 6px 8px;
+        font-size: 0.85rem;
+      }
+      .verus-week-dates {
+        flex: 1 1 200px;
+        font-size: 0.92rem;
+        color: var(--muted);
+        line-height: 1.35;
+      }
+      .verus-week-dates strong {
+        color: var(--text);
+        font-weight: 600;
+      }
+      .verus-actions .verus-file-label {
+        display: inline-block;
+        cursor: pointer;
+        min-width: 140px;
+        padding: 6px 14px;
+        text-align: center;
+        font-size: 0.98rem;
+      }
+      .verus-table-wrap {
+        overflow-x: hidden;
+        width: 100%;
+      }
+      .verus-table {
+        width: 100%;
+        max-width: 100%;
+        border-collapse: collapse;
+        table-layout: fixed;
+      }
+      .verus-table th,
+      .verus-table td {
+        border-bottom: 1px solid var(--line-soft);
+        padding: 8px 6px;
+        text-align: left;
+        vertical-align: middle;
+        overflow-wrap: anywhere;
+      }
+      .verus-table th {
+        color: var(--muted);
+        font-size: 0.86rem;
+        font-weight: 700;
+      }
+      .verus-input {
+        width: 100%;
+        min-width: 0;
+        box-sizing: border-box;
+        padding: 5px 4px;
+        border-radius: 8px;
+        border: 1px solid var(--line-soft);
+        background: var(--panel-2);
+        color: var(--text);
+        font-size: 0.78rem;
+      }
+      .verus-input[data-kind="rank"] {
+        background: transparent;
+        border: 1px solid transparent;
+        box-shadow: none;
+        padding: 0;
+      }
+      .verus-rank-cell {
+        text-align: center;
+        font-weight: 800;
+        color: var(--accent);
+      }
+      .verus-del-btn {
+        min-width: auto;
+        padding: 4px 6px;
+        font-size: 0.75rem;
+      }
+      .verus-sort-btn {
+        display: inline-flex;
+        align-items: center;
+        justify-content: flex-start;
+        gap: 4px;
+        width: 100%;
+        margin: 0;
+        padding: 2px 0;
+        border: none;
+        background: transparent;
+        color: inherit;
+        font: inherit;
+        font-weight: 700;
+        cursor: pointer;
+        text-align: left;
+        border-radius: 6px;
+      }
+      .verus-sort-btn:hover {
+        color: var(--accent);
+      }
+      .verus-sort-btn:focus-visible {
+        outline: 2px solid var(--accent);
+        outline-offset: 2px;
+      }
+      .verus-sort-btn-vs {
+        justify-content: flex-end;
+      }
+      th.verus-th-vs {
+        text-align: right;
+      }
+      .verus-sort-ind {
+        font-size: 0.72rem;
+        opacity: 0.95;
+        min-width: 1em;
+      }
+      .verus-ocr-row {
+        display: flex;
+        flex-wrap: wrap;
+        align-items: center;
+        gap: 10px 14px;
+        margin-bottom: 14px;
+        padding: 10px 12px;
+        border-radius: 10px;
+        border: 1px solid var(--line-soft);
+        background: rgba(0, 80, 120, 0.12);
+      }
+      .verus-ocr-row label {
+        font-size: 0.92rem;
+        color: var(--muted);
+        white-space: nowrap;
+      }
+      #verusOcrDay,
+      #verusOcrLang {
+        padding: 7px 10px;
+        border-radius: 8px;
+        border: 1px solid var(--line-soft);
+        background: var(--panel-2);
+        color: var(--text);
+        font-size: 0.9rem;
+        max-width: 100%;
+      }
+      #verusOcrLang {
+        min-width: 200px;
+      }
+      #verusOcrStatus {
+        font-size: 0.88rem;
+        color: var(--muted);
+        flex: 1 1 200px;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="page">
+      <div class="page-top-controls">
+        <div class="logo-control">
+          <a href="index.html" aria-label="Go to homepage">
+            <img src="media/lwst.png" alt="LWST logo" class="site-logo" />
+          </a>
+        </div>
+        <div class="language-control">
+          <label for="languageSelect">Language</label>
+          <select id="languageSelect"></select>
+        </div>
+      </div>
+      <div id="google_translate_element" class="hidden-translate"></div>
+
+      <nav class="page-nav" aria-label="Calculator pages">
+        <a href="hq-upgrade-calculator.html" class="page-link">HQ Upgrade</a>
+        <details class="page-nav-dropdown" name="alliance-nav">
+          <summary class="page-link page-nav-dropdown-toggle">
+            Alliance Tools
+          </summary>
+          <div class="page-nav-dropdown-menu">
+            <a href="train-conductor-schedule.html" class="page-link"
+              >Train Conductor</a
+            >
+            <a href="server-search.html" class="page-link">Server Search</a>
+          </div>
+        </details>
+        <details class="page-nav-dropdown" name="troop-nav">
+          <summary class="page-link page-nav-dropdown-toggle">
+            Troop Tools
+          </summary>
+          <div class="page-nav-dropdown-menu">
+            <a href="t10-troops-calculator.html" class="page-link"
+              >T10 Troops</a
+            >
+            <a href="t11-troops-calculator.html" class="page-link"
+              >T11 Troops</a
+            >
+          </div>
+        </details>
+        <details class="page-nav-dropdown" name="season-nav">
+          <summary class="page-link page-nav-dropdown-toggle">
+            Season 1 Tools
+          </summary>
+          <div class="page-nav-dropdown-menu">
+            <a href="virus-research-institute-calculator.html" class="page-link"
+              >Virus Research Institute</a
+            >
+            <a href="season-1-squad-base-calculator.html" class="page-link"
+              >Season 1 Squad Base</a
+            >
+            <a href="season-1-interactive-map.html" class="page-link"
+              >Interactive Map</a
+            >
+          </div>
+        </details>
+        <details class="page-nav-dropdown" name="season-nav">
+          <summary class="page-link page-nav-dropdown-toggle">
+            Season 2 Tools
+          </summary>
+          <div class="page-nav-dropdown-menu">
+            <a href="last-war-furnace-upgrade-calculator.html" class="page-link"
+              >Furnace Calculator</a
+            >
+            <a href="season-2-tank-center-calculator.html" class="page-link"
+              >Season 2 Squad Base</a
+            >
+            <a href="season-2-interactive-map.html" class="page-link"
+              >Interactive Map</a
+            >
+          </div>
+        </details>
+        <details class="page-nav-dropdown" name="season-nav">
+          <summary class="page-link page-nav-dropdown-toggle">
+            Season 3 Tools
+          </summary>
+          <div class="page-nav-dropdown-menu">
+            <a href="curse-research-lab-calculator.html" class="page-link"
+              >Curse Research Lab</a
+            >
+            <a href="altar-calculator.html" class="page-link">Altar</a>
+            <a href="protectors-field-calculator.html" class="page-link"
+              >Protectors Field</a
+            >
+            <a href="season-3-interactive-map.html" class="page-link"
+              >Interactive Map</a
+            >
+          </div>
+        </details>
+        <details class="page-nav-dropdown" name="season-nav">
+          <summary class="page-link page-nav-dropdown-toggle">
+            Season 4 Tools
+          </summary>
+          <div class="page-nav-dropdown-menu">
+            <a href="optoelectronic-lab-calculator.html" class="page-link"
+              >Optoelectronic Lab</a
+            >
+            <a href="protectors-field-s4-calculator.html" class="page-link"
+              >Protector's Field S4</a
+            >
+            <a href="lighthouse-s4-calculator.html" class="page-link"
+              >Lighthouse S4</a
+            >
+            <a href="season-4-interactive-map.html" class="page-link"
+              >Interactive Map</a
+            >
+          </div>
+        </details>
+        <details class="page-nav-dropdown" name="season-nav">
+          <summary class="page-link page-nav-dropdown-toggle">
+            Season 5 Tools
+          </summary>
+          <div class="page-nav-dropdown-menu">
+            <a href="caffeine-institute-calculator.html" class="page-link"
+              >Caffeine Institute</a
+            >
+            <a href="protectors-field-s5-calculator.html" class="page-link"
+              >Protector's Field S5</a
+            >
+            <a href="season-5-squad-base-calculator.html" class="page-link"
+              >Season 5 Squad Base</a
+            >
+            <a href="season-5-interactive-map.html" class="page-link"
+              >Interactive Map</a
+            >
+          </div>
+        </details>
+      </nav>
+
+      <section class="hero">
+        <h1>Verus Tracker</h1>
+        <div class="sub">
+          Pick a calendar week; each week is stored separately in your browser.
+          Monday–Saturday scores and VS Total (sum) apply to that week only.
+          Import scores from screenshots or <code>.mp4</code> screen recordings with OCR.
+        </div>
+      </section>
+
+      <section class="layout" style="display: block; padding: 0">
+        <div class="verus-card">
+          <div class="verus-week-row">
+            <label for="verusWeekPicker">Week</label>
+            <div class="verus-week-arrows">
+              <button
+                type="button"
+                id="verusWeekPrevBtn"
+                class="action-button"
+                title="Previous week"
+                aria-label="Previous week"
+              >
+                ◀
+              </button>
+              <button
+                type="button"
+                id="verusWeekNextBtn"
+                class="action-button"
+                title="Next week"
+                aria-label="Next week"
+              >
+                ▶
+              </button>
+            </div>
+            <input type="week" id="verusWeekPicker" name="verusWeek" />
+            <p id="verusWeekDateRange" class="verus-week-dates" aria-live="polite">
+              <!-- Filled by script: Mon–Sat dates for the ISO week -->
+            </p>
+          </div>
+          <div class="verus-actions">
+            <button
+              type="button"
+              id="verusAddRowBtn"
+              class="action-button"
+              style="min-width:auto; padding:8px 12px; font-size:0.95rem;"
+            >
+              Add player
+            </button>
+            <button
+              type="button"
+              id="verusClearBtn"
+              class="action-button"
+              style="
+                min-width:auto;
+                padding:8px 12px;
+                font-size:0.95rem;
+                background: linear-gradient(180deg, #5a2a2a, #3d1c1c);
+                border: 1px solid #8a4040;
+                color: #f0d0d0;
+              "
+            >
+              Clear
+            </button>
+
+            <input
+              type="file"
+              id="verusImportFile"
+              accept=".csv,.txt,.xlsx,.xls"
+              style="display:none"
+            />
+            <label
+              id="verusImportLabel"
+              for="verusImportFile"
+              class="action-button verus-file-label"
+              style="margin-left: auto"
+            >
+              Import CSV/Excel
+            </label>
+
+            <button
+              type="button"
+              id="verusExportBtn"
+              class="action-button"
+              style="min-width:auto; padding:8px 12px; font-size:0.95rem;"
+            >
+              Export CSV
+            </button>
+          </div>
+
+          <div class="verus-ocr-row">
+            <label for="verusOcrDay">Screenshot → day column</label>
+            <select id="verusOcrDay" aria-label="Which day column to fill from the screenshot">
+              <option value="Monday">Monday</option>
+              <option value="Tuesday">Tuesday</option>
+              <option value="Wednesday">Wednesday</option>
+              <option value="Thursday">Thursday</option>
+              <option value="Friday">Friday</option>
+              <option value="Saturday">Saturday</option>
+            </select>
+            <label for="verusOcrLang">OCR language</label>
+            <select id="verusOcrLang" title="More languages are slower but help non‑English names">
+              <option value="eng+kor+jpn+chi_sim+chi_tra" selected>
+                Auto (English + Asian)
+              </option>
+              <option value="eng">English (fast)</option>
+              <option value="kor+jpn+chi_sim+chi_tra">Korean / Japanese / Chinese</option>
+              <option value="eng+spa+fra+deu+por+ita+rus+tur+pol+ukr+vie+tha+ara+hin">
+                Broad multilingual (slow)
+              </option>
+            </select>
+            <input
+              type="file"
+              id="verusOcrFiles"
+              accept="image/*,video/*"
+              multiple
+              style="display: none"
+            />
+            <label for="verusOcrFiles" class="action-button verus-file-label"
+              >Choose screenshot(s) or recording(s)</label
+            >
+            <button type="button" id="verusOcrBtn" class="action-button">
+              Import from screenshot / recording
+            </button>
+            <span id="verusOcrStatus" aria-live="polite"></span>
+          </div>
+
+          <div class="verus-table-wrap">
+            <table class="verus-table">
+              <thead>
+                <tr>
+                  <th style="width:4%; text-align:center">&nbsp;</th>
+                  <th style="width:18%">Player</th>
+                  <th scope="col" style="width:10%">
+                    <button
+                      type="button"
+                      class="verus-sort-btn"
+                      data-verus-sort="Monday"
+                      title="Sort by Monday (click to toggle high/low)"
+                    >
+                      Mon<span class="verus-sort-ind" aria-hidden="true"></span>
+                    </button>
+                  </th>
+                  <th scope="col" style="width:10%">
+                    <button
+                      type="button"
+                      class="verus-sort-btn"
+                      data-verus-sort="Tuesday"
+                      title="Sort by Tuesday (click to toggle high/low)"
+                    >
+                      Tue<span class="verus-sort-ind" aria-hidden="true"></span>
+                    </button>
+                  </th>
+                  <th scope="col" style="width:10%">
+                    <button
+                      type="button"
+                      class="verus-sort-btn"
+                      data-verus-sort="Wednesday"
+                      title="Sort by Wednesday (click to toggle high/low)"
+                    >
+                      Wed<span class="verus-sort-ind" aria-hidden="true"></span>
+                    </button>
+                  </th>
+                  <th scope="col" style="width:10%">
+                    <button
+                      type="button"
+                      class="verus-sort-btn"
+                      data-verus-sort="Thursday"
+                      title="Sort by Thursday (click to toggle high/low)"
+                    >
+                      Thu<span class="verus-sort-ind" aria-hidden="true"></span>
+                    </button>
+                  </th>
+                  <th scope="col" style="width:10%">
+                    <button
+                      type="button"
+                      class="verus-sort-btn"
+                      data-verus-sort="Friday"
+                      title="Sort by Friday (click to toggle high/low)"
+                    >
+                      Fri<span class="verus-sort-ind" aria-hidden="true"></span>
+                    </button>
+                  </th>
+                  <th scope="col" style="width:10%">
+                    <button
+                      type="button"
+                      class="verus-sort-btn"
+                      data-verus-sort="Saturday"
+                      title="Sort by Saturday (click to toggle high/low)"
+                    >
+                      Sat<span class="verus-sort-ind" aria-hidden="true"></span>
+                    </button>
+                  </th>
+                  <th
+                    scope="col"
+                    class="verus-th-vs"
+                    style="width:10%; text-align:right"
+                  >
+                    <button
+                      type="button"
+                      class="verus-sort-btn verus-sort-btn-vs"
+                      data-verus-sort="vsTotal"
+                      title="Sort by VS Total (click to toggle high/low)"
+                    >
+                      VS Total<span class="verus-sort-ind" aria-hidden="true"></span>
+                    </button>
+                  </th>
+                  <th style="width:8%; text-align:center">Del</th>
+                </tr>
+              </thead>
+              <tbody id="verusTableBody"></tbody>
+            </table>
+          </div>
+
+          <div style="margin-top: 10px; color: var(--muted); font-size: 0.9rem">
+            Import expects columns named like <code>Player</code> and
+            <code>Monday</code> … <code>Saturday</code>. <code>VS Total</code> is computed
+            as the sum of the week (it is used only as a fallback when day cells are blank).
+            Screenshot or screen recording import reads commander names and point totals (OCR).
+            Pick which day column to fill, then choose image(s) and/or an <code>.mp4</code> (e.g.
+            <code>Recording 2026-03-26 … .mp4</code> from Game Bar / OBS / similar). Videos skip
+            the first second (often black or UI chrome), then sample about once per second and merge
+            the best score per commander. Names match existing players when possible; otherwise new
+            rows are added.
+          </div>
+        </div>
+      </section>
+    </div>
+
+    <script>
+      (function () {
+        const STORAGE_ROOT = "verusTrackerByWeekV1";
+        const LEGACY_ROWS_KEY = "verusTrackerRowsV1";
+        const LAST_WEEK_KEY = "verusTrackerLastWeekV1";
+        const DAYS = [
+          "Monday",
+          "Tuesday",
+          "Wednesday",
+          "Thursday",
+          "Friday",
+          "Saturday",
+        ];
+
+        function generateId(len = 14) {
+          const chars = "abcdefghijklmnopqrstuvwxyz0123456789";
+          let out = "";
+          for (let i = 0; i < len; ++i)
+            out += chars[Math.floor(Math.random() * chars.length)];
+          return out;
+        }
+
+        function parseNumber(v) {
+          const s = String(v ?? "")
+            .replace(/,/g, "")
+            .trim();
+          if (!s) return 0;
+          const n = Number(s);
+          return Number.isFinite(n) ? n : 0;
+        }
+
+        function getWeeklySum(row) {
+          const daysObj =
+            row && row.days && typeof row.days === "object" ? row.days : {};
+          let sum = 0;
+          let hasAnyFromDays = false;
+          DAYS.forEach((d) => {
+            const raw = String(daysObj[d] ?? "");
+            if (raw.trim() !== "") hasAnyFromDays = true;
+            sum += parseNumber(raw);
+          });
+
+          // If day cells are blank but an imported VS Total exists, use it as fallback.
+          if (!hasAnyFromDays) {
+            const rawVs = String(row && row.vsTotal ? row.vsTotal : "").trim();
+            if (rawVs) {
+              return { sum: parseNumber(rawVs), hasAny: true };
+            }
+            return { sum: 0, hasAny: false };
+          }
+
+          return { sum, hasAny: true };
+        }
+
+        function formatNumberForDisplay(n) {
+          if (!Number.isFinite(n)) return "";
+          const isInt = Math.abs(n - Math.round(n)) < 1e-9;
+          try {
+            if (isInt) return Math.round(n).toLocaleString();
+            return n.toLocaleString(undefined, { maximumFractionDigits: 2 });
+          } catch {
+            return String(n);
+          }
+        }
+
+        function escapeHtml(v) {
+          return String(v ?? "")
+            .replace(/&/g, "&amp;")
+            .replace(/</g, "&lt;")
+            .replace(/>/g, "&gt;")
+            .replace(/"/g, "&quot;");
+        }
+
+        function cleanName(raw) {
+          let s = String(raw || "").replace(/\s+/g, " ").trim();
+          s = s.replace(/^\d+\s*[.)-]?\s*/, "");
+          s = s.replace(/^\[[^\]]+\]\s*/g, "");
+          return s.trim();
+        }
+
+        function cleanNameForOcr(raw) {
+          let s = cleanName(raw);
+          s = s.replace(/\b(commander|points|ranking)\b/gi, "").trim();
+          return s;
+        }
+
+        function looksLikeName(line) {
+          const s = String(line || "").trim();
+          if (!s) return false;
+          if (!/\p{L}/u.test(s)) return false;
+          if (/^\d{4}[-/]\d{1,2}[-/]\d{1,2}/.test(s)) return false;
+          return true;
+        }
+
+        function isAllianceLine(line) {
+          return /^\[[^\]]+\]/.test(String(line || "").trim());
+        }
+
+        function isHeaderOrTabLine(line) {
+          const s = String(line || "").trim().toLowerCase();
+          if (/^(ranking|commander|points)\b/.test(s)) return true;
+          if (/^(mon\.?|tue\.?|tues\.?|wed\.?|thur\.?|thu\.?|fri\.?|sat\.?)\b/.test(s))
+            return true;
+          return false;
+        }
+
+        function normalizeOcrScore(s) {
+          const n = Number(String(s || "").replace(/,/g, ""));
+          if (!Number.isFinite(n)) return "";
+          return String(Math.round(n));
+        }
+
+        function normalizeMatchName(raw) {
+          return cleanName(raw)
+            .toLowerCase()
+            .normalize("NFKD")
+            .replace(/[\u0300-\u036f]/g, "")
+            .replace(/[^\p{L}\p{N}]/gu, "");
+        }
+
+        function getNamedRowsForMatch() {
+          return verusRows
+            .filter((r) => String(r.player || "").trim())
+            .map((r) => ({
+              row: r,
+              name: String(r.player).trim(),
+              key: normalizeMatchName(r.player),
+            }))
+            .filter((x) => x.key);
+        }
+
+        function levenshtein(a, b) {
+          if (a === b) return 0;
+          if (!a || !b) return Math.max(a.length, b.length);
+          const m = a.length;
+          const n = b.length;
+          const v0 = new Uint16Array(n + 1);
+          const v1 = new Uint16Array(n + 1);
+          for (let j = 0; j <= n; j++) v0[j] = j;
+          for (let i = 0; i < m; i++) {
+            v1[0] = i + 1;
+            const ca = a.charCodeAt(i);
+            for (let j = 0; j < n; j++) {
+              const cost = ca === b.charCodeAt(j) ? 0 : 1;
+              v1[j + 1] = Math.min(
+                v1[j] + 1,
+                v0[j + 1] + 1,
+                v0[j] + cost,
+              );
+            }
+            for (let j = 0; j <= n; j++) v0[j] = v1[j];
+          }
+          return v0[n];
+        }
+
+        /** True if two normalized OCR name keys are probably the same commander (cross-frame noise). */
+        function ocrKeysLikelySame(ka, kb) {
+          if (!ka || !kb) return false;
+          if (ka === kb) return true;
+          if (ka.length < 3 || kb.length < 3) return false;
+          const shorter = ka.length <= kb.length ? ka : kb;
+          const longer = ka.length <= kb.length ? kb : ka;
+          if (shorter.length >= 4 && longer.includes(shorter)) return true;
+          const maxLen = Math.max(ka.length, kb.length);
+          const dist = levenshtein(ka, kb);
+          if (maxLen <= 7) return dist <= 2;
+          if (maxLen <= 14) return dist <= 3;
+          return dist <= Math.max(3, Math.floor(maxLen * 0.14));
+        }
+
+        /**
+         * One row per commander: keeps highest score when OCR varies across video frames.
+         */
+        function dedupeVerusOcrRowsBySimilarName(rows) {
+          const list = (rows || []).filter((r) => r && r.name && r.score);
+          list.sort(
+            (a, b) =>
+              parseNumber(String(b.score).replace(/,/g, "")) -
+              parseNumber(String(a.score).replace(/,/g, "")),
+          );
+          const kept = [];
+          for (let i = 0; i < list.length; i++) {
+            const r = list[i];
+            const k = normalizeMatchName(r.name);
+            if (!k) continue;
+            const dup = kept.some((x) =>
+              ocrKeysLikelySame(k, normalizeMatchName(x.name)),
+            );
+            if (dup) continue;
+            kept.push({
+              name: cleanNameForOcr(r.name),
+              score: normalizeOcrScore(r.score),
+            });
+          }
+          return kept;
+        }
+
+        function findBestRowForOcrName(ocrName, namedRows) {
+          const rows = Array.isArray(namedRows) ? namedRows : [];
+          const ocrKey = normalizeMatchName(ocrName);
+          if (!ocrKey) return null;
+          const exact = rows.find((r) => r.key === ocrKey);
+          if (exact) return exact.row;
+          const partial = rows
+            .filter((r) => r.key.includes(ocrKey) || ocrKey.includes(r.key))
+            .sort(
+              (a, b) =>
+                Math.abs(a.key.length - ocrKey.length) -
+                Math.abs(b.key.length - ocrKey.length),
+            );
+          if (partial.length) return partial[0].row;
+          if (ocrKey.length >= 4) {
+            let bestRow = null;
+            let bestDist = Infinity;
+            for (let i = 0; i < rows.length; i++) {
+              const r = rows[i];
+              if (!r.key || r.key.length < 3) continue;
+              if (!ocrKeysLikelySame(ocrKey, r.key)) continue;
+              const d = levenshtein(ocrKey, r.key);
+              if (d < bestDist) {
+                bestDist = d;
+                bestRow = r.row;
+              }
+            }
+            if (bestRow) return bestRow;
+          }
+          return null;
+        }
+
+        function parseVerusOcrRows(text) {
+          const lines = String(text || "")
+            .split(/\r?\n/)
+            .map((x) => String(x || "").replace(/\s+/g, " ").trim())
+            .filter(Boolean);
+          const out = [];
+          const seen = new Set();
+
+          for (let i = 0; i < lines.length; i++) {
+            const line = lines[i];
+            if (isHeaderOrTabLine(line)) continue;
+
+            const oneLine = line.match(/^(.*?)(-?\d[\d,]{5,}(?:\.\d+)?)$/);
+            if (
+              oneLine &&
+              looksLikeName(oneLine[1]) &&
+              !isAllianceLine(oneLine[1])
+            ) {
+              const name = cleanNameForOcr(oneLine[1]);
+              const score = normalizeOcrScore(oneLine[2]);
+              const key = `${name}|${score}`;
+              if (name && score && !seen.has(key)) {
+                seen.add(key);
+                out.push({ name, score });
+              }
+              continue;
+            }
+
+            if (!looksLikeName(line)) continue;
+            if (isAllianceLine(line)) continue;
+
+            let j = i + 1;
+            if (j < lines.length && isAllianceLine(lines[j])) j++;
+            const scoreLine = lines[j] || "";
+            const scoreMatch = scoreLine.match(/(-?\d[\d,]{5,}(?:\.\d+)?)/);
+            if (!scoreMatch) continue;
+            const name = cleanNameForOcr(line);
+            const score = normalizeOcrScore(scoreMatch[1]);
+            const key = `${name}|${score}`;
+            if (name && score && !seen.has(key)) {
+              seen.add(key);
+              out.push({ name, score });
+              i = j;
+            }
+          }
+          return out;
+        }
+
+        function parseVerusOcrRowsByScoreAnchor(text) {
+          const lines = String(text || "")
+            .split(/\r?\n/)
+            .map((x) => String(x || "").replace(/\s+/g, " ").trim())
+            .filter(Boolean);
+          const out = [];
+          const seen = new Set();
+          for (let i = 0; i < lines.length; i++) {
+            const scoreMatch = lines[i].match(/\b(\d[\d,]{5,})\b/);
+            if (!scoreMatch) continue;
+            const score = normalizeOcrScore(scoreMatch[1]);
+            if (!score) continue;
+            let name = "";
+            for (let j = i - 1; j >= Math.max(0, i - 2); j--) {
+              if (looksLikeName(lines[j]) && !isAllianceLine(lines[j])) {
+                name = cleanNameForOcr(lines[j]);
+                break;
+              }
+            }
+            if (!name) continue;
+            const key = `${name}|${score}`;
+            if (seen.has(key)) continue;
+            seen.add(key);
+            out.push({ name, score });
+          }
+          return out;
+        }
+
+        function preprocessVerusImageSource(source) {
+          const w =
+            source.naturalWidth ||
+            source.videoWidth ||
+            source.width ||
+            0;
+          const h =
+            source.naturalHeight ||
+            source.videoHeight ||
+            source.height ||
+            0;
+          if (!w || !h) {
+            throw new Error("Could not read image dimensions.");
+          }
+          const scale = 2;
+          const sx = Math.floor(w * 0.06);
+          const sy = Math.floor(h * 0.09);
+          const sw = Math.max(1, Math.floor(w * 0.92));
+          const sh = Math.max(1, Math.floor(h * 0.9));
+          const canvas = document.createElement("canvas");
+          canvas.width = Math.max(1, Math.floor(sw * scale));
+          canvas.height = Math.max(1, Math.floor(sh * scale));
+          const ctx = canvas.getContext("2d");
+          if (!ctx) throw new Error("Canvas 2D context unavailable");
+          ctx.drawImage(source, sx, sy, sw, sh, 0, 0, canvas.width, canvas.height);
+          const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
+          const d = imageData.data;
+          for (let i = 0; i < d.length; i += 4) {
+            const gray = d[i] * 0.299 + d[i + 1] * 0.587 + d[i + 2] * 0.114;
+            const boosted = Math.max(0, Math.min(255, (gray - 128) * 1.35 + 128));
+            d[i] = boosted;
+            d[i + 1] = boosted;
+            d[i + 2] = boosted;
+          }
+          ctx.putImageData(imageData, 0, 0);
+          return canvas;
+        }
+
+        async function preprocessVerusImage(file) {
+          const img = new Image();
+          const url = URL.createObjectURL(file);
+          await new Promise((resolve, reject) => {
+            img.onload = resolve;
+            img.onerror = reject;
+            img.src = url;
+          });
+          try {
+            return preprocessVerusImageSource(img);
+          } finally {
+            URL.revokeObjectURL(url);
+          }
+        }
+
+        async function runVerusOcrOnCanvas(source, langSel) {
+          const langsPrimary =
+            (langSel && String(langSel.value || "").trim()) ||
+            "eng+kor+jpn+chi_sim+chi_tra";
+          const langsFallback = "eng+kor+jpn+chi_sim+chi_tra";
+          if (typeof Tesseract === "undefined" || !Tesseract.recognize) {
+            throw new Error("OCR library is not loaded.");
+          }
+          const out = await Tesseract.recognize(source, langsPrimary, {
+            tessedit_pageseg_mode: "6",
+            preserve_interword_spaces: "1",
+          });
+          const text = (out && out.data && out.data.text) || "";
+          let rows = parseVerusOcrRows(text);
+          if (!rows.length) rows = parseVerusOcrRowsByScoreAnchor(text);
+
+          if (!rows.length && langsPrimary !== langsFallback) {
+            const retry = await Tesseract.recognize(source, langsFallback, {
+              tessedit_pageseg_mode: "6",
+              preserve_interword_spaces: "1",
+            });
+            const retryText = (retry && retry.data && retry.data.text) || "";
+            rows = parseVerusOcrRows(retryText);
+            if (!rows.length) rows = parseVerusOcrRowsByScoreAnchor(retryText);
+          }
+          return rows;
+        }
+
+        async function runVerusOcrOnFile(file, langSel) {
+          const canvas = await preprocessVerusImage(file);
+          return runVerusOcrOnCanvas(canvas, langSel);
+        }
+
+        function mergeVerusOcrRowArrays(arrays) {
+          const flat = [];
+          (arrays || []).forEach((arr) => {
+            (arr || []).forEach((row) => flat.push(row));
+          });
+          return dedupeVerusOcrRowsBySimilarName(flat);
+        }
+
+        /**
+         * Sample timestamps for screen recordings (.mp4 etc.).
+         * skipStartSec: skip the first moments (often black / capture UI) before OCR.
+         */
+        function buildVideoSampleTimes(
+          durationSec,
+          intervalSec,
+          maxFrames,
+          maxDurationSec,
+          skipStartSec,
+        ) {
+          const skip = Math.max(0, Number(skipStartSec) || 0);
+          const end = Math.min(durationSec, maxDurationSec);
+          let start = Math.min(skip, Math.max(0, durationSec - 0.2));
+          if (start >= end - 0.08) {
+            start = 0;
+          }
+          const span = Math.max(0.05, end - start);
+          let times = [];
+          for (let t = start; t < end; t += intervalSec) {
+            times.push(Math.min(t, durationSec - 0.05));
+          }
+          if (times.length > maxFrames) {
+            const step = span / maxFrames;
+            times = [];
+            for (let i = 0; i < maxFrames; i++) {
+              times.push(
+                Math.min(start + i * step, Math.max(start, durationSec - 0.05)),
+              );
+            }
+          }
+          if (!times.length) {
+            times.push(Math.min(Math.max(0, durationSec * 0.5), durationSec - 0.05));
+          }
+          return times;
+        }
+
+        function seekVideo(video, t) {
+          return new Promise((resolve, reject) => {
+            const dur = video.duration;
+            if (!Number.isFinite(dur) || dur <= 0) {
+              reject(new Error("Invalid video."));
+              return;
+            }
+            const maxT = Math.max(0, dur - 0.05);
+            const target = Math.min(Math.max(0, t), maxT);
+            if (Math.abs(video.currentTime - target) < 0.04) {
+              resolve();
+              return;
+            }
+            const onSeeked = () => {
+              video.removeEventListener("seeked", onSeeked);
+              video.removeEventListener("error", onErr);
+              resolve();
+            };
+            const onErr = () => {
+              video.removeEventListener("seeked", onSeeked);
+              reject(new Error("Video seek failed."));
+            };
+            video.addEventListener("seeked", onSeeked);
+            video.addEventListener("error", onErr, { once: true });
+            video.currentTime = target;
+          });
+        }
+
+        async function runVerusOcrOnVideoFile(file, langSel, onProgress) {
+          const VIDEO_INTERVAL_SEC = 1;
+          const VIDEO_MAX_FRAMES = 40;
+          const VIDEO_MAX_DURATION_SEC = 300;
+          /** Skip first ~1s — typical screen captures start dark or show recorder chrome. */
+          const VIDEO_SKIP_START_SEC = 1;
+
+          const video = document.createElement("video");
+          video.preload = "auto";
+          video.muted = true;
+          video.defaultMuted = true;
+          video.playsInline = true;
+          video.setAttribute("playsinline", "");
+          video.setAttribute("webkit-playsinline", "");
+          video.setAttribute("aria-hidden", "true");
+          video.style.cssText =
+            "position:fixed;left:-9999px;width:2px;height:2px;opacity:0;pointer-events:none";
+          document.body.appendChild(video);
+          let url = null;
+          try {
+            url = URL.createObjectURL(file);
+            video.src = url;
+            await new Promise((resolve, reject) => {
+              video.onloadedmetadata = () => resolve();
+              video.onerror = () =>
+                reject(new Error("Could not read this video file."));
+            });
+
+            const duration = video.duration;
+            if (!Number.isFinite(duration) || duration <= 0) {
+              throw new Error("Invalid or unsupported video duration.");
+            }
+
+            const times = buildVideoSampleTimes(
+              duration,
+              VIDEO_INTERVAL_SEC,
+              VIDEO_MAX_FRAMES,
+              VIDEO_MAX_DURATION_SEC,
+              VIDEO_SKIP_START_SEC,
+            );
+            const frameArrays = [];
+            for (let i = 0; i < times.length; i++) {
+              if (typeof onProgress === "function") {
+                onProgress(i + 1, times.length);
+              }
+              await seekVideo(video, times[i]);
+              await new Promise((r) => requestAnimationFrame(() => r()));
+              await new Promise((r) => requestAnimationFrame(() => r()));
+              await new Promise((r) => setTimeout(r, 40));
+              const canvas = preprocessVerusImageSource(video);
+              const rows = await runVerusOcrOnCanvas(canvas, langSel);
+              frameArrays.push(rows);
+            }
+            return mergeVerusOcrRowArrays(frameArrays);
+          } finally {
+            if (url) URL.revokeObjectURL(url);
+            video.removeAttribute("src");
+            video.load();
+            if (video.parentNode) video.parentNode.removeChild(video);
+          }
+        }
+
+        function isVideoFile(file) {
+          const t = String((file && file.type) || "").toLowerCase();
+          if (t.startsWith("video/")) return true;
+          const n = String((file && file.name) || "").toLowerCase();
+          return /\.(mp4|webm|ogg|mov|m4v|mkv|avi)(\?.*)?$/i.test(n);
+        }
+
+        function setVerusOcrStatus(msg) {
+          const el = document.getElementById("verusOcrStatus");
+          if (el) el.textContent = msg || "";
+        }
+
+        function downloadBlob(blob, filename) {
+          const url = URL.createObjectURL(blob);
+          const a = document.createElement("a");
+          a.href = url;
+          a.download = filename;
+          document.body.appendChild(a);
+          a.click();
+          a.remove();
+          setTimeout(() => URL.revokeObjectURL(url), 30000);
+        }
+
+        /** ISO-8601 week string for input type="week" (YYYY-Www). */
+        function getISOWeekString(d) {
+          const date = new Date(d.getTime());
+          date.setHours(0, 0, 0, 0);
+          date.setDate(date.getDate() + 3 - ((date.getDay() + 6) % 7));
+          const week1 = new Date(date.getFullYear(), 0, 4);
+          const w =
+            1 +
+            Math.round(
+              ((date.getTime() - week1.getTime()) / 86400000 -
+                3 +
+                ((week1.getDay() + 6) % 7)) /
+                7,
+            );
+          return date.getFullYear() + "-W" + String(w).padStart(2, "0");
+        }
+
+        /** Monday 00:00 local time for the given ISO week (week 1 contains Jan 4). */
+        function mondayOfISOWeek(year, week) {
+          const jan4 = new Date(year, 0, 4);
+          const offset = (jan4.getDay() + 6) % 7;
+          const mondayW1 = new Date(jan4);
+          mondayW1.setDate(jan4.getDate() - offset);
+          const monday = new Date(mondayW1);
+          monday.setHours(0, 0, 0, 0);
+          monday.setDate(mondayW1.getDate() + (week - 1) * 7);
+          return monday;
+        }
+
+        /** Human-readable Mon–Sat range (matches table columns). */
+        function formatWeekDateRangeLabel(weekKey) {
+          const m = /^(\d{4})-W(\d{2})$/.exec(String(weekKey || "").trim());
+          if (!m) return "";
+          const year = parseInt(m[1], 10);
+          const week = parseInt(m[2], 10);
+          if (week < 1 || week > 53) return "";
+          const monday = mondayOfISOWeek(year, week);
+          const saturday = new Date(monday);
+          saturday.setDate(monday.getDate() + 5);
+          const opt = {
+            weekday: "short",
+            month: "short",
+            day: "numeric",
+            year: "numeric",
+          };
+          try {
+            const a = monday.toLocaleDateString(undefined, opt);
+            const b = saturday.toLocaleDateString(undefined, opt);
+            return a + " – " + b;
+          } catch {
+            return "";
+          }
+        }
+
+        function updateWeekDateDisplay() {
+          const el = document.getElementById("verusWeekDateRange");
+          if (!el) return;
+          const label = formatWeekDateRangeLabel(currentWeekKey);
+          if (!label) {
+            el.textContent = "";
+            return;
+          }
+          el.innerHTML =
+            "<strong>Week dates</strong> (Mon–Sat): " + escapeHtml(label);
+        }
+
+        function formatExportFilename() {
+          const d = new Date();
+          const pad = (n) => String(n).padStart(2, "0");
+          const wk = currentWeekKey || getISOWeekString(d);
+          const safeWk = String(wk).replace(/[^\w-]/g, "");
+          return (
+            "verus-tracker-" +
+            safeWk +
+            "-" +
+            d.getFullYear() +
+            pad(d.getMonth() + 1) +
+            pad(d.getDate()) +
+            "-" +
+            pad(d.getHours()) +
+            pad(d.getMinutes()) +
+            ".csv"
+          );
+        }
+
+        function defaultRow() {
+          return {
+            id: generateId(),
+            player: "",
+            vsTotal: "",
+            days: DAYS.reduce((acc, d) => {
+              acc[d] = "";
+              return acc;
+            }, {}),
+          };
+        }
+
+        function normalizeImportedRow(rawRow) {
+          const row = defaultRow();
+          row.id = generateId();
+
+          row.player = String(rawRow.player ?? rawRow.Player ?? "").trim();
+          row.vsTotal = String(
+            rawRow.vsTotal ?? rawRow["VS Total"] ?? rawRow["vs total"] ?? "",
+          ).trim();
+
+          DAYS.forEach((d) => {
+            const v = rawRow[d] ?? rawRow[d.toLowerCase()] ?? "";
+            row.days[d] = String(v ?? "").trim();
+          });
+
+          return row;
+        }
+
+        let verusRows = [];
+        let weeksMap = {};
+        let currentWeekKey = "";
+        let saveTimer = null;
+        /** One of DAYS or "vsTotal"; null = default (VS sum desc, blanks last). */
+        let sortColumn = null;
+        /** true = high to low (desc), false = low to high (asc). */
+        let sortDesc = true;
+
+        function loadWeeksMapFromStorage() {
+          try {
+            const raw = localStorage.getItem(STORAGE_ROOT);
+            if (raw) {
+              const parsed = JSON.parse(raw);
+              return parsed && typeof parsed === "object" && !Array.isArray(parsed)
+                ? parsed
+                : {};
+            }
+          } catch {
+            // ignore
+          }
+          try {
+            const legacy = localStorage.getItem(LEGACY_ROWS_KEY);
+            if (legacy) {
+              const rows = JSON.parse(legacy);
+              const wk = getISOWeekString(new Date());
+              const map = {};
+              map[wk] = Array.isArray(rows) ? rows : [];
+              localStorage.setItem(STORAGE_ROOT, JSON.stringify(map));
+              localStorage.removeItem(LEGACY_ROWS_KEY);
+              return map;
+            }
+          } catch {
+            // ignore
+          }
+          return {};
+        }
+
+        function normalizeRows(rows) {
+          let list = Array.isArray(rows) ? rows : [];
+          list = list.map((r) => {
+            const base = defaultRow();
+            const next = Object.assign(base, r || {});
+            next.id = String(next.id || generateId());
+            next.player = String(next.player ?? "").trim();
+            next.vsTotal = String(next.vsTotal ?? "").trim();
+            next.days = next.days && typeof next.days === "object" ? next.days : {};
+            DAYS.forEach((d) => {
+              next.days[d] = String(next.days[d] ?? "").trim();
+            });
+            return next;
+          });
+          if (list.length === 0) list = [defaultRow()];
+          return list;
+        }
+
+        function commitCurrentWeekToMap() {
+          if (!currentWeekKey) return;
+          weeksMap[currentWeekKey] = verusRows;
+          try {
+            localStorage.setItem(STORAGE_ROOT, JSON.stringify(weeksMap));
+            localStorage.setItem(LAST_WEEK_KEY, currentWeekKey);
+          } catch {
+            // ignore
+          }
+        }
+
+        function saveState() {
+          if (saveTimer) clearTimeout(saveTimer);
+          saveTimer = setTimeout(() => {
+            commitCurrentWeekToMap();
+          }, 200);
+        }
+
+        function switchToWeek(nextKey) {
+          const next = String(nextKey || "").trim();
+          if (!/^\d{4}-W\d{2}$/.test(next)) return;
+
+          commitCurrentWeekToMap();
+
+          sortColumn = null;
+          sortDesc = true;
+
+          currentWeekKey = next;
+          const picker = document.getElementById("verusWeekPicker");
+          if (picker) picker.value = currentWeekKey;
+
+          verusRows = normalizeRows(weeksMap[currentWeekKey]);
+          weeksMap[currentWeekKey] = verusRows;
+          try {
+            localStorage.setItem(LAST_WEEK_KEY, currentWeekKey);
+            localStorage.setItem(STORAGE_ROOT, JSON.stringify(weeksMap));
+          } catch {
+            // ignore
+          }
+          updateWeekDateDisplay();
+          renderTable();
+        }
+
+        function initWeekAndRows() {
+          weeksMap = loadWeeksMapFromStorage();
+
+          let initial = "";
+          try {
+            initial = String(localStorage.getItem(LAST_WEEK_KEY) || "").trim();
+          } catch {
+            initial = "";
+          }
+          if (!/^\d{4}-W\d{2}$/.test(initial)) {
+            initial = getISOWeekString(new Date());
+          }
+
+          const picker = document.getElementById("verusWeekPicker");
+          if (picker) {
+            picker.value = initial;
+            if (!picker.value) picker.value = initial;
+          }
+
+          currentWeekKey = (picker && picker.value) || initial;
+          verusRows = normalizeRows(weeksMap[currentWeekKey]);
+          weeksMap[currentWeekKey] = verusRows;
+          commitCurrentWeekToMap();
+          updateWeekDateDisplay();
+        }
+
+        function getColumnSortMeta(row, colKey) {
+          if (colKey === "vsTotal") {
+            const w = getWeeklySum(row);
+            return { n: w.sum, empty: !w.hasAny };
+          }
+          const raw = String(
+            row.days && row.days[colKey] ? row.days[colKey] : "",
+          ).trim();
+          if (!raw) return { n: 0, empty: true };
+          return { n: parseNumber(raw), empty: false };
+        }
+
+        function sortForRender(rows) {
+          if (!sortColumn) {
+            const withMeta = rows.slice().map((r) => {
+              const meta = getWeeklySum(r);
+              return { r, sum: meta.sum, hasAny: meta.hasAny };
+            });
+            withMeta.sort((a, b) => {
+              if (a.hasAny !== b.hasAny) return a.hasAny ? -1 : 1;
+              const d = b.sum - a.sum;
+              if (d !== 0) return d;
+              return (a.r.player || "").localeCompare(b.r.player || "");
+            });
+            return withMeta.map((x) => x.r);
+          }
+
+          const col = sortColumn;
+          const withMeta = rows.slice().map((r) => {
+            const meta = getColumnSortMeta(r, col);
+            return { r, n: meta.n, empty: meta.empty };
+          });
+          withMeta.sort((a, b) => {
+            if (a.empty !== b.empty) return a.empty ? 1 : -1;
+            const numCmp = a.n - b.n;
+            if (numCmp !== 0) return sortDesc ? -numCmp : numCmp;
+            return (a.r.player || "").localeCompare(b.r.player || "");
+          });
+          return withMeta.map((x) => x.r);
+        }
+
+        function updateSortHeaders() {
+          document.querySelectorAll("[data-verus-sort]").forEach((btn) => {
+            const col = btn.getAttribute("data-verus-sort");
+            const ind = btn.querySelector(".verus-sort-ind");
+            const th = btn.closest("th");
+            const active = col === sortColumn;
+            if (th) {
+              if (active) {
+                th.setAttribute(
+                  "aria-sort",
+                  sortDesc ? "descending" : "ascending",
+                );
+              } else {
+                th.removeAttribute("aria-sort");
+              }
+            }
+            if (ind) ind.textContent = active ? (sortDesc ? " ▼" : " ▲") : "";
+          });
+        }
+
+        function renderTable() {
+          const tbody = document.getElementById("verusTableBody");
+          if (!tbody) return;
+
+          const sorted = sortForRender(verusRows);
+          tbody.innerHTML = "";
+
+          sorted.forEach((row, i) => {
+            const tr = document.createElement("tr");
+            tr.dataset.rowId = String(row.id || "");
+
+            const weekMeta = getWeeklySum(row);
+            const vsText = weekMeta.hasAny ? formatNumberForDisplay(weekMeta.sum) : "";
+
+            const cells = `
+              <td class="verus-rank-cell">${i + 1}</td>
+              <td><input class="verus-input" data-key="player" type="text" value="${escapeHtml(
+                row.player || "",
+              )}" /></td>
+              ${DAYS
+                .map((d) => {
+                  const v = row.days ? row.days[d] : "";
+                  return `<td><input class="verus-input" data-key="day-${escapeHtml(
+                    d,
+                  )}" type="text" value="${escapeHtml(v || "")}" /></td>`;
+                })
+                .join("")}
+              <td style="text-align:right;font-weight:700;">${escapeHtml(vsText)}</td>
+              <td style="text-align:center">
+                <button type="button" class="action-button verus-del-btn" data-del="1">Delete</button>
+              </td>
+            `;
+            tr.innerHTML = cells;
+            tbody.appendChild(tr);
+          });
+          updateSortHeaders();
+        }
+
+        function upsertRowById(rowId, patch) {
+          const id = String(rowId || "");
+          if (!id) return;
+          const idx = verusRows.findIndex((r) => String(r.id) === id);
+          if (idx === -1) return;
+          verusRows[idx] = Object.assign(verusRows[idx], patch);
+        }
+
+        function addRow() {
+          verusRows.push(defaultRow());
+          saveState();
+          renderTable();
+        }
+
+        function applyVerusOcrRowsToTable(ocrRows, dayKey) {
+          if (!DAYS.includes(dayKey)) return { matched: 0, added: 0 };
+          const rowsIn = dedupeVerusOcrRowsBySimilarName(ocrRows || []);
+          let matched = 0;
+          let added = 0;
+          let namedRows = getNamedRowsForMatch();
+          rowsIn.forEach((or) => {
+            const name = or.name || "";
+            const score = or.score || "";
+            if (!name || !score) return;
+            const best = findBestRowForOcrName(name, namedRows);
+            if (best) {
+              if (!best.days || typeof best.days !== "object") best.days = {};
+              best.days[dayKey] = score;
+              matched++;
+            } else {
+              const nr = defaultRow();
+              nr.player = name;
+              nr.days[dayKey] = score;
+              verusRows.push(nr);
+              added++;
+            }
+            namedRows = getNamedRowsForMatch();
+          });
+          return { matched, added };
+        }
+
+        function clearAll() {
+          const ok = confirm(
+            "Clear all player rows for the selected week? Other weeks stay saved.",
+          );
+          if (!ok) return;
+          verusRows = [defaultRow()];
+          weeksMap[currentWeekKey] = verusRows;
+          saveState();
+          renderTable();
+        }
+
+        function exportCsv() {
+          const sorted = sortForRender(verusRows);
+          const headers = [
+            "Final position",
+            "Player",
+            ...DAYS,
+            "VS Total",
+          ];
+          const rows = sorted.map((row, i) => {
+            const weekMeta = getWeeklySum(row);
+            const vsExport = weekMeta.hasAny
+              ? Math.abs(weekMeta.sum - Math.round(weekMeta.sum)) < 1e-9
+                ? String(Math.round(weekMeta.sum))
+                : String(weekMeta.sum)
+              : "";
+            return [
+              String(i + 1),
+              row.player || "",
+              ...DAYS.map((d) => (row.days ? row.days[d] : "")),
+              vsExport,
+            ];
+          });
+
+          const esc = (v) => {
+            const s = String(v ?? "");
+            if (/[",\r\n]/.test(s)) return '"' + s.replace(/"/g, '""') + '"';
+            return s;
+          };
+
+          let out = "";
+          out += headers.map(esc).join(",") + "\r\n";
+          rows.forEach((r) => {
+            out += r.map(esc).join(",") + "\r\n";
+          });
+
+          const blob = new Blob([out], { type: "text/csv;charset=utf-8" });
+          downloadBlob(blob, formatExportFilename());
+        }
+
+        async function importFromFile(file) {
+          if (!file) return;
+          if (!window.XLSX) {
+            alert("Excel library is not loaded yet. Please try again.");
+            return;
+          }
+
+          const buf = await file.arrayBuffer();
+          const wb = window.XLSX.read(buf, { type: "array" });
+          const name = wb.SheetNames && wb.SheetNames.length ? wb.SheetNames[0] : "";
+          const ws = wb.Sheets[name];
+          if (!ws) {
+            alert("Could not read the spreadsheet.");
+            return;
+          }
+
+          const grid = window.XLSX.utils.sheet_to_json(ws, {
+            header: 1,
+            raw: false,
+            defval: "",
+          });
+          if (!Array.isArray(grid) || grid.length === 0) {
+            alert("No data found in the sheet.");
+            return;
+          }
+
+          const normCell = (c) => String(c ?? "").trim().toLowerCase();
+          const headerRowIndex = grid.findIndex((row) => {
+            const s = (row || []).map(normCell);
+            const hasDay = DAYS.some((d) => s.includes(String(d).toLowerCase()));
+            return s.includes("player") && hasDay;
+          });
+
+          if (headerRowIndex === -1) {
+            alert("Could not find a header row with Player and Monday–Saturday.");
+            return;
+          }
+
+          const headerRow = grid[headerRowIndex] || [];
+          const findCol = (target) => {
+            const t = String(target || "").trim().toLowerCase();
+            const idx = headerRow.findIndex((c) => normCell(c) === t);
+            return idx;
+          };
+
+          const colPlayer = findCol("Player");
+          const colVsTotal = findCol("VS Total") !== -1 ? findCol("VS Total") : findCol("VSTotal");
+
+          const dayCols = {};
+          DAYS.forEach((d) => {
+            const idx = findCol(d);
+            if (idx !== -1) dayCols[d] = idx;
+          });
+
+          if (colPlayer === -1 || Object.keys(dayCols).length === 0) {
+            alert("Header columns not found (Player and Monday–Saturday).");
+            return;
+          }
+
+          const imported = [];
+          for (let r = headerRowIndex + 1; r < grid.length; r++) {
+            const row = grid[r] || [];
+            const player = String(row[colPlayer] ?? "").trim();
+            if (!player) continue;
+
+            const vsTotal = colVsTotal !== -1 ? String(row[colVsTotal] ?? "").trim() : "";
+
+            const rowObj = defaultRow();
+            rowObj.id = generateId();
+            rowObj.player = player;
+            rowObj.vsTotal = vsTotal;
+            DAYS.forEach((d) => {
+              const col = dayCols[d];
+              rowObj.days[d] = col !== undefined ? String(row[col] ?? "").trim() : "";
+            });
+
+            imported.push(rowObj);
+          }
+
+          if (imported.length === 0) {
+            alert("No player rows found to import.");
+            return;
+          }
+
+          const ok = confirm(
+            `Import ${imported.length} player row(s)? This will replace the Verus table for the selected week only.`,
+          );
+          if (!ok) return;
+
+          verusRows = imported;
+          saveState();
+          renderTable();
+        }
+
+        function handleTableDelegation(e, shouldRender) {
+          const target = e.target;
+          if (!target) return;
+
+          const tr = target.closest && target.closest("tr");
+          const tbody = document.getElementById("verusTableBody");
+          if (!tbody || !tr || !tr.dataset.rowId) return;
+          const rowId = tr.dataset.rowId;
+
+          if (target.matches && target.matches(".verus-del-btn[data-del='1']")) {
+            const ok = confirm("Delete this player row?");
+            if (!ok) return;
+            verusRows = verusRows.filter((r) => String(r.id) !== String(rowId));
+            if (verusRows.length === 0) verusRows = [defaultRow()];
+            saveState();
+            renderTable();
+            return;
+          }
+
+          const input = target.closest && target.closest(".verus-input");
+          if (!input) return;
+
+          const key = input.dataset.key;
+          const value = input.value;
+          if (!key) return;
+
+          if (key === "player") upsertRowById(rowId, { player: value });
+          else if (key.startsWith("day-")) {
+            const day = key.slice(4);
+            const row = verusRows.find((r) => String(r.id) === String(rowId));
+            if (!row) return;
+            if (!row.days || typeof row.days !== "object") row.days = {};
+            row.days[day] = value;
+            upsertRowById(rowId, { days: row.days });
+          }
+          saveState();
+          // Re-render only when the user "commits" the change (change event),
+          // so typing doesn't jump due to table resorting.
+          if (shouldRender) renderTable();
+        }
+
+        // Wire up UI
+        initWeekAndRows();
+        renderTable();
+
+        const weekPicker = document.getElementById("verusWeekPicker");
+        if (weekPicker) {
+          weekPicker.addEventListener("change", function () {
+            const v = String(weekPicker.value || "").trim();
+            if (v && v !== currentWeekKey) switchToWeek(v);
+          });
+        }
+        const weekPrev = document.getElementById("verusWeekPrevBtn");
+        const weekNext = document.getElementById("verusWeekNextBtn");
+        if (weekPrev && weekPicker) {
+          weekPrev.addEventListener("click", function () {
+            weekPicker.stepDown(1);
+            const v = String(weekPicker.value || "").trim();
+            if (v) switchToWeek(v);
+          });
+        }
+        if (weekNext && weekPicker) {
+          weekNext.addEventListener("click", function () {
+            weekPicker.stepUp(1);
+            const v = String(weekPicker.value || "").trim();
+            if (v) switchToWeek(v);
+          });
+        }
+
+        const addBtn = document.getElementById("verusAddRowBtn");
+        if (addBtn) addBtn.addEventListener("click", addRow);
+
+        const clearBtn = document.getElementById("verusClearBtn");
+        if (clearBtn) clearBtn.addEventListener("click", clearAll);
+
+        const exportBtn = document.getElementById("verusExportBtn");
+        if (exportBtn) exportBtn.addEventListener("click", exportCsv);
+
+        const importFile = document.getElementById("verusImportFile");
+        if (importFile) {
+          importFile.addEventListener("change", function () {
+            const file = importFile.files && importFile.files.length ? importFile.files[0] : null;
+            if (!file) return;
+            importFromFile(file).catch((err) => {
+              console.error(err);
+              alert("Import failed: " + (err && err.message ? err.message : String(err)));
+            });
+            // allow importing same file again
+            importFile.value = "";
+          });
+        }
+
+        const verusOcrBtn = document.getElementById("verusOcrBtn");
+        const verusOcrFiles = document.getElementById("verusOcrFiles");
+        const verusOcrLang = document.getElementById("verusOcrLang");
+        const verusOcrDaySel = document.getElementById("verusOcrDay");
+        if (verusOcrBtn && verusOcrFiles) {
+          verusOcrBtn.addEventListener("click", async function () {
+            const files = Array.from(verusOcrFiles.files || []);
+            if (!files.length) {
+              alert("Choose one or more screenshots or a screen recording first.");
+              return;
+            }
+            const dayKey =
+              verusOcrDaySel && verusOcrDaySel.value
+                ? verusOcrDaySel.value
+                : "Monday";
+            verusOcrBtn.disabled = true;
+            setVerusOcrStatus("");
+            let totalMatched = 0;
+            let totalAdded = 0;
+            try {
+              for (let i = 0; i < files.length; i++) {
+                const f = files[i];
+                let rows;
+                if (isVideoFile(f)) {
+                  setVerusOcrStatus(
+                    `Video ${i + 1}/${files.length}: ${f.name} — preparing…`,
+                  );
+                  rows = await runVerusOcrOnVideoFile(
+                    f,
+                    verusOcrLang,
+                    (frame, total) => {
+                      setVerusOcrStatus(
+                        `Video ${i + 1}/${files.length}: ${f.name} — OCR frame ${frame}/${total}…`,
+                      );
+                    },
+                  );
+                } else {
+                  setVerusOcrStatus(
+                    `Image ${i + 1}/${files.length}: ${f.name} …`,
+                  );
+                  rows = await runVerusOcrOnFile(f, verusOcrLang);
+                }
+                const { matched, added } = applyVerusOcrRowsToTable(rows, dayKey);
+                totalMatched += matched;
+                totalAdded += added;
+              }
+              saveState();
+              renderTable();
+              if (totalMatched === 0 && totalAdded === 0) {
+                setVerusOcrStatus(
+                  "No scores detected. Try a clearer screenshot/recording or a different OCR language.",
+                );
+              } else {
+                setVerusOcrStatus(
+                  `Done. ${totalMatched} matched row(s)${totalAdded ? `, ${totalAdded} new row(s)` : ""} for ${dayKey}.`,
+                );
+              }
+            } catch (err) {
+              setVerusOcrStatus("");
+              alert(
+                "OCR failed: " +
+                  (err && err.message ? err.message : String(err)),
+              );
+            } finally {
+              verusOcrBtn.disabled = false;
+            }
+          });
+        }
+
+        const sortThead = document.querySelector(".verus-table thead");
+        if (sortThead) {
+          sortThead.addEventListener("click", function (e) {
+            const btn = e.target.closest && e.target.closest("[data-verus-sort]");
+            if (!btn) return;
+            const col = btn.getAttribute("data-verus-sort");
+            if (!col) return;
+            if (sortColumn === col) sortDesc = !sortDesc;
+            else {
+              sortColumn = col;
+              sortDesc = true;
+            }
+            renderTable();
+          });
+        }
+
+        const tbody = document.getElementById("verusTableBody");
+        if (tbody) {
+          tbody.addEventListener("input", (e) => handleTableDelegation(e, false));
+          tbody.addEventListener("change", (e) => handleTableDelegation(e, true));
+          tbody.addEventListener("click", (e) => handleTableDelegation(e, true));
+        }
+      })();
+    </script>
+  </body>
+</html>
+

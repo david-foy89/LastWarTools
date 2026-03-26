@@ -31,6 +31,7 @@ Hosted on GitHub Pages via `index.html`.
 | `t10-troops-calculator.html`               | T10 troop research planner                            |
 | `t11-troops-calculator.html`               | T11 troop research planner                            |
 | `ds-tracker.html`                          | Desert Storm tracker/planner with OCR + map planning  |
+| `verus-tracker.html`                     | Verus tracker matching sheet columns (Tech/VS/Days) |
 | `last-war-furnace-upgrade-calculator.css`  | Shared stylesheet for all calculator pages            |
 | `page-nav-dropdown.js`                     | Shared dropdown behavior for top navigation           |
 | `sitemap.xml`                              | SEO sitemap listing all public tool pages             |
@@ -73,6 +74,10 @@ Hosted on GitHub Pages via `index.html`.
   - Filter/sort controls for roster management
   - No-show tracking with persisted checkbox state
   - Team-based map planning and PNG export
+- Verus Tracker:
+  - Table layout matching the provided Verus sheet columns
+  - Editable player and Monday–Saturday values; VS Total is computed from the week
+  - Import/export CSV (and Excel via upload) for spreadsheet workflow
 - Dedicated homepage describing what each calculator is used for
 - Buy Me a Coffee support link at the top of every page
 - Quick Start guidance block at the top of each calculator input card
