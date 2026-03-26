@@ -3,7 +3,7 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Alliance Transfer Tracker</title>
+    <title>Transfer Tracker</title>
     <meta
       name="description"
       content="Track and log alliance resource transfers, donations, and exchanges."
@@ -19,6 +19,8 @@
             <img src="media/lwst.png" alt="LWST logo" class="site-logo" />
           </a>
         </div>
+        <!-- SheetJS for Excel/CSV parsing -->
+        <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
         <div class="language-control">
           <label for="languageSelect">Language</label>
           <select id="languageSelect"></select>
@@ -143,59 +145,165 @@
         </details>
       </nav>
       <section class="hero">
-        <h1>Alliance Transfer Tracker</h1>
+        <h1>Transfer Tracker</h1>
         <div class="sub">
-          Log and track resource transfers, donations, and exchanges within your
-          alliance. Useful for keeping records of who sent what, when, and for
-          what purpose.
+          Track members for transfer surge after Season 2. You can send a link
+          below or upload via excel
         </div>
       </section>
       <section class="layout" style="display: block; padding: 0">
-        <form
-          id="generateLinkForm"
+        <div
           style="
-            margin-bottom: 24px;
-            background: linear-gradient(
-              180deg,
-              var(--panel) 0%,
-              var(--panel-2) 100%
-            );
-            border: 1px solid var(--line-soft);
-            border-radius: 16px;
-            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
-            padding: 18px 14px 14px 14px;
-            max-width: 600px;
+            display: flex;
+            flex-wrap: wrap;
+            gap: 24px;
+            margin-top: 0;
+            align-items: stretch;
+            justify-content: flex-start;
+            width: 100%;
           "
         >
-          <h2 style="margin-top: 0; color: var(--accent); font-size: 1.1rem">
-            Create a Shareable Transfer Form Link
-          </h2>
-          <div
-            style="margin-bottom: 12px; color: var(--muted); font-size: 0.98rem"
+          <form
+            id="generateLinkForm"
+            style="
+              flex: 1 1 0;
+              min-width: 0;
+              max-width: none;
+              background: linear-gradient(
+                180deg,
+                var(--panel) 0%,
+                var(--panel-2) 100%
+              );
+              border: 1px solid var(--line-soft);
+              border-radius: 16px;
+              box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+              padding: 18px 14px 14px 14px;
+              margin-bottom: 0;
+              display: flex;
+              flex-direction: column;
+              justify-content: flex-start;
+            "
           >
-            Generate a unique link for someone else to fill out a transfer
-            application. When they submit, their info will appear in the table
-            below.
-          </div>
-          <button type="submit" class="action-button">
-            Generate Unique Link
-          </button>
+            <h2 style="margin-top: 0; color: var(--accent); font-size: 1.1rem">
+              Create a Shareable Transfer Form Link
+            </h2>
+            <div
+              style="
+                margin-bottom: 12px;
+                color: var(--muted);
+                font-size: 0.98rem;
+              "
+            >
+              Generate a unique link for someone else to fill out a transfer
+              application. When they submit, their info will appear in the table
+              below.
+            </div>
+            <button
+              type="submit"
+              class="action-button"
+              style="min-width: 140px; padding: 6px 14px; font-size: 0.98rem"
+            >
+              Generate Unique Link
+            </button>
+            <div
+              id="shareableLinkResult"
+              style="margin-top: 12px; word-break: break-all"
+            ></div>
+          </form>
           <div
-            id="shareableLinkResult"
-            style="margin-top: 12px; word-break: break-all"
-          ></div>
-        </form>
+            style="
+              flex: 1 1 0;
+              min-width: 0;
+              max-width: none;
+              background: linear-gradient(
+                180deg,
+                var(--panel) 0%,
+                var(--panel-2) 100%
+              );
+              border: 1px solid var(--line-soft);
+              border-radius: 16px;
+              box-shadow: 0 8px 32px rgba(0, 0, 0, 0.08);
+              padding: 18px 14px 14px 14px;
+              display: flex;
+              flex-direction: column;
+              min-height: 160px;
+              justify-content: flex-start;
+            "
+          >
+            <h2 style="margin-top: 0; color: var(--accent); font-size: 1.1rem">
+              Import Transfers from File
+            </h2>
+            <div
+              style="
+                margin-bottom: 12px;
+                color: var(--muted);
+                font-size: 0.98rem;
+              "
+            >
+              Upload a CSV or Excel file to import multiple transfers at once.
+            </div>
+            <input
+              type="file"
+              id="importFile"
+              accept=".csv, application/vnd.openxmlformats-officedocument.spreadsheetml.sheet, application/vnd.ms-excel"
+              style="display: none"
+            />
+            <label
+              for="importFile"
+              id="importFileLabel"
+              class="action-button"
+              style="
+                margin-bottom: 10px;
+                text-align: center;
+                cursor: pointer;
+                display: inline-block;
+                font-size: 0.98rem;
+                min-width: 140px;
+                padding: 6px 14px;
+              "
+            >
+              Choose File
+            </label>
+            <span
+              id="importFileName"
+              style="margin-left: 8px; font-size: 0.98rem; color: var(--muted)"
+            ></span>
+            <button
+              type="button"
+              id="importBtn"
+              class="action-button"
+              style="
+                min-width: 140px;
+                padding: 6px 14px;
+                font-size: 0.98rem;
+                margin-top: 10px;
+              "
+            >
+              Upload
+            </button>
+            <script>
+              const importFileInput = document.getElementById("importFile");
+              const importFileName = document.getElementById("importFileName");
+              importFileInput.addEventListener("change", function () {
+                importFileName.textContent =
+                  importFileInput.files.length > 0
+                    ? importFileInput.files[0].name
+                    : "";
+              });
+            </script>
+          </div>
+        </div>
         <script type="module">
           import { initializeApp } from "https://www.gstatic.com/firebasejs/9.22.2/firebase-app.js";
           import {
             getFirestore,
             collection,
-            onSnapshot,
             query,
             orderBy,
+            onSnapshot,
+            addDoc,
           } from "https://www.gstatic.com/firebasejs/9.22.2/firebase-firestore.js";
 
-          // Your web app's Firebase configuration
           const firebaseConfig = {
             apiKey: "AIzaSyDow8S7fv4cwDxXVzWzqOUa9G8swBC0jNI",
             authDomain: "lastwartools-c12c8.firebaseapp.com",
@@ -205,43 +313,56 @@
             appId: "1:536808421567:web:fae01f7b3852176a7aae0a",
             measurementId: "G-34RS45FLKS",
           };
+
           const app = initializeApp(firebaseConfig);
           const db = getFirestore(app);
 
-          // Helper to render a row
+          function escapeHtml(v) {
+            return String(v ?? "")
+              .replace(/&/g, "&amp;")
+              .replace(/</g, "&lt;")
+              .replace(/>/g, "&gt;")
+              .replace(/"/g, "&quot;");
+          }
+
           function renderRow(data) {
             return `<tr>
-                      <td>${data.displayName || ""}</td>
-                      <td>${data.serverNumber || ""}</td>
-                      <td>${data.currentAlliance || ""}</td>
-                      <td>${data.bestSquadPower || ""}</td>
-                      <td>${data.totalHeroPower || ""}</td>
-                      <td>${data.allianceInterested || ""}</td>
-                      <td>${data.transferStatus || ""}</td>
-                      <td>${data.additionalInfo || ""}</td>
+                      <td>${escapeHtml(data.displayName)}</td>
+                      <td>${escapeHtml(data.serverNumber)}</td>
+                      <td>${escapeHtml(data.currentAlliance)}</td>
+                      <td>${escapeHtml(data.bestSquadPower)}</td>
+                      <td>${escapeHtml(data.totalHeroPower)}</td>
+                      <td>${escapeHtml(data.allianceInterested)}</td>
+                      <td>${escapeHtml(data.transferStatus)}</td>
+                      <td>${escapeHtml(data.additionalInfo)}</td>
                     </tr>`;
           }
 
-          // Listen for changes in Firestore and update the table
           function listenForTransfers() {
             const tbody = document.querySelector(".transfer-table tbody");
+            if (!tbody) return;
             const q = query(
               collection(db, "transferSubmissions"),
               orderBy("submittedAt", "desc"),
             );
-            onSnapshot(q, (snapshot) => {
-              let html = "";
-              snapshot.forEach((doc) => {
-                html += renderRow(doc.data());
-              });
-              tbody.innerHTML =
-                html ||
-                '<tr><td colspan="8" style="text-align:center;color:var(--muted);">No submissions yet.</td></tr>';
-            });
+            onSnapshot(
+              q,
+              (snapshot) => {
+                let html = "";
+                snapshot.forEach((docSnap) => {
+                  html += renderRow(docSnap.data());
+                });
+                tbody.innerHTML =
+                  html ||
+                  '<tr><td colspan="8" style="text-align:center;color:var(--muted);">No submissions yet.</td></tr>';
+              },
+              () => {
+                tbody.innerHTML =
+                  '<tr><td colspan="8" style="text-align:center;color:var(--warn);">Could not load submissions (check Firestore rules).</td></tr>';
+              },
+            );
           }
-          listenForTransfers();
 
-          // Helper to generate a random ID
           function generateId(len = 12) {
             const chars = "abcdefghijklmnopqrstuvwxyz0123456789";
             let out = "";
@@ -255,10 +376,12 @@
             .addEventListener("submit", function (e) {
               e.preventDefault();
               const id = generateId();
-              const url = `${window.location.origin}/transfer-submit.html?id=${id}`;
+              const submitUrl = new URL("transfer-submit.html", window.location.href);
+              submitUrl.searchParams.set("id", id);
+              const url = submitUrl.href;
+              const safeUrl = escapeHtml(url);
               document.getElementById("shareableLinkResult").innerHTML =
-                `<strong>Share this link:</strong><br><a href="${url}" target="_blank" style="display:inline-block; margin-top:8px; padding:10px 16px; background:linear-gradient(90deg, var(--accent), var(--accent-2)); color:#0a1420; font-weight:700; border-radius:10px; font-size:1.08rem; text-decoration:none; word-break:break-all; box-shadow:0 2px 8px rgba(0,0,0,0.10);">${url}</a>`;
-              // Optionally, store the id in localStorage to track submissions
+                `<strong>Share this link:</strong><br><a href="${safeUrl}" target="_blank" rel="noopener noreferrer" style="display:inline-block; margin-top:8px; padding:10px 16px; background:linear-gradient(90deg, var(--accent), var(--accent-2)); color:#0a1420; font-weight:700; border-radius:10px; font-size:1.08rem; text-decoration:none; word-break:break-all; box-shadow:0 2px 8px rgba(0,0,0,0.10);">${safeUrl}</a>`;
               let pending = JSON.parse(
                 localStorage.getItem("pendingTransferLinks") || "[]",
               );
@@ -270,6 +393,95 @@
                 );
               }
             });
+
+          listenForTransfers();
+
+          document.getElementById("importBtn").addEventListener("click", async function () {
+            const fileInput = document.getElementById("importFile");
+            const file = fileInput.files[0];
+            if (!file) {
+              alert("Please select a file to import.");
+              return;
+            }
+            if (!window.XLSX) {
+              alert(
+                "Excel/CSV library is still loading. Please wait and try again.",
+              );
+              return;
+            }
+            const reader = new FileReader();
+            reader.onload = async function (e) {
+              let data;
+              let workbook;
+              let rows = [];
+              try {
+                if (file.name.endsWith(".csv")) {
+                  const text = e.target.result;
+                  const lines = text.split(/\r?\n/).filter(Boolean);
+                  const headers = lines[0].split(",");
+                  for (let i = 1; i < lines.length; i++) {
+                    const values = lines[i].split(",");
+                    const row = {};
+                    headers.forEach((h, idx) => {
+                      row[h.trim()] = (values[idx] || "").trim();
+                    });
+                    rows.push(row);
+                  }
+                } else {
+                  data = new Uint8Array(e.target.result);
+                  workbook = window.XLSX.read(data, { type: "array" });
+                  const sheetName = workbook.SheetNames[0];
+                  rows = window.XLSX.utils.sheet_to_json(
+                    workbook.Sheets[sheetName],
+                  );
+                }
+              } catch (err) {
+                alert("Failed to parse file: " + err.message);
+                return;
+              }
+              if (!rows.length) {
+                alert("No data found in file.");
+                return;
+              }
+              let success = 0;
+              let fail = 0;
+              for (const row of rows) {
+                try {
+                  await addDoc(collection(db, "transferSubmissions"), {
+                    displayName:
+                      row["Display Name"] || row.displayName || "",
+                    serverNumber:
+                      row["Server Number"] || row.serverNumber || "",
+                    currentAlliance:
+                      row["Current Alliance"] || row.currentAlliance || "",
+                    bestSquadPower:
+                      row["Best Squad Power"] || row.bestSquadPower || "",
+                    totalHeroPower:
+                      row["Total Hero Power"] || row.totalHeroPower || "",
+                    allianceInterested:
+                      row["Which Alliance"] || row.allianceInterested || "",
+                    transferStatus:
+                      row["If Known, What is Your Status?"] ||
+                      row.transferStatus ||
+                      "",
+                    additionalInfo:
+                      row["Additional Info"] || row.additionalInfo || "",
+                    importedAt: new Date().toISOString(),
+                    submittedAt: new Date().toISOString(),
+                  });
+                  success++;
+                } catch {
+                  fail++;
+                }
+              }
+              alert(`Import complete. Success: ${success}, Failed: ${fail}`);
+            };
+            if (file.name.endsWith(".csv")) {
+              reader.readAsText(file);
+            } else {
+              reader.readAsArrayBuffer(file);
+            }
+          });
         </script>
         <div
           class="transfer-table-container"

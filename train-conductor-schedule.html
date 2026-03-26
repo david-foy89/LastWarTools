@@ -1,4 +1,4 @@
-﻿<!doctype html>
+<!doctype html>
 <html lang="en">
   <head>
     <meta charset="UTF-8" />
@@ -1311,8 +1311,10 @@
           color: DEFAULT_COLORS[i],
           vipGuardian: "",
         })),
-        // dayAssignments[0..6] = conductor index, 0=Monday 6=Sunday, -1=none
-        dayAssignments: [0, 1, 2, 3, 4, 5, 6],
+        // dayAssignmentsByWeek[w][0..6] = conductor index per week, Mon–Sun
+        dayAssignmentsByWeek: Array.from({ length: 4 }, () => [
+          0, 1, 2, 3, 4, 5, 6,
+        ]),
         showVip: true,
         allianceMembers: [],
         memberHistory: [],
@@ -1464,6 +1466,40 @@
 
       function normalizeMemberName(value) {
         return sanitizeMemberName(value).toLowerCase();
+      }
+
+      function normalizeDayAssignmentsWeekRow(week) {
+        if (!Array.isArray(week) || week.length !== 7) {
+          return [0, 1, 2, 3, 4, 5, 6];
+        }
+        return week.map((v) => {
+          const n = Number(v);
+          return Number.isFinite(n) && n >= -1 && n <= 6 ? n : 0;
+        });
+      }
+
+      /** Migrate legacy single-week row or load 4×7; share/save may omit new shape. */
+      function normalizeDayAssignmentsByWeek(saved) {
+        if (
+          saved &&
+          Array.isArray(saved.dayAssignmentsByWeek) &&
+          saved.dayAssignmentsByWeek.length === 4 &&
+          saved.dayAssignmentsByWeek.every(
+            (w) => Array.isArray(w) && w.length === 7,
+          )
+        ) {
+          return saved.dayAssignmentsByWeek.map(normalizeDayAssignmentsWeekRow);
+        }
+        let legacyRow = null;
+        if (
+          saved &&
+          Array.isArray(saved.dayAssignments) &&
+          saved.dayAssignments.length === 7
+        ) {
+          legacyRow = normalizeDayAssignmentsWeekRow(saved.dayAssignments);
+        }
+        const row = legacyRow || [0, 1, 2, 3, 4, 5, 6];
+        return Array.from({ length: 4 }, () => [...row]);
       }
 
       function normalizeMemberHistoryEntries(entries) {
@@ -2295,6 +2331,22 @@
           }
         }
 
+        state.memberHistory.forEach((entry) => {
+          if (entry.role !== "conductor") {
+            return;
+          }
+          if (normalizeMemberName(entry.name) !== normalizedName) {
+            return;
+          }
+          if (
+            Number.isFinite(entry.weekIdx) &&
+            entry.weekIdx >= 0 &&
+            entry.weekIdx < state.weeks
+          ) {
+            result.currentWeeks.push(entry.weekIdx + 1);
+          }
+        });
+
         if (state.startDateStr) {
           const startDate = new Date(state.startDateStr + "T00:00:00");
           if (!isNaN(startDate.getTime())) {
@@ -2315,8 +2367,11 @@
                   continue;
                 }
 
+                const weekDays =
+                  state.dayAssignmentsByWeek[weekIdx] ||
+                  [0, 1, 2, 3, 4, 5, 6];
                 for (let dayIdx = 0; dayIdx < 7; dayIdx++) {
-                  if (state.dayAssignments[dayIdx] !== conductorIdx) {
+                  if (weekDays[dayIdx] !== conductorIdx) {
                     continue;
                   }
 
@@ -2881,7 +2936,7 @@
           conductorNamesByWeek: state.conductorNamesByWeek,
           startDateStr: state.startDateStr,
           conductors: state.conductors,
-          dayAssignments: state.dayAssignments,
+          dayAssignmentsByWeek: state.dayAssignmentsByWeek,
           showVip: state.showVip,
           allianceMembers: state.allianceMembers,
           memberHistory: state.memberHistory,
@@ -2940,15 +2995,7 @@
                 : "",
           }));
         }
-        if (
-          Array.isArray(saved.dayAssignments) &&
-          saved.dayAssignments.length === 7
-        ) {
-          state.dayAssignments = saved.dayAssignments.map((v) => {
-            const n = Number(v);
-            return Number.isFinite(n) && n >= -1 && n <= 6 ? n : 0;
-          });
-        }
+        state.dayAssignmentsByWeek = normalizeDayAssignmentsByWeek(saved);
         if (typeof saved.showVip === "boolean") {
           state.showVip = saved.showVip;
         }
@@ -3020,10 +3067,13 @@
 
         for (let w = 0; w < state.weeks; w++) {
           const row = [`Week ${w + 1}`];
+          const weekDays = state.dayAssignmentsByWeek[w] || [
+            0, 1, 2, 3, 4, 5, 6,
+          ];
           for (let d = 0; d < 7; d++) {
             const cellDate = new Date(startDate);
             cellDate.setDate(startDate.getDate() + w * 7 + d);
-            const conductorIdx = state.dayAssignments[d];
+            const conductorIdx = weekDays[d];
             const dateLabel = `${MONTHS[cellDate.getMonth()]} ${cellDate.getDate()}`;
             let cellText = dateLabel;
 
@@ -3127,7 +3177,7 @@
               conductorNamesByWeek: state.conductorNamesByWeek,
               startDateStr: state.startDateStr,
               conductors: state.conductors,
-              dayAssignments: state.dayAssignments,
+              dayAssignmentsByWeek: state.dayAssignmentsByWeek,
               showVip: state.showVip,
               allianceMembers: state.allianceMembers,
               memberHistory: state.memberHistory,
@@ -3206,15 +3256,7 @@
               ]);
             }
           }
-          if (
-            Array.isArray(saved.dayAssignments) &&
-            saved.dayAssignments.length === 7
-          ) {
-            state.dayAssignments = saved.dayAssignments.map((v) => {
-              const n = Number(v);
-              return Number.isFinite(n) && n >= -1 && n <= 6 ? n : 0;
-            });
-          }
+          state.dayAssignmentsByWeek = normalizeDayAssignmentsByWeek(saved);
           if (typeof saved.showVip === "boolean") {
             state.showVip = saved.showVip;
           }
@@ -3264,7 +3306,10 @@
       }
 
       function getConductorDays(conductorIdx) {
-        return state.dayAssignments
+        const weekDays =
+          state.dayAssignmentsByWeek[state.nameEditWeek] ||
+          [0, 1, 2, 3, 4, 5, 6];
+        return weekDays
           .map((ci, d) => (ci === conductorIdx ? DAYS[d] : null))
           .filter(Boolean);
       }
@@ -3394,11 +3439,14 @@
 
         for (let w = 0; w < state.weeks; w++) {
           const cells = [`<td class="week-label-cell">Week ${w + 1}</td>`];
+          const weekDays = state.dayAssignmentsByWeek[w] || [
+            0, 1, 2, 3, 4, 5, 6,
+          ];
           for (let d = 0; d < 7; d++) {
             const cellDate = new Date(startDate);
             cellDate.setDate(startDate.getDate() + w * 7 + d);
 
-            const conductorIdx = state.dayAssignments[d];
+            const conductorIdx = weekDays[d];
             const dateLabel = `${MONTHS[cellDate.getMonth()]} ${cellDate.getDate()}`;
             const today = isToday(cellDate);
 
@@ -3570,7 +3618,9 @@
           color: DEFAULT_COLORS[i],
           vipGuardian: "",
         }));
-        state.dayAssignments = [0, 1, 2, 3, 4, 5, 6];
+        state.dayAssignmentsByWeek = Array.from({ length: 4 }, () => [
+          0, 1, 2, 3, 4, 5, 6,
+        ]);
         state.startDateStr = toDateStr(getMondayOf(new Date()));
         startDateInput.value = state.startDateStr;
         state.weeks = 2;

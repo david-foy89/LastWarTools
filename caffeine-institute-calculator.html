@@ -1107,14 +1107,9 @@
         }
         let coffeeReadyAtTimestamp = null;
         if (!coffeeReady && Number.isFinite(coffeeEtaHours)) {
-          if (
-            calcSignature === lastCalcSignature &&
-            Number.isFinite(lockedCoffeeReadyAtTimestampMs)
-          ) {
-            coffeeReadyAtTimestamp = lockedCoffeeReadyAtTimestampMs;
-          } else {
-            coffeeReadyAtTimestamp = Date.now() + coffeeEtaMs;
-          }
+          coffeeReadyAtTimestamp = Number.isFinite(lockedCoffeeReadyAtTimestampMs)
+            ? lockedCoffeeReadyAtTimestampMs
+            : Date.now() + coffeeEtaMs;
         }
         coffeeReadyAtValue.textContent = coffeeReady
           ? "Now"
