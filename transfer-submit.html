@@ -9,7 +9,7 @@
       content="Submit your alliance transfer information via a unique link."
     />
     <link rel="stylesheet" href="last-war-furnace-upgrade-calculator.css" />
-    <script src="firebase-config.js"></script>
+    <script src="firebase-config.example.js"></script>
   </head>
   <body>
     <div class="page">
@@ -137,6 +137,37 @@
         setDoc,
       } from "https://www.gstatic.com/firebasejs/9.22.2/firebase-firestore.js";
 
+      async function applyLocalFirebaseConfigOverride() {
+        // file:// pages cannot reliably fetch() sibling files; load override via <script src>.
+        if (window.location.protocol === "file:") {
+          await new Promise((resolve) => {
+            const s = document.createElement("script");
+            s.src = new URL(
+              "firebase-config.js",
+              window.location.href,
+            ).href;
+            s.onload = () => resolve();
+            s.onerror = () => resolve();
+            document.head.appendChild(s);
+          });
+          return;
+        }
+        try {
+          const res = await fetch(
+            new URL("firebase-config.js", window.location.href).href,
+            { cache: "no-store" },
+          );
+          if (!res.ok) return;
+          const text = await res.text();
+          if (!text.trim()) return;
+          const s = document.createElement("script");
+          s.textContent = text;
+          document.head.appendChild(s);
+        } catch (_) {}
+      }
+
+      await applyLocalFirebaseConfigOverride();
+
       function firebaseConfigOk(cfg) {
         if (!cfg || typeof cfg !== "object") return false;
         const k = String(cfg.apiKey || "");
@@ -161,7 +192,7 @@
           if (banner) {
             banner.style.display = "block";
             banner.innerHTML =
-              "<strong>Firebase is not configured.</strong> For local use, copy <code>firebase-config.example.js</code> to <code>firebase-config.js</code> and paste your web app config from the Firebase console. Never commit real keys to a public repository.";
+              "<strong>Firebase is not configured.</strong> Copy <code>firebase-config.example.js</code> to <code>firebase-config.js</code> and add your web app config. This form needs Firebase to submit. Do not commit real API keys to public repositories.";
           }
         }
       } catch (e) {
@@ -201,7 +232,7 @@
           try {
             if (window._firebaseInitFailed) {
               document.getElementById("submitResult").innerHTML =
-                '<span style="color:var(--warn);font-weight:700;">This form is not connected to the server (Firebase config missing).</span>';
+                '<span style="color:var(--warn);"><strong>Cannot submit.</strong> Firebase is not configured. Copy <code>firebase-config.example.js</code> to <code>firebase-config.js</code> and add your web app config (see the notice above).</span>';
               return;
             }
             let attempts = 0;

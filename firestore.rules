@@ -1,0 +1,20 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    // Transfer form submissions (transfer-submit.html, transfer-tracker import).
+    // This block must appear BEFORE a blanket deny: multiple matching rules are OR’d,
+    // so this allows transferSubmissions while /{document=**} below denies the rest.
+    // Paste into Firebase Console → Firestore Database → Rules → Publish.
+    match /transferSubmissions/{docId} {
+      allow read: if true;
+      allow create, update: if true;
+      allow delete: if false;
+    }
+
+    // Deny everything not covered above (optional but common).
+    match /{document=**} {
+      allow read, write: if false;
+    }
+  }
+}

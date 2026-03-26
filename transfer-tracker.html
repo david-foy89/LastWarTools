@@ -9,7 +9,7 @@
       content="Track and log alliance resource transfers, donations, and exchanges."
     />
     <link rel="stylesheet" href="last-war-furnace-upgrade-calculator.css" />
-    <script src="firebase-config.js"></script>
+    <script src="firebase-config.example.js"></script>
     <script src="page-nav-dropdown.js" defer></script>
   </head>
   <body>
@@ -320,6 +320,37 @@
             addDoc,
           } from "https://www.gstatic.com/firebasejs/9.22.2/firebase-firestore.js";
 
+          async function applyLocalFirebaseConfigOverride() {
+            // file:// pages cannot reliably fetch() sibling files; load override via <script src>.
+            if (window.location.protocol === "file:") {
+              await new Promise((resolve) => {
+                const s = document.createElement("script");
+                s.src = new URL(
+                  "firebase-config.js",
+                  window.location.href,
+                ).href;
+                s.onload = () => resolve();
+                s.onerror = () => resolve();
+                document.head.appendChild(s);
+              });
+              return;
+            }
+            try {
+              const res = await fetch(
+                new URL("firebase-config.js", window.location.href).href,
+                { cache: "no-store" },
+              );
+              if (!res.ok) return;
+              const text = await res.text();
+              if (!text.trim()) return;
+              const s = document.createElement("script");
+              s.textContent = text;
+              document.head.appendChild(s);
+            } catch (_) {}
+          }
+
+          await applyLocalFirebaseConfigOverride();
+
           function firebaseConfigOk(cfg) {
             if (!cfg || typeof cfg !== "object") return false;
             const k = String(cfg.apiKey || "");
@@ -365,28 +396,72 @@
                     </tr>`;
           }
 
+          function sortSubmissionsNewestFirst(rows) {
+            return rows.sort((a, b) => {
+              const ta = String(a.submittedAt || a.importedAt || "");
+              const tb = String(b.submittedAt || b.importedAt || "");
+              return tb.localeCompare(ta);
+            });
+          }
+
+          function applyRowsToTable(tbody, rows) {
+            const sorted = sortSubmissionsNewestFirst(rows.slice());
+            let html = "";
+            sorted.forEach((data) => {
+              html += renderRow(data);
+            });
+            tbody.innerHTML =
+              html ||
+              '<tr><td colspan="8" style="text-align:center;color:var(--muted);">No submissions yet.</td></tr>';
+          }
+
           function listenForTransfers() {
             if (!db) return;
             const tbody = document.querySelector(".transfer-table tbody");
             if (!tbody) return;
-            const q = query(
+
+            function showSnapshotError(err) {
+              const code = err && err.code ? String(err.code) : "";
+              const hint =
+                code === "permission-denied"
+                  ? "Firestore blocked this read. Deploy the rules in <code>firestore.rules</code> (see file comments) in Firebase Console → Firestore → Rules."
+                  : code === "failed-precondition"
+                    ? "Firestore needs an index, or use the fallback below. Check the browser console for a “create index” link."
+                    : "Check Firestore rules, API key restrictions, and the browser console for details.";
+              console.error("transferSubmissions listener:", err);
+              tbody.innerHTML = `<tr><td colspan="8" style="text-align:center;color:var(--warn);">${hint}<br /><span style="font-size:0.85rem;color:var(--muted);">${escapeHtml(code || "unknown error")}</span></td></tr>`;
+            }
+
+            const qOrdered = query(
               collection(db, "transferSubmissions"),
               orderBy("submittedAt", "desc"),
             );
+
             onSnapshot(
-              q,
+              qOrdered,
               (snapshot) => {
-                let html = "";
+                const rows = [];
                 snapshot.forEach((docSnap) => {
-                  html += renderRow(docSnap.data());
+                  rows.push(docSnap.data());
                 });
-                tbody.innerHTML =
-                  html ||
-                  '<tr><td colspan="8" style="text-align:center;color:var(--muted);">No submissions yet.</td></tr>';
+                applyRowsToTable(tbody, rows);
               },
-              () => {
-                tbody.innerHTML =
-                  '<tr><td colspan="8" style="text-align:center;color:var(--warn);">Could not load submissions (check Firestore rules).</td></tr>';
+              (err) => {
+                if (err && err.code === "failed-precondition") {
+                  onSnapshot(
+                    query(collection(db, "transferSubmissions")),
+                    (snapshot) => {
+                      const rows = [];
+                      snapshot.forEach((docSnap) => {
+                        rows.push(docSnap.data());
+                      });
+                      applyRowsToTable(tbody, rows);
+                    },
+                    showSnapshotError,
+                  );
+                  return;
+                }
+                showSnapshotError(err);
               },
             );
           }
@@ -427,7 +502,7 @@
           document.getElementById("importBtn").addEventListener("click", async function () {
             if (!db) {
               alert(
-                "Firebase is not configured. Add firebase-config.js (see firebase-config.example.js).",
+                "Firebase is not configured. Copy firebase-config.example.js to firebase-config.js and add your web app config (see banner above).",
               );
               return;
             }
