@@ -456,9 +456,26 @@
             >
               Generate Unique Link
             </button>
+            <button
+              type="button"
+              id="generateLeadershipLinkBtn"
+              class="action-button"
+              style="
+                min-width: 140px;
+                padding: 6px 14px;
+                font-size: 0.98rem;
+                margin-top: 10px;
+              "
+            >
+              Leadership Link
+            </button>
             <div
               id="shareableLinkResult"
               style="margin-top: 12px; word-break: break-all"
+            ></div>
+            <div
+              id="leadershipLinkResult"
+              style="margin-top: 10px; word-break: break-all"
             ></div>
           </form>
           <div
@@ -627,6 +644,84 @@
               if (r && String(r._docId || "") === s) return r;
             }
             return null;
+          }
+
+          function getCurrentListId() {
+            try {
+              const params = new URLSearchParams(window.location.search);
+              const raw = String(params.get("list") || "").trim().toLowerCase();
+              // Keep IDs URL-safe and predictable.
+              return raw.replace(/[^a-z0-9_-]/g, "");
+            } catch {
+              return "";
+            }
+          }
+
+          const currentListId = getCurrentListId();
+
+          function isRowInCurrentList(row) {
+            if (!currentListId) return true;
+            if (!row || typeof row !== "object") return false;
+            const rowListId = String(row.listId || row.linkId || "")
+              .trim()
+              .toLowerCase();
+            return rowListId === currentListId;
+          }
+
+          function copyTextWithFallback(text) {
+            const value = String(text || "");
+            if (!value) return Promise.resolve(false);
+            if (navigator.clipboard && navigator.clipboard.writeText) {
+              return navigator.clipboard
+                .writeText(value)
+                .then(() => true)
+                .catch(() => false);
+            }
+            try {
+              const ta = document.createElement("textarea");
+              ta.value = value;
+              ta.setAttribute("readonly", "");
+              ta.style.position = "fixed";
+              ta.style.left = "-9999px";
+              document.body.appendChild(ta);
+              ta.select();
+              document.execCommand("copy");
+              ta.remove();
+              return Promise.resolve(true);
+            } catch {
+              return Promise.resolve(false);
+            }
+          }
+
+          function renderCopyableLink(targetId, url, titleText) {
+            const root = document.getElementById(targetId);
+            if (!root) return;
+            const safeUrl = escapeHtml(url);
+            const title = escapeHtml(titleText || "Share this link:");
+            root.innerHTML = `<strong>${title}</strong>
+              <div style="display:flex;flex-wrap:wrap;gap:10px;align-items:center;margin-top:10px;">
+                <a href="${safeUrl}" target="_blank" rel="noopener noreferrer"
+                  style="flex:1 1 260px; min-width:200px; display:inline-block; padding:10px 16px; background:linear-gradient(90deg, var(--accent), var(--accent-2)); color:#0a1420; font-weight:700; border-radius:10px; font-size:1.02rem; text-decoration:none; word-break:break-all;">
+                  ${safeUrl}
+                </a>
+                <button type="button" class="action-button js-copy-link-btn"
+                  style="min-width:auto; padding:8px 12px; font-size:0.92rem;">
+                  Copy link
+                </button>
+                <span class="js-copy-link-status" style="font-size:0.92rem;color:var(--muted);"></span>
+              </div>`;
+            const btn = root.querySelector(".js-copy-link-btn");
+            const status = root.querySelector(".js-copy-link-status");
+            if (btn) {
+              btn.addEventListener("click", async function () {
+                const ok = await copyTextWithFallback(url);
+                if (!status) return;
+                status.textContent = ok ? "Copied!" : "Copy failed";
+                setTimeout(() => {
+                  status.textContent = "";
+                }, 2200);
+              });
+            }
           }
 
           function openAdditionalInfoModal(row) {
@@ -1329,7 +1424,8 @@
               (snapshot) => {
                 const rows = [];
                 snapshot.forEach((docSnap) => {
-                  rows.push({ ...docSnap.data(), _docId: docSnap.id });
+                  const next = { ...docSnap.data(), _docId: docSnap.id };
+                  if (isRowInCurrentList(next)) rows.push(next);
                 });
                 lastTransferRows = rows;
                 refreshTransferTable();
@@ -1356,70 +1452,11 @@
                 window.location.href,
               );
               submitUrl.searchParams.set("id", id);
+              if (currentListId) {
+                submitUrl.searchParams.set("list", currentListId);
+              }
               const url = submitUrl.href;
-              const safeUrl = escapeHtml(url);
-              document.getElementById("shareableLinkResult").innerHTML =
-                `<strong>Share this link:</strong>
-                 <div style="display:flex;flex-wrap:wrap;gap:10px;align-items:center;margin-top:10px;">
-                   <a href="${safeUrl}" target="_blank" rel="noopener noreferrer" data-copy-text="${safeUrl}"
-                     style="flex:1 1 260px; min-width:200px; display:inline-block; padding:10px 16px; background:linear-gradient(90deg, var(--accent), var(--accent-2)); color:#0a1420; font-weight:700; border-radius:10px; font-size:1.02rem; text-decoration:none; word-break:break-all; box-shadow:0 2px 8px rgba(0,0,0,0.10);">
-                     ${safeUrl}
-                   </a>
-                   <button type="button" class="action-button" id="copyShareableLinkBtn"
-                     style="min-width:auto; padding:8px 12px; font-size:0.92rem;"
-                     data-copy-text="${safeUrl}">
-                     Copy link
-                   </button>
-                   <span id="copyShareableLinkStatus" style="font-size:0.92rem;color:var(--muted);"></span>
-                 </div>`;
-
-              (async function attachCopyHandler() {
-                const btn = document.getElementById("copyShareableLinkBtn");
-                const status = document.getElementById("copyShareableLinkStatus");
-                const anchor = document.querySelector(
-                  "#shareableLinkResult a[data-copy-text]",
-                );
-                const text = url;
-                const setStatus = (msg) => {
-                  if (!status) return;
-                  status.textContent = msg;
-                  if (msg) setTimeout(() => (status.textContent = ""), 2200);
-                };
-                async function copyText() {
-                  try {
-                    if (navigator.clipboard && navigator.clipboard.writeText) {
-                      await navigator.clipboard.writeText(text);
-                    } else {
-                      const ta = document.createElement("textarea");
-                      ta.value = text;
-                      ta.setAttribute("readonly", "");
-                      ta.style.position = "fixed";
-                      ta.style.left = "-9999px";
-                      document.body.appendChild(ta);
-                      ta.select();
-                      document.execCommand("copy");
-                      ta.remove();
-                    }
-                    setStatus("Copied!");
-                  } catch {
-                    setStatus("Copy failed");
-                  }
-                }
-                if (btn) {
-                  btn.addEventListener("click", function () {
-                    copyText();
-                  });
-                }
-                if (anchor) {
-                  anchor.addEventListener("click", function (ev) {
-                    // Ctrl/Cmd+click should still open the link.
-                    if (ev.ctrlKey || ev.metaKey || ev.shiftKey || ev.button !== 0)
-                      return;
-                    ev.preventDefault();
-                    copyText();
-                  });
-                }
-              })();
+              renderCopyableLink("shareableLinkResult", url, "Share this link:");
               let pending = JSON.parse(
                 localStorage.getItem("pendingTransferLinks") || "[]",
               );
@@ -1431,6 +1468,79 @@
                 );
               }
             });
+
+          const generateLeadershipLinkBtn = document.getElementById(
+            "generateLeadershipLinkBtn",
+          );
+          if (generateLeadershipLinkBtn) {
+            generateLeadershipLinkBtn.addEventListener("click", async function () {
+              // If already inside a shared leadership list, just re-share that live URL.
+              if (currentListId) {
+                const currentUrl = new URL(window.location.href);
+                currentUrl.searchParams.set("list", currentListId);
+                renderCopyableLink(
+                  "leadershipLinkResult",
+                  currentUrl.href,
+                  "Leadership link (live shared list):",
+                );
+                return;
+              }
+
+              if (!db) {
+                alert(
+                  "Firebase is not configured. Configure firebase first to create a live leadership list.",
+                );
+                return;
+              }
+
+              const listId = generateId(14);
+              const trackerUrl = new URL(window.location.href);
+              trackerUrl.searchParams.set("list", listId);
+
+              const rowsToShare = (lastTransferRows || []).filter(
+                (r) => r && r._docId,
+              );
+
+              generateLeadershipLinkBtn.disabled = true;
+              const prevText = generateLeadershipLinkBtn.textContent;
+              generateLeadershipLinkBtn.textContent = "Creating…";
+              try {
+                let ok = 0;
+                let fail = 0;
+                for (let i = 0; i < rowsToShare.length; i++) {
+                  const row = rowsToShare[i];
+                  const id = String(row._docId || "");
+                  if (!id) continue;
+                  try {
+                    await updateDoc(doc(db, "transferSubmissions", id), {
+                      listId: listId,
+                    });
+                    ok++;
+                  } catch {
+                    fail++;
+                  }
+                }
+
+                renderCopyableLink(
+                  "leadershipLinkResult",
+                  trackerUrl.href,
+                  "Leadership link (live shared list):",
+                );
+
+                if (fail > 0) {
+                  alert(
+                    "Leadership link created, but some rows could not be added to the shared list.\n\nShared: " +
+                      ok +
+                      "\nFailed: " +
+                      fail,
+                  );
+                }
+              } finally {
+                generateLeadershipLinkBtn.disabled = false;
+                generateLeadershipLinkBtn.textContent = prevText || "Leadership Link";
+              }
+            });
+          }
 
           initTransferFilters();
           listenForTransfers();
@@ -1691,6 +1801,9 @@
                     // Normalize power fields into 0000.00 (millions) before saving.
                     payload.bestSquadPower = formatMillions0000(payload.bestSquadPower);
                     payload.totalHeroPower = formatMillions0000(payload.totalHeroPower);
+                    if (currentListId) {
+                      payload.listId = currentListId;
+                    }
                     const docRef = await addDoc(
                       collection(db, "transferSubmissions"),
                       payload,

@@ -207,11 +207,17 @@
         const params = new URLSearchParams(window.location.search);
         return params.get("id");
       }
+      function getListId() {
+        const params = new URLSearchParams(window.location.search);
+        const raw = String(params.get("list") || "").trim().toLowerCase();
+        return raw.replace(/[^a-z0-9_-]/g, "");
+      }
       document
         .getElementById("transferSubmitForm")
         .addEventListener("submit", async function (e) {
           e.preventDefault();
           const id = getId();
+          const listId = getListId();
           if (!id) {
             document.getElementById("submitResult").textContent =
               "Invalid or missing link ID.";
@@ -242,6 +248,7 @@
             confirmed: false,
             denied: false,
           };
+          if (listId) data.listId = listId;
           try {
             if (window._firebaseInitFailed) {
               document.getElementById("submitResult").innerHTML =
