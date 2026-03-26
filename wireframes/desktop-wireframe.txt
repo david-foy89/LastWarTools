@@ -92,3 +92,42 @@ Share / Export dropdown (top-right of Checklist card):
   - Print / Save as PDF  (clean print stylesheet, nav/left-panel hidden)
   - Save as PNG          (html2canvas screenshot of the checklist card)
 
+
+LAST WAR TOOLS - DESERT STORM TRACKER/PLANNER DESKTOP WIREFRAME
+================================================================
+(Used by: ds-tracker.html)
+
++----------------------------------------------------------------------------------+
+| Top Support Bar: [Buy Me a Coffee]                                              |
++----------------------------------------------------------------------------------+
+| Header: [LWST Logo]                                              [Language ▼]   |
++----------------------------------------------------------------------------------+
+| Top Nav: [HQ] [Troop ▼] [Season 1 ▼] [Season 2 ▼] [Season 3 ▼] [Season 4 ▼]    |
+|          [Season 5 ▼] [Alliance Tools ▼]                                        |
++----------------------------------------------------------------------------------+
+| Hero: "Desert Storm Tracker/Planner" + subtitle                                  |
++----------------------------------------------------------------------------------+
+| Day Controls: [Day Picker] [◀][▶] [Save day] [Load day] [Delete day]            |
+| OCR Controls: [Choose screenshot(s)] [Import with OCR]                           |
++----------------------------------------------------------------------------------+
+| Score Date Controls (above table):                                                |
+| [Score dates] [◀] [▶] [Import player list] [Map]                                 |
++----------------------------------------------------------------------------------+
+| Table Tools: [Filter Field ▼] [Filter Value] [Sort Field ▼] [Dir ▼] [Clear]      |
+|              [Clear player list]                                                  |
++----------------------------------------------------------------------------------+
+| Main Table Columns                                                                 |
+| Player Name | Request | Score M/D | Score M/D | Score M/D | Score M/D            |
+| Last War Hero Power (M) | Total Hero Power (M) | Notes | No show / Delete        |
+| - Inputs are large/tall for quick manual edits                                     |
+| - No show checkbox appears above centered Delete button                            |
++----------------------------------------------------------------------------------+
+| Footer Actions: [Add row] [Export CSV]                                             |
++----------------------------------------------------------------------------------+
+| Map Modal (from [Map]):                                                            |
+| [Team A/B toggle] [Player dropdown] [Clear team] [Export PNG] [Close]             |
+| - Click map to place selected player marker                                        |
+| - Click marker to remove                                                           |
+| - Markers show player + assignment text                                            |
++----------------------------------------------------------------------------------+
+

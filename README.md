@@ -30,6 +30,7 @@ Hosted on GitHub Pages via `index.html`.
 | `season-5-squad-base-calculator.html`      | Season 5 Squad Base calculator                        |
 | `t10-troops-calculator.html`               | T10 troop research planner                            |
 | `t11-troops-calculator.html`               | T11 troop research planner                            |
+| `ds-tracker.html`                          | Desert Storm tracker/planner with OCR + map planning  |
 | `last-war-furnace-upgrade-calculator.css`  | Shared stylesheet for all calculator pages            |
 | `page-nav-dropdown.js`                     | Shared dropdown behavior for top navigation           |
 | `sitemap.xml`                              | SEO sitemap listing all public tool pages             |
@@ -65,6 +66,13 @@ Hosted on GitHub Pages via `index.html`.
   - Caffeine Institute
   - Protector's Field S5
   - Squad Base
+- Desert Storm Tracker/Planner:
+  - Daily history with date picker and score-date navigation
+  - Player roster import from CSV/TXT/Excel (`.xlsx`, `.xls`)
+  - Screenshot OCR import and auto-matching to existing rows
+  - Filter/sort controls for roster management
+  - No-show tracking with persisted checkbox state
+  - Team-based map planning and PNG export
 - Dedicated homepage describing what each calculator is used for
 - Buy Me a Coffee support link at the top of every page
 - Quick Start guidance block at the top of each calculator input card

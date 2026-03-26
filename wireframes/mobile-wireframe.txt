@@ -99,3 +99,48 @@ LAST WAR TOOLS - SUPPLIES CHECKLIST MOBILE WIREFRAME
 | +--------------------------------------+     |
 +----------------------------------------------+
 
+
+LAST WAR TOOLS - DESERT STORM TRACKER/PLANNER MOBILE WIREFRAME
+===============================================================
+(Used by: ds-tracker.html)
+
++----------------------------------------------+
+| Top Support: [Buy Me a Coffee]               |
++----------------------------------------------+
+| Header: [LWST Logo]          [Language ▼]    |
++----------------------------------------------+
+| Nav row: [HQ] [Troop ▼] [S1 ▼] [S2 ▼] ...   |
++----------------------------------------------+
+| Hero: "Desert Storm Tracker/Planner"         |
++----------------------------------------------+
+| Day Controls (stack/wrap)                    |
+| [Day Picker] [◀][▶]                          |
+| [Save day] [Load day] [Delete day]           |
+| [Choose screenshot(s)] [Import with OCR]     |
++----------------------------------------------+
+| Score Date + List Actions                    |
+| [Score dates] [◀][▶]                         |
+| [Import player list] [Map]                   |
++----------------------------------------------+
+| Table Tools                                  |
+| [Filter ▼] [Value]                           |
+| [Sort ▼] [Dir ▼] [Clear]                     |
+| [Clear player list]                          |
++----------------------------------------------+
+| Data Table (horizontal scroll on small view) |
+| Name | Request | Score x4 | Hero Pwr | Total |
+| Notes | No show | Delete                   |
++----------------------------------------------+
+| Row action stack                             |
+| [No show checkbox]                           |
+| [Delete]                                     |
++----------------------------------------------+
+| Footer Actions                               |
+| [Add row] [Export CSV]                       |
++----------------------------------------------+
+| Map Modal                                    |
+| [Team A/B] [Player dropdown]                 |
+| [Clear team] [Export PNG] [Close]            |
+| Tap map to place marker, tap marker remove   |
++----------------------------------------------+
+
