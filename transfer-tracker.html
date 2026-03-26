@@ -176,6 +176,28 @@
           flex-basis: 100% !important;
         }
       }
+
+      /* Collapsible filter panel */
+      #transferFilterBar.is-collapsed {
+        padding-bottom: 10px;
+      }
+      #transferFilterBar.is-collapsed #transferFilterControls {
+        display: none !important;
+      }
+      #transferFilterToggleBtn {
+        background: transparent;
+        border: 1px solid var(--line-soft);
+        color: var(--text);
+        border-radius: 10px;
+        padding: 6px 10px;
+        cursor: pointer;
+        font-size: 0.92rem;
+        font-weight: 800;
+        line-height: 1;
+      }
+      #transferFilterToggleBtn:hover {
+        border-color: rgba(116, 192, 252, 0.55);
+      }
     </style>
     <script>
       // If App Check is enforced for Firestore, set a debug token (see browser console),
@@ -190,6 +212,7 @@
     <script src="firebase-config.example.js"></script>
     <script src="firebase-config.js"></script>
     <script src="page-nav-dropdown.js" defer></script>
+    <script src="language-translate.js" defer></script>
   </head>
   <body>
     <div class="page">
@@ -960,6 +983,36 @@
             const exportBtn = document.getElementById("transferExportBtn");
             const bulkDeleteBtn = document.getElementById("transferBulkDeleteBtn");
             const clearListBtn = document.getElementById("transferClearListBtn");
+            const filterBar = document.getElementById("transferFilterBar");
+            const toggleBtn = document.getElementById("transferFilterToggleBtn");
+
+            const FILTER_COLLAPSE_KEY = "transferFiltersCollapsed";
+            function setCollapsed(collapsed) {
+              const next = collapsed ? true : false;
+              if (filterBar) filterBar.classList.toggle("is-collapsed", next);
+              if (toggleBtn) toggleBtn.textContent = next ? "Expand" : "Collapse";
+              try {
+                localStorage.setItem(FILTER_COLLAPSE_KEY, next ? "1" : "0");
+              } catch {
+                // ignore
+              }
+            }
+            if (toggleBtn) {
+              toggleBtn.addEventListener("click", function () {
+                const isCollapsed =
+                  filterBar && filterBar.classList.contains("is-collapsed");
+                setCollapsed(!isCollapsed);
+              });
+            }
+            // Restore previous state (default: expanded)
+            try {
+              const stored = localStorage.getItem(FILTER_COLLAPSE_KEY);
+              if (stored === "1") setCollapsed(true);
+              else setCollapsed(false);
+            } catch {
+              setCollapsed(false);
+            }
+
             if (searchEl) {
               searchEl.addEventListener("input", function () {
                 refreshTransferTable();
@@ -1579,15 +1632,26 @@
         >
           <div
             style="
-              font-weight: 700;
-              color: var(--accent);
-              font-size: 1.05rem;
+              display: flex;
+              align-items: center;
+              justify-content: space-between;
+              gap: 12px;
               margin-bottom: 10px;
             "
           >
-            Filter submissions
+            <div style="font-weight: 700; color: var(--accent); font-size: 1.05rem">
+              Filter submissions
+            </div>
+            <button
+              type="button"
+              id="transferFilterToggleBtn"
+              title="Collapse/expand filters"
+            >
+              Collapse
+            </button>
           </div>
           <div
+            id="transferFilterControls"
             style="
               display: flex;
               flex-wrap: wrap;
@@ -1621,6 +1685,7 @@
                 font-size: 0.95rem;
               "
             />
+            <div style="flex-basis: 100%; height: 0"></div>
             <label
               for="transferFilterConfirmed"
               style="
