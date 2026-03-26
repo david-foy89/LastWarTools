@@ -1221,9 +1221,10 @@
           const day = getSelectedDay();
           updateScoreHeaders(day);
           const map = loadHistoryMap();
-          const merged = mergePlayersIntoRows(map[day] || [], loadPlayerList());
+          const savedRows = Array.isArray(map[day]) ? map[day] : [];
+          const merged = mergePlayersIntoRows(savedRows, loadPlayerList());
           renderRows(merged);
-          if (merged.length) setStatus(`Loaded ${merged.length} row(s) for ${day}.`);
+          if (savedRows.length) setStatus(`Loaded ${savedRows.length} row(s) for ${day}.`);
           else setStatus(`No saved data for ${day}.`);
         }
 
