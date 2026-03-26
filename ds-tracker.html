@@ -671,7 +671,7 @@
             <td><input data-k="assignment" value="${escapeHtml(v.assignment || "")}" /></td>
             <td>
               <div class="ds-presence-wrap">
-                <label><input type="checkbox" data-k="noshow" ${(v.noshow || v.show) ? "checked" : ""} /><span>No show</span></label>
+                <label><input type="checkbox" data-k="noshow" ${getNoShowValueFromRowData(v) ? "checked" : ""} /><span>No show</span></label>
               </div>
               <button type="button" class="action-button ds-del-btn">Delete</button>
             </td>
