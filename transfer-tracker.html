@@ -9,6 +9,7 @@
       content="Track and log alliance resource transfers, donations, and exchanges."
     />
     <link rel="stylesheet" href="last-war-furnace-upgrade-calculator.css" />
+    <script src="firebase-config.js"></script>
     <script src="page-nav-dropdown.js" defer></script>
   </head>
   <body>
@@ -151,6 +152,21 @@
           below or upload via excel
         </div>
       </section>
+      <div
+        id="firebaseConfigBanner"
+        class="layout"
+        style="
+          display: none;
+          max-width: 960px;
+          margin: 0 auto 16px;
+          padding: 12px 14px;
+          border-radius: 10px;
+          border: 1px solid var(--warn);
+          background: rgba(255, 180, 80, 0.12);
+          color: var(--text);
+          font-size: 0.95rem;
+        "
+      ></div>
       <section class="layout" style="display: block; padding: 0">
         <div
           style="
@@ -304,18 +320,29 @@
             addDoc,
           } from "https://www.gstatic.com/firebasejs/9.22.2/firebase-firestore.js";
 
-          const firebaseConfig = {
-            apiKey: "AIzaSyDow8S7fv4cwDxXVzWzqOUa9G8swBC0jNI",
-            authDomain: "lastwartools-c12c8.firebaseapp.com",
-            projectId: "lastwartools-c12c8",
-            storageBucket: "lastwartools-c12c8.firebasestorage.app",
-            messagingSenderId: "536808421567",
-            appId: "1:536808421567:web:fae01f7b3852176a7aae0a",
-            measurementId: "G-34RS45FLKS",
-          };
+          function firebaseConfigOk(cfg) {
+            if (!cfg || typeof cfg !== "object") return false;
+            const k = String(cfg.apiKey || "");
+            return (
+              k.length > 0 &&
+              k !== "YOUR_WEB_API_KEY" &&
+              !k.startsWith("YOUR_")
+            );
+          }
 
-          const app = initializeApp(firebaseConfig);
-          const db = getFirestore(app);
+          const firebaseConfig = window.__FIREBASE_CONFIG__;
+          let db = null;
+          if (firebaseConfigOk(firebaseConfig)) {
+            const app = initializeApp(firebaseConfig);
+            db = getFirestore(app);
+          } else {
+            const banner = document.getElementById("firebaseConfigBanner");
+            if (banner) {
+              banner.style.display = "block";
+              banner.innerHTML =
+                "<strong>Firebase is not configured.</strong> Copy <code>firebase-config.example.js</code> to <code>firebase-config.js</code> and add your web app config. Generate link still works; the table and import need Firebase. Do not commit real API keys to public repositories.";
+            }
+          }
 
           function escapeHtml(v) {
             return String(v ?? "")
@@ -339,6 +366,7 @@
           }
 
           function listenForTransfers() {
+            if (!db) return;
             const tbody = document.querySelector(".transfer-table tbody");
             if (!tbody) return;
             const q = query(
@@ -397,6 +425,12 @@
           listenForTransfers();
 
           document.getElementById("importBtn").addEventListener("click", async function () {
+            if (!db) {
+              alert(
+                "Firebase is not configured. Add firebase-config.js (see firebase-config.example.js).",
+              );
+              return;
+            }
             const fileInput = document.getElementById("importFile");
             const file = fileInput.files[0];
             if (!file) {

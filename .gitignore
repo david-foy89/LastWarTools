@@ -1,0 +1,2 @@
+# Firebase web client config (contains API key — never commit real values to public repos)
+firebase-config.js
