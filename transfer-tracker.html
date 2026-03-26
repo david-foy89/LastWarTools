@@ -1356,7 +1356,67 @@
               const url = submitUrl.href;
               const safeUrl = escapeHtml(url);
               document.getElementById("shareableLinkResult").innerHTML =
-                `<strong>Share this link:</strong><br><a href="${safeUrl}" target="_blank" rel="noopener noreferrer" style="display:inline-block; margin-top:8px; padding:10px 16px; background:linear-gradient(90deg, var(--accent), var(--accent-2)); color:#0a1420; font-weight:700; border-radius:10px; font-size:1.08rem; text-decoration:none; word-break:break-all; box-shadow:0 2px 8px rgba(0,0,0,0.10);">${safeUrl}</a>`;
+                `<strong>Share this link:</strong>
+                 <div style="display:flex;flex-wrap:wrap;gap:10px;align-items:center;margin-top:10px;">
+                   <a href="${safeUrl}" target="_blank" rel="noopener noreferrer" data-copy-text="${safeUrl}"
+                     style="flex:1 1 260px; min-width:200px; display:inline-block; padding:10px 16px; background:linear-gradient(90deg, var(--accent), var(--accent-2)); color:#0a1420; font-weight:700; border-radius:10px; font-size:1.02rem; text-decoration:none; word-break:break-all; box-shadow:0 2px 8px rgba(0,0,0,0.10);">
+                     ${safeUrl}
+                   </a>
+                   <button type="button" class="action-button" id="copyShareableLinkBtn"
+                     style="min-width:auto; padding:8px 12px; font-size:0.92rem;"
+                     data-copy-text="${safeUrl}">
+                     Copy link
+                   </button>
+                   <span id="copyShareableLinkStatus" style="font-size:0.92rem;color:var(--muted);"></span>
+                 </div>`;
+
+              (async function attachCopyHandler() {
+                const btn = document.getElementById("copyShareableLinkBtn");
+                const status = document.getElementById("copyShareableLinkStatus");
+                const anchor = document.querySelector(
+                  "#shareableLinkResult a[data-copy-text]",
+                );
+                const text = url;
+                const setStatus = (msg) => {
+                  if (!status) return;
+                  status.textContent = msg;
+                  if (msg) setTimeout(() => (status.textContent = ""), 2200);
+                };
+                async function copyText() {
+                  try {
+                    if (navigator.clipboard && navigator.clipboard.writeText) {
+                      await navigator.clipboard.writeText(text);
+                    } else {
+                      const ta = document.createElement("textarea");
+                      ta.value = text;
+                      ta.setAttribute("readonly", "");
+                      ta.style.position = "fixed";
+                      ta.style.left = "-9999px";
+                      document.body.appendChild(ta);
+                      ta.select();
+                      document.execCommand("copy");
+                      ta.remove();
+                    }
+                    setStatus("Copied!");
+                  } catch {
+                    setStatus("Copy failed");
+                  }
+                }
+                if (btn) {
+                  btn.addEventListener("click", function () {
+                    copyText();
+                  });
+                }
+                if (anchor) {
+                  anchor.addEventListener("click", function (ev) {
+                    // Ctrl/Cmd+click should still open the link.
+                    if (ev.ctrlKey || ev.metaKey || ev.shiftKey || ev.button !== 0)
+                      return;
+                    ev.preventDefault();
+                    copyText();
+                  });
+                }
+              })();
               let pending = JSON.parse(
                 localStorage.getItem("pendingTransferLinks") || "[]",
               );
