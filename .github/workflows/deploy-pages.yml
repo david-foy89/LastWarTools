@@ -1,0 +1,58 @@
+name: Deploy GitHub Pages
+
+on:
+  push:
+    branches: ["main"]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+concurrency:
+  group: "pages"
+  cancel-in-progress: true
+
+jobs:
+  deploy:
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Configure Pages
+        uses: actions/configure-pages@v5
+
+      - name: Generate firebase-config.js from secret
+        env:
+          FIREBASE_CONFIG_JSON: ${{ secrets.FIREBASE_CONFIG_JSON }}
+        run: |
+          node -e "
+          const fs = require('fs');
+          const raw = process.env.FIREBASE_CONFIG_JSON || '';
+          if (!raw.trim()) {
+            console.error('Missing secret FIREBASE_CONFIG_JSON');
+            process.exit(1);
+          }
+          let cfg;
+          try { cfg = JSON.parse(raw); } catch (e) {
+            console.error('FIREBASE_CONFIG_JSON must be valid JSON');
+            process.exit(1);
+          }
+          fs.writeFileSync('firebase-config.js', 'window.__FIREBASE_CONFIG__ = ' + JSON.stringify(cfg, null, 2) + ';\n');
+          console.log('Wrote firebase-config.js');
+          "
+
+      - name: Upload artifact
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: .
+
+      - name: Deploy to GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v4
+
