@@ -217,18 +217,30 @@
               "Invalid or missing link ID.";
             return;
           }
+          function formatMillions0000(v) {
+            const str = String(v ?? "");
+            const numMatch = str.replace(/,/g, "").match(/(\d+(\.\d+)?)/);
+            const n = numMatch ? Number(numMatch[1]) : NaN;
+            const safe = Number.isFinite(n) ? n : 0;
+            const fixed = safe.toFixed(2);
+            let out = fixed.replace(/^0+(?=\d)/, "");
+            if (out.startsWith(".")) out = "0" + out;
+            return out;
+          }
+
           const data = {
             displayName: this.displayName.value,
             serverNumber: this.serverNumber.value,
             currentAlliance: this.currentAlliance.value,
-            bestSquadPower: this.bestSquadPower.value,
-            totalHeroPower: this.totalHeroPower.value,
+            bestSquadPower: formatMillions0000(this.bestSquadPower.value),
+            totalHeroPower: formatMillions0000(this.totalHeroPower.value),
             allianceInterested: this.allianceInterested.value,
             transferStatus: this.transferStatus.value,
             submittedAt: new Date().toISOString(),
             linkId: id,
             additionalInfo: this.additionalInfo.value,
             confirmed: false,
+            denied: false,
           };
           try {
             if (window._firebaseInitFailed) {

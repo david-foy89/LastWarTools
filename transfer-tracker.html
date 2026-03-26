@@ -9,6 +9,174 @@
       content="Track and log alliance resource transfers, donations, and exchanges."
     />
     <link rel="stylesheet" href="last-war-furnace-upgrade-calculator.css" />
+    <style>
+      /* Keep table from widening due to long imported text */
+      .transfer-table-container {
+        overflow-x: hidden;
+      }
+      .transfer-table {
+        table-layout: fixed;
+        width: 100%;
+        min-width: 0;
+      }
+      .transfer-table th,
+      .transfer-table td {
+        overflow-wrap: anywhere;
+        word-break: break-word;
+      }
+      /* Column sizing (table-layout: fixed) */
+      .transfer-table th:nth-child(1),
+      .transfer-table td:nth-child(1) {
+        width: 14%;
+      }
+      .transfer-table th:nth-child(2),
+      .transfer-table td:nth-child(2) {
+        width: 7%;
+      }
+      .transfer-table th:nth-child(3),
+      .transfer-table td:nth-child(3) {
+        width: 12%;
+      }
+      .transfer-table th:nth-child(4),
+      .transfer-table td:nth-child(4) {
+        width: 10%;
+      }
+      .transfer-table th:nth-child(5),
+      .transfer-table td:nth-child(5) {
+        width: 10%;
+      }
+      .transfer-table th:nth-child(6),
+      .transfer-table td:nth-child(6) {
+        width: 14%;
+      }
+      .transfer-table th:nth-child(7),
+      .transfer-table td:nth-child(7) {
+        width: 11%;
+      }
+      .transfer-table th:nth-child(8),
+      .transfer-table td:nth-child(8) {
+        width: 8%;
+        text-align: center;
+      }
+      .transfer-table .info-pop-btn {
+        white-space: nowrap;
+        display: inline-block;
+        min-width: 56px;
+        padding-left: 10px;
+        padding-right: 10px;
+      }
+      /* Action column stays compact */
+      .transfer-table th:last-child,
+      .transfer-table td:last-child {
+        width: 14%;
+      }
+
+      /* Mass delete modal */
+      #massDeleteModal .mass-delete-card {
+        width: min(820px, 100%);
+        max-height: min(86vh, 820px);
+        overflow: hidden;
+        background: linear-gradient(180deg, var(--panel) 0%, var(--panel-2) 100%);
+        border: 1px solid var(--line-soft);
+        border-radius: 16px;
+        box-shadow: 0 18px 70px rgba(0, 0, 0, 0.45);
+      }
+      #massDeleteModal .mass-delete-header,
+      #massDeleteModal .mass-delete-footer {
+        padding: 14px 14px 12px;
+        background: rgba(10, 15, 24, 0.35);
+        border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+      }
+      #massDeleteModal .mass-delete-footer {
+        border-bottom: none;
+        border-top: 1px solid rgba(255, 255, 255, 0.06);
+      }
+      #massDeleteModal .mass-delete-title {
+        font-weight: 900;
+        color: #ffb4b4;
+        font-size: 1.08rem;
+      }
+      #massDeleteModal .mass-delete-subtitle {
+        font-size: 0.92rem;
+        color: var(--muted);
+        margin-top: 4px;
+      }
+      #massDeleteModal .mass-delete-controls {
+        display: flex;
+        gap: 10px;
+        flex-wrap: wrap;
+        align-items: center;
+        margin-top: 10px;
+      }
+      #massDeleteModal .mass-delete-controls input[type="search"] {
+        flex: 1 1 220px;
+        min-width: 180px;
+        padding: 8px 12px;
+        border-radius: 10px;
+        border: 1px solid var(--line-soft);
+        background: var(--panel-2);
+        color: var(--text);
+        font-size: 0.95rem;
+      }
+      #massDeleteModal .mass-delete-list {
+        padding: 10px 12px;
+        max-height: 56vh;
+        overflow: auto;
+      }
+      #massDeleteModal .mass-delete-item {
+        display: grid;
+        grid-template-columns: 22px 1fr;
+        gap: 10px;
+        align-items: start;
+        padding: 10px 8px;
+        border-radius: 10px;
+        cursor: pointer;
+        user-select: none;
+      }
+      #massDeleteModal .mass-delete-item:hover {
+        background: rgba(116, 192, 252, 0.08);
+      }
+      #massDeleteModal .mass-delete-item + .mass-delete-item {
+        margin-top: 6px;
+      }
+      #massDeleteModal .mass-delete-name {
+        font-weight: 800;
+        color: var(--text);
+        line-height: 1.1;
+      }
+      #massDeleteModal .mass-delete-meta {
+        margin-top: 4px;
+        font-size: 0.9rem;
+        color: var(--muted);
+        line-height: 1.2;
+      }
+
+      /* Header readability */
+      .transfer-table th {
+        line-height: 1.2;
+        white-space: normal;
+      }
+
+      /* Filter bar responsive layout */
+      @media (max-width: 720px) {
+        #transferFilterBar label[for] {
+          display: none;
+        }
+        #transferFilterBar input[type="search"],
+        #transferFilterBar select {
+          flex: 1 1 100% !important;
+          min-width: 0 !important;
+          width: 100% !important;
+        }
+        #transferFilterBar button {
+          flex: 1 1 48% !important;
+          min-width: 0 !important;
+        }
+        #transferFilterCount {
+          flex-basis: 100% !important;
+        }
+      }
+    </style>
     <script>
       // If App Check is enforced for Firestore, set a debug token (see browser console),
       // then Firebase Console → App Check → Manage debug tokens. Or disable enforcement.
@@ -33,6 +201,8 @@
         </div>
         <!-- SheetJS for Excel/CSV parsing -->
         <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
+        <!-- html2canvas for table export as image -->
+        <script src="https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js"></script>
         <div class="language-control">
           <label for="languageSelect">Language</label>
           <select id="languageSelect"></select>
@@ -391,24 +561,110 @@
               .replace(/"/g, "&quot;");
           }
 
+          function findRowByDocId(id) {
+            const s = String(id || "");
+            if (!s) return null;
+            const rows = lastTransferRows || [];
+            for (let i = 0; i < rows.length; i++) {
+              const r = rows[i];
+              if (r && String(r._docId || "") === s) return r;
+            }
+            return null;
+          }
+
+          function openAdditionalInfoModal(row) {
+            const modal = document.getElementById("additionalInfoModal");
+            const titleEl = document.getElementById("additionalInfoTitle");
+            const bodyEl = document.getElementById("additionalInfoBody");
+            if (!modal || !titleEl || !bodyEl) return;
+
+            const name = row && row.displayName ? String(row.displayName) : "";
+            const server = row && row.serverNumber ? String(row.serverNumber) : "";
+            const title = (name ? name : "Player") + (server ? " (S" + server + ")" : "");
+            titleEl.textContent = title;
+            bodyEl.textContent = String((row && row.additionalInfo) || "").trim();
+            modal.style.display = "flex";
+          }
+
+          function closeAdditionalInfoModal() {
+            const modal = document.getElementById("additionalInfoModal");
+            if (!modal) return;
+            modal.style.display = "none";
+          }
+
+          let massDeletePickerResolve = null;
+          function closeMassDeletePicker(result) {
+            const modal = document.getElementById("massDeleteModal");
+            if (modal) modal.style.display = "none";
+            if (massDeletePickerResolve) {
+              const fn = massDeletePickerResolve;
+              massDeletePickerResolve = null;
+              fn(result);
+            }
+          }
+
+          function openMassDeletePicker(rows) {
+            const modal = document.getElementById("massDeleteModal");
+            const list = document.getElementById("massDeleteList");
+            const count = document.getElementById("massDeleteCount");
+            const search = document.getElementById("massDeleteSearch");
+            if (!modal || !list || !count) return Promise.resolve(null);
+            const safeRows = (rows || []).filter((r) => r && r._docId);
+            if (search) search.value = "";
+            list.innerHTML = "";
+            safeRows.forEach((r) => {
+              const id = String(r._docId);
+              const name = String(r.displayName || "").trim() || "Unnamed player";
+              const server = String(r.serverNumber || "").trim();
+              const label = document.createElement("label");
+              label.className = "mass-delete-item";
+              label.setAttribute(
+                "data-search",
+                (name + " " + server).toLowerCase(),
+              );
+              label.innerHTML = `
+                <input type="checkbox" class="mass-del-cb" data-doc-id="${escapeHtml(id)}" checked />
+                <div>
+                  <div class="mass-delete-name">${escapeHtml(name)}</div>
+                  <div class="mass-delete-meta">${server ? "Server " + escapeHtml(server) : "Server —"}</div>
+                </div>
+              `;
+              list.appendChild(label);
+            });
+            count.textContent = "Selected: " + safeRows.length + " of " + safeRows.length;
+            modal.style.display = "flex";
+            return new Promise((resolve) => {
+              massDeletePickerResolve = resolve;
+            });
+          }
+
           function renderRow(row) {
             const docId = row._docId ? String(row._docId) : "";
             const isConfirmed = row.confirmed === true;
+            const isDenied = row.denied === true;
+            const infoText = String(row.additionalInfo ?? "").trim();
+            const infoCellHtml = infoText
+              ? `<button type="button" class="info-pop-btn action-button" data-doc-id="${escapeHtml(docId)}" style="padding:6px 10px;font-size:0.88rem;min-width:auto;" ${docId ? "" : "disabled"} title="View additional info">View</button>`
+              : "";
             return `<tr>
                       <td>${escapeHtml(row.displayName)}</td>
                       <td>${escapeHtml(row.serverNumber)}</td>
                       <td>${escapeHtml(row.currentAlliance)}</td>
-                      <td>${escapeHtml(row.bestSquadPower)}</td>
-                      <td>${escapeHtml(row.totalHeroPower)}</td>
+                      <td>${escapeHtml(formatMillions0000(row.bestSquadPower))}</td>
+                      <td>${escapeHtml(formatMillions0000(row.totalHeroPower))}</td>
                       <td>${escapeHtml(row.allianceInterested)}</td>
                       <td>${escapeHtml(row.transferStatus)}</td>
-                      <td>${escapeHtml(row.additionalInfo)}</td>
+                      <td>${infoCellHtml}</td>
                       <td style="text-align:center;vertical-align:middle;">
                         <div style="display:flex;flex-direction:column;align-items:center;gap:8px;">
                           <button type="button" class="delete-transfer-btn action-button" data-doc-id="${escapeHtml(docId)}" style="padding:6px 10px;font-size:0.88rem;background:linear-gradient(180deg,#5a2a2a,#3d1c1c);border:1px solid #8a4040;color:#f0d0d0;" ${docId ? "" : "disabled"} title="Remove this row from Firestore (you will confirm Yes/No)">Delete</button>
-                          <label style="display:inline-flex;align-items:center;gap:6px;font-size:0.88rem;cursor:pointer;margin:0;${isConfirmed ? "color:var(--ok);font-weight:600;" : "color:var(--text);"}">
+                          <label style="display:flex;flex-direction:column;align-items:center;gap:4px;font-size:0.88rem;cursor:pointer;margin:0;${isConfirmed ? "color:var(--ok);font-weight:600;" : "color:var(--text);"}">
                             <input type="checkbox" class="confirmed-transfer-cb" data-doc-id="${escapeHtml(docId)}" ${isConfirmed ? "checked" : ""} ${docId ? "" : "disabled"} title="Mark this player as confirmed" aria-label="Confirmed" style="${isConfirmed ? "accent-color:var(--ok);" : ""}" />
                             <span>Confirmed</span>
+                          </label>
+                          <label style="display:flex;flex-direction:column;align-items:center;gap:4px;font-size:0.88rem;cursor:pointer;margin:0;${isDenied ? "color:var(--warn);font-weight:600;" : "color:var(--text);"}">
+                            <input type="checkbox" class="denied-transfer-cb" data-doc-id="${escapeHtml(docId)}" ${isDenied ? "checked" : ""} ${docId ? "" : "disabled"} title="Mark this player as denied" aria-label="Denied" style="${isDenied ? "accent-color:var(--warn);" : ""}" />
+                            <span>Denied</span>
                           </label>
                         </div>
                       </td>
@@ -416,17 +672,22 @@
           }
 
           function parsePowerNumber(v) {
-            // Converts strings like "23.6m", "105.6 million", "12,345k" into a number.
-            const str = String(v ?? "").toLowerCase();
+            // Treat any numeric value as "millions".
+            const str = String(v ?? "");
             const numMatch = str.replace(/,/g, "").match(/(\d+(\.\d+)?)/);
             const n = numMatch ? Number(numMatch[1]) : NaN;
-            if (!Number.isFinite(n)) return 0;
+            return Number.isFinite(n) ? n : 0;
+          }
 
-            let mult = 1;
-            if (/million|m\b/.test(str)) mult = 1e6;
-            else if (/billion|b\b/.test(str)) mult = 1e9;
-            else if (/\bk\b/.test(str)) mult = 1e3;
-            return n * mult;
+          function formatMillions0000(v) {
+            // Always display as "millions" with 2 decimals (no leading zero padding).
+            const n = parsePowerNumber(v);
+            const fixed = n.toFixed(2);
+            // Strip leading zeros: "0023.60" -> "23.60"
+            // Keep "0.00" for 0.x values.
+            let out = fixed.replace(/^0+(?=\d)/, "");
+            if (out.startsWith(".")) out = "0" + out;
+            return out;
           }
 
           function getTransferSortMode() {
@@ -434,13 +695,159 @@
             return sel && sel.value ? String(sel.value) : "newest";
           }
 
+          function getVisibleTransferRows() {
+            // Match what the table shows: filtered + sorted.
+            const filtered = filterTransferRows(lastTransferRows);
+            return sortSubmissions(filtered.slice());
+          }
+
+          function downloadBlob(blob, filename) {
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement("a");
+            a.href = url;
+            a.download = filename;
+            document.body.appendChild(a);
+            a.click();
+            a.remove();
+            setTimeout(() => URL.revokeObjectURL(url), 30000);
+          }
+
+          function formatExportFilename(ext) {
+            const d = new Date();
+            const pad = (n) => String(n).padStart(2, "0");
+            const stamp =
+              d.getFullYear() +
+              pad(d.getMonth() + 1) +
+              pad(d.getDate()) +
+              "-" +
+              pad(d.getHours()) +
+              pad(d.getMinutes());
+            return "transfer-submissions-" + stamp + "." + ext;
+          }
+
+          function rowsToExportObjects(rows) {
+            return rows.map((r) => ({
+              "Display Name": String(r.displayName ?? ""),
+              "Server Number": String(r.serverNumber ?? ""),
+              "Current Alliance": String(r.currentAlliance ?? ""),
+              "Best Squad Power": formatMillions0000(r.bestSquadPower ?? ""),
+              "Total Hero Power": formatMillions0000(r.totalHeroPower ?? ""),
+              "Which Alliance": String(r.allianceInterested ?? ""),
+              "Transfer Status": String(r.transferStatus ?? ""),
+              "Additional Info": String(r.additionalInfo ?? ""),
+              Confirmed: r.confirmed === true ? "Yes" : "No",
+              Denied: r.denied === true ? "Yes" : "No",
+              "Submitted At": String(r.submittedAt ?? r.importedAt ?? ""),
+            }));
+          }
+
+          async function runWithConcurrency(items, limit, worker) {
+            const n = Math.max(1, Number(limit) || 1);
+            let idx = 0;
+            const results = [];
+            const runners = Array.from({ length: n }, async () => {
+              while (idx < items.length) {
+                const my = idx++;
+                try {
+                  results[my] = await worker(items[my], my);
+                } catch (e) {
+                  results[my] = { ok: false, error: e };
+                }
+              }
+            });
+            await Promise.all(runners);
+            return results;
+          }
+
+          function uniqNonEmptyStrings(list) {
+            const out = [];
+            const seen = new Set();
+            (list || []).forEach((v) => {
+              const s = String(v || "").trim();
+              if (!s) return;
+              if (seen.has(s)) return;
+              seen.add(s);
+              out.push(s);
+            });
+            return out;
+          }
+
+          async function deleteDocIds(docIds, opts) {
+            const ids = uniqNonEmptyStrings(docIds);
+            const concurrency =
+              opts && opts.concurrency ? Number(opts.concurrency) : 10;
+            const onProgress = opts && opts.onProgress ? opts.onProgress : null;
+            let ok = 0;
+            let fail = 0;
+            await runWithConcurrency(ids, concurrency, async (id, i) => {
+              try {
+                await deleteDoc(doc(db, "transferSubmissions", id));
+                ok++;
+              } catch (_) {
+                fail++;
+              } finally {
+                if (onProgress) onProgress({ ok, fail, total: ids.length, i });
+              }
+              return true;
+            });
+            return { ok, fail, total: ids.length };
+          }
+
+          function exportVisibleAsCsv() {
+            const rows = getVisibleTransferRows();
+            const objs = rowsToExportObjects(rows);
+            const headers = objs.length ? Object.keys(objs[0]) : [];
+            const esc = (v) => {
+              const s = String(v ?? "");
+              if (/[",\r\n]/.test(s)) return '"' + s.replace(/"/g, '""') + '"';
+              return s;
+            };
+            let out = "";
+            out += headers.map(esc).join(",") + "\r\n";
+            objs.forEach((o) => {
+              out += headers.map((h) => esc(o[h])).join(",") + "\r\n";
+            });
+            const blob = new Blob([out], { type: "text/csv;charset=utf-8" });
+            downloadBlob(blob, formatExportFilename("csv"));
+          }
+
+          function exportVisibleAsExcel() {
+            if (!window.XLSX) {
+              alert("Excel library is not loaded yet. Please try again.");
+              return;
+            }
+            const rows = getVisibleTransferRows();
+            const data = rowsToExportObjects(rows);
+            const ws = window.XLSX.utils.json_to_sheet(data);
+            const wb = window.XLSX.utils.book_new();
+            window.XLSX.utils.book_append_sheet(wb, ws, "Submissions");
+            window.XLSX.writeFile(wb, formatExportFilename("xlsx"));
+          }
+
+          async function exportTableAsImage() {
+            if (!window.html2canvas) {
+              alert("Image export library is not loaded yet. Please try again.");
+              return;
+            }
+            const table = document.querySelector(".transfer-table");
+            if (!table) return;
+            const canvas = await window.html2canvas(table, {
+              backgroundColor: null,
+              scale: Math.max(2, Math.floor((window.devicePixelRatio || 1) * 2)),
+              useCORS: true,
+            });
+            const blob = await new Promise((resolve) =>
+              canvas.toBlob(resolve, "image/png"),
+            );
+            if (!blob) {
+              alert("Could not export image in this browser.");
+              return;
+            }
+            downloadBlob(blob, formatExportFilename("png"));
+          }
+
           function sortSubmissions(rows) {
             return rows.sort((a, b) => {
-              // Keep unconfirmed rows above confirmed rows.
-              const ca = a.confirmed === true ? 1 : 0;
-              const cb = b.confirmed === true ? 1 : 0;
-              if (ca !== cb) return ca - cb;
-
               const mode = getTransferSortMode();
 
               if (mode === "name") {
@@ -456,7 +863,14 @@
                 const pa = parsePowerNumber(a.totalHeroPower);
                 const pb = parsePowerNumber(b.totalHeroPower);
                 if (pa !== pb) return pb - pa; // high -> low
+              } else if (mode === "newest") {
+                // handled by fallback below
               }
+
+              // Tiebreaker: keep unconfirmed rows above confirmed rows.
+              const ca = a.confirmed === true ? 1 : 0;
+              const cb = b.confirmed === true ? 1 : 0;
+              if (ca !== cb) return ca - cb;
 
               // Fallback: newest first.
               const ta = String(a.submittedAt || a.importedAt || "");
@@ -542,6 +956,10 @@
             const confEl = document.getElementById("transferFilterConfirmed");
             const clearEl = document.getElementById("transferFilterClear");
             const sortEl = document.getElementById("transferSortSelect");
+            const exportEl = document.getElementById("transferExportSelect");
+            const exportBtn = document.getElementById("transferExportBtn");
+            const bulkDeleteBtn = document.getElementById("transferBulkDeleteBtn");
+            const clearListBtn = document.getElementById("transferClearListBtn");
             if (searchEl) {
               searchEl.addEventListener("input", function () {
                 refreshTransferTable();
@@ -564,6 +982,123 @@
                 refreshTransferTable();
               });
             }
+            if (exportBtn) {
+              exportBtn.addEventListener("click", async function () {
+                const mode = exportEl ? String(exportEl.value || "") : "";
+                try {
+                  if (mode === "csv") exportVisibleAsCsv();
+                  else if (mode === "excel") exportVisibleAsExcel();
+                  else if (mode === "image") await exportTableAsImage();
+                  else alert("Choose an export format first.");
+                } catch (err) {
+                  alert(
+                    "Export failed: " +
+                      (err && err.message ? err.message : String(err)),
+                  );
+                }
+              });
+            }
+
+            function setActionButtonsDisabled(disabled) {
+              const d = disabled ? true : false;
+              if (bulkDeleteBtn) bulkDeleteBtn.disabled = d;
+              if (clearListBtn) clearListBtn.disabled = d;
+              if (exportBtn) exportBtn.disabled = d;
+            }
+
+            if (bulkDeleteBtn) {
+              bulkDeleteBtn.addEventListener("click", async function () {
+                if (!db) return;
+                const visible = getVisibleTransferRows();
+                const candidates = visible.filter((r) => r && r._docId);
+                const countEl = document.getElementById("transferFilterCount");
+                if (candidates.length === 0) {
+                  alert("No rows to delete (check filters).");
+                  return;
+                }
+                const selectedIds = await openMassDeletePicker(candidates);
+                const cleanIds = uniqNonEmptyStrings(selectedIds || []);
+                if (!cleanIds.length) return;
+                setActionButtonsDisabled(true);
+                try {
+                  if (countEl)
+                    countEl.textContent =
+                      "Deleting selected… 0/" + cleanIds.length + " (0 failed)";
+                  const res = await deleteDocIds(cleanIds, {
+                    concurrency: 10,
+                    onProgress: (p) => {
+                      if (!countEl) return;
+                      countEl.textContent =
+                        "Deleting selected… " +
+                        p.ok +
+                        "/" +
+                        p.total +
+                        " (" +
+                        p.fail +
+                        " failed)";
+                    },
+                  });
+                  alert(
+                    "Mass delete complete.\n\nDeleted: " +
+                      res.ok +
+                      "\nFailed: " +
+                      res.fail,
+                  );
+                } finally {
+                  setActionButtonsDisabled(false);
+                  refreshTransferTable();
+                }
+              });
+            }
+
+            if (clearListBtn) {
+              clearListBtn.addEventListener("click", async function () {
+                if (!db) return;
+                const allIds = uniqNonEmptyStrings(
+                  (lastTransferRows || []).map((r) => r._docId || ""),
+                );
+                const countEl = document.getElementById("transferFilterCount");
+                if (allIds.length === 0) {
+                  alert("List is already empty.");
+                  return;
+                }
+                const yes = confirm(
+                  "CLEAR LIST (delete ALL submissions)?\n\nThis will permanently delete " +
+                    allIds.length +
+                    " submission(s) from Firestore.\n\nOK = Delete everything\nCancel = Keep",
+                );
+                if (!yes) return;
+                setActionButtonsDisabled(true);
+                try {
+                  if (countEl)
+                    countEl.textContent =
+                      "Clearing… 0/" + allIds.length + " (0 failed)";
+                  const res = await deleteDocIds(allIds, {
+                    concurrency: 10,
+                    onProgress: (p) => {
+                      if (!countEl) return;
+                      countEl.textContent =
+                        "Clearing… " +
+                        p.ok +
+                        "/" +
+                        p.total +
+                        " (" +
+                        p.fail +
+                        " failed)";
+                    },
+                  });
+                  alert(
+                    "Clear list complete.\n\nDeleted: " +
+                      res.ok +
+                      "\nFailed: " +
+                      res.fail,
+                  );
+                } finally {
+                  setActionButtonsDisabled(false);
+                  refreshTransferTable();
+                }
+              });
+            }
           }
 
           function attachRowActionHandlersOnce(tbody) {
@@ -574,27 +1109,74 @@
               if (
                 !cb ||
                 cb.nodeType !== 1 ||
-                !cb.classList.contains("confirmed-transfer-cb") ||
+                (!cb.classList.contains("confirmed-transfer-cb") &&
+                  !cb.classList.contains("denied-transfer-cb")) ||
                 !db
               )
                 return;
               const id = cb.getAttribute("data-doc-id");
               if (!id) return;
               const next = cb.checked;
+              const label = cb.closest("label");
+              const applyConfirmedStyle = (isConfirmed) => {
+                if (!label) return;
+                if (isConfirmed) {
+                  label.style.color = "var(--ok)";
+                  label.style.fontWeight = "600";
+                  cb.style.accentColor = "var(--ok)";
+                } else {
+                  label.style.color = "var(--text)";
+                  label.style.fontWeight = "";
+                  cb.style.accentColor = "";
+                }
+              };
+              const applyDeniedStyle = (isDenied) => {
+                if (!label) return;
+                if (isDenied) {
+                  label.style.color = "var(--warn)";
+                  label.style.fontWeight = "600";
+                  cb.style.accentColor = "var(--warn)";
+                } else {
+                  label.style.color = "var(--text)";
+                  label.style.fontWeight = "";
+                  cb.style.accentColor = "";
+                }
+              };
+
+              const isConfirmedCb = cb.classList.contains("confirmed-transfer-cb");
+              const isDeniedCb = cb.classList.contains("denied-transfer-cb");
+              // Immediate UI feedback; snapshot will reconcile afterwards.
+              if (isConfirmedCb) applyConfirmedStyle(next);
+              if (isDeniedCb) applyDeniedStyle(next);
               try {
-                await updateDoc(doc(db, "transferSubmissions", id), {
-                  confirmed: next,
-                });
+                if (isConfirmedCb) {
+                  await updateDoc(doc(db, "transferSubmissions", id), {
+                    confirmed: next,
+                  });
+                } else if (isDeniedCb) {
+                  await updateDoc(doc(db, "transferSubmissions", id), {
+                    denied: next,
+                  });
+                }
               } catch (err) {
                 cb.checked = !next;
+                if (isConfirmedCb) applyConfirmedStyle(!next);
+                if (isDeniedCb) applyDeniedStyle(!next);
                 alert(
-                  "Could not update confirmed: " +
+                  "Could not update: " +
                     (err && err.code ? String(err.code) + " — " : "") +
                     (err && err.message ? err.message : String(err)),
                 );
               }
             });
             tbody.addEventListener("click", async function (e) {
+              const infoBtn = e.target.closest(".info-pop-btn");
+              if (infoBtn) {
+                const id = infoBtn.getAttribute("data-doc-id");
+                const row = findRowByDocId(id);
+                if (row) openAdditionalInfoModal(row);
+                return;
+              }
               const btn = e.target.closest(".delete-transfer-btn");
               if (!btn || btn.disabled || !db) return;
               const id = btn.getAttribute("data-doc-id");
@@ -703,6 +1285,109 @@
           initTransferFilters();
           listenForTransfers();
 
+          // Additional info modal handlers
+          (function () {
+            const modal = document.getElementById("additionalInfoModal");
+            const closeBtn = document.getElementById("additionalInfoCloseBtn");
+            const massModal = document.getElementById("massDeleteModal");
+            const massCancelBtn = document.getElementById("massDeleteCancelBtn");
+            const massDeleteBtn = document.getElementById("massDeleteConfirmBtn");
+            const massSelectAllBtn = document.getElementById("massDeleteSelectAllBtn");
+            const massSelectNoneBtn = document.getElementById("massDeleteSelectNoneBtn");
+            const massList = document.getElementById("massDeleteList");
+            const massCount = document.getElementById("massDeleteCount");
+            const massSearch = document.getElementById("massDeleteSearch");
+            if (closeBtn) {
+              closeBtn.addEventListener("click", function () {
+                closeAdditionalInfoModal();
+              });
+            }
+            if (modal) {
+              modal.addEventListener("click", function (e) {
+                if (e.target === modal) closeAdditionalInfoModal();
+              });
+            }
+            if (massCancelBtn) {
+              massCancelBtn.addEventListener("click", function () {
+                closeMassDeletePicker(null);
+              });
+            }
+            if (massDeleteBtn) {
+              massDeleteBtn.addEventListener("click", function () {
+                if (!massList) return closeMassDeletePicker(null);
+                const selected = Array.from(
+                  massList.querySelectorAll(".mass-del-cb:checked"),
+                ).map((el) => el.getAttribute("data-doc-id") || "");
+                closeMassDeletePicker(selected);
+              });
+            }
+            function updateMassCount() {
+              if (!massList || !massCount) return;
+              const visibleItems = Array.from(
+                massList.querySelectorAll(".mass-delete-item"),
+              ).filter((el) => el.style.display !== "none");
+              const total = visibleItems.length;
+              const selected = visibleItems.filter((el) => {
+                const cb = el.querySelector(".mass-del-cb");
+                return cb && cb.checked;
+              }).length;
+              massCount.textContent = "Selected: " + selected + " of " + total;
+            }
+            if (massSelectAllBtn) {
+              massSelectAllBtn.addEventListener("click", function () {
+                if (!massList) return;
+                massList.querySelectorAll(".mass-delete-item").forEach((row) => {
+                  if (row.style.display === "none") return;
+                  const el = row.querySelector(".mass-del-cb");
+                  if (el) el.checked = true;
+                });
+                updateMassCount();
+              });
+            }
+            if (massSelectNoneBtn) {
+              massSelectNoneBtn.addEventListener("click", function () {
+                if (!massList) return;
+                massList.querySelectorAll(".mass-delete-item").forEach((row) => {
+                  if (row.style.display === "none") return;
+                  const el = row.querySelector(".mass-del-cb");
+                  if (el) el.checked = false;
+                });
+                updateMassCount();
+              });
+            }
+            if (massList) {
+              massList.addEventListener("change", function (e) {
+                const t = e.target;
+                if (t && t.classList && t.classList.contains("mass-del-cb")) {
+                  updateMassCount();
+                }
+              });
+            }
+            if (massSearch && massList) {
+              massSearch.addEventListener("input", function () {
+                const q = String(massSearch.value || "").trim().toLowerCase();
+                massList.querySelectorAll(".mass-delete-item").forEach((row) => {
+                  if (!q) {
+                    row.style.display = "";
+                    return;
+                  }
+                  const s = String(row.getAttribute("data-search") || "");
+                  row.style.display = s.includes(q) ? "" : "none";
+                });
+                updateMassCount();
+              });
+            }
+            if (massModal) {
+              massModal.addEventListener("click", function (e) {
+                if (e.target === massModal) closeMassDeletePicker(null);
+              });
+            }
+            document.addEventListener("keydown", function (e) {
+              if (e.key === "Escape") closeAdditionalInfoModal();
+              if (e.key === "Escape") closeMassDeletePicker(null);
+            });
+          })();
+
           document
             .getElementById("importBtn")
             .addEventListener("click", async function () {
@@ -729,19 +1414,33 @@
                 let data;
                 let workbook;
                 let rows = [];
+                function getRowValueCI(rowObj, candidates) {
+                  if (!rowObj || typeof rowObj !== "object") return "";
+                  const map = {};
+                  Object.keys(rowObj).forEach((k) => {
+                    const nk = String(k ?? "")
+                      .replace(/^\uFEFF/, "")
+                      .trim()
+                      .toLowerCase();
+                    if (!nk) return;
+                    if (!(nk in map)) map[nk] = rowObj[k];
+                  });
+                  for (const cand of candidates) {
+                    const key = String(cand ?? "").trim().toLowerCase();
+                    if (!key) continue;
+                    if (key in map) return map[key];
+                  }
+                  return "";
+                }
                 try {
                   if (file.name.endsWith(".csv")) {
-                    const text = e.target.result;
-                    const lines = text.split(/\r?\n/).filter(Boolean);
-                    const headers = lines[0].split(",");
-                    for (let i = 1; i < lines.length; i++) {
-                      const values = lines[i].split(",");
-                      const row = {};
-                      headers.forEach((h, idx) => {
-                        row[h.trim()] = (values[idx] || "").trim();
-                      });
-                      rows.push(row);
-                    }
+                    const text = String(e.target.result || "");
+                    // Use SheetJS so quoted CSV + commas in fields work.
+                    workbook = window.XLSX.read(text, { type: "string" });
+                    const sheetName = workbook.SheetNames[0];
+                    rows = window.XLSX.utils.sheet_to_json(
+                      workbook.Sheets[sheetName],
+                    );
                   } else {
                     data = new Uint8Array(e.target.result);
                     workbook = window.XLSX.read(data, { type: "array" });
@@ -762,33 +1461,97 @@
                 let fail = 0;
                 for (const row of rows) {
                   try {
-                    await addDoc(collection(db, "transferSubmissions"), {
-                      displayName: row["Display Name"] || row.displayName || "",
-                      serverNumber:
-                        row["Server Number"] || row.serverNumber || "",
-                      currentAlliance:
-                        row["Current Alliance"] || row.currentAlliance || "",
-                      bestSquadPower:
-                        row["Best Squad Power"] || row.bestSquadPower || "",
-                      totalHeroPower:
-                        row["Total Hero Power"] || row.totalHeroPower || "",
-                      allianceInterested:
-                        row["Which Alliance"] || row.allianceInterested || "",
-                      transferStatus:
-                        row["If Known, What is Your Status?"] ||
-                        row.transferStatus ||
-                        "",
-                      additionalInfo:
-                        row["Additional Info"] || row.additionalInfo || "",
+                    const payload = {
+                      displayName: String(
+                        getRowValueCI(row, [
+                          "Display Name",
+                          "Display Name (Please use the same name)",
+                          "displayName",
+                          "display name",
+                          "name",
+                        ]) || "",
+                      ).trim(),
+                      serverNumber: String(
+                        getRowValueCI(row, [
+                          "Server Number",
+                          "serverNumber",
+                          "server number",
+                          "server",
+                        ]) || "",
+                      ).trim(),
+                      currentAlliance: String(
+                        getRowValueCI(row, [
+                          "Current Alliance",
+                          "Current Alliance Name",
+                          "currentAlliance",
+                          "current alliance",
+                        ]) || "",
+                      ).trim(),
+                      bestSquadPower: String(
+                        getRowValueCI(row, [
+                          "Best Squad Power",
+                          "Best Squad Power with optimized setup (Ex: 23.6m)",
+                          "bestSquadPower",
+                          "best squad power",
+                        ]) || "",
+                      ).trim(),
+                      totalHeroPower: String(
+                        getRowValueCI(row, [
+                          "Total Hero Power",
+                          "Total Hero Power (Ex: 105.6 million)",
+                          "totalHeroPower",
+                          "total hero power",
+                        ]) || "",
+                      ).trim(),
+                      allianceInterested: String(
+                        getRowValueCI(row, [
+                          "Which Alliance",
+                          "Which Alliance are you interested in joining?",
+                          "Which Alliance are you interested in joining",
+                          "allianceInterested",
+                          "alliance interested",
+                        ]) || "",
+                      ).trim(),
+                      transferStatus: String(
+                        getRowValueCI(row, [
+                          "If Known, What is Your Status?",
+                          "If known, what is your transfer status?",
+                          "transferStatus",
+                          "transfer status",
+                          "status",
+                        ]) || "",
+                      ).trim(),
+                      additionalInfo: String(
+                        getRowValueCI(row, [
+                          "Additional Info",
+                          "Additional Info you want considered?",
+                          "additionalInfo",
+                          "additional info",
+                          "notes",
+                        ]) || "",
+                      ).trim(),
                       importedAt: new Date().toISOString(),
-                      submittedAt: new Date().toISOString(),
+                      submittedAt: String(
+                        getRowValueCI(row, ["Timestamp", "submittedAt", "Submitted At"]) ||
+                          "",
+                      ).trim() || new Date().toISOString(),
                       confirmed: false,
-                    });
+                      denied: false,
+                    };
+                    // Normalize power fields into 0000.00 (millions) before saving.
+                    payload.bestSquadPower = formatMillions0000(payload.bestSquadPower);
+                    payload.totalHeroPower = formatMillions0000(payload.totalHeroPower);
+                    const docRef = await addDoc(
+                      collection(db, "transferSubmissions"),
+                      payload,
+                    );
                     success++;
+                    lastTransferRows.push({ ...payload, _docId: docRef.id });
                   } catch {
                     fail++;
                   }
                 }
+                refreshTransferTable();
                 alert(`Import complete. Success: ${success}, Failed: ${fail}`);
               };
               if (file.name.endsWith(".csv")) {
@@ -802,7 +1565,7 @@
           id="transferFilterBar"
           style="
             max-width: 100%;
-            margin: 0 0 14px 0;
+            margin: 24px 0 14px 0;
             padding: 14px 16px;
             background: linear-gradient(
               180deg,
@@ -913,6 +1676,41 @@
                 Total Hero Power (high->low)
               </option>
             </select>
+            <label
+              for="transferExportSelect"
+              style="
+                font-size: 0.95rem;
+                color: var(--muted);
+                white-space: nowrap;
+              "
+              >Export</label
+            >
+            <select
+              id="transferExportSelect"
+              style="
+                padding: 8px 12px;
+                border-radius: 10px;
+                border: 1px solid var(--line-soft);
+                background: var(--panel-2);
+                color: var(--text);
+                font-size: 0.95rem;
+                min-width: 180px;
+              "
+            >
+              <option value="">Choose…</option>
+              <option value="excel">Excel (.xlsx)</option>
+              <option value="csv">CSV (.csv)</option>
+              <option value="image">Image (.png)</option>
+            </select>
+            <button
+              type="button"
+              id="transferExportBtn"
+              class="action-button"
+              style="padding: 6px 14px; font-size: 0.92rem; min-width: auto"
+              title="Exports the currently filtered/sorted rows"
+            >
+              Export
+            </button>
             <button
               type="button"
               id="transferFilterClear"
@@ -920,6 +1718,38 @@
               style="padding: 6px 14px; font-size: 0.92rem; min-width: auto"
             >
               Clear filters
+            </button>
+            <button
+              type="button"
+              id="transferBulkDeleteBtn"
+              class="action-button"
+              style="
+                padding: 6px 14px;
+                font-size: 0.92rem;
+                min-width: auto;
+                background: linear-gradient(180deg, #5a2a2a, #3d1c1c);
+                border: 1px solid #8a4040;
+                color: #f0d0d0;
+              "
+              title="Deletes the currently filtered rows"
+            >
+              Mass delete
+            </button>
+            <button
+              type="button"
+              id="transferClearListBtn"
+              class="action-button"
+              style="
+                padding: 6px 14px;
+                font-size: 0.92rem;
+                min-width: auto;
+                background: linear-gradient(180deg, #5a2a2a, #2e1515);
+                border: 1px solid #a84c4c;
+                color: #ffd2d2;
+              "
+              title="Deletes ALL submissions in the database"
+            >
+              Clear list
             </button>
             <span
               id="transferFilterCount"
@@ -934,25 +1764,22 @@
           <table class="transfer-table">
             <thead>
               <tr>
-                <th>Display Name (Please use the same name)</th>
-                <th>Server Number</th>
-                <th>Current Alliance Name</th>
-                <th>Best Squad Power with optimized setup (Ex: 23.6m)</th>
-                <th>Total Hero Power (Ex: 105.6 million)</th>
-                <th>Which Alliance are you interested in joining?</th>
-                <th>If known, what is your transfer status?</th>
-                <th>Additional Info you want considered?</th>
-                <th style="text-align: center; line-height: 1.35">
-                  Delete
-                  <div
-                    style="
-                      font-size: 0.85rem;
-                      font-weight: 600;
-                      color: var(--muted);
-                      margin-top: 4px;
-                    "
-                  >
-                    Confirmed
+                <th title="Display Name (Please use the same name)">Name</th>
+                <th title="Server Number">S#</th>
+                <th title="Current Alliance Name">Current alliance</th>
+                <th title="Best Squad Power with optimized setup (Ex: 23.6m)">
+                  Best squad power
+                </th>
+                <th title="Total Hero Power (Ex: 105.6 million)">Total hero power</th>
+                <th title="Which Alliance are you interested in joining?">
+                  Interested alliance
+                </th>
+                <th title="If known, what is your transfer status?">Transfer status</th>
+                <th title="Additional Info you want considered?">Info</th>
+                <th style="text-align: center">
+                  Actions
+                  <div style="font-size: 0.85rem; font-weight: 600; color: var(--muted); margin-top: 4px">
+                    Delete · Confirmed · Denied
                   </div>
                 </th>
               </tr>
@@ -965,6 +1792,157 @@
               </tr>
             </tbody>
           </table>
+        </div>
+
+        <div
+          id="additionalInfoModal"
+          style="
+            display: none;
+            position: fixed;
+            inset: 0;
+            background: rgba(0, 0, 0, 0.65);
+            align-items: center;
+            justify-content: center;
+            padding: 18px;
+            z-index: 9999;
+          "
+          role="dialog"
+          aria-modal="true"
+          aria-labelledby="additionalInfoTitle"
+        >
+          <div
+            style="
+              width: min(820px, 100%);
+              max-height: min(80vh, 720px);
+              overflow: auto;
+              background: linear-gradient(180deg, var(--panel) 0%, var(--panel-2) 100%);
+              border: 1px solid var(--line-soft);
+              border-radius: 16px;
+              box-shadow: 0 18px 70px rgba(0, 0, 0, 0.45);
+              padding: 16px 16px 14px;
+            "
+          >
+            <div
+              style="
+                display: flex;
+                align-items: center;
+                justify-content: space-between;
+                gap: 12px;
+                margin-bottom: 10px;
+              "
+            >
+              <div
+                id="additionalInfoTitle"
+                style="font-weight: 800; color: var(--accent); font-size: 1.08rem"
+              >
+                Additional Info
+              </div>
+              <button
+                type="button"
+                id="additionalInfoCloseBtn"
+                class="action-button"
+                style="padding: 6px 12px; font-size: 0.92rem; min-width: auto"
+                title="Close"
+              >
+                Close
+              </button>
+            </div>
+            <div
+              id="additionalInfoBody"
+              style="
+                white-space: pre-wrap;
+                overflow-wrap: anywhere;
+                color: var(--text);
+                line-height: 1.35;
+                font-size: 0.98rem;
+              "
+            ></div>
+          </div>
+        </div>
+
+        <div
+          id="massDeleteModal"
+          style="
+            display: none;
+            position: fixed;
+            inset: 0;
+            background: rgba(0, 0, 0, 0.7);
+            align-items: center;
+            justify-content: center;
+            padding: 18px;
+            z-index: 10000;
+          "
+          role="dialog"
+          aria-modal="true"
+          aria-labelledby="massDeleteTitle"
+        >
+          <div class="mass-delete-card">
+            <div class="mass-delete-header">
+              <div style="display:flex;align-items:flex-start;justify-content:space-between;gap:12px;">
+                <div>
+                  <div id="massDeleteTitle" class="mass-delete-title">
+                    Mass delete - choose players
+                  </div>
+                  <div class="mass-delete-subtitle">
+                    Uncheck any players you want to keep.
+                  </div>
+                </div>
+                <span id="massDeleteCount" style="font-size: 0.92rem; color: var(--muted)"
+                  >Selected: 0 of 0</span
+                >
+              </div>
+              <div class="mass-delete-controls">
+                <input
+                  type="search"
+                  id="massDeleteSearch"
+                  placeholder="Search names or server…"
+                  autocomplete="off"
+                />
+                <button
+                  type="button"
+                  id="massDeleteSelectAllBtn"
+                  class="action-button"
+                  style="padding: 6px 10px; font-size: 0.88rem; min-width: auto"
+                >
+                  Select all
+                </button>
+                <button
+                  type="button"
+                  id="massDeleteSelectNoneBtn"
+                  class="action-button"
+                  style="padding: 6px 10px; font-size: 0.88rem; min-width: auto"
+                >
+                  Select none
+                </button>
+              </div>
+            </div>
+            <div id="massDeleteList" class="mass-delete-list"></div>
+            <div class="mass-delete-footer" style="display:flex;justify-content:flex-end;gap:10px;">
+              <button
+                type="button"
+                id="massDeleteCancelBtn"
+                class="action-button"
+                style="padding: 6px 12px; font-size: 0.92rem; min-width: auto"
+              >
+                Cancel
+              </button>
+              <button
+                type="button"
+                id="massDeleteConfirmBtn"
+                class="action-button"
+                style="
+                  padding: 6px 12px;
+                  font-size: 0.92rem;
+                  min-width: auto;
+                  background: linear-gradient(180deg, #5a2a2a, #2e1515);
+                  border: 1px solid #a84c4c;
+                  color: #ffd2d2;
+                "
+              >
+                Delete selected
+              </button>
+            </div>
+          </div>
         </div>
       </section>
       <!-- Transfer log script removed as requested -->
