@@ -9,7 +9,13 @@
       content="Submit your alliance transfer information via a unique link."
     />
     <link rel="stylesheet" href="last-war-furnace-upgrade-calculator.css" />
+    <script>
+      if (location.hostname === "localhost" || location.hostname === "127.0.0.1") {
+        self.FIREBASE_APPCHECK_DEBUG_TOKEN = true;
+      }
+    </script>
     <script src="firebase-config.example.js"></script>
+    <script src="firebase-config.js"></script>
   </head>
   <body>
     <div class="page">
@@ -137,45 +143,40 @@
         setDoc,
       } from "https://www.gstatic.com/firebasejs/9.22.2/firebase-firestore.js";
 
-      async function applyLocalFirebaseConfigOverride() {
-        // file:// pages cannot reliably fetch() sibling files; load override via <script src>.
-        if (window.location.protocol === "file:") {
-          await new Promise((resolve) => {
-            const s = document.createElement("script");
-            s.src = new URL(
-              "firebase-config.js",
-              window.location.href,
-            ).href;
-            s.onload = () => resolve();
-            s.onerror = () => resolve();
-            document.head.appendChild(s);
-          });
-          return;
-        }
-        try {
-          const res = await fetch(
-            new URL("firebase-config.js", window.location.href).href,
-            { cache: "no-store" },
-          );
-          if (!res.ok) return;
-          const text = await res.text();
-          if (!text.trim()) return;
-          const s = document.createElement("script");
-          s.textContent = text;
-          document.head.appendChild(s);
-        } catch (_) {}
-      }
-
-      await applyLocalFirebaseConfigOverride();
-
       function firebaseConfigOk(cfg) {
         if (!cfg || typeof cfg !== "object") return false;
         const k = String(cfg.apiKey || "");
+        const pid = String(cfg.projectId || "");
         return (
           k.length > 0 &&
           k !== "YOUR_WEB_API_KEY" &&
-          !k.startsWith("YOUR_")
+          !k.startsWith("YOUR_") &&
+          pid.length > 0 &&
+          pid !== "YOUR_PROJECT_ID" &&
+          !pid.startsWith("YOUR_")
         );
+      }
+
+      function firebaseConfigBannerHtml(cfg) {
+        if (!cfg || typeof cfg !== "object") {
+          return "<strong>Firebase config not loaded.</strong> Add <code>firebase-config.js</code> next to this page (copy from <code>firebase-config.example.js</code>). Deploy it with your real <code>apiKey</code> on your host, or paste the key locally—do not commit secrets to a public repo.";
+        }
+        const k = String(cfg.apiKey || "");
+        const pid = String(cfg.projectId || "");
+        const keyPh =
+          !k || k === "YOUR_WEB_API_KEY" || k.startsWith("YOUR_");
+        const pidPh =
+          !pid || pid === "YOUR_PROJECT_ID" || pid.startsWith("YOUR_");
+        if (keyPh && pidPh) {
+          return "<strong>Firebase is not configured.</strong> Copy <code>firebase-config.example.js</code> to <code>firebase-config.js</code> and paste the full <code>firebaseConfig</code> object from Firebase Console → Project settings → Your apps → Web app.";
+        }
+        if (keyPh && !pidPh) {
+          return "<strong>Replace <code>apiKey</code> in <code>firebase-config.js</code>.</strong> Firebase Console → Project settings → Your apps → Web app → copy <code>apiKey</code> (starts with <code>AIza</code>). Your project fields are set; only the key is still a placeholder.";
+        }
+        if (pidPh) {
+          return "<strong>Replace placeholder project fields in <code>firebase-config.js</code></strong> with the full web app object from Firebase Console.";
+        }
+        return "<strong>Firebase did not initialize.</strong> Check the browser console.";
       }
 
       try {
@@ -191,8 +192,7 @@
           const banner = document.getElementById("firebaseConfigBanner");
           if (banner) {
             banner.style.display = "block";
-            banner.innerHTML =
-              "<strong>Firebase is not configured.</strong> Copy <code>firebase-config.example.js</code> to <code>firebase-config.js</code> and add your web app config. This form needs Firebase to submit. Do not commit real API keys to public repositories.";
+            banner.innerHTML = firebaseConfigBannerHtml(firebaseConfig);
           }
         }
       } catch (e) {
@@ -228,6 +228,7 @@
             submittedAt: new Date().toISOString(),
             linkId: id,
             additionalInfo: this.additionalInfo.value,
+            confirmed: false,
           };
           try {
             if (window._firebaseInitFailed) {
