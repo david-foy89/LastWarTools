@@ -418,9 +418,7 @@
           function parsePowerNumber(v) {
             // Converts strings like "23.6m", "105.6 million", "12,345k" into a number.
             const str = String(v ?? "").toLowerCase();
-            const numMatch = str
-              .replace(/,/g, "")
-              .match(/(\d+(\.\d+)?)/);
+            const numMatch = str.replace(/,/g, "").match(/(\d+(\.\d+)?)/);
             const n = numMatch ? Number(numMatch[1]) : NaN;
             if (!Number.isFinite(n)) return 0;
 
@@ -503,7 +501,9 @@
             const searchEl = document.getElementById("transferFilterSearch");
             const confEl = document.getElementById("transferFilterConfirmed");
             const q = searchEl
-              ? String(searchEl.value || "").trim().toLowerCase()
+              ? String(searchEl.value || "")
+                  .trim()
+                  .toLowerCase()
               : "";
             const conf = confEl ? String(confEl.value || "") : "";
             return rows.filter((row) => {
@@ -623,9 +623,10 @@
 
             function showSnapshotError(err) {
               const code = err && err.code ? String(err.code) : "";
-              const projectId = firebaseConfig && firebaseConfig.projectId
-                ? String(firebaseConfig.projectId)
-                : "";
+              const projectId =
+                firebaseConfig && firebaseConfig.projectId
+                  ? String(firebaseConfig.projectId)
+                  : "";
               const rulesHref = projectId
                 ? "https://console.firebase.google.com/project/" +
                   encodeURIComponent(projectId) +
@@ -678,7 +679,10 @@
             .addEventListener("submit", function (e) {
               e.preventDefault();
               const id = generateId();
-              const submitUrl = new URL("transfer-submit.html", window.location.href);
+              const submitUrl = new URL(
+                "transfer-submit.html",
+                window.location.href,
+              );
               submitUrl.searchParams.set("id", id);
               const url = submitUrl.href;
               const safeUrl = escapeHtml(url);
@@ -699,99 +703,100 @@
           initTransferFilters();
           listenForTransfers();
 
-          document.getElementById("importBtn").addEventListener("click", async function () {
-            if (!db) {
-              alert(
-                "Firebase is not configured. Copy firebase-config.example.js to firebase-config.js and add your web app config (see banner above).",
-              );
-              return;
-            }
-            const fileInput = document.getElementById("importFile");
-            const file = fileInput.files[0];
-            if (!file) {
-              alert("Please select a file to import.");
-              return;
-            }
-            if (!window.XLSX) {
-              alert(
-                "Excel/CSV library is still loading. Please wait and try again.",
-              );
-              return;
-            }
-            const reader = new FileReader();
-            reader.onload = async function (e) {
-              let data;
-              let workbook;
-              let rows = [];
-              try {
-                if (file.name.endsWith(".csv")) {
-                  const text = e.target.result;
-                  const lines = text.split(/\r?\n/).filter(Boolean);
-                  const headers = lines[0].split(",");
-                  for (let i = 1; i < lines.length; i++) {
-                    const values = lines[i].split(",");
-                    const row = {};
-                    headers.forEach((h, idx) => {
-                      row[h.trim()] = (values[idx] || "").trim();
-                    });
-                    rows.push(row);
-                  }
-                } else {
-                  data = new Uint8Array(e.target.result);
-                  workbook = window.XLSX.read(data, { type: "array" });
-                  const sheetName = workbook.SheetNames[0];
-                  rows = window.XLSX.utils.sheet_to_json(
-                    workbook.Sheets[sheetName],
-                  );
-                }
-              } catch (err) {
-                alert("Failed to parse file: " + err.message);
+          document
+            .getElementById("importBtn")
+            .addEventListener("click", async function () {
+              if (!db) {
+                alert(
+                  "Firebase is not configured. Copy firebase-config.example.js to firebase-config.js and add your web app config (see banner above).",
+                );
                 return;
               }
-              if (!rows.length) {
-                alert("No data found in file.");
+              const fileInput = document.getElementById("importFile");
+              const file = fileInput.files[0];
+              if (!file) {
+                alert("Please select a file to import.");
                 return;
               }
-              let success = 0;
-              let fail = 0;
-              for (const row of rows) {
+              if (!window.XLSX) {
+                alert(
+                  "Excel/CSV library is still loading. Please wait and try again.",
+                );
+                return;
+              }
+              const reader = new FileReader();
+              reader.onload = async function (e) {
+                let data;
+                let workbook;
+                let rows = [];
                 try {
-                  await addDoc(collection(db, "transferSubmissions"), {
-                    displayName:
-                      row["Display Name"] || row.displayName || "",
-                    serverNumber:
-                      row["Server Number"] || row.serverNumber || "",
-                    currentAlliance:
-                      row["Current Alliance"] || row.currentAlliance || "",
-                    bestSquadPower:
-                      row["Best Squad Power"] || row.bestSquadPower || "",
-                    totalHeroPower:
-                      row["Total Hero Power"] || row.totalHeroPower || "",
-                    allianceInterested:
-                      row["Which Alliance"] || row.allianceInterested || "",
-                    transferStatus:
-                      row["If Known, What is Your Status?"] ||
-                      row.transferStatus ||
-                      "",
-                    additionalInfo:
-                      row["Additional Info"] || row.additionalInfo || "",
-                    importedAt: new Date().toISOString(),
-                    submittedAt: new Date().toISOString(),
-                    confirmed: false,
-                  });
-                  success++;
-                } catch {
-                  fail++;
+                  if (file.name.endsWith(".csv")) {
+                    const text = e.target.result;
+                    const lines = text.split(/\r?\n/).filter(Boolean);
+                    const headers = lines[0].split(",");
+                    for (let i = 1; i < lines.length; i++) {
+                      const values = lines[i].split(",");
+                      const row = {};
+                      headers.forEach((h, idx) => {
+                        row[h.trim()] = (values[idx] || "").trim();
+                      });
+                      rows.push(row);
+                    }
+                  } else {
+                    data = new Uint8Array(e.target.result);
+                    workbook = window.XLSX.read(data, { type: "array" });
+                    const sheetName = workbook.SheetNames[0];
+                    rows = window.XLSX.utils.sheet_to_json(
+                      workbook.Sheets[sheetName],
+                    );
+                  }
+                } catch (err) {
+                  alert("Failed to parse file: " + err.message);
+                  return;
                 }
+                if (!rows.length) {
+                  alert("No data found in file.");
+                  return;
+                }
+                let success = 0;
+                let fail = 0;
+                for (const row of rows) {
+                  try {
+                    await addDoc(collection(db, "transferSubmissions"), {
+                      displayName: row["Display Name"] || row.displayName || "",
+                      serverNumber:
+                        row["Server Number"] || row.serverNumber || "",
+                      currentAlliance:
+                        row["Current Alliance"] || row.currentAlliance || "",
+                      bestSquadPower:
+                        row["Best Squad Power"] || row.bestSquadPower || "",
+                      totalHeroPower:
+                        row["Total Hero Power"] || row.totalHeroPower || "",
+                      allianceInterested:
+                        row["Which Alliance"] || row.allianceInterested || "",
+                      transferStatus:
+                        row["If Known, What is Your Status?"] ||
+                        row.transferStatus ||
+                        "",
+                      additionalInfo:
+                        row["Additional Info"] || row.additionalInfo || "",
+                      importedAt: new Date().toISOString(),
+                      submittedAt: new Date().toISOString(),
+                      confirmed: false,
+                    });
+                    success++;
+                  } catch {
+                    fail++;
+                  }
+                }
+                alert(`Import complete. Success: ${success}, Failed: ${fail}`);
+              };
+              if (file.name.endsWith(".csv")) {
+                reader.readAsText(file);
+              } else {
+                reader.readAsArrayBuffer(file);
               }
-              alert(`Import complete. Success: ${success}, Failed: ${fail}`);
-            };
-            if (file.name.endsWith(".csv")) {
-              reader.readAsText(file);
-            } else {
-              reader.readAsArrayBuffer(file);
-            }
-          });
+            });
         </script>
         <div
           id="transferFilterBar"
@@ -829,7 +834,11 @@
           >
             <label
               for="transferFilterSearch"
-              style="font-size: 0.95rem; color: var(--muted); white-space: nowrap"
+              style="
+                font-size: 0.95rem;
+                color: var(--muted);
+                white-space: nowrap;
+              "
               >Search</label
             >
             <input
@@ -851,7 +860,11 @@
             />
             <label
               for="transferFilterConfirmed"
-              style="font-size: 0.95rem; color: var(--muted); white-space: nowrap"
+              style="
+                font-size: 0.95rem;
+                color: var(--muted);
+                white-space: nowrap;
+              "
               >Confirmed</label
             >
             <select
@@ -872,7 +885,11 @@
             </select>
             <label
               for="transferSortSelect"
-              style="font-size: 0.95rem; color: var(--muted); white-space: nowrap"
+              style="
+                font-size: 0.95rem;
+                color: var(--muted);
+                white-space: nowrap;
+              "
               >Sort</label
             >
             <select
@@ -889,18 +906,18 @@
             >
               <option value="newest">Newest first</option>
               <option value="name">Name (A-Z)</option>
-              <option value="bestSquadPower">Best Squad Power (high->low)</option>
-              <option value="totalHeroPower">Total Hero Power (high->low)</option>
+              <option value="bestSquadPower">
+                Best Squad Power (high->low)
+              </option>
+              <option value="totalHeroPower">
+                Total Hero Power (high->low)
+              </option>
             </select>
             <button
               type="button"
               id="transferFilterClear"
               class="action-button"
-              style="
-                padding: 6px 14px;
-                font-size: 0.92rem;
-                min-width: auto;
-              "
+              style="padding: 6px 14px; font-size: 0.92rem; min-width: auto"
             >
               Clear filters
             </button>
@@ -925,15 +942,24 @@
                 <th>Which Alliance are you interested in joining?</th>
                 <th>If known, what is your transfer status?</th>
                 <th>Additional Info you want considered?</th>
-                <th style="text-align:center;line-height:1.35;">Delete<div style="font-size:0.85rem;font-weight:600;color:var(--muted);margin-top:4px;">Confirmed</div></th>
+                <th style="text-align: center; line-height: 1.35">
+                  Delete
+                  <div
+                    style="
+                      font-size: 0.85rem;
+                      font-weight: 600;
+                      color: var(--muted);
+                      margin-top: 4px;
+                    "
+                  >
+                    Confirmed
+                  </div>
+                </th>
               </tr>
             </thead>
             <tbody>
               <tr>
-                <td
-                  colspan="9"
-                  style="text-align: center; color: var(--muted)"
-                >
+                <td colspan="9" style="text-align: center; color: var(--muted)">
                   No submissions yet.
                 </td>
               </tr>
