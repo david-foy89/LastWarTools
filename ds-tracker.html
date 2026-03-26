@@ -1223,9 +1223,7 @@
           const map = loadHistoryMap();
           const merged = mergePlayersIntoRows(map[day] || [], loadPlayerList());
           renderRows(merged);
-          map[day] = merged;
-          saveHistoryMap(map);
-          if (map[day]?.length) setStatus(`Loaded ${map[day].length} row(s) for ${day}.`);
+          if (merged.length) setStatus(`Loaded ${merged.length} row(s) for ${day}.`);
           else setStatus(`No saved data for ${day}.`);
         }
 
@@ -1694,6 +1692,7 @@
           if (!yes) return;
           delete map[day];
           saveHistoryMap(map);
+          loadSelectedDay();
           setStatus(`Deleted saved history for ${day}.`);
         });
 
