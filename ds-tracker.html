@@ -926,8 +926,38 @@
           ctx.drawImage(mapImage, 0, 0, width, height);
 
           const pins = getResolvedPinsForCurrentTeamDay();
+          const mapRect = mapImage.getBoundingClientRect();
+          const scaleX = mapRect.width ? width / mapRect.width : 1;
+          const scaleY = mapRect.height ? height / mapRect.height : 1;
+          const scale = (scaleX + scaleY) / 2;
+
+          // Read live marker styles from DOM so export matches the web map.
+          const samplePin = document.createElement("button");
+          samplePin.className = "ds-map-pin";
+          samplePin.style.visibility = "hidden";
+          samplePin.style.position = "absolute";
+          samplePin.style.left = "-9999px";
+          samplePin.textContent = "X";
+          document.body.appendChild(samplePin);
+          const sampleSmall = document.createElement("small");
+          sampleSmall.textContent = "x";
+          samplePin.appendChild(sampleSmall);
+
+          const pinStyle = getComputedStyle(samplePin);
+          const smallStyle = getComputedStyle(sampleSmall);
+          const mainFontPx = Number.parseFloat(pinStyle.fontSize || "12") * scale;
+          const subFontPx = Number.parseFloat(smallStyle.fontSize || "11") * scale;
+          const padX = Number.parseFloat(pinStyle.paddingLeft || "6") * scale;
+          const padY = Number.parseFloat(pinStyle.paddingTop || "3") * scale;
+          const radius = Number.parseFloat(pinStyle.borderRadius || "8") * scale;
+          const borderWidth = Number.parseFloat(pinStyle.borderWidth || "1") * scale;
+          const fillColor = pinStyle.backgroundColor || "rgba(7, 20, 36, 0.9)";
+          const borderColor = pinStyle.borderColor || "rgba(134, 181, 255, 0.9)";
+          const textColor = pinStyle.color || "#ffffff";
+          document.body.removeChild(samplePin);
+
           ctx.textBaseline = "middle";
-          ctx.font = "bold 18px Arial";
+          ctx.font = `${mainFontPx}px ${pinStyle.fontFamily || "Arial"}`;
           pins.forEach((pin) => {
             const x = (Math.max(0, Math.min(100, pin.x)) / 100) * width;
             const y = (Math.max(0, Math.min(100, pin.y)) / 100) * height;
@@ -935,26 +965,30 @@
             const line2 = String(pin.assignment || "");
             const w1 = ctx.measureText(line1).width;
             const w2 = line2 ? ctx.measureText(line2).width : 0;
-            const boxW = Math.max(w1, w2) + 20;
-            const boxH = line2 ? 44 : 28;
+            const boxW = Math.max(w1, w2) + padX * 2;
+            const boxH = line2
+              ? Math.ceil(mainFontPx + subFontPx + padY * 3)
+              : Math.ceil(mainFontPx + padY * 2);
             const bx = Math.max(4, Math.min(width - boxW - 4, x - boxW / 2));
             const by = Math.max(4, Math.min(height - boxH - 4, y - boxH / 2));
 
-            ctx.fillStyle = "rgba(7, 20, 36, 0.9)";
-            ctx.strokeStyle = "rgba(134, 181, 255, 0.9)";
-            ctx.lineWidth = 1;
+            ctx.fillStyle = fillColor;
+            ctx.strokeStyle = borderColor;
+            ctx.lineWidth = Math.max(1, borderWidth);
             ctx.beginPath();
-            ctx.roundRect(bx, by, boxW, boxH, 8);
+            ctx.roundRect(bx, by, boxW, boxH, Math.max(2, radius));
             ctx.fill();
             ctx.stroke();
 
-            ctx.fillStyle = "#ffffff";
-            ctx.fillText(line1, bx + 10, by + 14);
+            ctx.fillStyle = textColor;
+            const line1Y = by + Math.ceil(mainFontPx * 0.55) + padY;
+            ctx.fillText(line1, bx + padX, line1Y);
             if (line2) {
-              ctx.font = "14px Arial";
-              ctx.fillStyle = "#d7e9ff";
-              ctx.fillText(line2, bx + 10, by + 31);
-              ctx.font = "bold 18px Arial";
+              ctx.font = `${subFontPx}px ${smallStyle.fontFamily || pinStyle.fontFamily || "Arial"}`;
+              ctx.fillStyle = smallStyle.color || "#d7e9ff";
+              const line2Y = line1Y + Math.ceil(subFontPx + padY);
+              ctx.fillText(line2, bx + padX, line2Y);
+              ctx.font = `${mainFontPx}px ${pinStyle.fontFamily || "Arial"}`;
             }
           });
 
@@ -1004,6 +1038,19 @@
           });
         }
 
+        function getNoShowValueFromRowData(r) {
+          if (!r || typeof r !== "object") return false;
+          if (Object.prototype.hasOwnProperty.call(r, "noshow")) {
+            return Boolean(r.noshow);
+          }
+          // Legacy compatibility: old `show: true` means player showed up,
+          // so `noshow` should be false in that case.
+          if (Object.prototype.hasOwnProperty.call(r, "show")) {
+            return !Boolean(r.show);
+          }
+          return false;
+        }
+
         function mergePlayersIntoRows(rows, players) {
           const arr = Array.isArray(rows) ? rows : [];
           const roster = Array.isArray(players) ? players : [];
@@ -1020,7 +1067,7 @@
               power: String((r && r.power) || ""),
               r2b: String((r && r.r2b) || ""),
               assignment: String((r && r.assignment) || ""),
-              noshow: Boolean(r && (r.noshow || r.show)),
+              noshow: getNoShowValueFromRowData(r),
             });
           });
           roster.forEach((name) => {
@@ -1499,6 +1546,7 @@
           const h4 = scoreHead4 ? scoreHead4.textContent : "Score 4";
           const rows = Array.from(tbody.querySelectorAll("tr")).map((tr) => {
             const get = (k) => getCellValue(tr, k);
+            const noShow = !!tr.querySelector('input[data-k="noshow"]')?.checked;
             return {
               "Player Name": get("name"),
               [h1]: normalizeNum(get("s1")),
@@ -1508,6 +1556,7 @@
               "Total Hero Power (M)": formatMillions0000(get("power")),
               Request: get("r2b"),
               Assignment: get("assignment"),
+              "No show": noShow ? "Yes" : "",
             };
           });
           const headers = Object.keys(rows[0] || {});
@@ -1545,7 +1594,6 @@
               setStatus(`OCR ${i + 1}/${files.length}: ${files[i].name} ...`);
               const rows = await runOcrOnFile(files[i]);
               let namedRows = getNamedTableRows();
-              const hasRosterRows = namedRows.length > 0;
               rows.forEach((r) => {
                 const best = findBestRowForOcrName(r.name || "", namedRows);
                 if (best) {
@@ -1555,7 +1603,7 @@
                 }
 
                 // Fallback: if no player list/table names exist yet, keep old behavior.
-                if (!hasRosterRows) {
+                if (!namedRows.length) {
                   addRow({
                     name: r.name || "",
                     s1: r.s1 || "",
