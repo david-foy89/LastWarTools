@@ -729,11 +729,14 @@
           }
 
           function parsePowerNumber(v) {
-            // Treat any numeric value as "millions".
+            // Treat values as "millions".
+            // If a raw full number is provided (e.g. 90758916.00), convert to millions:
+            // 90,758,916 -> 90.76 (millions).
             const str = String(v ?? "");
             const numMatch = str.replace(/,/g, "").match(/(\d+(\.\d+)?)/);
             const n = numMatch ? Number(numMatch[1]) : NaN;
-            return Number.isFinite(n) ? n : 0;
+            if (!Number.isFinite(n)) return 0;
+            return n >= 1_000_000 ? n / 1_000_000 : n;
           }
 
           function formatMillions0000(v) {
