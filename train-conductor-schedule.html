@@ -493,7 +493,43 @@
       }
 
       .alliance-members-search {
+        position: relative;
         margin-bottom: 8px;
+      }
+
+      .alliance-members-search input {
+        padding-right: 32px;
+      }
+
+      .alliance-search-clear {
+        position: absolute;
+        right: 8px;
+        top: 50%;
+        transform: translateY(-50%);
+        width: 22px;
+        height: 22px;
+        border: 1px solid var(--line-soft);
+        border-radius: 999px;
+        background: rgba(12, 24, 37, 0.88);
+        color: var(--muted);
+        font: inherit;
+        font-size: 0.82rem;
+        line-height: 1;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        cursor: pointer;
+      }
+
+      .alliance-search-clear:hover,
+      .alliance-search-clear:focus-visible {
+        border-color: rgba(116, 192, 252, 0.55);
+        color: var(--text);
+        outline: none;
+      }
+
+      .alliance-search-clear.is-hidden {
+        display: none;
       }
 
       .alliance-import-status {
@@ -634,6 +670,39 @@
         color: var(--muted);
         font-size: 0.8rem;
         font-style: italic;
+      }
+
+      .alliance-r4r5-group {
+        margin-bottom: 8px;
+        border: 1px solid rgba(255, 214, 102, 0.35);
+        border-radius: 10px;
+        background: rgba(255, 214, 102, 0.08);
+        padding: 8px 10px;
+      }
+
+      .alliance-r4r5-group-header {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 8px;
+        margin-bottom: 6px;
+        font-size: 0.75rem;
+        color: #ffe8b0;
+      }
+
+      .alliance-r4r5-chips {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 6px;
+      }
+
+      .alliance-r4r5-chip {
+        border: 1px solid rgba(255, 214, 102, 0.45);
+        border-radius: 999px;
+        padding: 2px 8px;
+        font-size: 0.72rem;
+        color: #ffe8b0;
+        background: rgba(255, 214, 102, 0.12);
       }
 
       .import-preview-modal {
@@ -1155,8 +1224,18 @@
                 placeholder="Search members"
                 aria-label="Search alliance members"
               />
+              <button
+                type="button"
+                id="allianceMemberSearchClearButton"
+                class="alliance-search-clear is-hidden"
+                aria-label="Clear member search"
+                title="Clear search"
+              >
+                ×
+              </button>
             </div>
 
+            <div class="alliance-r4r5-group" id="allianceR4R5Group"></div>
             <div class="alliance-members-list" id="allianceMembersList"></div>
             <div class="alliance-import-status" id="allianceImportStatus"></div>
           </div>
@@ -1289,6 +1368,7 @@
         "Conductor 7",
       ];
       const MAX_ALLIANCE_MEMBERS = 100;
+      const MAX_R4R5_MEMBERS = 11;
       const OCR_PASS_CONFIGS = [
         { lang: "kor+eng", psm: "6" },
         { lang: "kor+eng", psm: "11" },
@@ -1318,6 +1398,7 @@
         ]),
         showVip: true,
         allianceMembers: [],
+        r4r5Members: [],
         memberHistory: [],
         allianceMemberSearch: "",
         allianceFillTarget: "conductor",
@@ -1377,9 +1458,13 @@
       const allianceMemberSearchInput = document.getElementById(
         "allianceMemberSearchInput",
       );
+      const allianceMemberSearchClearButton = document.getElementById(
+        "allianceMemberSearchClearButton",
+      );
       const allianceMembersList = document.getElementById(
         "allianceMembersList",
       );
+      const allianceR4R5Group = document.getElementById("allianceR4R5Group");
       const importPreviewModal = document.getElementById("importPreviewModal");
       const importPreviewFileName = document.getElementById(
         "importPreviewFileName",
@@ -1467,6 +1552,53 @@
 
       function normalizeMemberName(value) {
         return sanitizeMemberName(value).toLowerCase();
+      }
+
+      function normalizeR4R5Members(entries, allianceMembers = []) {
+        const allowed = new Set(
+          allianceMembers.map((name) => normalizeMemberName(name)).filter(Boolean),
+        );
+        if (!Array.isArray(entries)) return [];
+        const out = [];
+        const seen = new Set();
+        entries.forEach((name) => {
+          const clean = sanitizeMemberName(name);
+          const key = normalizeMemberName(clean);
+          if (!clean || !key || seen.has(key)) return;
+          if (!allowed.has(key)) return;
+          seen.add(key);
+          out.push(clean);
+        });
+        return out.slice(0, MAX_R4R5_MEMBERS);
+      }
+
+      function isR4R5Member(name) {
+        const key = normalizeMemberName(name);
+        if (!key) return false;
+        return state.r4r5Members.some(
+          (entry) => normalizeMemberName(entry) === key,
+        );
+      }
+
+      function renderR4R5Group() {
+        if (!allianceR4R5Group) return;
+        const picks = state.r4r5Members || [];
+        if (!picks.length) {
+          allianceR4R5Group.innerHTML = `<div class="alliance-members-empty" style="padding:0;">R4/R5 group is empty. Pick up to ${MAX_R4R5_MEMBERS} members.</div>`;
+          return;
+        }
+        allianceR4R5Group.innerHTML = `
+          <div class="alliance-r4r5-group-header">
+            <strong>R4/R5 Group</strong>
+            <span>${picks.length} / ${MAX_R4R5_MEMBERS}</span>
+            <button type="button" class="alliance-member-remove" data-r4r5-clear="1">Clear</button>
+          </div>
+          <div class="alliance-r4r5-chips">
+            ${picks
+              .map((name) => `<span class="alliance-r4r5-chip">${escapeHtml(name)}</span>`)
+              .join("")}
+          </div>
+        `;
       }
 
       function normalizeDayAssignmentsWeekRow(week) {
@@ -2406,10 +2538,21 @@
       }
 
       function renderAllianceMembers() {
+        state.r4r5Members = normalizeR4R5Members(
+          state.r4r5Members,
+          state.allianceMembers,
+        );
         allianceMembersCount.textContent = `${state.allianceMembers.length} / ${MAX_ALLIANCE_MEMBERS}`;
         allianceFillTargetSelect.value = state.allianceFillTarget;
         allianceMemberSearchInput.value = state.allianceMemberSearch;
+        if (allianceMemberSearchClearButton) {
+          allianceMemberSearchClearButton.classList.toggle(
+            "is-hidden",
+            !state.allianceMemberSearch,
+          );
+        }
         syncAllianceFillConductorOptions();
+        renderR4R5Group();
 
         const filtered = getFilteredAllianceMembers();
         if (!filtered.length) {
@@ -2463,6 +2606,9 @@
                 })()}
               </div>
               <div class="alliance-member-controls">
+                <button type="button" class="alliance-member-edit" data-r4r5-toggle-idx="${actualIdx}">
+                  ${isR4R5Member(name) ? "Unset R4/R5" : "Set R4/R5"}
+                </button>
                 <button type="button" class="alliance-member-edit" data-edit-idx="${actualIdx}">Edit</button>
                 <button type="button" class="alliance-member-remove" data-remove-idx="${actualIdx}">Remove</button>
               </div>
@@ -2508,7 +2654,17 @@
           return;
         }
 
+        const oldName = state.allianceMembers[idx];
         state.allianceMembers[idx] = trimmed;
+        if (isR4R5Member(oldName)) {
+          state.r4r5Members = state.r4r5Members
+            .map((name) =>
+              normalizeMemberName(name) === normalizeMemberName(oldName)
+                ? trimmed
+                : name,
+            )
+            .slice(0, MAX_R4R5_MEMBERS);
+        }
         editingAllianceMemberIdx = -1;
         saveState();
         renderAllianceMembers();
@@ -3170,6 +3326,10 @@
 
       function saveState() {
         try {
+          state.r4r5Members = normalizeR4R5Members(
+            state.r4r5Members,
+            state.allianceMembers,
+          );
           localStorage.setItem(
             STORAGE_KEY,
             JSON.stringify({
@@ -3181,6 +3341,7 @@
               dayAssignmentsByWeek: state.dayAssignmentsByWeek,
               showVip: state.showVip,
               allianceMembers: state.allianceMembers,
+              r4r5Members: state.r4r5Members,
               memberHistory: state.memberHistory,
               allianceMemberSearch: state.allianceMemberSearch,
               allianceFillTarget: state.allianceFillTarget,
@@ -3272,6 +3433,10 @@
                 a.localeCompare(b, undefined, { sensitivity: "base" }),
               );
           }
+          state.r4r5Members = normalizeR4R5Members(
+            saved.r4r5Members,
+            state.allianceMembers,
+          );
           if (Array.isArray(saved.memberHistory)) {
             state.memberHistory = normalizeMemberHistoryEntries(
               saved.memberHistory,
@@ -3756,10 +3921,64 @@
         state.allianceMemberSearch = sanitizeMemberName(
           allianceMemberSearchInput.value,
         );
+        if (allianceMemberSearchClearButton) {
+          allianceMemberSearchClearButton.classList.toggle(
+            "is-hidden",
+            !state.allianceMemberSearch,
+          );
+        }
         renderAllianceMembers();
       });
 
+      if (allianceMemberSearchClearButton) {
+        allianceMemberSearchClearButton.addEventListener("click", () => {
+          state.allianceMemberSearch = "";
+          allianceMemberSearchInput.value = "";
+          allianceMemberSearchInput.focus();
+          allianceMemberSearchClearButton.classList.add("is-hidden");
+          renderAllianceMembers();
+        });
+      }
+
       allianceMembersList.addEventListener("click", (event) => {
+        const clearR4R5Btn = event.target.closest("[data-r4r5-clear]");
+        if (clearR4R5Btn) {
+          state.r4r5Members = [];
+          saveState();
+          renderAllianceMembers();
+          return;
+        }
+
+        const toggleR4R5Btn = event.target.closest("[data-r4r5-toggle-idx]");
+        if (toggleR4R5Btn) {
+          const idx = Number(toggleR4R5Btn.dataset.r4r5ToggleIdx);
+          if (
+            Number.isFinite(idx) &&
+            idx >= 0 &&
+            idx < state.allianceMembers.length
+          ) {
+            const name = state.allianceMembers[idx];
+            const key = normalizeMemberName(name);
+            const existsIdx = state.r4r5Members.findIndex(
+              (entry) => normalizeMemberName(entry) === key,
+            );
+            if (existsIdx !== -1) {
+              state.r4r5Members.splice(existsIdx, 1);
+            } else {
+              if (state.r4r5Members.length >= MAX_R4R5_MEMBERS) {
+                setAllianceImportStatus(
+                  `R4/R5 group is limited to ${MAX_R4R5_MEMBERS} members.`,
+                );
+                return;
+              }
+              state.r4r5Members.push(name);
+            }
+            saveState();
+            renderAllianceMembers();
+          }
+          return;
+        }
+
         const editBtn = event.target.closest("[data-edit-idx]");
         if (editBtn) {
           const idx = Number(editBtn.dataset.editIdx);
@@ -3799,7 +4018,12 @@
             idx >= 0 &&
             idx < state.allianceMembers.length
           ) {
+            const removed = state.allianceMembers[idx];
             state.allianceMembers.splice(idx, 1);
+            state.r4r5Members = state.r4r5Members.filter(
+              (name) =>
+                normalizeMemberName(name) !== normalizeMemberName(removed),
+            );
             if (editingAllianceMemberIdx === idx) {
               editingAllianceMemberIdx = -1;
             }
