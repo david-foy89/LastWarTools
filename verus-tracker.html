@@ -199,6 +199,20 @@
         color: var(--muted);
         flex: 1 1 200px;
       }
+      .verus-import-replace {
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        font-size: 0.88rem;
+        color: var(--muted);
+        cursor: pointer;
+        user-select: none;
+        white-space: nowrap;
+      }
+      .verus-import-replace input {
+        margin: 0;
+        cursor: pointer;
+      }
     </style>
   </head>
   <body>
@@ -378,6 +392,27 @@
             >
               Add player
             </button>
+            <input
+              type="file"
+              id="verusImportFile"
+              accept=".csv,.txt,.xlsx,.xls"
+              style="display:none"
+            />
+            <label
+              id="verusImportLabel"
+              for="verusImportFile"
+              class="action-button verus-file-label"
+              style="min-width:auto"
+            >
+              Import names
+            </label>
+            <label
+              class="verus-import-replace"
+              title="Clear this week’s table and load only names from the file (use for alliance roster Excel)"
+            >
+              <input type="checkbox" id="verusImportReplace" />
+              Replace table
+            </label>
             <button
               type="button"
               id="verusClearBtn"
@@ -394,26 +429,11 @@
               Clear
             </button>
 
-            <input
-              type="file"
-              id="verusImportFile"
-              accept=".csv,.txt,.xlsx,.xls"
-              style="display:none"
-            />
-            <label
-              id="verusImportLabel"
-              for="verusImportFile"
-              class="action-button verus-file-label"
-              style="margin-left: auto"
-            >
-              Import CSV/Excel
-            </label>
-
             <button
               type="button"
               id="verusExportBtn"
               class="action-button"
-              style="min-width:auto; padding:8px 12px; font-size:0.95rem;"
+              style="min-width:auto; padding:8px 12px; font-size:0.95rem; margin-left:auto"
             >
               Export CSV
             </button>
@@ -440,6 +460,13 @@
                 Broad multilingual (slow)
               </option>
             </select>
+            <label
+              class="verus-import-replace"
+              title="When on, scores only go onto players already in the table—OCR misreads won’t create new rows. Turn off to add new rows from OCR text."
+            >
+              <input type="checkbox" id="verusOcrMatchOnly" checked />
+              Match roster only
+            </label>
             <input
               type="file"
               id="verusOcrFiles"
@@ -544,15 +571,15 @@
           </div>
 
           <div style="margin-top: 10px; color: var(--muted); font-size: 0.9rem">
-            Import expects columns named like <code>Player</code> and
-            <code>Monday</code> … <code>Saturday</code>. <code>VS Total</code> is computed
-            as the sum of the week (it is used only as a fallback when day cells are blank).
-            Screenshot or screen recording import reads commander names and point totals (OCR).
-            Pick which day column to fill, then choose image(s) and/or an <code>.mp4</code> (e.g.
-            <code>Recording 2026-03-26 … .mp4</code> from Game Bar / OBS / similar). Videos skip
-            the first second (often black or UI chrome), then sample about once per second and merge
-            the best score per commander. Names match existing players when possible; otherwise new
-            rows are added.
+            <strong>Import names</strong> (CSV/Excel) is for alliance rosters: a column headed
+            <code>Name</code>, <code>Player</code>, <code>Commander</code>, etc. (e.g. a single
+            <code>Name</code> column on an “Alliance Members” sheet). Check <strong>Replace table</strong>
+            to wipe this week’s rows and load only that list. Without it, names are <strong>appended</strong>
+            and duplicates are skipped.
+            <strong>Screenshot / video OCR</strong> reads the leaderboard and fills the selected day.
+            Keep <strong>Match roster only</strong> checked (default) so OCR only updates players already
+            in the table—garbled OCR text won’t create extra rows. Uncheck to allow OCR to add new rows.
+            <code>VS Total</code> is the sum of Mon–Sat (or the imported total when day cells are blank).
           </div>
         </div>
       </section>
@@ -670,23 +697,42 @@
           return String(Math.round(n));
         }
 
+        /** NFC/NFKC keeps Hangul syllables whole; NFKD can split them into Jamo and hurt matching. */
         function normalizeMatchName(raw) {
           return cleanName(raw)
             .toLowerCase()
-            .normalize("NFKD")
+            .normalize("NFKC")
             .replace(/[\u0300-\u036f]/g, "")
             .replace(/[^\p{L}\p{N}]/gu, "");
         }
 
-        function getNamedRowsForMatch() {
-          return verusRows
-            .filter((r) => String(r.player || "").trim())
-            .map((r) => ({
-              row: r,
-              name: String(r.player).trim(),
-              key: normalizeMatchName(r.player),
-            }))
-            .filter((x) => x.key);
+        function isMixedScriptKey(s) {
+          if (!s) return false;
+          const hasLatin = /[\p{Script=Latin}]/u.test(s);
+          const hasCjk =
+            /[\p{Script=Hangul}\p{Script=Han}]/u.test(s);
+          return hasLatin && hasCjk;
+        }
+
+        function splitScriptBuckets(s) {
+          const latin = (s.match(/[\p{Script=Latin}\p{N}]+/gu) || []).join("");
+          const hangul = (s.match(/[\p{Script=Hangul}]+/gu) || []).join("");
+          const han = (s.match(/[\p{Script=Han}]+/gu) || []).join("");
+          return {
+            latin: latin.toLowerCase(),
+            cjk: hangul + han,
+          };
+        }
+
+        /** Latin + Hangul/CJK in one commander name (common in-game). */
+        function mixedScriptKeysLikelySame(ka, kb) {
+          if (!isMixedScriptKey(ka) || !isMixedScriptKey(kb)) return false;
+          const A = splitScriptBuckets(ka);
+          const B = splitScriptBuckets(kb);
+          if (!A.cjk || !B.cjk) return false;
+          if (!bucketSimilarOcr(A.cjk, B.cjk)) return false;
+          if (A.latin && B.latin) return bucketSimilarOcr(A.latin, B.latin);
+          return true;
         }
 
         function levenshtein(a, b) {
@@ -713,46 +759,227 @@
           return v0[n];
         }
 
+        function bucketSimilarOcr(a, b) {
+          if (a === b) return true;
+          if (!a || !b) return false;
+          const shorter = a.length <= b.length ? a : b;
+          const longer = a.length <= b.length ? b : a;
+          if (shorter.length >= 2 && longer.includes(shorter)) return true;
+          const maxLen = Math.max(a.length, b.length);
+          const dist = levenshtein(a, b);
+          if (maxLen <= 8) return dist <= 3;
+          if (maxLen <= 20) return dist <= 5;
+          return dist <= Math.max(4, Math.floor(maxLen * 0.2));
+        }
+
+        function getNamedRowsForMatch() {
+          return verusRows
+            .filter((r) => String(r.player || "").trim())
+            .map((r) => ({
+              row: r,
+              name: String(r.player).trim(),
+              key: normalizeMatchName(r.player),
+            }))
+            .filter((x) => x.key);
+        }
+
+        function isCjkOnlyKey(s) {
+          if (!s) return false;
+          if (/[\p{Script=Latin}]/u.test(s)) return false;
+          return /[\p{Script=Hangul}\p{Script=Han}]/u.test(s);
+        }
+
         /** True if two normalized OCR name keys are probably the same commander (cross-frame noise). */
         function ocrKeysLikelySame(ka, kb) {
           if (!ka || !kb) return false;
           if (ka === kb) return true;
+          if (mixedScriptKeysLikelySame(ka, kb)) return true;
           if (ka.length < 3 || kb.length < 3) return false;
           const shorter = ka.length <= kb.length ? ka : kb;
           const longer = ka.length <= kb.length ? kb : ka;
           if (shorter.length >= 4 && longer.includes(shorter)) return true;
           const maxLen = Math.max(ka.length, kb.length);
           const dist = levenshtein(ka, kb);
+          const mixed = isMixedScriptKey(ka) || isMixedScriptKey(kb);
+          const cjkOnly = isCjkOnlyKey(ka) && isCjkOnlyKey(kb);
+          if (mixed || cjkOnly) {
+            if (maxLen <= 10) return dist <= 4;
+            if (maxLen <= 22) return dist <= 5;
+            return dist <= Math.max(4, Math.floor(maxLen * 0.2));
+          }
           if (maxLen <= 7) return dist <= 2;
           if (maxLen <= 14) return dist <= 3;
           return dist <= Math.max(3, Math.floor(maxLen * 0.14));
         }
 
         /**
-         * One row per commander: keeps highest score when OCR varies across video frames.
+         * Stricter than ocrKeysLikelySame: used when merging many video frames.
+         * No substring-only merge (merges different players). Tighter edit distance.
          */
-        function dedupeVerusOcrRowsBySimilarName(rows) {
-          const list = (rows || []).filter((r) => r && r.name && r.score);
-          list.sort(
-            (a, b) =>
-              parseNumber(String(b.score).replace(/,/g, "")) -
-              parseNumber(String(a.score).replace(/,/g, "")),
-          );
-          const kept = [];
-          for (let i = 0; i < list.length; i++) {
-            const r = list[i];
-            const k = normalizeMatchName(r.name);
-            if (!k) continue;
-            const dup = kept.some((x) =>
-              ocrKeysLikelySame(k, normalizeMatchName(x.name)),
-            );
-            if (dup) continue;
-            kept.push({
-              name: cleanNameForOcr(r.name),
-              score: normalizeOcrScore(r.score),
-            });
+        function ocrKeysLikelySameVideo(ka, kb) {
+          if (!ka || !kb) return false;
+          if (ka === kb) return true;
+          if (mixedScriptKeysLikelySame(ka, kb)) return true;
+          if (ka.length < 3 || kb.length < 3) return false;
+          const maxLen = Math.max(ka.length, kb.length);
+          const dist = levenshtein(ka, kb);
+          const mixed = isMixedScriptKey(ka) || isMixedScriptKey(kb);
+          const cjkOnly = isCjkOnlyKey(ka) && isCjkOnlyKey(kb);
+          if (mixed || cjkOnly) {
+            if (maxLen <= 10) return dist <= 3;
+            if (maxLen <= 22) return dist <= 4;
+            return dist <= Math.max(3, Math.floor(maxLen * 0.16));
           }
-          return kept;
+          if (maxLen <= 7) return dist <= 1;
+          if (maxLen <= 14) return dist <= 2;
+          return dist <= Math.max(2, Math.floor(maxLen * 0.12));
+        }
+
+        /**
+         * Match OCR / video text to a roster cell (looser than video frame dedupe).
+         * Uses the same core rules as ocrKeysLikelySame plus a small allowance for very short names.
+         */
+        function ocrKeysMatchForOcrToTable(ocrKey, rosterKey) {
+          if (!ocrKey || !rosterKey) return false;
+          if (ocrKey === rosterKey) return true;
+          if (mixedScriptKeysLikelySame(ocrKey, rosterKey)) return true;
+          if (ocrKey.length < 3 || rosterKey.length < 3) {
+            const mx = Math.max(ocrKey.length, rosterKey.length);
+            if (mx > 4) return false;
+            return levenshtein(ocrKey, rosterKey) <= 1;
+          }
+          return ocrKeysLikelySame(ocrKey, rosterKey);
+        }
+
+        /** Same commander read twice in one frame with different scores → keep max. */
+        function collapseRowsByExactNormalizedName(rows) {
+          const map = new Map();
+          (rows || []).forEach((r) => {
+            if (!r || !r.name || !r.score) return;
+            const k = normalizeMatchName(r.name);
+            if (!k) return;
+            const num = parseNumber(String(r.score).replace(/,/g, ""));
+            const ex = map.get(k);
+            if (!ex || num > ex.num) {
+              map.set(k, { name: r.name, score: r.score, num });
+            }
+          });
+          return Array.from(map.values()).map(({ name, score }) => ({
+            name: cleanNameForOcr(name),
+            score: normalizeOcrScore(score),
+          }));
+        }
+
+        function pickMostFrequentOcrScore(scoreStrs) {
+          const counts = new Map();
+          (scoreStrs || []).forEach((s) => {
+            const k = String(s || "").trim();
+            if (!k) return;
+            counts.set(k, (counts.get(k) || 0) + 1);
+          });
+          let bestKey = null;
+          let bestC = 0;
+          counts.forEach((c, k) => {
+            if (c > bestC) {
+              bestC = c;
+              bestKey = k;
+            } else if (c === bestC && k && bestKey) {
+              const nk = Number(String(k).replace(/,/g, ""));
+              const nb = Number(String(bestKey).replace(/,/g, ""));
+              if (Number.isFinite(nk) && Number.isFinite(nb) && nk > nb)
+                bestKey = k;
+            }
+          });
+          return { bestKey, bestC };
+        }
+
+        function pickMostFrequentDisplayName(nameStrs) {
+          const arr = (nameStrs || []).map((s) => String(s || "").trim());
+          const counts = new Map();
+          arr.forEach((nm) => {
+            const k = nm.toLowerCase().replace(/\s+/g, " ");
+            if (!k) return;
+            counts.set(k, (counts.get(k) || 0) + 1);
+          });
+          let bestC = 0;
+          const bestKeys = [];
+          counts.forEach((c, k) => {
+            if (c > bestC) {
+              bestC = c;
+              bestKeys.length = 0;
+              bestKeys.push(k);
+            } else if (c === bestC) bestKeys.push(k);
+          });
+          const winners = arr.filter((nm) =>
+            bestKeys.includes(nm.toLowerCase().replace(/\s+/g, " ")),
+          );
+          winners.sort((a, b) => b.length - a.length);
+          return winners[0] || arr[0] || "";
+        }
+
+        /**
+         * One row per commander: union–find clusters similar names.
+         * Video mode uses stricter merging + majority vote for score/name (max score merged wrong players).
+         */
+        function dedupeVerusOcrRowsBySimilarName(rows, options) {
+          const opts = options || {};
+          const sameFn = opts.video ? ocrKeysLikelySameVideo : ocrKeysLikelySame;
+          const list = (rows || []).filter((r) => r && r.name && r.score);
+          const collapsed = collapseRowsByExactNormalizedName(list);
+          const n = collapsed.length;
+          if (n === 0) return [];
+          const keys = collapsed.map((r) => normalizeMatchName(r.name));
+          const parent = Array.from({ length: n }, (_, i) => i);
+          function find(i) {
+            if (parent[i] !== i) parent[i] = find(parent[i]);
+            return parent[i];
+          }
+          function union(i, j) {
+            const ri = find(i);
+            const rj = find(j);
+            if (ri !== rj) parent[ri] = rj;
+          }
+          for (let i = 0; i < n; i++) {
+            if (!keys[i]) continue;
+            for (let j = i + 1; j < n; j++) {
+              if (!keys[j]) continue;
+              if (sameFn(keys[i], keys[j])) union(i, j);
+            }
+          }
+          const groups = new Map();
+          for (let i = 0; i < n; i++) {
+            const root = find(i);
+            if (!groups.has(root)) groups.set(root, []);
+            groups.get(root).push(i);
+          }
+          const out = [];
+          groups.forEach((idxs) => {
+            const scoreStrs = idxs.map((ii) =>
+              normalizeOcrScore(collapsed[ii].score),
+            );
+            const scorePick = pickMostFrequentOcrScore(scoreStrs);
+            let chosenScore = scorePick.bestKey || "";
+            if (!chosenScore) {
+              let bestNum = -Infinity;
+              idxs.forEach((ii) => {
+                const num = parseNumber(
+                  String(collapsed[ii].score).replace(/,/g, ""),
+                );
+                if (num > bestNum) bestNum = num;
+              });
+              chosenScore =
+                bestNum > -Infinity ? String(Math.round(bestNum)) : "";
+            }
+
+            const nameStrs = idxs.map((ii) => String(collapsed[ii].name || "").trim());
+            const chosenName = pickMostFrequentDisplayName(nameStrs);
+
+            out.push({
+              name: cleanNameForOcr(chosenName),
+              score: chosenScore,
+            });
+          });
+          return out;
         }
 
         function findBestRowForOcrName(ocrName, namedRows) {
@@ -761,30 +988,23 @@
           if (!ocrKey) return null;
           const exact = rows.find((r) => r.key === ocrKey);
           if (exact) return exact.row;
-          const partial = rows
-            .filter((r) => r.key.includes(ocrKey) || ocrKey.includes(r.key))
-            .sort(
-              (a, b) =>
-                Math.abs(a.key.length - ocrKey.length) -
-                Math.abs(b.key.length - ocrKey.length),
-            );
-          if (partial.length) return partial[0].row;
-          if (ocrKey.length >= 4) {
-            let bestRow = null;
-            let bestDist = Infinity;
-            for (let i = 0; i < rows.length; i++) {
-              const r = rows[i];
-              if (!r.key || r.key.length < 3) continue;
-              if (!ocrKeysLikelySame(ocrKey, r.key)) continue;
-              const d = levenshtein(ocrKey, r.key);
-              if (d < bestDist) {
-                bestDist = d;
-                bestRow = r.row;
-              }
-            }
-            if (bestRow) return bestRow;
+          const candidates = [];
+          for (let i = 0; i < rows.length; i++) {
+            const r = rows[i];
+            if (!r.key) continue;
+            if (!ocrKeysMatchForOcrToTable(ocrKey, r.key)) continue;
+            const d = levenshtein(ocrKey, r.key);
+            candidates.push({ row: r.row, d, key: r.key });
           }
-          return null;
+          if (!candidates.length) return null;
+          candidates.sort((a, b) => {
+            if (a.d !== b.d) return a.d - b.d;
+            const la = Math.abs(a.key.length - ocrKey.length);
+            const lb = Math.abs(b.key.length - ocrKey.length);
+            if (la !== lb) return la - lb;
+            return String(a.key).localeCompare(String(b.key));
+          });
+          return candidates[0].row;
         }
 
         function parseVerusOcrRows(text) {
@@ -931,6 +1151,7 @@
           const text = (out && out.data && out.data.text) || "";
           let rows = parseVerusOcrRows(text);
           if (!rows.length) rows = parseVerusOcrRowsByScoreAnchor(text);
+          rows = collapseRowsByExactNormalizedName(rows);
 
           if (!rows.length && langsPrimary !== langsFallback) {
             const retry = await Tesseract.recognize(source, langsFallback, {
@@ -940,6 +1161,7 @@
             const retryText = (retry && retry.data && retry.data.text) || "";
             rows = parseVerusOcrRows(retryText);
             if (!rows.length) rows = parseVerusOcrRowsByScoreAnchor(retryText);
+            rows = collapseRowsByExactNormalizedName(rows);
           }
           return rows;
         }
@@ -954,7 +1176,7 @@
           (arrays || []).forEach((arr) => {
             (arr || []).forEach((row) => flat.push(row));
           });
-          return dedupeVerusOcrRowsBySimilarName(flat);
+          return dedupeVerusOcrRowsBySimilarName(flat, { video: true });
         }
 
         /**
@@ -1023,8 +1245,9 @@
         }
 
         async function runVerusOcrOnVideoFile(file, langSel, onProgress) {
-          const VIDEO_INTERVAL_SEC = 1;
-          const VIDEO_MAX_FRAMES = 40;
+          /** Wider spacing + fewer frames reduces conflicting reads across seeks. */
+          const VIDEO_INTERVAL_SEC = 2;
+          const VIDEO_MAX_FRAMES = 24;
           const VIDEO_MAX_DURATION_SEC = 300;
           /** Skip first ~1s — typical screen captures start dark or show recorder chrome. */
           const VIDEO_SKIP_START_SEC = 1;
@@ -1070,7 +1293,7 @@
               await seekVideo(video, times[i]);
               await new Promise((r) => requestAnimationFrame(() => r()));
               await new Promise((r) => requestAnimationFrame(() => r()));
-              await new Promise((r) => setTimeout(r, 40));
+              await new Promise((r) => setTimeout(r, 120));
               const canvas = preprocessVerusImageSource(video);
               const rows = await runVerusOcrOnCanvas(canvas, langSel);
               frameArrays.push(rows);
@@ -1459,11 +1682,15 @@
           renderTable();
         }
 
-        function applyVerusOcrRowsToTable(ocrRows, dayKey) {
-          if (!DAYS.includes(dayKey)) return { matched: 0, added: 0 };
+        function applyVerusOcrRowsToTable(ocrRows, dayKey, options) {
+          if (!DAYS.includes(dayKey))
+            return { matched: 0, added: 0, skipped: 0 };
+          const opts = options || {};
+          const matchOnly = opts.matchOnly !== false;
           const rowsIn = dedupeVerusOcrRowsBySimilarName(ocrRows || []);
           let matched = 0;
           let added = 0;
+          let skipped = 0;
           let namedRows = getNamedRowsForMatch();
           rowsIn.forEach((or) => {
             const name = or.name || "";
@@ -1474,6 +1701,8 @@
               if (!best.days || typeof best.days !== "object") best.days = {};
               best.days[dayKey] = score;
               matched++;
+            } else if (matchOnly) {
+              skipped++;
             } else {
               const nr = defaultRow();
               nr.player = name;
@@ -1483,7 +1712,7 @@
             }
             namedRows = getNamedRowsForMatch();
           });
-          return { matched, added };
+          return { matched, added, skipped };
         }
 
         function clearAll() {
@@ -1536,6 +1765,61 @@
           downloadBlob(blob, formatExportFilename());
         }
 
+        function normImportCell(c) {
+          return String(c ?? "")
+            .replace(/^\uFEFF/, "")
+            .trim()
+            .toLowerCase();
+        }
+
+        /** Whether a header cell names the player / commander column (Excel varies a lot). */
+        function headerCellIsPlayerColumn(c) {
+          const n = normImportCell(c).replace(/\s+/g, " ");
+          if (!n) return false;
+          if (n === "player" || n === "players") return true;
+          if (n === "player name" || n === "playername") return true;
+          if (n.startsWith("player ") && n.length <= 32) return true;
+          if (n.endsWith(" player") && n.length <= 32) return true;
+          if (n === "commander" || n === "commanders") return true;
+          if (n.startsWith("commander ") && n.length <= 36) return true;
+          if (n.endsWith(" commander") && n.length <= 36) return true;
+          if (n === "commander name" || n === "commandername") return true;
+          if (n === "name") return true;
+          if (n === "nickname" || n === "nick") return true;
+          if (n === "tech" || n === "commander tech") return true;
+          return false;
+        }
+
+        /** Prefer sheets like “Alliance Members” when multiple tabs exist. */
+        function sortSheetNamesForMemberImport(names) {
+          const rank = (n) => {
+            const s = String(n || "").toLowerCase();
+            if (/member|alliance|roster|commander/.test(s)) return 0;
+            if (/player|name|list/.test(s)) return 1;
+            return 2;
+          };
+          return [...names].sort((a, b) => {
+            const d = rank(a) - rank(b);
+            if (d !== 0) return d;
+            return String(a).localeCompare(String(b));
+          });
+        }
+
+        function rowLooksLikePlayerHeader(row) {
+          return (row || []).some(headerCellIsPlayerColumn);
+        }
+
+        function firstCellLooksLikeNameHeader(c) {
+          const n = normImportCell(c);
+          return (
+            headerCellIsPlayerColumn(c) ||
+            n === "player" ||
+            n === "name" ||
+            n === "commander" ||
+            n === "tech"
+          );
+        }
+
         async function importFromFile(file) {
           if (!file) return;
           if (!window.XLSX) {
@@ -1545,87 +1829,136 @@
 
           const buf = await file.arrayBuffer();
           const wb = window.XLSX.read(buf, { type: "array" });
-          const name = wb.SheetNames && wb.SheetNames.length ? wb.SheetNames[0] : "";
-          const ws = wb.Sheets[name];
-          if (!ws) {
+          const sheetNames = sortSheetNamesForMemberImport(
+            wb.SheetNames && wb.SheetNames.length ? wb.SheetNames : [],
+          );
+          if (!sheetNames.length) {
             alert("Could not read the spreadsheet.");
             return;
           }
 
-          const grid = window.XLSX.utils.sheet_to_json(ws, {
-            header: 1,
-            raw: false,
-            defval: "",
-          });
-          if (!Array.isArray(grid) || grid.length === 0) {
-            alert("No data found in the sheet.");
-            return;
+          const replaceImport =
+            document.getElementById("verusImportReplace") &&
+            document.getElementById("verusImportReplace").checked;
+
+          let grid = null;
+          let headerRowIndex = -1;
+          let colPlayer = 0;
+
+          for (let si = 0; si < sheetNames.length; si++) {
+            const ws = wb.Sheets[sheetNames[si]];
+            if (!ws) continue;
+            const g = window.XLSX.utils.sheet_to_json(ws, {
+              header: 1,
+              raw: false,
+              defval: "",
+            });
+            if (!Array.isArray(g) || g.length === 0) continue;
+            const hri = g.findIndex((row) => rowLooksLikePlayerHeader(row));
+            if (hri !== -1) {
+              grid = g;
+              headerRowIndex = hri;
+              colPlayer = (g[hri] || []).findIndex(headerCellIsPlayerColumn);
+              if (colPlayer === -1) colPlayer = 0;
+              break;
+            }
           }
 
-          const normCell = (c) => String(c ?? "").trim().toLowerCase();
-          const headerRowIndex = grid.findIndex((row) => {
-            const s = (row || []).map(normCell);
-            const hasDay = DAYS.some((d) => s.includes(String(d).toLowerCase()));
-            return s.includes("player") && hasDay;
-          });
-
-          if (headerRowIndex === -1) {
-            alert("Could not find a header row with Player and Monday–Saturday.");
-            return;
+          if (!grid) {
+            const ws = wb.Sheets[sheetNames[0]];
+            if (!ws) {
+              alert("Could not read the spreadsheet.");
+              return;
+            }
+            grid = window.XLSX.utils.sheet_to_json(ws, {
+              header: 1,
+              raw: false,
+              defval: "",
+            });
+            if (!Array.isArray(grid) || grid.length === 0) {
+              alert("No data found in the sheet.");
+              return;
+            }
+            const r0 = grid[0] || [];
+            if (firstCellLooksLikeNameHeader(r0[0])) {
+              headerRowIndex = 0;
+              colPlayer = 0;
+            } else {
+              headerRowIndex = -1;
+              colPlayer = 0;
+            }
           }
 
-          const headerRow = grid[headerRowIndex] || [];
-          const findCol = (target) => {
-            const t = String(target || "").trim().toLowerCase();
-            const idx = headerRow.findIndex((c) => normCell(c) === t);
-            return idx;
-          };
-
-          const colPlayer = findCol("Player");
-          const colVsTotal = findCol("VS Total") !== -1 ? findCol("VS Total") : findCol("VSTotal");
-
-          const dayCols = {};
-          DAYS.forEach((d) => {
-            const idx = findCol(d);
-            if (idx !== -1) dayCols[d] = idx;
-          });
-
-          if (colPlayer === -1 || Object.keys(dayCols).length === 0) {
-            alert("Header columns not found (Player and Monday–Saturday).");
-            return;
-          }
-
-          const imported = [];
-          for (let r = headerRowIndex + 1; r < grid.length; r++) {
+          const startR = headerRowIndex === -1 ? 0 : headerRowIndex + 1;
+          const names = [];
+          for (let r = startR; r < grid.length; r++) {
             const row = grid[r] || [];
             const player = String(row[colPlayer] ?? "").trim();
             if (!player) continue;
-
-            const vsTotal = colVsTotal !== -1 ? String(row[colVsTotal] ?? "").trim() : "";
-
-            const rowObj = defaultRow();
-            rowObj.id = generateId();
-            rowObj.player = player;
-            rowObj.vsTotal = vsTotal;
-            DAYS.forEach((d) => {
-              const col = dayCols[d];
-              rowObj.days[d] = col !== undefined ? String(row[col] ?? "").trim() : "";
-            });
-
-            imported.push(rowObj);
+            names.push(player);
           }
 
-          if (imported.length === 0) {
-            alert("No player rows found to import.");
+          if (names.length === 0) {
+            alert(
+              "No player names found. Use a column headed Player, Commander, Name, etc., or put one name per row in the first column.",
+            );
+            return;
+          }
+
+          const existing = new Set();
+          if (!replaceImport) {
+            verusRows.forEach((r) => {
+              const k = normalizeMatchName(r.player || "");
+              if (k) existing.add(k);
+            });
+          }
+
+          const toAdd = [];
+          let skippedDup = 0;
+          names.forEach((name) => {
+            const key = normalizeMatchName(name);
+            if (!key) return;
+            if (existing.has(key)) {
+              skippedDup++;
+              return;
+            }
+            existing.add(key);
+            toAdd.push(name);
+          });
+
+          if (toAdd.length === 0) {
+            alert(
+              skippedDup
+                ? "Every name in the file is already in the table for this week."
+                : "No new player names to add.",
+            );
             return;
           }
 
           const ok = confirm(
-            `Import ${imported.length} player row(s)? This will replace the Verus table for the selected week only.`,
+            (replaceImport
+              ? `Replace this week’s table with ${toAdd.length} player name(s) from the file?`
+              : `Add ${toAdd.length} player name(s) to this week?`) +
+              (skippedDup && !replaceImport
+                ? ` (${skippedDup} duplicate(s) skipped.)`
+                : ""),
           );
           if (!ok) return;
 
-          verusRows = imported;
+          if (replaceImport) {
+            verusRows = [];
+          } else {
+            const onlyBlank =
+              verusRows.length === 1 && !String(verusRows[0].player || "").trim();
+            if (onlyBlank) verusRows = [];
+          }
+
+          toAdd.forEach((name) => {
+            const rowObj = defaultRow();
+            rowObj.player = name;
+            verusRows.push(rowObj);
+          });
+
           saveState();
           renderTable();
         }
@@ -1737,10 +2070,24 @@
               verusOcrDaySel && verusOcrDaySel.value
                 ? verusOcrDaySel.value
                 : "Monday";
+            const matchOnlyEl = document.getElementById("verusOcrMatchOnly");
+            const matchOnly = matchOnlyEl ? matchOnlyEl.checked : true;
+            if (matchOnly) {
+              const hasRoster = verusRows.some((r) =>
+                String(r.player || "").trim(),
+              );
+              if (!hasRoster) {
+                alert(
+                  "Import names or add players to the table first. With “Match roster only” on, OCR only fills scores for names already in the list—it does not add new rows from the leaderboard.",
+                );
+                return;
+              }
+            }
             verusOcrBtn.disabled = true;
             setVerusOcrStatus("");
             let totalMatched = 0;
             let totalAdded = 0;
+            let totalSkipped = 0;
             try {
               for (let i = 0; i < files.length; i++) {
                 const f = files[i];
@@ -1764,20 +2111,28 @@
                   );
                   rows = await runVerusOcrOnFile(f, verusOcrLang);
                 }
-                const { matched, added } = applyVerusOcrRowsToTable(rows, dayKey);
+                const { matched, added, skipped } = applyVerusOcrRowsToTable(
+                  rows,
+                  dayKey,
+                  { matchOnly },
+                );
                 totalMatched += matched;
                 totalAdded += added;
+                totalSkipped += skipped;
               }
               saveState();
               renderTable();
-              if (totalMatched === 0 && totalAdded === 0) {
+              if (totalMatched === 0 && totalAdded === 0 && totalSkipped === 0) {
                 setVerusOcrStatus(
                   "No scores detected. Try a clearer screenshot/recording or a different OCR language.",
                 );
               } else {
-                setVerusOcrStatus(
-                  `Done. ${totalMatched} matched row(s)${totalAdded ? `, ${totalAdded} new row(s)` : ""} for ${dayKey}.`,
-                );
+                let msg = `Done. ${totalMatched} matched for ${dayKey}.`;
+                if (totalAdded)
+                  msg += ` ${totalAdded} new row(s) added from OCR.`;
+                if (matchOnly && totalSkipped)
+                  msg += ` ${totalSkipped} OCR line(s) had no roster match (skipped).`;
+                setVerusOcrStatus(msg);
               }
             } catch (err) {
               setVerusOcrStatus("");
