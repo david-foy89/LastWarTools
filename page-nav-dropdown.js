@@ -5,6 +5,8 @@
 
     ensureAllianceToolsLinks(nav);
     ensureSeason2SuppliesLink(nav);
+    ensureAccountLink(nav);
+    ensureAccountBackgroundSync();
     // Train Conductor and Server Search are now handled in the Alliance Tools dropdown in HTML
 
     const dropdowns = Array.from(nav.querySelectorAll('details.page-nav-dropdown'));
@@ -101,6 +103,71 @@
       ensureLink(menu, 'verus-tracker.html', 'Verus Tracker');
       ensureLink(menu, 'ds-tracker.html', 'Desert Storm Tracker/Planner');
     });
+  }
+
+  function ensureAccountLink(nav) {
+    if (nav.querySelector('a[href="account.html"]')) return;
+    const currentPage = window.location.pathname.split('/').pop() || 'index.html';
+    const link = document.createElement('a');
+    link.href = 'account.html';
+    link.className = 'page-link';
+    link.textContent = 'Account';
+    if (currentPage === 'account.html') {
+      link.classList.add('active');
+    }
+    nav.appendChild(link);
+  }
+
+  /**
+   * When signed in, merge localStorage with Firestore on load (throttled, silent).
+   * Skips account.html (that page runs full sync with UI). Loads firebase-config
+   * scripts if missing, then account-sync-global.js (module).
+   */
+  function ensureAccountBackgroundSync() {
+    if (window.__lwAccountBackgroundSyncInjected) return;
+    window.__lwAccountBackgroundSyncInjected = true;
+
+    const page = window.location.pathname.split('/').pop() || '';
+    if (page === 'account.html') return;
+
+    function scriptFilenamePresent(filename) {
+      return Array.from(document.scripts).some(function (s) {
+        var src = s.src || '';
+        return src.indexOf(filename) !== -1;
+      });
+    }
+
+    function appendScript(src, isModule) {
+      return new Promise(function (resolve) {
+        if (scriptFilenamePresent(src.split('/').pop())) {
+          resolve();
+          return;
+        }
+        var el = document.createElement('script');
+        el.src = src;
+        if (isModule) el.type = 'module';
+        el.async = true;
+        el.onload = function () {
+          resolve();
+        };
+        el.onerror = function () {
+          resolve();
+        };
+        document.head.appendChild(el);
+      });
+    }
+
+    Promise.resolve()
+      .then(function () {
+        return appendScript('firebase-config.example.js', false);
+      })
+      .then(function () {
+        return appendScript('firebase-config.js', false);
+      })
+      .then(function () {
+        return appendScript('account-sync-global.js', true);
+      })
+      .catch(function () {});
   }
 
   function ensureSeason2SuppliesLink(nav) {

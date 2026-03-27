@@ -7,6 +7,9 @@
  * Pages load firebase-config.example.js first, then apply firebase-config.js
  * if present (same folder). On http(s) the override is fetched; on file://
  * (opening HTML from disk) a script tag is used because fetch() is unreliable.
+ *
+ * Used by Firebase-backed pages such as transfer-tracker.html and the optional
+ * account.html cross-device sync (see firestore.rules.example).
  */
 window.__FIREBASE_CONFIG__ = {
   apiKey: "YOUR_WEB_API_KEY",

@@ -245,6 +245,14 @@ body {
   }
 }
 
+.page-top-stack {
+  margin-bottom: 12px;
+}
+
+.page-top-stack .page-top-controls {
+  margin-bottom: 0;
+}
+
 .page-top-controls {
   display: flex;
   align-items: center;
@@ -311,6 +319,60 @@ body {
   border-color: rgba(255, 146, 43, 0.8);
   background: rgba(255, 146, 43, 0.2);
   outline: none;
+}
+
+/* Optional account — home + account page */
+.account-promo-strip {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 14px 18px;
+  margin-bottom: 18px;
+  padding: 14px 18px;
+  border-radius: 14px;
+  border: 1px solid var(--line-soft);
+  background: linear-gradient(
+    135deg,
+    rgba(116, 192, 252, 0.12) 0%,
+    rgba(0, 0, 0, 0.14) 100%
+  );
+  box-shadow: 0 18px 50px rgba(0, 0, 0, 0.24);
+}
+
+.account-promo-strip__text {
+  flex: 1 1 220px;
+  margin: 0;
+  font-size: 0.92rem;
+  line-height: 1.5;
+  color: var(--muted);
+}
+
+.account-promo-strip__text strong {
+  color: var(--text);
+}
+
+.account-promo-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  flex-shrink: 0;
+}
+
+.account-promo-actions .action-button--quiet {
+  background: transparent;
+  border-color: var(--line-soft);
+  color: var(--muted);
+}
+
+.account-promo-actions .action-button--quiet:hover,
+.account-promo-actions .action-button--quiet:focus-visible {
+  border-color: rgba(116, 192, 252, 0.55);
+  color: var(--text);
+}
+
+.page-top-stack .account-promo-strip {
+  margin-bottom: 10px;
 }
 
 .hero,

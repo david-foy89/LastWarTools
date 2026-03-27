@@ -1,0 +1,444 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Account — Last War Tools</title>
+    <meta
+      name="description"
+      content="Optional sign-in to sync Last War Tools saved data across browsers and devices. All tools work without an account."
+    />
+    <link rel="stylesheet" href="last-war-furnace-upgrade-calculator.css" />
+    <script src="firebase-config.example.js"></script>
+    <script src="firebase-config.js"></script>
+    <script src="page-nav-dropdown.js" defer></script>
+    <script src="language-translate.js" defer></script>
+    <style>
+      .account-card {
+        max-width: 520px;
+        margin: 0 auto;
+        padding: 20px;
+        border-radius: 14px;
+        border: 1px solid var(--line-soft);
+        background: linear-gradient(180deg, var(--panel) 0%, var(--panel-2) 100%);
+      }
+      .account-card h2 {
+        margin-top: 0;
+        font-size: 1.15rem;
+      }
+      .account-muted {
+        color: var(--muted);
+        font-size: 0.92rem;
+        line-height: 1.45;
+        margin-bottom: 14px;
+      }
+      .account-field {
+        margin-bottom: 12px;
+      }
+      .account-field label {
+        display: block;
+        font-size: 0.88rem;
+        color: var(--muted);
+        margin-bottom: 4px;
+      }
+      .account-field input {
+        width: 100%;
+        box-sizing: border-box;
+        padding: 8px 10px;
+        border-radius: 8px;
+        border: 1px solid var(--line-soft);
+        background: var(--panel-2);
+        color: var(--text);
+        font: inherit;
+      }
+      .account-actions {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 10px;
+        margin-top: 14px;
+      }
+      .account-status {
+        margin-top: 12px;
+        min-height: 22px;
+        font-size: 0.9rem;
+        color: var(--muted);
+        white-space: pre-wrap;
+        word-break: break-word;
+      }
+      .account-status.is-error {
+        color: #ff8a8a;
+      }
+      .account-status.is-ok {
+        color: #8ce99a;
+      }
+      .account-banner {
+        margin-bottom: 16px;
+        padding: 12px 14px;
+        border-radius: 10px;
+        border: 1px solid var(--line-soft);
+        background: rgba(0, 0, 0, 0.14);
+        font-size: 0.9rem;
+        color: var(--muted);
+      }
+      .account-banner strong {
+        color: var(--text);
+      }
+    </style>
+  </head>
+  <body>
+    <div class="page">
+      <div class="page-top-stack">
+        <aside class="account-promo-strip" id="accountTopPromo" aria-label="Create account or sign in">
+          <p class="account-promo-strip__text">
+            <strong>No account required.</strong> All Last War Tools work in your browser without signing up.
+            Create a free account only if you want to sync saved data across phones, tablets, and browsers.
+          </p>
+          <div class="account-promo-actions">
+            <button type="button" class="action-button" id="accountPromoCreateBtn">
+              Create account
+            </button>
+            <button type="button" class="action-button action-button--quiet" id="accountPromoSignInBtn">
+              Sign in
+            </button>
+          </div>
+        </aside>
+        <div class="page-top-controls">
+          <div class="logo-control">
+            <a href="index.html" aria-label="Go to homepage">
+              <img src="media/lwst.png" alt="LWST logo" class="site-logo" />
+            </a>
+          </div>
+          <div class="language-control">
+            <label for="languageSelect">Language</label>
+            <select id="languageSelect"></select>
+          </div>
+        </div>
+      </div>
+      <div id="google_translate_element" class="hidden-translate"></div>
+
+      <nav class="page-nav" aria-label="Calculator pages">
+        <a href="index.html" class="page-link">Home</a>
+        <a href="hq-upgrade-calculator.html" class="page-link">HQ Upgrade</a>
+        <details class="page-nav-dropdown" name="alliance-nav">
+          <summary class="page-link page-nav-dropdown-toggle">
+            Alliance Tools
+          </summary>
+          <div class="page-nav-dropdown-menu">
+            <a href="train-conductor-schedule.html" class="page-link"
+              >Train Conductor</a
+            >
+            <a href="transfer-tracker.html" class="page-link">Transfer Tracker</a>
+            <a href="server-search.html" class="page-link">Server Search</a>
+          </div>
+        </details>
+      </nav>
+
+      <section class="hero">
+        <h1>Account (optional)</h1>
+        <div class="sub">
+          When you sign in, <strong>everything syncs automatically</strong>: we merge your cloud
+          backup with this browser (this device wins if a key exists in both), then save the
+          merged result back to the cloud. <strong>All tools still work fully without logging in.</strong>
+        </div>
+      </section>
+
+      <div id="firebaseConfigBanner" class="account-banner" style="display: none"></div>
+
+      <section class="layout" style="display: block; padding: 0 0 24px">
+        <div class="account-card" id="accountSignedOut">
+          <h2>Sign in or create an account</h2>
+          <p class="account-muted">
+            Uses email and password. Enable Email/Password in Firebase Console → Authentication
+            for your project, and deploy Firestore rules (see <code>firestore.rules.example</code>).
+          </p>
+          <div class="account-field">
+            <label for="accountEmail">Email</label>
+            <input
+              id="accountEmail"
+              type="email"
+              autocomplete="email"
+              maxlength="320"
+            />
+          </div>
+          <div class="account-field">
+            <label for="accountPassword">Password</label>
+            <input
+              id="accountPassword"
+              type="password"
+              autocomplete="current-password"
+              minlength="6"
+            />
+          </div>
+          <div class="account-actions">
+            <button type="button" class="action-button" id="accountSignInBtn">
+              Sign in
+            </button>
+            <button type="button" class="action-button" id="accountSignUpBtn">
+              Create account
+            </button>
+          </div>
+          <div class="account-status" id="accountAuthStatus"></div>
+        </div>
+
+        <div class="account-card" id="accountSignedIn" style="display: none; margin-top: 16px">
+          <h2>Signed in</h2>
+          <p class="account-muted" id="accountUserLabel"></p>
+          <p class="account-muted">
+            <strong>Sync now</strong> runs the same merge as sign-in (download cloud + merge with
+            this browser + upload). <strong>Restore only</strong> replaces this browser with the
+            cloud copy (no merge) — reload other tabs afterward.
+          </p>
+          <div class="account-actions">
+            <button type="button" class="action-button" id="accountUploadBtn">
+              Sync now
+            </button>
+            <button
+              type="button"
+              class="action-button"
+              style="
+                background: linear-gradient(180deg, #5a2a2a, #3d1c1c);
+                border-color: #8a4040;
+                color: #f0d0d0;
+              "
+              id="accountRestoreBtn"
+            >
+              Restore to this device
+            </button>
+            <button
+              type="button"
+              class="action-button"
+              style="min-width: auto; padding: 8px 12px; font-size: 0.9rem"
+              id="accountSignOutBtn"
+            >
+              Sign out
+            </button>
+          </div>
+          <div class="account-status" id="accountSyncStatus"></div>
+        </div>
+      </section>
+    </div>
+
+    <script type="module">
+      import { initializeApp, getApp, getApps } from "https://www.gstatic.com/firebasejs/9.22.2/firebase-app.js";
+      import {
+        getAuth,
+        createUserWithEmailAndPassword,
+        signInWithEmailAndPassword,
+        signOut,
+        onAuthStateChanged,
+      } from "https://www.gstatic.com/firebasejs/9.22.2/firebase-auth.js";
+      import { getFirestore, doc, getDoc } from "https://www.gstatic.com/firebasejs/9.22.2/firebase-firestore.js";
+      import {
+        mergeAndSyncToCloud,
+        firebaseConfigOk,
+        parseCloudDataFromSnap,
+        applyLocalStoragePayload,
+        SYNC_COLLECTION,
+      } from "./account-sync-lib.js";
+
+      function firebaseConfigBannerHtml(cfg) {
+        if (!cfg || typeof cfg !== "object") {
+          return "<strong>Firebase config not loaded.</strong> Add <code>firebase-config.js</code> next to this page (copy from <code>firebase-config.example.js</code>).";
+        }
+        if (String(cfg.apiKey || "").includes("YOUR_")) {
+          return "<strong>Replace placeholder API key</strong> in <code>firebase-config.js</code> from Firebase Console.";
+        }
+        return "<strong>Firebase did not initialize.</strong> Check the browser console.";
+      }
+
+      const banner = document.getElementById("firebaseConfigBanner");
+      const authStatus = document.getElementById("accountAuthStatus");
+      const syncStatus = document.getElementById("accountSyncStatus");
+      const signedOutEl = document.getElementById("accountSignedOut");
+      const signedInEl = document.getElementById("accountSignedIn");
+      const userLabel = document.getElementById("accountUserLabel");
+      const accountTopPromo = document.getElementById("accountTopPromo");
+
+      function setAuthStatus(msg, kind) {
+        authStatus.textContent = msg || "";
+        authStatus.classList.remove("is-error", "is-ok");
+        if (kind === "error") authStatus.classList.add("is-error");
+        if (kind === "ok") authStatus.classList.add("is-ok");
+      }
+
+      function setSyncStatus(msg, kind) {
+        syncStatus.textContent = msg || "";
+        syncStatus.classList.remove("is-error", "is-ok");
+        if (kind === "error") syncStatus.classList.add("is-error");
+        if (kind === "ok") syncStatus.classList.add("is-ok");
+      }
+
+      const firebaseConfig = window.__FIREBASE_CONFIG__;
+      let auth = null;
+      let db = null;
+
+      if (firebaseConfigOk(firebaseConfig)) {
+        try {
+          const app = getApps().length ? getApp() : initializeApp(firebaseConfig);
+          auth = getAuth(app);
+          db = getFirestore(app);
+        } catch (e) {
+          console.error(e);
+        }
+      }
+
+      if (!auth || !db) {
+        banner.style.display = "block";
+        banner.innerHTML = firebaseConfigBannerHtml(firebaseConfig);
+      }
+
+      function updateSignedInUi(user) {
+        const ok = !!(user && user.uid);
+        signedOutEl.style.display = ok ? "none" : "block";
+        signedInEl.style.display = ok ? "block" : "none";
+        if (accountTopPromo) {
+          accountTopPromo.style.display = ok ? "none" : "";
+        }
+        if (ok) {
+          userLabel.textContent = user.email
+            ? `Signed in as ${user.email}`
+            : "Signed in";
+        }
+      }
+
+      function scrollToSignInForm() {
+        const card = document.getElementById("accountSignedOut");
+        if (card) card.scrollIntoView({ behavior: "smooth", block: "start" });
+        const email = document.getElementById("accountEmail");
+        if (email) {
+          window.setTimeout(() => email.focus(), 350);
+        }
+      }
+
+      document.getElementById("accountPromoCreateBtn")?.addEventListener("click", scrollToSignInForm);
+      document.getElementById("accountPromoSignInBtn")?.addEventListener("click", scrollToSignInForm);
+
+      if (auth) {
+        onAuthStateChanged(auth, (user) => {
+          updateSignedInUi(user);
+          if (!user) {
+            setAuthStatus("");
+            setSyncStatus("");
+            return;
+          }
+          setAuthStatus("");
+          void mergeAndSyncToCloud(user, db, {
+            onStatus: (msg, kind) => setSyncStatus(msg, kind),
+          });
+        });
+      } else {
+        updateSignedInUi(null);
+      }
+
+      document.getElementById("accountSignInBtn").addEventListener("click", async () => {
+        if (!auth) {
+          setAuthStatus("Firebase is not configured.", "error");
+          return;
+        }
+        const email = String(document.getElementById("accountEmail").value || "").trim();
+        const password = String(document.getElementById("accountPassword").value || "");
+        if (!email || !password) {
+          setAuthStatus("Enter email and password.", "error");
+          return;
+        }
+        setAuthStatus("Signing in…");
+        try {
+          await signInWithEmailAndPassword(auth, email, password);
+          setAuthStatus("Signed in. Syncing…", "ok");
+        } catch (e) {
+          setAuthStatus(e && e.message ? e.message : "Sign-in failed.", "error");
+        }
+      });
+
+      document.getElementById("accountSignUpBtn").addEventListener("click", async () => {
+        if (!auth) {
+          setAuthStatus("Firebase is not configured.", "error");
+          return;
+        }
+        const email = String(document.getElementById("accountEmail").value || "").trim();
+        const password = String(document.getElementById("accountPassword").value || "");
+        if (!email || !password) {
+          setAuthStatus("Enter email and password.", "error");
+          return;
+        }
+        if (password.length < 6) {
+          setAuthStatus("Password must be at least 6 characters.", "error");
+          return;
+        }
+        setAuthStatus("Creating account…");
+        try {
+          await createUserWithEmailAndPassword(auth, email, password);
+          setAuthStatus("Account created. Syncing…", "ok");
+        } catch (e) {
+          setAuthStatus(e && e.message ? e.message : "Sign-up failed.", "error");
+        }
+      });
+
+      document.getElementById("accountSignOutBtn").addEventListener("click", async () => {
+        if (!auth) return;
+        try {
+          await signOut(auth);
+        } catch (e) {
+          setSyncStatus(e && e.message ? e.message : "Sign-out failed.", "error");
+        }
+      });
+
+      document.getElementById("accountUploadBtn").addEventListener("click", async () => {
+        if (!auth || !db) {
+          setSyncStatus("Firebase is not configured.", "error");
+          return;
+        }
+        const user = auth.currentUser;
+        if (!user) {
+          setSyncStatus("Not signed in.", "error");
+          return;
+        }
+        await mergeAndSyncToCloud(user, db, {
+          onStatus: (msg, kind) => setSyncStatus(msg, kind),
+        });
+      });
+
+      document.getElementById("accountRestoreBtn").addEventListener("click", async () => {
+        if (!auth || !db) {
+          setSyncStatus("Firebase is not configured.", "error");
+          return;
+        }
+        const user = auth.currentUser;
+        if (!user) {
+          setSyncStatus("Not signed in.", "error");
+          return;
+        }
+        const sure = confirm(
+          "Replace saved data in this browser with your cloud backup?\n\n" +
+            "OK = overwrite matching keys\nCancel = keep current data",
+        );
+        if (!sure) return;
+
+        setSyncStatus("Downloading…");
+        try {
+          const snap = await getDoc(doc(db, SYNC_COLLECTION, user.uid));
+          if (!snap.exists) {
+            setSyncStatus("No cloud backup found yet. Upload from a device first.", "error");
+            return;
+          }
+          const blob = parseCloudDataFromSnap(snap);
+          if (!blob || Object.keys(blob).length === 0) {
+            setSyncStatus("Cloud document is empty.", "error");
+            return;
+          }
+          const n = applyLocalStoragePayload(blob);
+          setSyncStatus(
+            `Restored ${n} key(s). Reload open Last War Tools tabs to pick up changes.`,
+            "ok",
+          );
+        } catch (e) {
+          setSyncStatus(
+            (e && e.message ? e.message : "Restore failed.") +
+              " Check Firestore rules.",
+            "error",
+          );
+        }
+      });
+    </script>
+  </body>
+</html>
