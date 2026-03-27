@@ -713,6 +713,16 @@
         font-size: 0.72rem;
         color: #ffe8b0;
         background: rgba(255, 214, 102, 0.12);
+        font: inherit;
+        line-height: 1.2;
+        cursor: pointer;
+      }
+
+      button.alliance-r4r5-chip:hover,
+      button.alliance-r4r5-chip:focus-visible {
+        border-color: rgba(255, 214, 102, 0.75);
+        color: #fff3cf;
+        outline: none;
       }
 
       .import-preview-modal {
@@ -1626,7 +1636,10 @@
           </div>
           <div class="alliance-r4r5-chips">
             ${picks
-              .map((name) => `<span class="alliance-r4r5-chip">${escapeHtml(name)}</span>`)
+              .map(
+                (name) =>
+                  `<button type="button" class="alliance-r4r5-chip" data-name="${escapeHtml(name)}" title="Assign to current conductor slot">${escapeHtml(name)}</button>`,
+              )
               .join("")}
           </div>
         `;
@@ -3191,6 +3204,21 @@
         renderAllianceMembers();
       }
 
+      function applyAllianceMemberAsConductor(memberName) {
+        const name = sanitizeMemberName(memberName);
+        if (!name) return;
+        const idx = Number.isFinite(Number(state.allianceFillConductorIdx))
+          ? Math.max(0, Math.min(6, Number(state.allianceFillConductorIdx)))
+          : 0;
+        state.conductorNamesByWeek[state.nameEditWeek][idx] =
+          name || DEFAULT_NAMES[idx];
+        recordMemberHistory(name, "conductor", idx, state.nameEditWeek);
+        saveState();
+        renderConductors();
+        renderSchedule();
+        renderAllianceMembers();
+      }
+
       function hexToRgba(hex, alpha) {
         const m = /^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(hex || "");
         if (!m) return `rgba(8, 16, 25, ${alpha})`;
@@ -4061,6 +4089,14 @@
 
       if (allianceR4R5Group) {
         allianceR4R5Group.addEventListener("click", (event) => {
+          const pickBtn = event.target.closest("[data-name]");
+          if (pickBtn) {
+            const name = sanitizeMemberName(pickBtn.dataset.name);
+            if (name) {
+              applyAllianceMemberAsConductor(name);
+            }
+            return;
+          }
           const clearR4R5Btn = event.target.closest("[data-r4r5-clear]");
           if (!clearR4R5Btn) return;
           state.r4r5Members = [];
