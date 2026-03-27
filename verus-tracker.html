@@ -44,7 +44,8 @@
         color: var(--muted);
         white-space: nowrap;
       }
-      #verusWeekPicker {
+      #verusWeekPicker,
+      #verusDsDayPicker {
         padding: 7px 10px;
         border-radius: 8px;
         border: 1px solid var(--line-soft);
@@ -52,6 +53,9 @@
         color: var(--text);
         font-size: 0.92rem;
         min-width: 160px;
+      }
+      #verusDsDayPicker {
+        min-width: 150px;
       }
       .verus-week-arrows {
         display: inline-flex;
@@ -349,7 +353,8 @@
         <h1>Verus Tracker</h1>
         <div class="sub">
           Pick a calendar week; each week is stored separately in your browser.
-          Monday–Saturday scores and VS Total (sum) apply to that week only.
+          Monday–Saturday scores and VS Total (sum) use the same calendar dates as Desert Storm’s
+          <strong>DS day</strong> (local date, <code>YYYY-MM-DD</code>).
           Import scores from screenshots or <code>.mp4</code> screen recordings with OCR.
         </div>
       </section>
@@ -379,6 +384,14 @@
               </button>
             </div>
             <input type="week" id="verusWeekPicker" name="verusWeek" />
+            <label for="verusDsDayPicker">DS day</label>
+            <input
+              type="date"
+              id="verusDsDayPicker"
+              name="verusDsDay"
+              title="Same calendar-day picker as Desert Storm Tracker (local date)"
+              aria-label="Desert Storm calendar day"
+            />
             <p id="verusWeekDateRange" class="verus-week-dates" aria-live="polite">
               <!-- Filled by script: Mon–Sat dates for the ISO week -->
             </p>
@@ -590,6 +603,8 @@
         const STORAGE_ROOT = "verusTrackerByWeekV1";
         const LEGACY_ROWS_KEY = "verusTrackerRowsV1";
         const LAST_WEEK_KEY = "verusTrackerLastWeekV1";
+        const LAST_DS_DAY_KEY = "verusTrackerLastDsDayV1";
+        let verusSkipDsDaySync = false;
         const DAYS = [
           "Monday",
           "Tuesday",
@@ -1359,6 +1374,96 @@
           return monday;
         }
 
+        /** Same calendar-day helpers as `ds-tracker.html` (local `YYYY-MM-DD` + `T00:00:00`). */
+        function formatYmd(d) {
+          const pad = (n) => String(n).padStart(2, "0");
+          return (
+            d.getFullYear() + "-" + pad(d.getMonth() + 1) + "-" + pad(d.getDate())
+          );
+        }
+
+        function parseYmdLocal(ymd) {
+          const s = String(ymd || "").trim();
+          if (!/^\d{4}-\d{2}-\d{2}$/.test(s)) return new Date(NaN);
+          return new Date(s + "T00:00:00");
+        }
+
+        function mondayDateFromWeekKey(weekKey) {
+          const m = /^(\d{4})-W(\d{2})$/.exec(String(weekKey || "").trim());
+          if (!m) return null;
+          const year = parseInt(m[1], 10);
+          const week = parseInt(m[2], 10);
+          if (week < 1 || week > 53) return null;
+          return mondayOfISOWeek(year, week);
+        }
+
+        function pickDsDayForWeek(weekKey) {
+          const mon = mondayDateFromWeekKey(weekKey);
+          if (!mon) return formatYmd(new Date());
+          const todayStr = formatYmd(new Date());
+          const todayD = parseYmdLocal(todayStr);
+          if (
+            Number.isFinite(todayD.getTime()) &&
+            getISOWeekString(todayD) === weekKey
+          ) {
+            return todayStr;
+          }
+          return formatYmd(mon);
+        }
+
+        function advanceDsDayAcrossWeeks(prevKey, nextKey) {
+          const dsPicker = document.getElementById("verusDsDayPicker");
+          if (!dsPicker || !/^\d{4}-W\d{2}$/.test(String(nextKey || "").trim())) {
+            return;
+          }
+          if (!prevKey || !/^\d{4}-W\d{2}$/.test(String(prevKey))) {
+            dsPicker.value = pickDsDayForWeek(nextKey);
+            try {
+              localStorage.setItem(LAST_DS_DAY_KEY, dsPicker.value);
+            } catch {
+              // ignore
+            }
+            syncOcrDayFromDsDay();
+            return;
+          }
+          if (prevKey === nextKey) return;
+          const oldM = mondayDateFromWeekKey(prevKey);
+          const newM = mondayDateFromWeekKey(nextKey);
+          if (!oldM || !newM) return;
+          let offset = 0;
+          if (/^\d{4}-\d{2}-\d{2}$/.test(dsPicker.value)) {
+            const gd = parseYmdLocal(dsPicker.value);
+            if (Number.isFinite(gd.getTime())) {
+              offset = Math.round((gd - oldM) / 86400000);
+            }
+          }
+          offset = Math.max(0, Math.min(5, offset));
+          const nd = new Date(newM);
+          nd.setDate(newM.getDate() + offset);
+          dsPicker.value = formatYmd(nd);
+          try {
+            localStorage.setItem(LAST_DS_DAY_KEY, dsPicker.value);
+          } catch {
+            // ignore
+          }
+          syncOcrDayFromDsDay();
+        }
+
+        function syncOcrDayFromDsDay() {
+          const sel = document.getElementById("verusOcrDay");
+          const dsPicker = document.getElementById("verusDsDayPicker");
+          if (!sel || !dsPicker || !/^\d{4}-\d{2}-\d{2}$/.test(dsPicker.value)) {
+            return;
+          }
+          const d = parseYmdLocal(dsPicker.value);
+          if (!Number.isFinite(d.getTime())) return;
+          const dow = d.getDay();
+          let name;
+          if (dow >= 1 && dow <= 6) name = DAYS[dow - 1];
+          else name = "Saturday";
+          if (DAYS.includes(name)) sel.value = name;
+        }
+
         /** Human-readable Mon–Sat range (matches table columns). */
         function formatWeekDateRangeLabel(weekKey) {
           const m = /^(\d{4})-W(\d{2})$/.exec(String(weekKey || "").trim());
@@ -1522,6 +1627,8 @@
           const next = String(nextKey || "").trim();
           if (!/^\d{4}-W\d{2}$/.test(next)) return;
 
+          const prevKey = currentWeekKey;
+
           commitCurrentWeekToMap();
 
           sortColumn = null;
@@ -1541,6 +1648,10 @@
           }
           updateWeekDateDisplay();
           renderTable();
+
+          if (!verusSkipDsDaySync) {
+            advanceDsDayAcrossWeeks(prevKey, next);
+          }
         }
 
         function initWeekAndRows() {
@@ -1556,16 +1667,36 @@
             initial = getISOWeekString(new Date());
           }
 
-          const picker = document.getElementById("verusWeekPicker");
-          if (picker) {
-            picker.value = initial;
-            if (!picker.value) picker.value = initial;
+          let dsDay = "";
+          try {
+            dsDay = String(localStorage.getItem(LAST_DS_DAY_KEY) || "").trim();
+          } catch {
+            dsDay = "";
+          }
+          if (!/^\d{4}-\d{2}-\d{2}$/.test(dsDay)) {
+            dsDay = formatYmd(new Date());
+          }
+          if (getISOWeekString(parseYmdLocal(dsDay)) !== initial) {
+            dsDay = pickDsDayForWeek(initial);
           }
 
-          currentWeekKey = (picker && picker.value) || initial;
-          verusRows = normalizeRows(weeksMap[currentWeekKey]);
-          weeksMap[currentWeekKey] = verusRows;
-          commitCurrentWeekToMap();
+          verusSkipDsDaySync = true;
+          switchToWeek(initial);
+          verusSkipDsDaySync = false;
+
+          const dsPicker = document.getElementById("verusDsDayPicker");
+          const picker = document.getElementById("verusWeekPicker");
+          if (dsPicker) dsPicker.value = dsDay;
+          if (picker) {
+            picker.value = currentWeekKey;
+            if (!picker.value) picker.value = currentWeekKey;
+          }
+          try {
+            localStorage.setItem(LAST_DS_DAY_KEY, dsDay);
+          } catch {
+            // ignore
+          }
+          syncOcrDayFromDsDay();
           updateWeekDateDisplay();
         }
 
@@ -2009,10 +2140,29 @@
         renderTable();
 
         const weekPicker = document.getElementById("verusWeekPicker");
+        const dsDayPicker = document.getElementById("verusDsDayPicker");
         if (weekPicker) {
           weekPicker.addEventListener("change", function () {
             const v = String(weekPicker.value || "").trim();
             if (v && v !== currentWeekKey) switchToWeek(v);
+          });
+        }
+        if (dsDayPicker) {
+          dsDayPicker.addEventListener("change", function () {
+            const v = String(dsDayPicker.value || "").trim();
+            if (!/^\d{4}-\d{2}-\d{2}$/.test(v)) return;
+            const d = parseYmdLocal(v);
+            if (!Number.isFinite(d.getTime())) return;
+            const wk = getISOWeekString(d);
+            verusSkipDsDaySync = true;
+            if (wk !== currentWeekKey) switchToWeek(wk);
+            verusSkipDsDaySync = false;
+            try {
+              localStorage.setItem(LAST_DS_DAY_KEY, v);
+            } catch {
+              // ignore
+            }
+            syncOcrDayFromDsDay();
           });
         }
         const weekPrev = document.getElementById("verusWeekPrevBtn");
