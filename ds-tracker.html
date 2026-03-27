@@ -358,15 +358,27 @@
   </head>
   <body>
     <div class="page">
-      <div class="page-top-controls">
-        <div class="logo-control">
-          <a href="index.html" aria-label="Go to homepage">
-            <img src="media/lwst.png" alt="LWST logo" class="site-logo" />
-          </a>
-        </div>
-        <div class="language-control">
-          <label for="languageSelect">Language</label>
-          <select id="languageSelect"></select>
+      <div class="page-top-stack">
+        <aside class="account-promo-strip" aria-label="Optional account">
+          <p class="account-promo-strip__text">
+            <strong>No account required.</strong> Every calculator works in your browser without signing up.
+            Create a free account only if you want to sync saved data across devices.
+          </p>
+          <div class="account-promo-actions">
+            <a href="account.html" class="action-button">Create account</a>
+            <a href="account.html" class="action-button action-button--quiet">Sign in</a>
+          </div>
+        </aside>
+        <div class="page-top-controls">
+          <div class="logo-control">
+            <a href="index.html" aria-label="Go to homepage">
+              <img src="media/lwst.png" alt="LWST logo" class="site-logo" />
+            </a>
+          </div>
+          <div class="language-control">
+            <label for="languageSelect">Language</label>
+            <select id="languageSelect"></select>
+          </div>
         </div>
       </div>
       <div id="google_translate_element" class="hidden-translate"></div>

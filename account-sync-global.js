@@ -7,6 +7,7 @@ import { initializeApp, getApp, getApps } from "https://www.gstatic.com/firebase
 import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/9.22.2/firebase-auth.js";
 import { getFirestore } from "https://www.gstatic.com/firebasejs/9.22.2/firebase-firestore.js";
 import { firebaseConfigOk, mergeAndSyncToCloud } from "./account-sync-lib.js";
+import { loadAndApplyUserProfile } from "./account-profile-lib.js";
 
 const THROTTLE_MS = 90_000;
 const LAST_SYNC_KEY = "lwAccountBackgroundSyncAt";
@@ -37,12 +38,18 @@ if (!firebaseConfigOk(cfg)) {
 
     onAuthStateChanged(auth, async (user) => {
       if (!user) return;
-      if (!shouldRunBackgroundSync()) return;
+      if (shouldRunBackgroundSync()) {
+        try {
+          await mergeAndSyncToCloud(user, db, {});
+          markBackgroundSynced();
+        } catch (e) {
+          console.warn("[Last War Tools] Background account sync failed:", e);
+        }
+      }
       try {
-        await mergeAndSyncToCloud(user, db, {});
-        markBackgroundSynced();
+        await loadAndApplyUserProfile(user, db);
       } catch (e) {
-        console.warn("[Last War Tools] Background account sync failed:", e);
+        console.warn("[Last War Tools] Profile load failed:", e);
       }
     });
   } catch (e) {

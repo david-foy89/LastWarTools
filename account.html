@@ -83,7 +83,52 @@
       .account-banner strong {
         color: var(--text);
       }
+      .account-profile-card {
+        max-width: 640px;
+      }
+      .account-avatar-row {
+        display: flex;
+        flex-wrap: wrap;
+        align-items: center;
+        gap: 14px;
+        margin-bottom: 14px;
+      }
+      .account-avatar-preview {
+        width: 96px;
+        height: 96px;
+        border-radius: 50%;
+        object-fit: cover;
+        border: 2px solid var(--line-soft);
+        background: var(--panel-2);
+      }
+      .account-alliance-textarea {
+        width: 100%;
+        min-height: 140px;
+        box-sizing: border-box;
+        padding: 10px 12px;
+        border-radius: 8px;
+        border: 1px solid var(--line-soft);
+        background: var(--panel-2);
+        color: var(--text);
+        font-family: ui-monospace, monospace;
+        font-size: 0.82rem;
+        line-height: 1.4;
+      }
+      .account-profile-toolbar {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 8px;
+        margin-bottom: 10px;
+      }
+      #accountProfileImport {
+        position: absolute;
+        width: 0;
+        height: 0;
+        opacity: 0;
+        pointer-events: none;
+      }
     </style>
+    <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
   </head>
   <body>
     <div class="page">
@@ -214,6 +259,70 @@
             </button>
           </div>
           <div class="account-status" id="accountSyncStatus"></div>
+
+          <div class="account-card account-profile-card" style="margin-top: 20px">
+            <h2>Profile &amp; alliance list</h2>
+            <p class="account-muted">
+              Optional details are stored with your account and copied into this browser so tools can read them (see
+              keys <code>lwProfile*</code> / <code>lwAllianceListJson</code>). Import a CSV or Excel file, or export to
+              share with your alliance.
+            </p>
+
+            <div class="account-avatar-row">
+              <img
+                id="accountAvatarPreview"
+                class="account-avatar-preview"
+                src=""
+                alt="Profile preview"
+                width="96"
+                height="96"
+                style="display: none"
+              />
+              <div>
+                <div class="account-field">
+                  <label for="accountAvatarFile">Profile picture</label>
+                  <input id="accountAvatarFile" type="file" accept="image/*" />
+                </div>
+                <button type="button" class="action-button action-button--quiet" id="accountAvatarRemoveBtn">
+                  Remove photo
+                </button>
+              </div>
+            </div>
+
+            <div class="account-field">
+              <label for="accountTimezone">Timezone</label>
+              <select id="accountTimezone"></select>
+            </div>
+            <div class="account-field">
+              <label for="accountAllianceName">Alliance name</label>
+              <input id="accountAllianceName" type="text" maxlength="200" autocomplete="organization" />
+            </div>
+            <div class="account-field">
+              <label for="accountServerNumber">Server number</label>
+              <input id="accountServerNumber" type="text" maxlength="64" inputmode="numeric" />
+            </div>
+
+            <div class="account-field">
+              <label for="accountAllianceCsv">Alliance list (CSV — first row is column headers)</label>
+              <textarea id="accountAllianceCsv" class="account-alliance-textarea" spellcheck="false"></textarea>
+            </div>
+
+            <div class="account-profile-toolbar">
+              <button type="button" class="action-button" id="accountAllianceImportBtn">Import CSV / Excel…</button>
+              <input id="accountAllianceImport" type="file" accept=".csv,.xlsx,.xls,text/csv" tabindex="-1" />
+              <button type="button" class="action-button action-button--quiet" id="accountAllianceExportCsvBtn">
+                Export CSV
+              </button>
+              <button type="button" class="action-button action-button--quiet" id="accountAllianceExportXlsxBtn">
+                Export Excel
+              </button>
+            </div>
+
+            <div class="account-actions">
+              <button type="button" class="action-button" id="accountSaveProfileBtn">Save profile</button>
+            </div>
+            <div class="account-status" id="accountProfileStatus"></div>
+          </div>
         </div>
       </section>
     </div>
@@ -235,6 +344,22 @@
         applyLocalStoragePayload,
         SYNC_COLLECTION,
       } from "./account-sync-lib.js";
+      import {
+        loadAndApplyUserProfile,
+        saveUserProfile,
+        resizeImageFileToDataUrl,
+        parseAllianceCsv,
+        parseAllianceXlsxArrayBuffer,
+        allianceListToCsv,
+        downloadTextFile,
+        downloadAllianceXlsx,
+        getTimezoneOptionElements,
+        LS_TIMEZONE,
+        LS_ALLIANCE,
+        LS_SERVER,
+        LS_ALLIANCE_LIST,
+        MAX_AVATAR_DATA_URL_CHARS,
+      } from "./account-profile-lib.js";
 
       function firebaseConfigBannerHtml(cfg) {
         if (!cfg || typeof cfg !== "object") {
@@ -313,18 +438,220 @@
       document.getElementById("accountPromoCreateBtn")?.addEventListener("click", scrollToSignInForm);
       document.getElementById("accountPromoSignInBtn")?.addEventListener("click", scrollToSignInForm);
 
+      const accountTimezone = document.getElementById("accountTimezone");
+      if (accountTimezone && accountTimezone.options.length === 0) {
+        accountTimezone.appendChild(getTimezoneOptionElements(document));
+      }
+
+      const profileStatusEl = document.getElementById("accountProfileStatus");
+      let profileAvatarPending = null;
+      let profileAvatarStored = "";
+      let profileAvatarRemove = false;
+
+      function setProfileStatus(msg, kind) {
+        if (!profileStatusEl) return;
+        profileStatusEl.textContent = msg || "";
+        profileStatusEl.classList.remove("is-error", "is-ok");
+        if (kind === "error") profileStatusEl.classList.add("is-error");
+        if (kind === "ok") profileStatusEl.classList.add("is-ok");
+      }
+
+      function updateAvatarPreview() {
+        const img = document.getElementById("accountAvatarPreview");
+        if (!img) return;
+        const src = profileAvatarRemove ? "" : profileAvatarPending || profileAvatarStored;
+        if (src) {
+          img.src = src;
+          img.style.display = "block";
+        } else {
+          img.removeAttribute("src");
+          img.style.display = "none";
+        }
+      }
+
+      function fillProfileForm(profile) {
+        let p;
+        if (profile && typeof profile === "object") {
+          p = {
+            timezone: profile.timezone || "",
+            allianceName: profile.allianceName || "",
+            serverNumber: profile.serverNumber || "",
+            allianceList: Array.isArray(profile.allianceList) ? profile.allianceList : [],
+            avatarDataUrl: profile.avatarDataUrl || "",
+          };
+        } else {
+          p = {
+            timezone: localStorage.getItem(LS_TIMEZONE) || "",
+            allianceName: localStorage.getItem(LS_ALLIANCE) || "",
+            serverNumber: localStorage.getItem(LS_SERVER) || "",
+            allianceList: [],
+            avatarDataUrl: "",
+          };
+          try {
+            const raw = localStorage.getItem(LS_ALLIANCE_LIST);
+            if (raw) {
+              const parsed = JSON.parse(raw);
+              if (Array.isArray(parsed)) p.allianceList = parsed;
+            }
+          } catch {
+            /* ignore */
+          }
+        }
+        if (accountTimezone) accountTimezone.value = p.timezone || "";
+        const an = document.getElementById("accountAllianceName");
+        const sn = document.getElementById("accountServerNumber");
+        const ta = document.getElementById("accountAllianceCsv");
+        if (an) an.value = p.allianceName || "";
+        if (sn) sn.value = p.serverNumber || "";
+        profileAvatarStored = p.avatarDataUrl || "";
+        profileAvatarPending = null;
+        profileAvatarRemove = false;
+        const rows = Array.isArray(p.allianceList) ? p.allianceList : [];
+        if (ta) {
+          ta.value = rows.length ? allianceListToCsv(rows) : "name,server\n";
+        }
+        const fi = document.getElementById("accountAvatarFile");
+        if (fi) fi.value = "";
+        updateAvatarPreview();
+      }
+
+      function resetProfileForm() {
+        profileAvatarPending = null;
+        profileAvatarStored = "";
+        profileAvatarRemove = false;
+        fillProfileForm(null);
+        setProfileStatus("");
+      }
+
+      document.getElementById("accountAvatarFile")?.addEventListener("change", async (ev) => {
+        const f = ev.target.files && ev.target.files[0];
+        if (!f) return;
+        try {
+          setProfileStatus("Compressing image…", "progress");
+          const dataUrl = await resizeImageFileToDataUrl(f, 320, MAX_AVATAR_DATA_URL_CHARS);
+          profileAvatarPending = dataUrl;
+          profileAvatarRemove = false;
+          updateAvatarPreview();
+          setProfileStatus("Photo ready — click Save profile to upload.", "ok");
+        } catch (e) {
+          setProfileStatus(e && e.message ? e.message : "Could not use image.", "error");
+        }
+      });
+
+      document.getElementById("accountAvatarRemoveBtn")?.addEventListener("click", () => {
+        profileAvatarRemove = true;
+        profileAvatarPending = null;
+        const fi = document.getElementById("accountAvatarFile");
+        if (fi) fi.value = "";
+        updateAvatarPreview();
+      });
+
+      document.getElementById("accountAllianceImportBtn")?.addEventListener("click", () => {
+        document.getElementById("accountAllianceImport")?.click();
+      });
+
+      document.getElementById("accountAllianceImport")?.addEventListener("change", async (ev) => {
+        const f = ev.target.files && ev.target.files[0];
+        if (!f) return;
+        try {
+          setProfileStatus("Reading file…", "progress");
+          const name = f.name.toLowerCase();
+          let rows = [];
+          if (name.endsWith(".csv") || f.type === "text/csv") {
+            const text = await f.text();
+            rows = parseAllianceCsv(text);
+          } else {
+            const buf = await f.arrayBuffer();
+            rows = parseAllianceXlsxArrayBuffer(buf);
+          }
+          const ta = document.getElementById("accountAllianceCsv");
+          if (ta) ta.value = rows.length ? allianceListToCsv(rows) : "name,server\n";
+          setProfileStatus(`Imported ${rows.length} row(s). Click Save profile to sync.`, "ok");
+        } catch (e) {
+          setProfileStatus(e && e.message ? e.message : "Import failed.", "error");
+        }
+        ev.target.value = "";
+      });
+
+      document.getElementById("accountAllianceExportCsvBtn")?.addEventListener("click", () => {
+        try {
+          const rows = parseAllianceCsv(document.getElementById("accountAllianceCsv")?.value || "");
+          downloadTextFile("last-war-alliance-list.csv", allianceListToCsv(rows), "text/csv;charset=utf-8");
+        } catch (e) {
+          setProfileStatus(e && e.message ? e.message : "Export failed.", "error");
+        }
+      });
+
+      document.getElementById("accountAllianceExportXlsxBtn")?.addEventListener("click", () => {
+        try {
+          const rows = parseAllianceCsv(document.getElementById("accountAllianceCsv")?.value || "");
+          downloadAllianceXlsx(rows, "last-war-alliance-list.xlsx");
+        } catch (e) {
+          setProfileStatus(e && e.message ? e.message : "Export failed.", "error");
+        }
+      });
+
+      document.getElementById("accountSaveProfileBtn")?.addEventListener("click", async () => {
+        if (!auth || !db) {
+          setProfileStatus("Firebase is not configured.", "error");
+          return;
+        }
+        const user = auth.currentUser;
+        if (!user) {
+          setProfileStatus("Not signed in.", "error");
+          return;
+        }
+        let rows = [];
+        try {
+          rows = parseAllianceCsv(document.getElementById("accountAllianceCsv")?.value || "");
+        } catch (e) {
+          setProfileStatus("Alliance list CSV is invalid. Check quoting and headers.", "error");
+          return;
+        }
+        const payload = {
+          timezone: accountTimezone ? accountTimezone.value : "",
+          allianceName: String(document.getElementById("accountAllianceName")?.value || "").trim(),
+          serverNumber: String(document.getElementById("accountServerNumber")?.value || "").trim(),
+          allianceList: rows,
+        };
+        if (profileAvatarRemove) {
+          payload.removeAvatar = true;
+        } else if (profileAvatarPending) {
+          payload.avatarDataUrl = profileAvatarPending;
+        }
+        setProfileStatus("Saving…", "progress");
+        try {
+          await saveUserProfile(user, db, payload);
+          profileAvatarStored = profileAvatarRemove ? "" : profileAvatarPending || profileAvatarStored;
+          profileAvatarPending = null;
+          profileAvatarRemove = false;
+          updateAvatarPreview();
+          await mergeAndSyncToCloud(user, db, {
+            onStatus: (msg, kind) => setSyncStatus(msg, kind),
+          });
+          setProfileStatus("Profile saved and synced to this browser.", "ok");
+        } catch (e) {
+          setProfileStatus(e && e.message ? e.message : "Save failed.", "error");
+        }
+      });
+
       if (auth) {
         onAuthStateChanged(auth, (user) => {
           updateSignedInUi(user);
           if (!user) {
             setAuthStatus("");
             setSyncStatus("");
+            resetProfileForm();
             return;
           }
           setAuthStatus("");
-          void mergeAndSyncToCloud(user, db, {
-            onStatus: (msg, kind) => setSyncStatus(msg, kind),
-          });
+          void (async () => {
+            await mergeAndSyncToCloud(user, db, {
+              onStatus: (msg, kind) => setSyncStatus(msg, kind),
+            });
+            const prof = await loadAndApplyUserProfile(user, db);
+            fillProfileForm(prof || { allianceList: [] });
+          })();
         });
       } else {
         updateSignedInUi(null);
