@@ -353,8 +353,8 @@
         <h1>Verus Tracker</h1>
         <div class="sub">
           Pick a calendar week; each week is stored separately in your browser.
-          Monday–Saturday scores and VS Total (sum) use the same calendar dates as Desert Storm’s
-          <strong>DS day</strong> (local date, <code>YYYY-MM-DD</code>).
+          Monday–Saturday scores and VS Total (sum) use Desert Storm server-day timing:
+          <strong>EST + 2 hours</strong>, midnight reset.
           Import scores from screenshots or <code>.mp4</code> screen recordings with OCR.
         </div>
       </section>
@@ -389,7 +389,7 @@
               type="date"
               id="verusDsDayPicker"
               name="verusDsDay"
-              title="Same calendar-day picker as Desert Storm Tracker (local date)"
+              title="Desert Storm server day (EST + 2, midnight reset)"
               aria-label="Desert Storm calendar day"
             />
             <p id="verusWeekDateRange" class="verus-week-dates" aria-live="polite">
@@ -604,6 +604,10 @@
         const LEGACY_ROWS_KEY = "verusTrackerRowsV1";
         const LAST_WEEK_KEY = "verusTrackerLastWeekV1";
         const LAST_DS_DAY_KEY = "verusTrackerLastDsDayV1";
+        const EST_UTC_OFFSET_HOURS = -5;
+        const SERVER_AHEAD_OF_EST_HOURS = 2;
+        const SERVER_UTC_OFFSET_HOURS =
+          EST_UTC_OFFSET_HOURS + SERVER_AHEAD_OF_EST_HOURS;
         let verusSkipDsDaySync = false;
         const DAYS = [
           "Monday",
@@ -1374,11 +1378,26 @@
           return monday;
         }
 
-        /** Same calendar-day helpers as `ds-tracker.html` (local `YYYY-MM-DD` + `T00:00:00`). */
+        /** Calendar-day helpers for `YYYY-MM-DD` handling. */
         function formatYmd(d) {
           const pad = (n) => String(n).padStart(2, "0");
           return (
             d.getFullYear() + "-" + pad(d.getMonth() + 1) + "-" + pad(d.getDate())
+          );
+        }
+
+        /** DS server "today" = fixed EST + 2h (UTC-3), midnight reset. */
+        function getServerTodayYmd() {
+          const pad = (n) => String(n).padStart(2, "0");
+          const shifted = new Date(
+            Date.now() + SERVER_UTC_OFFSET_HOURS * 60 * 60 * 1000,
+          );
+          return (
+            shifted.getUTCFullYear() +
+            "-" +
+            pad(shifted.getUTCMonth() + 1) +
+            "-" +
+            pad(shifted.getUTCDate())
           );
         }
 
@@ -1399,8 +1418,8 @@
 
         function pickDsDayForWeek(weekKey) {
           const mon = mondayDateFromWeekKey(weekKey);
-          if (!mon) return formatYmd(new Date());
-          const todayStr = formatYmd(new Date());
+          if (!mon) return getServerTodayYmd();
+          const todayStr = getServerTodayYmd();
           const todayD = parseYmdLocal(todayStr);
           if (
             Number.isFinite(todayD.getTime()) &&
@@ -1574,7 +1593,7 @@
             const legacy = localStorage.getItem(LEGACY_ROWS_KEY);
             if (legacy) {
               const rows = JSON.parse(legacy);
-              const wk = getISOWeekString(new Date());
+              const wk = getISOWeekString(parseYmdLocal(getServerTodayYmd()));
               const map = {};
               map[wk] = Array.isArray(rows) ? rows : [];
               localStorage.setItem(STORAGE_ROOT, JSON.stringify(map));
@@ -1664,7 +1683,7 @@
             initial = "";
           }
           if (!/^\d{4}-W\d{2}$/.test(initial)) {
-            initial = getISOWeekString(new Date());
+            initial = getISOWeekString(parseYmdLocal(getServerTodayYmd()));
           }
 
           let dsDay = "";
@@ -1674,7 +1693,7 @@
             dsDay = "";
           }
           if (!/^\d{4}-\d{2}-\d{2}$/.test(dsDay)) {
-            dsDay = formatYmd(new Date());
+            dsDay = getServerTodayYmd();
           }
           if (getISOWeekString(parseYmdLocal(dsDay)) !== initial) {
             dsDay = pickDsDayForWeek(initial);
