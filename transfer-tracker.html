@@ -662,7 +662,7 @@
           function isRowInCurrentList(row) {
             if (!currentListId) return true;
             if (!row || typeof row !== "object") return false;
-            const rowListId = String(row.listId || row.linkId || "")
+            const rowListId = String(row.listId || "")
               .trim()
               .toLowerCase();
             return rowListId === currentListId;

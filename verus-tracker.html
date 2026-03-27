@@ -2166,7 +2166,8 @@
         if (tbody) {
           tbody.addEventListener("input", (e) => handleTableDelegation(e, false));
           tbody.addEventListener("change", (e) => handleTableDelegation(e, true));
-          tbody.addEventListener("click", (e) => handleTableDelegation(e, true));
+          // Keep click handling for Delete, but don't re-render on input focus/cursor clicks.
+          tbody.addEventListener("click", (e) => handleTableDelegation(e, false));
         }
       })();
     </script>
