@@ -66,7 +66,17 @@
               return;
             }
             const fileBase = getExportFileBaseName() + "-alliance-members";
-            const ws = XLSX.utils.aoa_to_sheet([["Name"], ...state.allianceMembers.map(n => [n])]);
+            const r4r5 = Array.isArray(state.r4r5Members) ? state.r4r5Members : [];
+            const exportRows = [
+              ["R4/R5 Group"],
+              ["Name"],
+              ...(r4r5.length ? r4r5.map((n) => [n]) : [["(none selected)"]]),
+              [],
+              ["Alliance Members"],
+              ["Name"],
+              ...state.allianceMembers.map((n) => [n]),
+            ];
+            const ws = XLSX.utils.aoa_to_sheet(exportRows);
             const wb = XLSX.utils.book_new();
             XLSX.utils.book_append_sheet(wb, ws, "Alliance Members");
             XLSX.writeFile(wb, fileBase + ".xlsx");
@@ -1495,6 +1505,7 @@
       );
 
       let pendingImportCandidates = [];
+      let pendingImportR4R5Candidates = [];
       let pendingImportFileName = "";
       let editingAllianceMemberIdx = -1;
 
@@ -1552,6 +1563,12 @@
 
       function normalizeMemberName(value) {
         return sanitizeMemberName(value).toLowerCase();
+      }
+
+      function withR4R5Crown(name) {
+        const clean = sanitizeMemberName(name);
+        if (!clean) return "";
+        return isR4R5Member(clean) ? `👑 ${clean}` : clean;
       }
 
       function normalizeR4R5Members(entries, allianceMembers = []) {
@@ -2288,6 +2305,9 @@
 
       function closeImportPreview() {
         importPreviewModal.classList.remove("show");
+        pendingImportCandidates = [];
+        pendingImportR4R5Candidates = [];
+        pendingImportFileName = "";
       }
 
       function openBulkAddModal() {
@@ -2328,15 +2348,17 @@
         );
       }
 
-      function openImportPreview(fileName, candidates) {
+      function openImportPreview(fileName, candidates, options = {}) {
+        const r4r5Candidates = dedupeNames(options.r4r5Candidates || []);
         pendingImportFileName = fileName;
         pendingImportCandidates = candidates.map((name) => ({
           name,
           selected: true,
         }));
+        pendingImportR4R5Candidates = r4r5Candidates;
 
         importPreviewFileName.textContent = fileName;
-        importPreviewSummary.textContent = `${pendingImportCandidates.length} names detected. Uncheck any names you do not want to import.`;
+        importPreviewSummary.textContent = `${pendingImportCandidates.length} names detected. Uncheck any names you do not want to import.${pendingImportR4R5Candidates.length ? ` R4/R5 section detected (${pendingImportR4R5Candidates.length} names).` : ""}`;
         renderImportPreviewList();
         importPreviewModal.classList.add("show");
       }
@@ -2363,6 +2385,9 @@
             .filter((entry) => entry.selected)
             .map((entry) => entry.name),
         );
+        const importedFileName = pendingImportFileName;
+        const hasR4R5Section = pendingImportR4R5Candidates.length > 0;
+        const chosenKeys = new Set(chosen.map((name) => normalizeMemberName(name)));
 
         let addedCount = 0;
         chosen.forEach((name) => {
@@ -2374,19 +2399,89 @@
           }
         });
 
+        let importedR4R5Count = 0;
+        if (pendingImportR4R5Candidates.length) {
+          const pickedR4R5 = pendingImportR4R5Candidates.filter((name) =>
+            chosenKeys.has(normalizeMemberName(name)),
+          );
+          state.r4r5Members = normalizeR4R5Members(
+            pickedR4R5,
+            state.allianceMembers,
+          );
+          importedR4R5Count = state.r4r5Members.length;
+        }
+
         saveState();
         renderAllianceMembers();
         closeImportPreview();
 
         if (addedCount > 0) {
           setAllianceImportStatus(
-            `Imported ${addedCount} member(s) from ${pendingImportFileName}.`,
+            `Imported ${addedCount} member(s) from ${importedFileName}.${hasR4R5Section ? ` Imported ${importedR4R5Count} R4/R5 member(s).` : ""}`,
           );
         } else {
           setAllianceImportStatus(
-            `No new members were imported from ${pendingImportFileName}.`,
+            `No new members were imported from ${importedFileName}.${hasR4R5Section ? ` Imported ${importedR4R5Count} R4/R5 member(s).` : ""}`,
           );
         }
+      }
+
+      function isR4R5SectionHeading(line) {
+        const normalized = String(line || "")
+          .trim()
+          .toLowerCase()
+          .replace(/\s+/g, " ");
+        return (
+          normalized === "r4/r5 group" ||
+          normalized === "r4/r5" ||
+          normalized === "r4 & r5" ||
+          normalized === "r4 and r5" ||
+          normalized === "r4r5 group" ||
+          normalized === "r4r5"
+        );
+      }
+
+      function isAllianceSectionHeading(line) {
+        const normalized = String(line || "")
+          .trim()
+          .toLowerCase()
+          .replace(/\s+/g, " ");
+        return (
+          normalized === "alliance members" ||
+          normalized === "alliance member list" ||
+          normalized === "members" ||
+          normalized === "member list"
+        );
+      }
+
+      function extractR4R5CandidatesFromTexts(texts) {
+        const sourceTexts = Array.isArray(texts) ? texts : [texts || ""];
+        const out = [];
+        sourceTexts.forEach((text) => {
+          const lines = String(text || "")
+            .split(/\r?\n/)
+            .map((line) => line.trim())
+            .filter(Boolean);
+          let inR4R5Section = false;
+          lines.forEach((line) => {
+            if (isR4R5SectionHeading(line)) {
+              inR4R5Section = true;
+              return;
+            }
+            if (isAllianceSectionHeading(line)) {
+              inR4R5Section = false;
+              return;
+            }
+            if (!inR4R5Section) {
+              return;
+            }
+            if (/^name$/i.test(line)) return;
+            extractMemberCandidatesFromLines(line, { strict: true }).forEach(
+              (candidate) => out.push(candidate),
+            );
+          });
+        });
+        return dedupeNames(out).slice(0, MAX_R4R5_MEMBERS);
       }
 
       function syncAllianceFillConductorOptions() {
@@ -3029,7 +3124,13 @@
             );
           }
 
-          openImportPreview(file.name, candidates);
+          const importedR4R5Candidates =
+            importResult.source === "ocr"
+              ? []
+              : extractR4R5CandidatesFromTexts(sourceTexts);
+          openImportPreview(file.name, candidates, {
+            r4r5Candidates: importedR4R5Candidates,
+          });
         } catch (error) {
           setAllianceImportStatus("");
           alert(`Import failed: ${error.message}`);
@@ -3235,11 +3336,15 @@
             let cellText = dateLabel;
 
             if (conductorIdx >= 0 && conductorIdx < state.conductors.length) {
-              const conductorName = getConductorName(w, conductorIdx);
+              const conductorName = withR4R5Crown(
+                getConductorName(w, conductorIdx),
+              );
               cellText += ` - ${conductorName}`;
               if (state.showVip) {
                 const vipLabel =
-                  state.conductors[conductorIdx].vipGuardian?.trim() ||
+                  withR4R5Crown(
+                    state.conductors[conductorIdx].vipGuardian?.trim(),
+                  ) ||
                   "VIP/Guardian";
                 cellText += ` - ${vipLabel}`;
               }
@@ -3626,7 +3731,9 @@
             if (conductorIdx >= 0 && conductorIdx < state.conductors.length) {
               const c = state.conductors[conductorIdx];
               const chipBg = hexToRgba(c.color, 0.18);
-              const displayName = getConductorName(w, conductorIdx);
+              const displayName = withR4R5Crown(
+                getConductorName(w, conductorIdx),
+              );
               chipHtml = `<span class="conductor-chip" style="color:${escapeHtml(c.color)};border-color:${escapeHtml(c.color)};background:${chipBg};">${escapeHtml(displayName)}</span>`;
             }
 
@@ -3637,7 +3744,7 @@
               conductorIdx < state.conductors.length
             ) {
               const vipLabel =
-                state.conductors[conductorIdx].vipGuardian?.trim() ||
+                withR4R5Crown(state.conductors[conductorIdx].vipGuardian?.trim()) ||
                 "VIP/Guardian";
               vipHtml = `<span class="vip-badge">${escapeHtml(vipLabel)}</span>`;
             }
@@ -3670,13 +3777,12 @@
             todayConduectorIdx < state.conductors.length
           ) {
             const c = state.conductors[todayConduectorIdx];
-            const displayName = getConductorName(
-              todayWeekIdx,
-              todayConduectorIdx,
+            const displayName = withR4R5Crown(
+              getConductorName(todayWeekIdx, todayConduectorIdx),
             );
             let todayVipHtml = "";
             if (state.showVip) {
-              const vipLabel = c.vipGuardian?.trim() || "VIP/Guardian";
+              const vipLabel = withR4R5Crown(c.vipGuardian?.trim()) || "VIP/Guardian";
               todayVipHtml = `<span class="vip-badge">${escapeHtml(vipLabel)}</span>`;
             }
             bannerChip = `<span class="conductor-chip" style="color:${escapeHtml(c.color)};border-color:${escapeHtml(c.color)};">${escapeHtml(displayName)}</span>${todayVipHtml}<span class="today-banner-date">${escapeHtml(todayLabel)}</span>`;
@@ -3940,14 +4046,17 @@
         });
       }
 
-      allianceMembersList.addEventListener("click", (event) => {
-        const clearR4R5Btn = event.target.closest("[data-r4r5-clear]");
-        if (clearR4R5Btn) {
+      if (allianceR4R5Group) {
+        allianceR4R5Group.addEventListener("click", (event) => {
+          const clearR4R5Btn = event.target.closest("[data-r4r5-clear]");
+          if (!clearR4R5Btn) return;
           state.r4r5Members = [];
           saveState();
           renderAllianceMembers();
-          return;
-        }
+        });
+      }
+
+      allianceMembersList.addEventListener("click", (event) => {
 
         const toggleR4R5Btn = event.target.closest("[data-r4r5-toggle-idx]");
         if (toggleR4R5Btn) {
