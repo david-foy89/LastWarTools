@@ -1,6 +1,7 @@
 /**
  * Injected on calculator pages: promo "Create account" / "Sign in" links open this modal
- * instead of navigating to account.html. account.html uses its own inline modal.
+ * instead of navigating to account.html. Signed-in profile chip opens account.html in an
+ * overlay iframe (?embed=1). account.html uses its own inline modal.
  */
 import { initializeApp, getApp, getApps } from "https://www.gstatic.com/firebasejs/9.22.2/firebase-app.js";
 import {
@@ -106,9 +107,16 @@ function ensureRecaptchaScript() {
   document.head.appendChild(s);
 }
 
+function injectAccountPagePopupIfNeeded() {
+  if (document.getElementById("accountPagePopupBackdrop")) return;
+  document.body.insertAdjacentHTML("beforeend", ACCOUNT_PAGE_POPUP_HTML);
+}
+
 function injectModalIfNeeded() {
-  if (document.getElementById("accountModalBackdrop")) return;
-  document.body.insertAdjacentHTML("beforeend", MODAL_HTML);
+  if (!document.getElementById("accountModalBackdrop")) {
+    document.body.insertAdjacentHTML("beforeend", MODAL_HTML);
+  }
+  injectAccountPagePopupIfNeeded();
 }
 
 /** Preserve default Create account / Sign in markup so we can restore after sign-out */
@@ -122,8 +130,27 @@ function captureAccountPromoActionsOriginals() {
   });
 }
 
+function setPromoStripSignedInState(actionsEls, signedIn) {
+  actionsEls.forEach(function (actionsEl) {
+    var strip = actionsEl.closest(".account-promo-strip");
+    if (!strip) return;
+    if (signedIn) {
+      if (strip.dataset.lwPromoAriaSaved === undefined) {
+        strip.dataset.lwPromoAriaSaved = strip.getAttribute("aria-label") || "";
+      }
+      strip.classList.add("account-promo-strip--signed-in");
+      strip.setAttribute("aria-label", "Account settings");
+    } else {
+      strip.classList.remove("account-promo-strip--signed-in");
+      if (strip.dataset.lwPromoAriaSaved !== undefined) {
+        strip.setAttribute("aria-label", strip.dataset.lwPromoAriaSaved);
+      }
+    }
+  });
+}
+
 /**
- * Replace `.account-promo-actions` buttons with a profile circle (avatar or first letter), or restore when signed out.
+ * Replace the top account promo strip with a right-aligned profile circle (avatar or initial), or restore when signed out.
  */
 function refreshAccountPromoBanner(user, db) {
   captureAccountPromoActionsOriginals();
@@ -131,6 +158,7 @@ function refreshAccountPromoBanner(user, db) {
   if (!wraps.length) return;
 
   if (!user || !db) {
+    setPromoStripSignedInState(wraps, false);
     wraps.forEach(function (el) {
       var orig = promoActionsOriginalHtml.get(el);
       if (orig != null) el.innerHTML = orig;
@@ -169,22 +197,24 @@ function refreshAccountPromoBanner(user, db) {
         }
         el.appendChild(a);
       });
+      setPromoStripSignedInState(wraps, true);
     })
     .catch(function () {
       var letter = accountChipInitialDisplay("", user.email);
       wraps.forEach(function (el) {
         el.innerHTML = "";
-        var a = document.createElement("a");
-        a.href = "account.html";
-        a.className = "account-nav-chip account-promo-account-chip";
-        a.title = "Account settings";
-        a.setAttribute("aria-label", "Account settings");
+        var btn = document.createElement("button");
+        btn.type = "button";
+        btn.className = "account-nav-chip account-promo-account-chip";
+        btn.title = "Account settings";
+        btn.setAttribute("aria-label", "Account settings");
         var span = document.createElement("span");
         span.className = "account-nav-chip__initials";
         span.textContent = letter;
-        a.appendChild(span);
-        el.appendChild(a);
+        btn.appendChild(span);
+        el.appendChild(btn);
       });
+      setPromoStripSignedInState(wraps, true);
     });
 }
 
@@ -198,6 +228,9 @@ function boot() {
   var accountModalDialog = document.getElementById("accountModalDialog");
   var authStatus = document.getElementById("accountAuthStatus");
   var accountModalPreviousFocus = null;
+  var accountPagePopupBackdrop = document.getElementById("accountPagePopupBackdrop");
+  var accountPagePopupFrame = document.getElementById("accountPagePopupFrame");
+  var accountPagePopupPreviousFocus = null;
 
   function setAuthStatus(msg, kind) {
     if (!authStatus) return;
@@ -260,6 +293,45 @@ function boot() {
     setAuthStatus("");
   }
 
+  function closeAccountPagePopup() {
+    if (!accountPagePopupBackdrop || accountPagePopupBackdrop.hasAttribute("hidden")) return;
+    accountPagePopupBackdrop.setAttribute("hidden", "");
+    accountPagePopupBackdrop.setAttribute("aria-hidden", "true");
+    if (accountPagePopupFrame) accountPagePopupFrame.src = "about:blank";
+    document.body.style.overflow = "";
+    if (accountPagePopupPreviousFocus && typeof accountPagePopupPreviousFocus.focus === "function") {
+      try {
+        accountPagePopupPreviousFocus.focus();
+      } catch (_) {
+        /* ignore */
+      }
+    }
+    accountPagePopupPreviousFocus = null;
+  }
+
+  function openAccountPagePopup() {
+    injectModalIfNeeded();
+    var backdrop = document.getElementById("accountPagePopupBackdrop");
+    var frame = document.getElementById("accountPagePopupFrame");
+    if (!backdrop || !frame) return;
+    accountPagePopupPreviousFocus = document.activeElement;
+    frame.src = "account.html?embed=1";
+    backdrop.removeAttribute("hidden");
+    backdrop.setAttribute("aria-hidden", "false");
+    document.body.style.overflow = "hidden";
+    window.setTimeout(function () {
+      document.getElementById("accountPagePopupCloseBtn")?.focus();
+    }, 0);
+  }
+
+  window.__lwOpenAccountPagePopup = openAccountPagePopup;
+
+  window.addEventListener("message", function (ev) {
+    if (ev.origin !== window.location.origin) return;
+    if (!ev.data || ev.data.type !== "lw-close-account-embed") return;
+    closeAccountPagePopup();
+  });
+
   window.__lwOpenAccountAuthModal = function (mode) {
     injectModalIfNeeded();
     openAccountModal(mode);
@@ -273,8 +345,23 @@ function boot() {
   accountModalBackdrop?.addEventListener("click", function (ev) {
     if (ev.target === accountModalBackdrop) closeAccountModal();
   });
+  document.getElementById("accountPagePopupCloseBtn")?.addEventListener("click", closeAccountPagePopup);
+  accountPagePopupBackdrop?.addEventListener("click", function (ev) {
+    if (ev.target === accountPagePopupBackdrop) closeAccountPagePopup();
+  });
+  document.addEventListener("click", function (ev) {
+    if (!ev.target.closest(".account-promo-account-chip")) return;
+    ev.preventDefault();
+    openAccountPagePopup();
+  });
   document.addEventListener("keydown", function (ev) {
-    if (ev.key === "Escape" && accountModalBackdrop && !accountModalBackdrop.hasAttribute("hidden")) {
+    if (ev.key !== "Escape") return;
+    var pageBd = document.getElementById("accountPagePopupBackdrop");
+    if (pageBd && !pageBd.hasAttribute("hidden")) {
+      closeAccountPagePopup();
+      return;
+    }
+    if (accountModalBackdrop && !accountModalBackdrop.hasAttribute("hidden")) {
       closeAccountModal();
     }
   });

@@ -261,6 +261,95 @@ body {
   margin-bottom: 12px;
 }
 
+/* Logo left; account strip (includes language via page-nav-dropdown.js) on the right */
+.page-top-stack:has(.account-promo-strip) {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  column-gap: 16px;
+  align-items: center;
+  margin-bottom: 12px;
+}
+
+.page-top-stack:has(.account-promo-strip) .page-top-controls {
+  display: contents;
+}
+
+.page-top-stack:has(.account-promo-strip) .logo-control {
+  grid-column: 1;
+  grid-row: 1;
+}
+
+.page-top-stack:has(.account-promo-strip) .account-promo-strip {
+  grid-column: 2;
+  grid-row: 1;
+  margin-bottom: 0;
+  width: 100%;
+  max-width: min(920px, 100%);
+  justify-self: end;
+  min-width: 0;
+}
+
+/* Language before actions/chip: pull block to the right of promo text */
+.page-top-stack:has(.account-promo-strip) .account-promo-strip .language-control {
+  flex: 0 1 140px;
+  min-width: 0;
+  width: min(140px, 100%);
+  max-width: 140px;
+  margin-left: auto;
+  font-size: 0.78rem;
+}
+
+.page-top-stack:has(.account-promo-strip) .account-promo-strip .language-control label {
+  display: block;
+  font-size: 0.72rem;
+  margin-bottom: 2px;
+  color: var(--muted);
+}
+
+.page-top-stack:has(.account-promo-strip) .account-promo-strip .language-control select {
+  width: 100%;
+  max-width: 100%;
+  box-sizing: border-box;
+  font-family: inherit;
+  font-size: 0.78rem;
+  padding: 4px 6px;
+  border-radius: 6px;
+  border: 1px solid var(--line-soft);
+  background: var(--panel-2);
+  color: var(--text);
+}
+
+.page-top-stack:has(.account-promo-strip) .account-promo-strip .account-promo-actions {
+  flex-shrink: 0;
+}
+
+@media (max-width: 720px) {
+  .page-top-stack:has(.account-promo-strip) {
+    grid-template-columns: 1fr;
+    row-gap: 10px;
+  }
+
+  .page-top-stack:has(.account-promo-strip) .logo-control {
+    grid-column: 1;
+    grid-row: 1;
+    justify-self: center;
+  }
+
+  .page-top-stack:has(.account-promo-strip) .account-promo-strip {
+    grid-column: 1;
+    grid-row: 2;
+    justify-self: stretch;
+    max-width: none;
+  }
+
+  .page-top-stack:has(.account-promo-strip) .account-promo-strip .language-control {
+    flex: 1 1 100%;
+    width: 100%;
+    max-width: none;
+    margin-left: 0;
+  }
+}
+
 .logo-control {
   flex: 0 0 auto;
 }
@@ -376,8 +465,20 @@ body {
   align-items: center;
 }
 
-.page-top-stack .account-promo-strip {
-  margin-bottom: 10px;
+/* Signed-in: hide promo copy; chip stays top-right in the strip (account-auth-modal.js) */
+.account-promo-strip.account-promo-strip--signed-in {
+  justify-content: flex-end;
+  padding: 10px 18px;
+  margin-bottom: 18px;
+}
+
+.account-promo-strip.account-promo-strip--signed-in .account-promo-strip__text {
+  display: none;
+}
+
+.page-top-stack:has(.account-promo-strip) .account-promo-strip.account-promo-strip--signed-in {
+  margin-bottom: 0;
+  padding: 8px 14px;
 }
 
 /* Site-wide account sign-in / sign-up modal (account-auth-modal.js on promo link pages) */
@@ -509,6 +610,68 @@ body {
   margin-bottom: 12px;
 }
 
+/* Full account page in overlay iframe (account-auth-modal.js — signed-in profile chip) */
+.account-page-popup-backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 1001;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 12px;
+  box-sizing: border-box;
+  background: rgba(0, 0, 0, 0.55);
+  backdrop-filter: blur(2px);
+}
+
+.account-page-popup-backdrop[hidden] {
+  display: none !important;
+}
+
+.account-page-popup-dialog {
+  display: grid;
+  grid-template-rows: auto minmax(0, 1fr);
+  width: 100%;
+  max-width: min(920px, 100%);
+  height: min(92vh, 900px);
+  max-height: 92vh;
+  padding: 0;
+  border-radius: 14px;
+  border: 1px solid var(--line-soft);
+  background: var(--panel);
+  box-shadow: 0 12px 40px rgba(0, 0, 0, 0.45);
+  overflow: hidden;
+}
+
+.account-page-popup-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 12px 14px;
+  border-bottom: 1px solid var(--line-soft);
+}
+
+.account-page-popup-title {
+  margin: 0;
+  font-size: 1.05rem;
+  color: var(--accent);
+}
+
+.account-page-popup-dialog .account-modal__close {
+  position: static;
+  flex-shrink: 0;
+}
+
+.account-page-popup-iframe {
+  width: 100%;
+  min-height: 0;
+  border: 0;
+  background: var(--panel-2);
+  display: block;
+}
+
+/* Optional mount for legacy account-nav-chip.js (not injected by default) */
 .account-nav-chip-wrap {
   display: inline-flex;
   align-items: center;
@@ -521,14 +684,21 @@ body {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  width: 38px;
-  height: 38px;
+  width: 58px;
+  height: 58px;
   border-radius: 50%;
   border: 2px solid var(--line-soft);
   overflow: hidden;
   text-decoration: none;
   background: linear-gradient(145deg, var(--panel-2), var(--panel));
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.22);
+}
+
+button.account-nav-chip {
+  cursor: pointer;
+  padding: 0;
+  font: inherit;
+  appearance: none;
 }
 
 .account-nav-chip:hover,
@@ -544,7 +714,7 @@ body {
 }
 
 .account-nav-chip__initials {
-  font-size: 0.78rem;
+  font-size: 1.12rem;
   font-weight: 800;
   color: var(--accent);
   letter-spacing: 0.02em;

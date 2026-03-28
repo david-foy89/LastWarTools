@@ -1,9 +1,6 @@
 /**
- * Top-nav circle: profile photo or username initials → account.html (signed-in only).
- * Loaded from page-nav-dropdown.js after firebase-config scripts.
- *
- * Waits for .account-nav-chip-wrap (injected on DOMContentLoaded) so we never miss
- * registration when this module runs before the wrap exists.
+ * Legacy: profile chip in `.page-nav` (not used by default; site uses account-auth-modal.js
+ * to show the chip in the top `.account-promo-strip` instead).
  */
 import { initializeApp, getApp, getApps } from "https://www.gstatic.com/firebasejs/9.22.2/firebase-app.js";
 import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/9.22.2/firebase-auth.js";
@@ -61,6 +58,12 @@ function attachAccountNavChip(attempt) {
       a.className = "account-nav-chip";
       a.title = "Account settings";
       a.setAttribute("aria-label", "Account settings");
+      a.addEventListener("click", function (e) {
+        if (typeof window.__lwOpenAccountPagePopup === "function") {
+          e.preventDefault();
+          window.__lwOpenAccountPagePopup();
+        }
+      });
 
       const placeholder = document.createElement("span");
       placeholder.className = "account-nav-chip__initials";

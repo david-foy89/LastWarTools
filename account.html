@@ -2,6 +2,17 @@
 <html lang="en">
   <head>
     <meta charset="UTF-8" />
+    <script>
+      (function () {
+        try {
+          if (new URLSearchParams(location.search).get("embed") === "1") {
+            document.documentElement.classList.add("account-embed");
+          }
+        } catch (e) {
+          /* ignore */
+        }
+      })();
+    </script>
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Account — Last War Tools</title>
     <meta
@@ -130,6 +141,15 @@
       .account-username-readonly {
         opacity: 0.85;
         cursor: not-allowed;
+      }
+      /* iframe popup from calculator pages (account-auth-modal.js): trim chrome */
+      html.account-embed .page-top-stack,
+      html.account-embed .page-nav,
+      html.account-embed .hero {
+        display: none !important;
+      }
+      html.account-embed .page {
+        padding-top: 4px;
       }
     </style>
     <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
@@ -1089,6 +1109,18 @@
           );
         }
       });
+    </script>
+    <script>
+      if (document.documentElement.classList.contains("account-embed")) {
+        document.addEventListener("keydown", function (e) {
+          if (e.key !== "Escape") return;
+          try {
+            parent.postMessage({ type: "lw-close-account-embed" }, location.origin);
+          } catch (err) {
+            /* ignore */
+          }
+        });
+      }
     </script>
   </body>
 </html>

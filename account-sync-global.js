@@ -17,7 +17,13 @@ const SESSION_SYNCED_UID_KEY = "lwAccountSessionSyncUid";
 
 function shouldRunBackgroundSync() {
   const now = Date.now();
-  const last = Number(localStorage.getItem(LAST_SYNC_KEY) || "0");
+  var last = 0;
+  try {
+    last = Number(localStorage.getItem(LAST_SYNC_KEY) || "0");
+  } catch {
+    /* private mode / storage disabled — skip throttle so sync can still run */
+    return true;
+  }
   if (now - last < THROTTLE_MS) return false;
   return true;
 }

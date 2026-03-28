@@ -1,5 +1,24 @@
 (function () {
+  /** Language inside the account strip, immediately before actions/chip (left of profile icon when signed in). */
+  function moveLanguageIntoAccountPromoStrip() {
+    var stack = document.querySelector('.page-top-stack');
+    if (!stack) return;
+    var strip = stack.querySelector('.account-promo-strip');
+    var lang = stack.querySelector('.language-control');
+    if (!strip || !lang) return;
+    var actions = strip.querySelector('.account-promo-actions');
+    if (actions) {
+      if (lang.nextElementSibling !== actions) {
+        strip.insertBefore(lang, actions);
+      }
+    } else if (!strip.contains(lang)) {
+      strip.appendChild(lang);
+    }
+    window.__lwLanguageInAccountBanner = true;
+  }
+
   function initPageDropdowns() {
+    moveLanguageIntoAccountPromoStrip();
     ensureAccountAuthModalForPromoLinks();
     const nav = document.querySelector('.page-nav');
     if (!nav) {
@@ -7,10 +26,9 @@
       return;
     }
 
-    ensureAccountNavChipWrap(nav);
     ensureAllianceToolsLinks(nav);
     ensureSeason2SuppliesLink(nav);
-    ensureAccountBackgroundSync({ loadNavChip: true });
+    ensureAccountBackgroundSync();
     // Train Conductor and Server Search are now handled in the Alliance Tools dropdown in HTML
 
     const dropdowns = Array.from(nav.querySelectorAll('details.page-nav-dropdown'));
@@ -153,26 +171,14 @@
     document.head.appendChild(s);
   }
 
-  /** Prepend mount point for account-nav-chip.js (signed-in avatar / initials in the nav). */
-  function ensureAccountNavChipWrap(nav) {
-    if (!nav || nav.querySelector('.account-nav-chip-wrap')) return;
-    const wrap = document.createElement('span');
-    wrap.className = 'account-nav-chip-wrap';
-    wrap.setAttribute('aria-hidden', 'true');
-    nav.insertBefore(wrap, nav.firstChild);
-  }
-
   /**
-   * Loads firebase-config scripts, optional account-sync-global.js (merge to cloud),
-   * and optional account-nav-chip.js when the page has a nav chip wrap.
+   * Loads firebase-config scripts and optional account-sync-global.js (merge to cloud).
    * Skips account-sync-global on account.html (that page runs full sync with UI).
+   * Signed-in profile circle is shown in the top account promo strip (account-auth-modal.js) — not in the nav.
    */
-  function ensureAccountBackgroundSync(options) {
+  function ensureAccountBackgroundSync() {
     if (window.__lwAccountBackgroundSyncInjected) return;
     window.__lwAccountBackgroundSyncInjected = true;
-
-    var opts = options || {};
-    var loadNavChip = !!opts.loadNavChip;
 
     var page = window.location.pathname.split('/').pop() || '';
     var skipGlobalMerge = page === 'account.html';
@@ -214,11 +220,6 @@
       .then(function () {
         if (!skipGlobalMerge) {
           return appendScript('account-sync-global.js', true);
-        }
-      })
-      .then(function () {
-        if (loadNavChip) {
-          return appendScript('account-nav-chip.js', true);
         }
       })
       .catch(function () {});
