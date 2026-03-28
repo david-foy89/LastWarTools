@@ -13,7 +13,7 @@ import {
 } from "https://www.gstatic.com/firebasejs/9.22.2/firebase-auth.js";
 import { getFirestore, doc, getDoc } from "https://www.gstatic.com/firebasejs/9.22.2/firebase-firestore.js";
 import { firebaseConfigOk } from "./account-sync-lib.js";
-import { PROFILE_COLLECTION } from "./account-profile-lib.js";
+import { PROFILE_COLLECTION, loadAndApplyUserProfile } from "./account-profile-lib.js";
 import {
   resolveEmailForSignIn,
   claimUsernameForNewUser,
@@ -405,6 +405,7 @@ function boot() {
             if (recaptchaKey && typeof grecaptcha !== "undefined" && typeof window.__accountRecaptchaWidgetId === "number") {
               grecaptcha.reset(window.__accountRecaptchaWidgetId);
             }
+            await loadAndApplyUserProfile(cred.user, db);
             setAuthStatus("Account created. Check your email to verify before syncing.", "ok");
             refreshAccountPromoBanner(cred.user, db);
             closeAccountModal();
