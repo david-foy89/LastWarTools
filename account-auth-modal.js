@@ -73,6 +73,17 @@ const MODAL_HTML = `
   </div>
 </div>`;
 
+const ACCOUNT_PAGE_POPUP_HTML = `
+<div id="accountPagePopupBackdrop" class="account-page-popup-backdrop" hidden role="presentation" aria-hidden="true">
+  <div class="account-page-popup-dialog" role="dialog" aria-modal="true" aria-labelledby="accountPagePopupTitle" tabindex="-1" id="accountPagePopupDialog">
+    <div class="account-page-popup-header">
+      <h2 id="accountPagePopupTitle" class="account-page-popup-title">Account</h2>
+      <button type="button" class="account-modal__close" id="accountPagePopupCloseBtn" aria-label="Close">×</button>
+    </div>
+    <iframe id="accountPagePopupFrame" class="account-page-popup-iframe" title="Account settings"></iframe>
+  </div>
+</div>`;
+
 function scriptPresent(filename) {
   return Array.from(document.scripts).some(function (s) {
     return (s.src || "").indexOf(filename) !== -1;
@@ -178,24 +189,24 @@ function refreshAccountPromoBanner(user, db) {
       var letter = accountChipInitialDisplay(username, user.email);
       wraps.forEach(function (el) {
         el.innerHTML = "";
-        var a = document.createElement("a");
-        a.href = "account.html";
-        a.className = "account-nav-chip account-promo-account-chip";
-        a.title = "Account settings";
-        a.setAttribute("aria-label", "Account settings");
+        var btn = document.createElement("button");
+        btn.type = "button";
+        btn.className = "account-nav-chip account-promo-account-chip";
+        btn.title = "Account settings";
+        btn.setAttribute("aria-label", "Account settings");
         if (avatar) {
           var img = document.createElement("img");
           img.src = avatar;
           img.className = "account-nav-chip__img";
           img.alt = "";
-          a.appendChild(img);
+          btn.appendChild(img);
         } else {
           var span = document.createElement("span");
           span.className = "account-nav-chip__initials";
           span.textContent = letter;
-          a.appendChild(span);
+          btn.appendChild(span);
         }
-        el.appendChild(a);
+        el.appendChild(btn);
       });
       setPromoStripSignedInState(wraps, true);
     })
