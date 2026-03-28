@@ -7,9 +7,10 @@
       return;
     }
 
+    ensureAccountNavChipWrap(nav);
     ensureAllianceToolsLinks(nav);
     ensureSeason2SuppliesLink(nav);
-    ensureAccountBackgroundSync();
+    ensureAccountBackgroundSync({ loadNavChip: true });
     // Train Conductor and Server Search are now handled in the Alliance Tools dropdown in HTML
 
     const dropdowns = Array.from(nav.querySelectorAll('details.page-nav-dropdown'));
@@ -152,14 +153,26 @@
     document.head.appendChild(s);
   }
 
+  /** Prepend mount point for account-nav-chip.js (signed-in avatar / initials in the nav). */
+  function ensureAccountNavChipWrap(nav) {
+    if (!nav || nav.querySelector('.account-nav-chip-wrap')) return;
+    const wrap = document.createElement('span');
+    wrap.className = 'account-nav-chip-wrap';
+    wrap.setAttribute('aria-hidden', 'true');
+    nav.insertBefore(wrap, nav.firstChild);
+  }
+
   /**
-   * When signed in, merge localStorage with Firestore on load (throttled, silent).
-   * Skips account.html (that page runs full sync with UI). Loads firebase-config
-   * scripts if missing, then account-sync-global.js (module).
+   * Loads firebase-config scripts, optional account-sync-global.js (merge to cloud),
+   * and optional account-nav-chip.js when the page has a nav chip wrap.
+   * Skips account-sync-global on account.html (that page runs full sync with UI).
    */
-  function ensureAccountBackgroundSync() {
+  function ensureAccountBackgroundSync(options) {
     if (window.__lwAccountBackgroundSyncInjected) return;
     window.__lwAccountBackgroundSyncInjected = true;
+
+    var opts = options || {};
+    var loadNavChip = !!opts.loadNavChip;
 
     var page = window.location.pathname.split('/').pop() || '';
     var skipGlobalMerge = page === 'account.html';
@@ -201,6 +214,11 @@
       .then(function () {
         if (!skipGlobalMerge) {
           return appendScript('account-sync-global.js', true);
+        }
+      })
+      .then(function () {
+        if (loadNavChip) {
+          return appendScript('account-nav-chip.js', true);
         }
       })
       .catch(function () {});
