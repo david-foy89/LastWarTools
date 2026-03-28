@@ -443,6 +443,7 @@
         onAuthStateChanged,
         sendEmailVerification,
         deleteUser,
+        reload,
       } from "https://www.gstatic.com/firebasejs/9.22.2/firebase-auth.js";
       import { getFirestore, doc, getDoc } from "https://www.gstatic.com/firebasejs/9.22.2/firebase-firestore.js";
       import {
@@ -833,10 +834,8 @@
       if (auth) {
         onAuthStateChanged(auth, (user) => {
           updateSignedInUi(user);
-          if (verifyBanner) {
-            verifyBanner.style.display = user && !user.emailVerified ? "block" : "none";
-          }
           if (!user) {
+            if (verifyBanner) verifyBanner.style.display = "none";
             setAuthStatus("");
             setSyncStatus("");
             resetProfileForm();
@@ -850,6 +849,14 @@
             /* Skip while sign-up is claiming username — profile doc may not exist yet; handler reloads after claim. */
             if (accountModalSignUpInProgress) {
               return;
+            }
+            try {
+              await reload(user);
+            } catch (e) {
+              console.warn("[Last War Tools] user reload:", e);
+            }
+            if (verifyBanner) {
+              verifyBanner.style.display = user && !user.emailVerified ? "block" : "none";
             }
             if (user.emailVerified) {
               await mergeAndSyncToCloud(user, db, {

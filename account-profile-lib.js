@@ -1,6 +1,7 @@
 /**
  * User profile (Firestore) + localStorage keys for tools: timezone, alliance, server, alliance list, avatar.
  */
+import { reload } from "https://www.gstatic.com/firebasejs/9.22.2/firebase-auth.js";
 import {
   doc,
   getDoc,
@@ -104,6 +105,11 @@ export function applyProfileToLocalStorage(profile) {
  */
 export async function saveUserProfile(user, db, profileData) {
   if (!user?.uid || !db) throw new Error("Not signed in or database unavailable");
+  try {
+    await reload(user);
+  } catch (e) {
+    console.warn("[Last War Tools] reload before saveUserProfile:", e);
+  }
   if (!user.emailVerified) {
     throw new Error("Verify your email before saving profile.");
   }

@@ -122,19 +122,6 @@ function captureAccountPromoActionsOriginals() {
   });
 }
 
-function firstLetterForPromoChip(username, email) {
-  var u = String(username || "").trim();
-  if (u) {
-    var ch = u.charAt(0);
-    return ch ? ch.toUpperCase() : "?";
-  }
-  var e = String(email || "").trim();
-  var at = e.indexOf("@");
-  var local = at >= 0 ? e.slice(0, at) : e;
-  var m = local.match(/[a-zA-Z0-9]/);
-  return m ? m[0].toUpperCase() : "?";
-}
-
 /**
  * Replace `.account-promo-actions` buttons with a profile circle (avatar or first letter), or restore when signed out.
  */

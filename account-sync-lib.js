@@ -2,6 +2,7 @@
  * Shared merge + upload logic for optional Last War Tools account sync.
  * Used by account.html and account-sync-global.js (background sync on other pages).
  */
+import { reload } from "https://www.gstatic.com/firebasejs/9.22.2/firebase-auth.js";
 import {
   doc,
   getDoc,
@@ -87,6 +88,11 @@ export async function mergeAndSyncToCloud(user, db, options) {
 
   if (!db || !user || !user.uid) return;
 
+  try {
+    await reload(user);
+  } catch (e) {
+    console.warn("[Last War Tools] reload before merge:", e);
+  }
   if (!user.emailVerified) {
     onStatus("Verify your email to sync. Check your inbox for the verification link.", "error");
     return;
