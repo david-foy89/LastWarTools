@@ -2,24 +2,50 @@ rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
 
-    // Transfer tracker + transfer-submit (collection: transferSubmissions).
+    // =============================================================================
+    // SECTION: Transfer Tracker & Transfer Submit
+    // Pages: transfer-tracker.html, transfer-submit.html
+    // Actions: public read; anyone can create/update/delete rows (shared board).
+    // Code: collection "transferSubmissions" — listener, setDoc, updateDoc, deleteDoc.
+    // =============================================================================
     match /transferSubmissions/{docId} {
       allow read: if true;
       allow create, update: if true;
       allow delete: if true;
     }
 
-    // Last War Tools account: per-user localStorage sync blob (doc id = auth uid).
+    // =============================================================================
+    // SECTION: Account — localStorage cloud sync
+    // Pages: account.html ("Sync now", "Restore to this device")
+    //        All calculator pages (silent): account-sync-global.js via page-nav-dropdown.js
+    // Actions: read/write only your own doc (document id = Firebase Auth UID).
+    // Code: account-sync-lib.js → userLocalStorageSync/{uid}
+    // =============================================================================
     match /userLocalStorageSync/{userId} {
       allow read, write: if request.auth != null && request.auth.uid == userId;
     }
 
-    // Last War Tools account: profile (timezone, alliance, server, alliance list, avatar).
+    // =============================================================================
+    // SECTION: Account — profile (tools read lwProfile* from localStorage after load)
+    // Pages: account.html (Save profile, loads on sign-in)
+    //        Nav: account-nav-chip.js (avatar / initials on pages that include it)
+    // Actions: read/write only your own profile doc.
+    // Code: account-profile-lib.js → userProfiles/{uid}
+    // =============================================================================
     match /userProfiles/{userId} {
       allow read, write: if request.auth != null && request.auth.uid == userId;
     }
 
-    // Username registry (doc id = lowercase username). Public read for sign-up availability check.
+    // =============================================================================
+    // SECTION: Account — username registry (username → uid/email for sign-in)
+    // Pages: account.html (Create account / Sign in modals)
+    //        Calculator pages: account-auth-modal.js (same flows in modal)
+    // Actions:
+    //   - read: public (sign-up checks if name is taken before auth)
+    //   - create: only when signed in, doc id unused, uid/email fields set (claimUsernameForNewUser)
+    //   - update/delete: never (immutable after create)
+    // Code: account-username-lib.js → usernames/{lowercaseUsername}
+    // =============================================================================
     match /usernames/{name} {
       allow read: if true;
       allow create: if request.auth != null
@@ -29,7 +55,10 @@ service cloud.firestore {
       allow update, delete: if false;
     }
 
-    // Deny everything else (keep below all specific collections).
+    // =============================================================================
+    // SECTION: Default deny (must be last)
+    // Covers any collection not listed above.
+    // =============================================================================
     match /{document=**} {
       allow read, write: if false;
     }
