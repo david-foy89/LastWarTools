@@ -77,6 +77,55 @@ export async function isUsernameAvailable(db, rawUsername) {
   }
 }
 
+export function looksLikeEmailAddress(raw) {
+  return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(String(raw || "").trim());
+}
+
+/** Firebase Auth treats emails case-insensitively; normalize so Firestore-stored casing matches sign-in. */
+export function normalizeAuthEmail(email) {
+  return String(email || "")
+    .trim()
+    .toLowerCase();
+}
+
+/**
+ * Resolves the Firebase Auth email for sign-in: use the value as email if it looks like one,
+ * otherwise look up by username in Firestore.
+ */
+export async function resolveEmailForSignIn(db, rawIdentifier) {
+  const trimmed = String(rawIdentifier || "").trim();
+  if (!trimmed) {
+    throw new Error("Enter your username or email.");
+  }
+  if (looksLikeEmailAddress(trimmed)) {
+    return normalizeAuthEmail(trimmed);
+  }
+  const { email } = await lookupEmailByUsername(db, trimmed);
+  return normalizeAuthEmail(email);
+}
+
+/** Clearer copy than raw Firebase strings for sign-in failures. */
+export function formatFirebaseAuthSignInError(e) {
+  if (!e) return "Sign-in failed.";
+  const code = e.code;
+  if (
+    code === "auth/invalid-credential" ||
+    code === "auth/invalid-login-credentials" ||
+    code === "auth/wrong-password" ||
+    code === "auth/user-not-found"
+  ) {
+    return "Wrong password, or no account for that email. Use the exact email you registered with (or your username), check Caps Lock, and try again.";
+  }
+  if (code === "auth/too-many-requests") {
+    return "Too many attempts. Wait a few minutes, then try again.";
+  }
+  if (code === "auth/user-disabled") {
+    return "This account has been disabled.";
+  }
+  const msg = typeof e.message === "string" ? e.message : "";
+  return msg || "Sign-in failed.";
+}
+
 export async function lookupEmailByUsername(db, rawUsername) {
   const norm = normalizeUsername(rawUsername);
   if (!norm) {
@@ -84,7 +133,9 @@ export async function lookupEmailByUsername(db, rawUsername) {
   }
   const snap = await getDoc(doc(db, USERNAMES_COLLECTION, norm));
   if (!snap.exists()) {
-    throw new Error("No account found for that username.");
+    throw new Error(
+      "No account found for that username. Try signing in with the email you used to register, or check spelling.",
+    );
   }
   const data = snap.data();
   const email = data && typeof data.email === "string" ? data.email : "";

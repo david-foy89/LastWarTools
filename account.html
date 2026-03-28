@@ -469,12 +469,13 @@
         MAX_AVATAR_DATA_URL_CHARS,
       } from "./account-profile-lib.js";
       import {
-        lookupEmailByUsername,
+        resolveEmailForSignIn,
         claimUsernameForNewUser,
         isUsernameAvailable,
         validateUsername,
         normalizeUsername,
         formatFirestoreAccountError,
+        formatFirebaseAuthSignInError,
       } from "./account-username-lib.js";
 
       function firebaseConfigBannerHtml(cfg) {
@@ -888,11 +889,11 @@
         }
         setAuthStatus("Signing in…");
         try {
-          const { email } = await lookupEmailByUsername(db, rawU);
+          const email = await resolveEmailForSignIn(db, rawU);
           await signInWithEmailAndPassword(auth, email, password);
           setAuthStatus("Signed in.", "ok");
         } catch (e) {
-          setAuthStatus(e && e.message ? e.message : "Sign-in failed.", "error");
+          setAuthStatus(formatFirebaseAuthSignInError(e), "error");
         }
       });
 

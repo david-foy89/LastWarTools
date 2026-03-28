@@ -14,11 +14,11 @@ import {
 import { getFirestore } from "https://www.gstatic.com/firebasejs/9.22.2/firebase-firestore.js";
 import { firebaseConfigOk } from "./account-sync-lib.js";
 import {
-  lookupEmailByUsername,
+  resolveEmailForSignIn,
   claimUsernameForNewUser,
   isUsernameAvailable,
   validateUsername,
-  formatFirestoreAccountError,
+  formatFirebaseAuthSignInError,
 } from "./account-username-lib.js";
 
 const MODAL_HTML = `
@@ -27,10 +27,10 @@ const MODAL_HTML = `
     <button type="button" class="account-modal__close" id="accountModalCloseBtn" aria-label="Close">×</button>
     <div id="accountModalSignInPanel">
       <h2 id="accountModalTitleSignIn">Sign in</h2>
-      <p class="account-muted">Enter the username and password for your Last War Tools account.</p>
+      <p class="account-muted">Use your <strong>username</strong> or <strong>email</strong> and your password.</p>
       <div class="account-field">
-        <label for="accountUsernameSignIn">Username</label>
-        <input id="accountUsernameSignIn" type="text" autocomplete="username" maxlength="20" spellcheck="false" />
+        <label for="accountUsernameSignIn">Username or email</label>
+        <input id="accountUsernameSignIn" type="text" autocomplete="username" maxlength="320" spellcheck="false" />
       </div>
       <div class="account-field">
         <label for="accountPasswordSignIn">Password</label>
@@ -243,11 +243,11 @@ function boot() {
         }
         setAuthStatus("Signing in…");
         try {
-          var lookup = await lookupEmailByUsername(db, rawU);
-          await signInWithEmailAndPassword(auth, lookup.email, password);
+          var email = await resolveEmailForSignIn(db, rawU);
+          await signInWithEmailAndPassword(auth, email, password);
           setAuthStatus("Signed in.", "ok");
         } catch (e) {
-          setAuthStatus(e && e.message ? e.message : "Sign-in failed.", "error");
+          setAuthStatus(formatFirebaseAuthSignInError(e), "error");
         }
       });
 
