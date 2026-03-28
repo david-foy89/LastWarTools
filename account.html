@@ -925,6 +925,13 @@
             onStatus: (msg, kind) => setSyncStatus(msg, kind),
           });
           setProfileStatus("Profile saved and synced to this browser.", "ok");
+          if (document.documentElement.classList.contains("account-embed")) {
+            try {
+              parent.postMessage({ type: "lw-account-profile-updated" }, location.origin);
+            } catch (_) {
+              /* ignore */
+            }
+          }
         } catch (e) {
           setProfileStatus(e && e.message ? e.message : "Save failed.", "error");
         }

@@ -160,11 +160,43 @@ function setPromoStripSignedInState(actionsEls, signedIn) {
   });
 }
 
+/** Last uid we painted the promo for — avoids redundant refresh on token refresh. */
+var lastPromoBannerUid = null;
+var promoBannerRefreshGen = 0;
+
+function paintPromoSignedInChip(wraps, user, username, avatar) {
+  var letter = accountChipInitialDisplay(username, user.email);
+  wraps.forEach(function (el) {
+    el.innerHTML = "";
+    var btn = document.createElement("button");
+    btn.type = "button";
+    btn.className = "account-nav-chip account-promo-account-chip";
+    btn.title = "Account settings";
+    btn.setAttribute("aria-label", "Account settings");
+    if (avatar) {
+      var img = document.createElement("img");
+      img.src = avatar;
+      img.className = "account-nav-chip__img";
+      img.alt = "";
+      btn.appendChild(img);
+    } else {
+      var span = document.createElement("span");
+      span.className = "account-nav-chip__initials";
+      span.textContent = letter;
+      btn.appendChild(span);
+    }
+    el.appendChild(btn);
+  });
+}
+
 /**
  * Replace the top account promo strip with a right-aligned profile circle (avatar or initial), or restore when signed out.
+ * @param {{ forceProfile?: boolean }} [opts] — forceProfile: re-fetch Firestore even if uid unchanged (e.g. after saving profile in embed).
  * @returns {Promise<void>} Resolves when sync DOM updates finish (or immediately if there is nothing to load).
  */
-function refreshAccountPromoBanner(user, db) {
+function refreshAccountPromoBanner(user, db, opts) {
+  opts = opts || {};
+  var forceProfile = !!opts.forceProfile;
   captureAccountPromoActionsOriginals();
   var wraps = document.querySelectorAll(".account-promo-actions");
   if (!wraps.length) {
@@ -172,6 +204,8 @@ function refreshAccountPromoBanner(user, db) {
   }
 
   if (!user || !db) {
+    lastPromoBannerUid = null;
+    promoBannerRefreshGen += 1;
     setPromoStripSignedInState(wraps, false);
     wraps.forEach(function (el) {
       var orig = promoActionsOriginalHtml.get(el);
@@ -180,8 +214,19 @@ function refreshAccountPromoBanner(user, db) {
     return Promise.resolve();
   }
 
+  if (!forceProfile && lastPromoBannerUid === user.uid) {
+    return Promise.resolve();
+  }
+  lastPromoBannerUid = user.uid;
+  promoBannerRefreshGen += 1;
+  var gen = promoBannerRefreshGen;
+
+  paintPromoSignedInChip(wraps, user, "", "");
+  setPromoStripSignedInState(wraps, true);
+
   return getDoc(doc(db, PROFILE_COLLECTION, user.uid))
     .then(function (snap) {
+      if (gen !== promoBannerRefreshGen) return;
       var avatar = "";
       var username = "";
       if (snap.exists()) {
@@ -189,45 +234,12 @@ function refreshAccountPromoBanner(user, db) {
         avatar = typeof d.avatarDataUrl === "string" ? d.avatarDataUrl : "";
         username = typeof d.username === "string" ? d.username : "";
       }
-      var letter = accountChipInitialDisplay(username, user.email);
-      wraps.forEach(function (el) {
-        el.innerHTML = "";
-        var btn = document.createElement("button");
-        btn.type = "button";
-        btn.className = "account-nav-chip account-promo-account-chip";
-        btn.title = "Account settings";
-        btn.setAttribute("aria-label", "Account settings");
-        if (avatar) {
-          var img = document.createElement("img");
-          img.src = avatar;
-          img.className = "account-nav-chip__img";
-          img.alt = "";
-          btn.appendChild(img);
-        } else {
-          var span = document.createElement("span");
-          span.className = "account-nav-chip__initials";
-          span.textContent = letter;
-          btn.appendChild(span);
-        }
-        el.appendChild(btn);
-      });
+      paintPromoSignedInChip(wraps, user, username, avatar);
       setPromoStripSignedInState(wraps, true);
     })
     .catch(function () {
-      var letter = accountChipInitialDisplay("", user.email);
-      wraps.forEach(function (el) {
-        el.innerHTML = "";
-        var btn = document.createElement("button");
-        btn.type = "button";
-        btn.className = "account-nav-chip account-promo-account-chip";
-        btn.title = "Account settings";
-        btn.setAttribute("aria-label", "Account settings");
-        var span = document.createElement("span");
-        span.className = "account-nav-chip__initials";
-        span.textContent = letter;
-        btn.appendChild(span);
-        el.appendChild(btn);
-      });
+      if (gen !== promoBannerRefreshGen) return;
+      paintPromoSignedInChip(wraps, user, "", "");
       setPromoStripSignedInState(wraps, true);
     });
 }
@@ -342,8 +354,16 @@ function boot() {
 
   window.addEventListener("message", function (ev) {
     if (ev.origin !== window.location.origin) return;
-    if (!ev.data || ev.data.type !== "lw-close-account-embed") return;
-    closeAccountPagePopup();
+    if (!ev.data || typeof ev.data.type !== "string") return;
+    if (ev.data.type === "lw-close-account-embed") {
+      closeAccountPagePopup();
+      return;
+    }
+    if (ev.data.type === "lw-account-profile-updated") {
+      if (typeof window.__lwRefreshAccountPromoBanner === "function") {
+        window.__lwRefreshAccountPromoBanner({ forceProfile: true });
+      }
+    }
   });
 
   window.__lwOpenAccountAuthModal = function (mode) {
@@ -412,6 +432,13 @@ function boot() {
           console.warn("[Last War Tools] account-auth-modal:", e);
         }
       }
+
+      window.__lwRefreshAccountPromoBanner = function (opts) {
+        if (auth && db && auth.currentUser) {
+          return refreshAccountPromoBanner(auth.currentUser, db, opts);
+        }
+        return Promise.resolve();
+      };
 
       var accountModalSignUpInProgress = false;
       if (auth) {
@@ -504,7 +531,7 @@ function boot() {
               window.__lwFillAccountProfileForm(profAfterSignUp);
             }
             setAuthStatus("Account created. Check your email to verify before syncing.", "ok");
-            await refreshAccountPromoBanner(cred.user, db);
+            await refreshAccountPromoBanner(cred.user, db, { forceProfile: true });
             closeAccountModal();
           } finally {
             accountModalSignUpInProgress = false;
