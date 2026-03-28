@@ -462,9 +462,11 @@
       const SERVER_NUMBER_OFFSET = 3;
 
       // ── State ─────────────────────────────────────────────────────────────────
-      // The source sheet has two intro rows before the server registry.
-      // The Visualization API skips them, so sheetRows[0] maps to sheet row 3.
-      // Each row: indices 0–9 = alliance tags (cols A–J), index 10 = date (col K).
+      // gviz returns row 1 of the sheet (headers / tips) as the first row; the first
+      // server row (server 3) is the second row. We slice that header off so
+      // sheetRows[i] lines up with server number i + SERVER_NUMBER_OFFSET.
+      // Each row: indices 0–9 = alliance tags (cols A–J), index 10 = date (col K),
+      // index 11 = SN (col L) when present.
       let sheetRows = [];
       let dataReady = false;
       let searchMode = "server"; // 'server' | 'alliance'
@@ -546,13 +548,15 @@
         }
 
         const table = payload.table;
-        sheetRows = (table.rows || []).map((row) =>
+        const rawRows = (table.rows || []).map((row) =>
           table.cols.map((_, i) => {
             const cell = row.c?.[i];
             if (!cell || cell.v === null || cell.v === undefined) return "";
             return String(cell.f ?? cell.v);
           }),
         );
+        // First row is the sheet header, not a server entry (see comment above).
+        sheetRows = rawRows.slice(1);
 
         dataReady = true;
       }
