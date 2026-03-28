@@ -1,4 +1,77 @@
 (function () {
+  /** Same-tab hint: account-auth-modal.js sets this when signed in so the next page can paint the chip before Firebase loads. */
+  var AUTH_BANNER_SESSION_UID_KEY = 'lwAuthBannerUid';
+
+  /** Save server-rendered promo buttons before optional optimistic chip (WeakMap in auth modal needs this for sign-out). */
+  function stashPromoActionsBaselineHtml() {
+    document.querySelectorAll('.account-promo-actions').forEach(function (el) {
+      if (el._lwPromoBaselineHtml != null) return;
+      if (el.querySelector('a[href="account.html"]')) {
+        el._lwPromoBaselineHtml = el.innerHTML;
+      }
+    });
+  }
+
+  function chipLetterFromCachedProfile() {
+    try {
+      var u = String(localStorage.getItem('lwProfileUsername') || '').trim();
+      if (u) {
+        var ch = u.charAt(0);
+        return ch ? ch.toUpperCase() : '\u2026';
+      }
+    } catch (_) {
+      /* ignore */
+    }
+    return '\u2026';
+  }
+
+  /** If this tab was signed in, show chip immediately (avoids flash of Create account / Sign in on navigation). */
+  function paintOptimisticSignedInPromoFromSession() {
+    var page = (window.location.pathname.split('/').pop() || '').toLowerCase();
+    if (page === 'account.html') return;
+    var uid = '';
+    try {
+      uid = sessionStorage.getItem(AUTH_BANNER_SESSION_UID_KEY) || '';
+    } catch (_) {
+      return;
+    }
+    if (!uid) return;
+    document.querySelectorAll('.account-promo-actions').forEach(function (actions) {
+      var strip = actions.closest('.account-promo-strip');
+      if (!strip) return;
+      if (strip.dataset.lwPromoAriaSaved === undefined) {
+        strip.dataset.lwPromoAriaSaved = strip.getAttribute('aria-label') || '';
+      }
+      strip.classList.add('account-promo-strip--signed-in');
+      strip.setAttribute('aria-label', 'Account settings');
+      actions.innerHTML = '';
+      var btn = document.createElement('button');
+      btn.type = 'button';
+      btn.className = 'account-nav-chip account-promo-account-chip';
+      btn.title = 'Account settings';
+      btn.setAttribute('aria-label', 'Account settings');
+      var span = document.createElement('span');
+      span.className = 'account-nav-chip__initials';
+      span.textContent = chipLetterFromCachedProfile();
+      btn.appendChild(span);
+      actions.appendChild(btn);
+    });
+  }
+
+  if (!window.__lwPromoChipEarlyClickAttached) {
+    window.__lwPromoChipEarlyClickAttached = true;
+    document.addEventListener(
+      'click',
+      function (ev) {
+        if (!ev.target.closest('.account-promo-account-chip')) return;
+        if (typeof window.__lwOpenAccountPagePopup === 'function') return;
+        ev.preventDefault();
+        window.__lwPendingAccountPagePopup = true;
+      },
+      true,
+    );
+  }
+
   /** Language inside the account strip, immediately before actions/chip (left of profile icon when signed in). */
   function moveLanguageIntoAccountPromoStrip() {
     var stack = document.querySelector('.page-top-stack');
@@ -19,6 +92,8 @@
 
   function initPageDropdowns() {
     moveLanguageIntoAccountPromoStrip();
+    stashPromoActionsBaselineHtml();
+    paintOptimisticSignedInPromoFromSession();
     ensureAccountAuthModalForPromoLinks();
     const nav = document.querySelector('.page-nav');
     if (!nav) {

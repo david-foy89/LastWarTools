@@ -133,9 +133,16 @@ function injectModalIfNeeded() {
 /** Preserve default Create account / Sign in markup so we can restore after sign-out */
 const promoActionsOriginalHtml = new WeakMap();
 
+/** Mirrors signed-in state for same-tab navigations (page-nav-dropdown paints chip before Firebase loads). */
+var AUTH_BANNER_SESSION_UID_KEY = "lwAuthBannerUid";
+
 function captureAccountPromoActionsOriginals() {
   document.querySelectorAll(".account-promo-actions").forEach(function (el) {
-    if (!promoActionsOriginalHtml.has(el)) {
+    if (promoActionsOriginalHtml.has(el)) return;
+    var baseline = el._lwPromoBaselineHtml;
+    if (baseline != null) {
+      promoActionsOriginalHtml.set(el, baseline);
+    } else if (el.innerHTML.indexOf("account.html") !== -1) {
       promoActionsOriginalHtml.set(el, el.innerHTML);
     }
   });
@@ -206,6 +213,11 @@ function refreshAccountPromoBanner(user, db, opts) {
   if (!user || !db) {
     lastPromoBannerUid = null;
     promoBannerRefreshGen += 1;
+    try {
+      sessionStorage.removeItem(AUTH_BANNER_SESSION_UID_KEY);
+    } catch (_) {
+      /* ignore */
+    }
     setPromoStripSignedInState(wraps, false);
     wraps.forEach(function (el) {
       var orig = promoActionsOriginalHtml.get(el);
@@ -220,6 +232,12 @@ function refreshAccountPromoBanner(user, db, opts) {
   lastPromoBannerUid = user.uid;
   promoBannerRefreshGen += 1;
   var gen = promoBannerRefreshGen;
+
+  try {
+    sessionStorage.setItem(AUTH_BANNER_SESSION_UID_KEY, user.uid);
+  } catch (_) {
+    /* ignore */
+  }
 
   paintPromoSignedInChip(wraps, user, "", "");
   setPromoStripSignedInState(wraps, true);
@@ -351,6 +369,10 @@ function boot() {
   }
 
   window.__lwOpenAccountPagePopup = openAccountPagePopup;
+  if (window.__lwPendingAccountPagePopup) {
+    window.__lwPendingAccountPagePopup = false;
+    openAccountPagePopup();
+  }
 
   window.addEventListener("message", function (ev) {
     if (ev.origin !== window.location.origin) return;
