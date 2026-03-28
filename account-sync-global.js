@@ -38,7 +38,7 @@ if (!firebaseConfigOk(cfg)) {
 
     onAuthStateChanged(auth, async (user) => {
       if (!user) return;
-      if (shouldRunBackgroundSync()) {
+      if (shouldRunBackgroundSync() && user.emailVerified) {
         try {
           await mergeAndSyncToCloud(user, db, {});
           markBackgroundSynced();

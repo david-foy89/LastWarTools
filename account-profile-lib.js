@@ -16,6 +16,7 @@ export const LS_TIMEZONE = "lwProfileTimezone";
 export const LS_ALLIANCE = "lwProfileAllianceName";
 export const LS_SERVER = "lwProfileServerNumber";
 export const LS_ALLIANCE_LIST = "lwAllianceListJson";
+export const LS_USERNAME = "lwProfileUsername";
 
 /** Max base64 length stored in Firestore (~220KB JPEG) */
 export const MAX_AVATAR_DATA_URL_CHARS = 450000;
@@ -28,6 +29,7 @@ function normalizeProfile(d) {
   }
   const list = Array.isArray(d.allianceList) ? d.allianceList : [];
   return {
+    username: typeof d.username === "string" ? d.username : "",
     timezone: typeof d.timezone === "string" ? d.timezone : "",
     allianceName: typeof d.allianceName === "string" ? d.allianceName : "",
     serverNumber: typeof d.serverNumber === "string" ? d.serverNumber : "",
@@ -41,6 +43,7 @@ function normalizeProfile(d) {
 
 export function emptyProfile() {
   return {
+    username: "",
     timezone: "",
     allianceName: "",
     serverNumber: "",
@@ -56,7 +59,7 @@ export async function loadAndApplyUserProfile(user, db) {
   if (!user?.uid || !db) return null;
   try {
     const snap = await getDoc(doc(db, PROFILE_COLLECTION, user.uid));
-    if (!snap.exists) return null;
+    if (!snap.exists()) return null;
     const profile = normalizeProfile(snap.data());
     applyProfileToLocalStorage(profile);
     return profile;
@@ -69,6 +72,7 @@ export async function loadAndApplyUserProfile(user, db) {
 export function applyProfileToLocalStorage(profile) {
   if (!profile) return;
   try {
+    localStorage.setItem(LS_USERNAME, profile.username || "");
     localStorage.setItem(LS_TIMEZONE, profile.timezone || "");
     localStorage.setItem(LS_ALLIANCE, profile.allianceName || "");
     localStorage.setItem(LS_SERVER, profile.serverNumber || "");
@@ -83,6 +87,9 @@ export function applyProfileToLocalStorage(profile) {
  */
 export async function saveUserProfile(user, db, profileData) {
   if (!user?.uid || !db) throw new Error("Not signed in or database unavailable");
+  if (!user.emailVerified) {
+    throw new Error("Verify your email before saving profile.");
+  }
 
   const ref = doc(db, PROFILE_COLLECTION, user.uid);
   const data = {
@@ -109,6 +116,7 @@ export async function saveUserProfile(user, db, profileData) {
   await setDoc(ref, data, { merge: true });
 
   const applied = {
+    username: localStorage.getItem(LS_USERNAME) || "",
     timezone: data.timezone,
     allianceName: data.allianceName,
     serverNumber: data.serverNumber,
@@ -169,20 +177,39 @@ export function resizeImageFileToDataUrl(file, maxDim, maxChars) {
   });
 }
 
-/** Simple CSV line split (handles quoted fields with commas) */
+/** Simple CSV line split (RFC 4180-style: commas inside "...", "" → literal ") */
 function splitCsvLine(line) {
   const out = [];
   let cur = "";
-  let inQ = false;
-  for (let i = 0; i < line.length; i++) {
+  let i = 0;
+  let inQuotes = false;
+  while (i < line.length) {
     const c = line[i];
-    if (c === '"') {
-      inQ = !inQ;
-    } else if ((c === "," && !inQ) || (c === "\t" && !inQ)) {
-      out.push(cur.trim());
-      cur = "";
-    } else {
+    if (inQuotes) {
+      if (c === '"') {
+        if (line[i + 1] === '"') {
+          cur += '"';
+          i += 2;
+          continue;
+        }
+        inQuotes = false;
+        i++;
+        continue;
+      }
       cur += c;
+      i++;
+    } else {
+      if (c === '"') {
+        inQuotes = true;
+        i++;
+      } else if (c === "," || c === "\t") {
+        out.push(cur.trim());
+        cur = "";
+        i++;
+      } else {
+        cur += c;
+        i++;
+      }
     }
   }
   out.push(cur.trim());

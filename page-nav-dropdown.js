@@ -1,11 +1,15 @@
 (function () {
   function initPageDropdowns() {
+    ensureAccountAuthModalForPromoLinks();
     const nav = document.querySelector('.page-nav');
-    if (!nav) return;
+    if (!nav) {
+      ensureAccountBackgroundSync();
+      return;
+    }
 
     ensureAllianceToolsLinks(nav);
     ensureSeason2SuppliesLink(nav);
-    ensureAccountLink(nav);
+    ensureAccountNavChipWrap(nav);
     ensureAccountBackgroundSync();
     // Train Conductor and Server Search are now handled in the Alliance Tools dropdown in HTML
 
@@ -105,17 +109,45 @@
     });
   }
 
-  function ensureAccountLink(nav) {
-    if (nav.querySelector('a[href="account.html"]')) return;
-    const currentPage = window.location.pathname.split('/').pop() || 'index.html';
-    const link = document.createElement('a');
-    link.href = 'account.html';
-    link.className = 'page-link';
-    link.textContent = 'Account';
-    if (currentPage === 'account.html') {
-      link.classList.add('active');
-    }
-    nav.appendChild(link);
+  /**
+   * Load site-wide sign-in modal when promo uses links to account.html (not on account.html itself).
+   * preventDefault runs synchronously so the browser does not navigate before the module loads.
+   */
+  function ensureAccountAuthModalForPromoLinks() {
+    if (window.__lwAccountAuthModalScriptLoading) return;
+    var links = document.querySelectorAll('.account-promo-actions a[href="account.html"]');
+    if (!links.length) return;
+    window.__lwAccountAuthModalScriptLoading = true;
+    links.forEach(function (a) {
+      a.addEventListener(
+        'click',
+        function (e) {
+          e.preventDefault();
+          var mode = /sign\s*in/i.test(a.textContent || '') ? 'signIn' : 'signUp';
+          if (typeof window.__lwOpenAccountAuthModal === 'function') {
+            window.__lwOpenAccountAuthModal(mode);
+          } else {
+            window.__lwPendingAccountAuthModalMode = mode;
+          }
+        },
+        { capture: true },
+      );
+    });
+    var s = document.createElement('script');
+    s.type = 'module';
+    s.src = 'account-auth-modal.js';
+    s.onerror = function () {
+      window.__lwAccountAuthModalScriptLoading = false;
+    };
+    document.head.appendChild(s);
+  }
+
+  /** Placeholder for signed-in avatar / initials (see account-nav-chip.js). */
+  function ensureAccountNavChipWrap(nav) {
+    if (nav.querySelector('.account-nav-chip-wrap')) return;
+    var wrap = document.createElement('span');
+    wrap.className = 'account-nav-chip-wrap';
+    nav.prepend(wrap);
   }
 
   /**
@@ -127,8 +159,8 @@
     if (window.__lwAccountBackgroundSyncInjected) return;
     window.__lwAccountBackgroundSyncInjected = true;
 
-    const page = window.location.pathname.split('/').pop() || '';
-    if (page === 'account.html') return;
+    var page = window.location.pathname.split('/').pop() || '';
+    var skipGlobalMerge = page === 'account.html';
 
     function scriptFilenamePresent(filename) {
       return Array.from(document.scripts).some(function (s) {
@@ -165,7 +197,12 @@
         return appendScript('firebase-config.js', false);
       })
       .then(function () {
-        return appendScript('account-sync-global.js', true);
+        if (!skipGlobalMerge) {
+          return appendScript('account-sync-global.js', true);
+        }
+      })
+      .then(function () {
+        return appendScript('account-nav-chip.js', true);
       })
       .catch(function () {});
   }

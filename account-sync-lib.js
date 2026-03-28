@@ -57,7 +57,7 @@ export function applyLocalStoragePayload(obj) {
 }
 
 export function parseCloudDataFromSnap(snap) {
-  if (!snap || !snap.exists) return {};
+  if (!snap || !snap.exists()) return {};
   const raw = snap.data();
   const payloadStr = raw && typeof raw.payload === "string" ? raw.payload : "";
   if (!payloadStr) return {};
@@ -86,6 +86,11 @@ export async function mergeAndSyncToCloud(user, db, options) {
         };
 
   if (!db || !user || !user.uid) return;
+
+  if (!user.emailVerified) {
+    onStatus("Verify your email to sync. Check your inbox for the verification link.", "error");
+    return;
+  }
 
   onStatus("Syncing (merge cloud + this device)…", "progress");
 

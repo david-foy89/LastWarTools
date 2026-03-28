@@ -1163,7 +1163,8 @@
       <div class="modal-content" style="max-width: 420px">
         <h3 id="strategyPinModalTitle">Strategy pin</h3>
         <p class="pin-modal-hint">
-          Set a <strong>target time</strong> for a fixed moment, or use
+          Set a <strong>target time</strong> for a fixed moment (interpreted in the
+          <strong>timezone</strong> you select below), or use
           <strong>Timer (minutes)</strong> for a countdown from now (leave
           target empty). Both can be cleared to remove the timer.
         </p>
@@ -1206,6 +1207,10 @@
         <div class="pin-modal-field">
           <label for="strategyPinTarget">Target date &amp; time</label>
           <input type="datetime-local" id="strategyPinTarget" />
+        </div>
+        <div class="pin-modal-field">
+          <label for="strategyPinTimezone">Timezone for target time</label>
+          <select id="strategyPinTimezone"></select>
         </div>
         <div class="pin-modal-field">
           <label for="strategyPinTimerMins">Timer (minutes from now)</label>

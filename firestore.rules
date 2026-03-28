@@ -3,13 +3,33 @@ service cloud.firestore {
   match /databases/{database}/documents {
 
     // Transfer tracker + transfer-submit (collection: transferSubmissions).
-    // Must stay ABOVE the catch-all deny below. Delete is open (tracker UI); tighten later if needed.
     match /transferSubmissions/{docId} {
       allow read: if true;
       allow create, update: if true;
       allow delete: if true;
     }
 
+    // Last War Tools account: per-user localStorage sync blob (doc id = auth uid).
+    match /userLocalStorageSync/{userId} {
+      allow read, write: if request.auth != null && request.auth.uid == userId;
+    }
+
+    // Last War Tools account: profile (timezone, alliance, server, alliance list, avatar).
+    match /userProfiles/{userId} {
+      allow read, write: if request.auth != null && request.auth.uid == userId;
+    }
+
+    // Username registry (doc id = lowercase username). Public read for sign-up availability check.
+    match /usernames/{name} {
+      allow read: if true;
+      allow create: if request.auth != null
+        && !exists(/databases/$(database)/documents/usernames/$(name))
+        && request.resource.data.uid == request.auth.uid
+        && request.resource.data.email is string;
+      allow update, delete: if false;
+    }
+
+    // Deny everything else (keep below all specific collections).
     match /{document=**} {
       allow read, write: if false;
     }

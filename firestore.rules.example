@@ -18,6 +18,19 @@ service cloud.firestore {
       allow read, write: if request.auth != null && request.auth.uid == userId;
     }
 
+    // Username → email lookup for sign-in (document id = lowercase username; one doc per name).
+    // Sign-up runs getDoc(usernames/{name}) BEFORE the user is authenticated to detect taken names.
+    // You need allow read for everyone here (or sign-up will skip the check client-side and rely on
+    // the transaction after auth — deploy create rules below either way).
+    match /usernames/{name} {
+      allow read: if true;
+      allow create: if request.auth != null
+        && !exists(/databases/$(database)/documents/usernames/$(name))
+        && request.resource.data.uid == request.auth.uid
+        && request.resource.data.email is string;
+      allow update, delete: if false;
+    }
+
     // ... keep your existing match blocks for transferSubmissions, etc.
   }
 }

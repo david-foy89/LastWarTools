@@ -56,6 +56,204 @@
     return sec + "s";
   }
 
+  var LS_STRATEGY_TZ = "lwStrategyPinsTimezone";
+  var LS_PROFILE_TZ = "lwProfileTimezone";
+
+  function getStrategyPinsTimezone() {
+    try {
+      var sel = document.getElementById("strategyPinTimezone");
+      if (sel && sel.value) {
+        return sel.value;
+      }
+    } catch (e) {
+      /* ignore */
+    }
+    try {
+      var raw = localStorage.getItem(LS_STRATEGY_TZ);
+      if (raw && raw.length) {
+        return raw;
+      }
+      raw = localStorage.getItem(LS_PROFILE_TZ);
+      if (raw && raw.length) {
+        return raw;
+      }
+    } catch (e2) {
+      /* ignore */
+    }
+    try {
+      if (typeof Intl !== "undefined" && Intl.DateTimeFormat) {
+        var z = Intl.DateTimeFormat().resolvedOptions().timeZone;
+        if (z) {
+          return z;
+        }
+      }
+    } catch (e3) {
+      /* ignore */
+    }
+    return "UTC";
+  }
+
+  function getWallClockInZone(ms, timeZone) {
+    var f = new Intl.DateTimeFormat("en-GB", {
+      timeZone: timeZone,
+      year: "numeric",
+      month: "numeric",
+      day: "numeric",
+      hour: "numeric",
+      minute: "numeric",
+      hourCycle: "h23",
+    });
+    var o = {};
+    f.formatToParts(new Date(ms)).forEach(function (p) {
+      if (p.type !== "literal") {
+        o[p.type] = p.value;
+      }
+    });
+    return {
+      y: +o.year,
+      mo: +o.month,
+      d: +o.day,
+      h: +o.hour,
+      min: +o.minute,
+    };
+  }
+
+  function zonedWallToUtcIso(y, mo, d, h, min, timeZone) {
+    if (typeof Temporal !== "undefined") {
+      try {
+        var pdt = Temporal.PlainDateTime.from({
+          year: y,
+          month: mo,
+          day: d,
+          hour: h,
+          minute: min,
+        });
+        return pdt.toZonedDateTime(timeZone).toInstant().toString();
+      } catch (e) {
+        /* fall through */
+      }
+    }
+    var center = Date.UTC(y, mo - 1, d, h, min, 0);
+    var start = center - 48 * 3600 * 1000;
+    var end = center + 48 * 3600 * 1000;
+    for (var guess = start; guess <= end; guess += 60000) {
+      var w = getWallClockInZone(guess, timeZone);
+      if (w.y === y && w.mo === mo && w.d === d && w.h === h && w.min === min) {
+        return new Date(guess).toISOString();
+      }
+    }
+    return new Date(center).toISOString();
+  }
+
+  function isoToDatetimeLocalInZone(iso, timeZone) {
+    if (!iso) {
+      return "";
+    }
+    var ms = new Date(iso).getTime();
+    if (Number.isNaN(ms)) {
+      return "";
+    }
+    var w = getWallClockInZone(ms, timeZone);
+    var pad = function (n) {
+      return (n < 10 ? "0" : "") + n;
+    };
+    return (
+      w.y +
+      "-" +
+      pad(w.mo) +
+      "-" +
+      pad(w.d) +
+      "T" +
+      pad(w.h) +
+      ":" +
+      pad(w.min)
+    );
+  }
+
+  function populateStrategyPinTimezoneSelect() {
+    var sel = document.getElementById("strategyPinTimezone");
+    if (!sel) {
+      return;
+    }
+    var zones = [];
+    try {
+      if (typeof Intl !== "undefined" && Intl.supportedValuesOf) {
+        zones = Intl.supportedValuesOf("timeZone");
+      }
+    } catch (e) {
+      zones = [];
+    }
+    if (!zones.length) {
+      zones = [
+        "UTC",
+        "America/New_York",
+        "America/Chicago",
+        "America/Denver",
+        "America/Los_Angeles",
+        "Europe/London",
+        "Europe/Paris",
+        "Asia/Tokyo",
+        "Asia/Shanghai",
+        "Australia/Sydney",
+      ];
+    }
+    zones = zones.slice().sort();
+    var current = getStrategyPinsTimezone();
+    sel.innerHTML = "";
+    zones.forEach(function (z) {
+      var o = document.createElement("option");
+      o.value = z;
+      o.textContent = z;
+      sel.appendChild(o);
+    });
+    if (zones.indexOf(current) < 0) {
+      var orphan = document.createElement("option");
+      orphan.value = current;
+      orphan.textContent = current;
+      sel.insertBefore(orphan, sel.firstChild);
+    }
+    sel.value = current;
+  }
+
+  function persistStrategyPinTimezone(value) {
+    try {
+      localStorage.setItem(LS_STRATEGY_TZ, value);
+    } catch (e) {
+      /* ignore */
+    }
+  }
+
+  function wireStrategyPinTimezoneSelect() {
+    var sel = document.getElementById("strategyPinTimezone");
+    if (!sel || sel.dataset.lwWired) {
+      return;
+    }
+    sel.dataset.lwWired = "1";
+    sel.addEventListener("change", function () {
+      persistStrategyPinTimezone(sel.value);
+      var modal = document.getElementById("strategyPinModal");
+      var id = modal && modal.dataset.editingId;
+      if (!id || !optsRef) {
+        updatePinsList();
+        if (optsRef) {
+          optsRef.renderMap();
+        }
+        return;
+      }
+      var state = optsRef.state;
+      ensurePins(state);
+      var pin = state.strategyPins.find(function (p) {
+        return p.id === id;
+      });
+      var targetEl = document.getElementById("strategyPinTarget");
+      if (pin && pin.targetTime && targetEl) {
+        targetEl.value = isoToDatetimeLocalInZone(pin.targetTime, sel.value);
+      }
+      updatePinsList();
+      optsRef.renderMap();
+    });
+  }
+
   function formatTargetLocal(iso) {
     if (!iso) {
       return "";
@@ -64,11 +262,13 @@
     if (Number.isNaN(d.getTime())) {
       return "";
     }
+    var tz = getStrategyPinsTimezone();
     return d.toLocaleString(undefined, {
       month: "short",
       day: "numeric",
       hour: "2-digit",
       minute: "2-digit",
+      timeZone: tz,
     });
   }
 
@@ -281,32 +481,12 @@
     if (markSel) {
       markSel.value = normalizeMark(pin.mark);
     }
+    var tzForPin = getStrategyPinsTimezone();
     document.getElementById("strategyPinTarget").value = pin.targetTime
-      ? toDatetimeLocalValue(pin.targetTime)
+      ? isoToDatetimeLocalInZone(pin.targetTime, tzForPin)
       : "";
     document.getElementById("strategyPinTimerMins").value = "";
     modal.dataset.editingId = pinId;
-  }
-
-  function toDatetimeLocalValue(iso) {
-    var d = new Date(iso);
-    if (Number.isNaN(d.getTime())) {
-      return "";
-    }
-    var pad = function (n) {
-      return (n < 10 ? "0" : "") + n;
-    };
-    return (
-      d.getFullYear() +
-      "-" +
-      pad(d.getMonth() + 1) +
-      "-" +
-      pad(d.getDate()) +
-      "T" +
-      pad(d.getHours()) +
-      ":" +
-      pad(d.getMinutes())
-    );
   }
 
   function closePinModal() {
@@ -353,12 +533,29 @@
       String(document.getElementById("strategyPinTimerMins").value || ""),
       10,
     );
+    var tzSave = getStrategyPinsTimezone();
     if (dt) {
-      pin.targetTime = new Date(dt).toISOString();
+      var m = dt.match(/^(\d{4})-(\d{2})-(\d{2})T(\d{2}):(\d{2})/);
+      if (m) {
+        pin.targetTime = zonedWallToUtcIso(
+          +m[1],
+          +m[2],
+          +m[3],
+          +m[4],
+          +m[5],
+          tzSave,
+        );
+      } else {
+        pin.targetTime = new Date(dt).toISOString();
+      }
     } else if (!Number.isNaN(mins) && mins > 0) {
       pin.targetTime = new Date(Date.now() + mins * 60000).toISOString();
     } else {
       pin.targetTime = null;
+    }
+    var tzEl = document.getElementById("strategyPinTimezone");
+    if (tzEl && tzEl.value) {
+      persistStrategyPinTimezone(tzEl.value);
     }
     updatePinsList();
     optsRef.renderMap();
@@ -551,6 +748,9 @@
     var canvas = opts.canvas;
     var mapSize = opts.mapSize;
     ensurePins(state);
+
+    populateStrategyPinTimezoneSelect();
+    wireStrategyPinTimezoneSelect();
 
     var placementCb = document.getElementById("strategyPinPlacement");
     if (placementCb) {

@@ -120,15 +120,20 @@
         gap: 8px;
         margin-bottom: 10px;
       }
-      #accountProfileImport {
+      #accountAllianceImport {
         position: absolute;
         width: 0;
         height: 0;
         opacity: 0;
         pointer-events: none;
       }
+      .account-username-readonly {
+        opacity: 0.85;
+        cursor: not-allowed;
+      }
     </style>
     <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
+    <script src="https://www.google.com/recaptcha/api.js" async defer></script>
   </head>
   <body>
     <div class="page">
@@ -181,9 +186,8 @@
       <section class="hero">
         <h1>Account (optional)</h1>
         <div class="sub">
-          When you sign in, <strong>everything syncs automatically</strong>: we merge your cloud
-          backup with this browser (this device wins if a key exists in both), then save the
-          merged result back to the cloud. <strong>All tools still work fully without logging in.</strong>
+          Sign in with your <strong>username</strong>. After you create an account, verify your email to
+          enable cloud sync. <strong>All tools still work fully without an account.</strong>
         </div>
       </section>
 
@@ -193,41 +197,132 @@
         <div class="account-card" id="accountSignedOut">
           <h2>Sign in or create an account</h2>
           <p class="account-muted">
-            Uses email and password. Enable Email/Password in Firebase Console → Authentication
-            for your project, and deploy Firestore rules (see <code>firestore.rules.example</code>).
+            Use your <strong>username</strong> and password. Enable Email/Password in Firebase Console →
+            Authentication, reCAPTCHA site key in <code>firebase-config.js</code>, and deploy Firestore rules
+            (see <code>firestore.rules.example</code>).
           </p>
-          <div class="account-field">
-            <label for="accountEmail">Email</label>
-            <input
-              id="accountEmail"
-              type="email"
-              autocomplete="email"
-              maxlength="320"
-            />
-          </div>
-          <div class="account-field">
-            <label for="accountPassword">Password</label>
-            <input
-              id="accountPassword"
-              type="password"
-              autocomplete="current-password"
-              minlength="6"
-            />
-          </div>
           <div class="account-actions">
-            <button type="button" class="action-button" id="accountSignInBtn">
+            <button type="button" class="action-button" id="accountInlineCreateBtn">Create account</button>
+            <button type="button" class="action-button action-button--quiet" id="accountInlineSignInBtn">
               Sign in
             </button>
-            <button type="button" class="action-button" id="accountSignUpBtn">
-              Create account
-            </button>
           </div>
-          <div class="account-status" id="accountAuthStatus"></div>
+        </div>
+
+        <div
+          id="accountModalBackdrop"
+          class="account-modal-backdrop"
+          hidden
+          role="presentation"
+          aria-hidden="true"
+        >
+          <div
+            class="account-modal-dialog"
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby="accountModalTitleSignIn"
+            tabindex="-1"
+            id="accountModalDialog"
+          >
+            <button type="button" class="account-modal__close" id="accountModalCloseBtn" aria-label="Close">
+              ×
+            </button>
+
+            <div id="accountModalSignInPanel">
+              <h2 id="accountModalTitleSignIn">Sign in</h2>
+              <p class="account-muted">
+                Enter the username and password for your Last War Tools account.
+              </p>
+              <div class="account-field">
+                <label for="accountUsernameSignIn">Username</label>
+                <input
+                  id="accountUsernameSignIn"
+                  type="text"
+                  autocomplete="username"
+                  maxlength="20"
+                  spellcheck="false"
+                />
+              </div>
+              <div class="account-field">
+                <label for="accountPasswordSignIn">Password</label>
+                <input
+                  id="accountPasswordSignIn"
+                  type="password"
+                  autocomplete="current-password"
+                  minlength="6"
+                />
+              </div>
+              <div class="account-actions">
+                <button type="button" class="action-button" id="accountSignInBtn">Sign in</button>
+              </div>
+              <p class="account-modal-switch">
+                Need an account?
+                <button type="button" id="accountModalSwitchToSignUp">Create one</button>
+              </p>
+            </div>
+
+            <div id="accountModalSignUpPanel" hidden>
+              <h2 id="accountModalTitleSignUp">Create account</h2>
+              <p class="account-muted">
+                Choose a unique username (3–20 characters: letters, numbers, underscores). Verify your email
+                before syncing. Complete reCAPTCHA when a site key is configured.
+              </p>
+              <div class="account-field">
+                <label for="accountUsernameSignUp">Username</label>
+                <input
+                  id="accountUsernameSignUp"
+                  type="text"
+                  autocomplete="off"
+                  maxlength="20"
+                  spellcheck="false"
+                />
+                <p
+                  id="accountUsernameSignUpHint"
+                  class="account-status"
+                  style="margin-top: 6px; min-height: 1.1em"
+                  aria-live="polite"
+                ></p>
+              </div>
+              <div class="account-field">
+                <label for="accountEmailSignUp">Email (for verification)</label>
+                <input id="accountEmailSignUp" type="email" autocomplete="email" maxlength="320" />
+              </div>
+              <div class="account-field">
+                <label for="accountPasswordSignUp">Password</label>
+                <input
+                  id="accountPasswordSignUp"
+                  type="password"
+                  autocomplete="new-password"
+                  minlength="6"
+                />
+              </div>
+              <div id="accountRecaptchaMount" class="account-recaptcha-mount"></div>
+              <div class="account-actions">
+                <button type="button" class="action-button" id="accountSignUpBtn">Create account</button>
+              </div>
+              <p class="account-modal-switch">
+                Already have an account?
+                <button type="button" id="accountModalSwitchToSignIn">Sign in</button>
+              </p>
+            </div>
+
+            <div class="account-status" id="accountAuthStatus" style="margin-top: 8px"></div>
+          </div>
         </div>
 
         <div class="account-card" id="accountSignedIn" style="display: none; margin-top: 16px">
           <h2>Signed in</h2>
           <p class="account-muted" id="accountUserLabel"></p>
+          <div
+            id="accountVerifyBanner"
+            class="account-banner"
+            style="display: none; border-color: rgba(116, 192, 252, 0.45)"
+          >
+            <strong>Verify your email</strong> to sync saved data across devices.
+            <button type="button" class="action-button" id="accountResendVerifyBtn" style="margin-top: 10px">
+              Resend verification email
+            </button>
+          </div>
           <p class="account-muted">
             <strong>Sync now</strong> runs the same merge as sign-in (download cloud + merge with
             this browser + upload). <strong>Restore only</strong> replaces this browser with the
@@ -263,10 +358,20 @@
           <div class="account-card account-profile-card" style="margin-top: 20px">
             <h2>Profile &amp; alliance list</h2>
             <p class="account-muted">
-              Optional details are stored with your account and copied into this browser so tools can read them (see
-              keys <code>lwProfile*</code> / <code>lwAllianceListJson</code>). Import a CSV or Excel file, or export to
-              share with your alliance.
+              Username cannot be changed. Other details are stored with your account and copied into this browser for
+              tools (<code>lwProfile*</code> / <code>lwAllianceListJson</code>). Import CSV or Excel, or export to share.
             </p>
+
+            <div class="account-field">
+              <label for="accountUsernameReadonly">Username</label>
+              <input
+                id="accountUsernameReadonly"
+                type="text"
+                class="account-username-readonly"
+                readonly
+                spellcheck="false"
+              />
+            </div>
 
             <div class="account-avatar-row">
               <img
@@ -335,6 +440,8 @@
         signInWithEmailAndPassword,
         signOut,
         onAuthStateChanged,
+        sendEmailVerification,
+        deleteUser,
       } from "https://www.gstatic.com/firebasejs/9.22.2/firebase-auth.js";
       import { getFirestore, doc, getDoc } from "https://www.gstatic.com/firebasejs/9.22.2/firebase-firestore.js";
       import {
@@ -358,8 +465,17 @@
         LS_ALLIANCE,
         LS_SERVER,
         LS_ALLIANCE_LIST,
+        LS_USERNAME,
         MAX_AVATAR_DATA_URL_CHARS,
       } from "./account-profile-lib.js";
+      import {
+        lookupEmailByUsername,
+        claimUsernameForNewUser,
+        isUsernameAvailable,
+        validateUsername,
+        normalizeUsername,
+        formatFirestoreAccountError,
+      } from "./account-username-lib.js";
 
       function firebaseConfigBannerHtml(cfg) {
         if (!cfg || typeof cfg !== "object") {
@@ -378,6 +494,7 @@
       const signedInEl = document.getElementById("accountSignedIn");
       const userLabel = document.getElementById("accountUserLabel");
       const accountTopPromo = document.getElementById("accountTopPromo");
+      const verifyBanner = document.getElementById("accountVerifyBanner");
 
       function setAuthStatus(msg, kind) {
         authStatus.textContent = msg || "";
@@ -426,17 +543,86 @@
         }
       }
 
-      function scrollToSignInForm() {
-        const card = document.getElementById("accountSignedOut");
-        if (card) card.scrollIntoView({ behavior: "smooth", block: "start" });
-        const email = document.getElementById("accountEmail");
-        if (email) {
-          window.setTimeout(() => email.focus(), 350);
+      const accountModalBackdrop = document.getElementById("accountModalBackdrop");
+      const accountModalSignInPanel = document.getElementById("accountModalSignInPanel");
+      const accountModalSignUpPanel = document.getElementById("accountModalSignUpPanel");
+      const accountModalDialog = document.getElementById("accountModalDialog");
+      let accountModalPreviousFocus = null;
+
+      function ensureRecaptchaRendered() {
+        const key = window.__RECAPTCHA_SITE_KEY__ || "";
+        const el = document.getElementById("accountRecaptchaMount");
+        if (!key || !el) return;
+        if (typeof window.__accountRecaptchaWidgetId === "number") return;
+        if (typeof grecaptcha === "undefined" || !grecaptcha.render) {
+          window.setTimeout(ensureRecaptchaRendered, 120);
+          return;
         }
+        window.__accountRecaptchaWidgetId = grecaptcha.render(el, { sitekey: key });
       }
 
-      document.getElementById("accountPromoCreateBtn")?.addEventListener("click", scrollToSignInForm);
-      document.getElementById("accountPromoSignInBtn")?.addEventListener("click", scrollToSignInForm);
+      function closeAccountModal() {
+        if (!accountModalBackdrop || accountModalBackdrop.hasAttribute("hidden")) return;
+        accountModalBackdrop.setAttribute("hidden", "");
+        accountModalBackdrop.setAttribute("aria-hidden", "true");
+        document.body.style.overflow = "";
+        if (accountModalPreviousFocus && typeof accountModalPreviousFocus.focus === "function") {
+          try {
+            accountModalPreviousFocus.focus();
+          } catch {
+            /* ignore */
+          }
+        }
+        accountModalPreviousFocus = null;
+      }
+
+      function openAccountModal(mode) {
+        if (!accountModalBackdrop || !accountModalSignInPanel || !accountModalSignUpPanel || !accountModalDialog) {
+          return;
+        }
+        accountModalPreviousFocus = document.activeElement;
+        accountModalBackdrop.removeAttribute("hidden");
+        accountModalBackdrop.setAttribute("aria-hidden", "false");
+        document.body.style.overflow = "hidden";
+        if (mode === "signUp") {
+          accountModalSignInPanel.hidden = true;
+          accountModalSignUpPanel.hidden = false;
+          accountModalDialog.setAttribute("aria-labelledby", "accountModalTitleSignUp");
+          ensureRecaptchaRendered();
+          window.setTimeout(() => {
+            document.getElementById("accountUsernameSignUp")?.focus();
+          }, 0);
+        } else {
+          accountModalSignInPanel.hidden = false;
+          accountModalSignUpPanel.hidden = true;
+          accountModalDialog.setAttribute("aria-labelledby", "accountModalTitleSignIn");
+          window.setTimeout(() => {
+            document.getElementById("accountUsernameSignIn")?.focus();
+          }, 0);
+        }
+        setAuthStatus("");
+      }
+
+      document.getElementById("accountModalCloseBtn")?.addEventListener("click", closeAccountModal);
+      accountModalBackdrop?.addEventListener("click", (ev) => {
+        if (ev.target === accountModalBackdrop) closeAccountModal();
+      });
+      document.addEventListener("keydown", (ev) => {
+        if (ev.key === "Escape" && accountModalBackdrop && !accountModalBackdrop.hasAttribute("hidden")) {
+          closeAccountModal();
+        }
+      });
+
+      document.getElementById("accountPromoCreateBtn")?.addEventListener("click", () => openAccountModal("signUp"));
+      document.getElementById("accountPromoSignInBtn")?.addEventListener("click", () => openAccountModal("signIn"));
+      document.getElementById("accountInlineCreateBtn")?.addEventListener("click", () => openAccountModal("signUp"));
+      document.getElementById("accountInlineSignInBtn")?.addEventListener("click", () => openAccountModal("signIn"));
+      document.getElementById("accountModalSwitchToSignUp")?.addEventListener("click", () => {
+        openAccountModal("signUp");
+      });
+      document.getElementById("accountModalSwitchToSignIn")?.addEventListener("click", () => {
+        openAccountModal("signIn");
+      });
 
       const accountTimezone = document.getElementById("accountTimezone");
       if (accountTimezone && accountTimezone.options.length === 0) {
@@ -473,6 +659,7 @@
         let p;
         if (profile && typeof profile === "object") {
           p = {
+            username: profile.username || "",
             timezone: profile.timezone || "",
             allianceName: profile.allianceName || "",
             serverNumber: profile.serverNumber || "",
@@ -481,6 +668,7 @@
           };
         } else {
           p = {
+            username: localStorage.getItem(LS_USERNAME) || "",
             timezone: localStorage.getItem(LS_TIMEZONE) || "",
             allianceName: localStorage.getItem(LS_ALLIANCE) || "",
             serverNumber: localStorage.getItem(LS_SERVER) || "",
@@ -497,6 +685,8 @@
             /* ignore */
           }
         }
+        const usernameReadonly = document.getElementById("accountUsernameReadonly");
+        if (usernameReadonly) usernameReadonly.value = p.username || "";
         if (accountTimezone) accountTimezone.value = p.timezone || "";
         const an = document.getElementById("accountAllianceName");
         const sn = document.getElementById("accountServerNumber");
@@ -638,52 +828,87 @@
       if (auth) {
         onAuthStateChanged(auth, (user) => {
           updateSignedInUi(user);
+          if (verifyBanner) {
+            verifyBanner.style.display = user && !user.emailVerified ? "block" : "none";
+          }
           if (!user) {
             setAuthStatus("");
             setSyncStatus("");
             resetProfileForm();
             return;
           }
+          closeAccountModal();
           setAuthStatus("");
           void (async () => {
-            await mergeAndSyncToCloud(user, db, {
-              onStatus: (msg, kind) => setSyncStatus(msg, kind),
-            });
+            if (user.emailVerified) {
+              await mergeAndSyncToCloud(user, db, {
+                onStatus: (msg, kind) => setSyncStatus(msg, kind),
+              });
+            } else {
+              setSyncStatus("Verify your email to enable cloud sync.");
+            }
             const prof = await loadAndApplyUserProfile(user, db);
             fillProfileForm(prof || { allianceList: [] });
+            const handle =
+              (prof && prof.username) || localStorage.getItem(LS_USERNAME) || "";
+            if (handle) {
+              userLabel.textContent =
+                `Signed in as @${handle}` + (user.email ? ` (${user.email})` : "");
+            } else {
+              userLabel.textContent = user.email ? `Signed in as ${user.email}` : "Signed in";
+            }
           })();
         });
       } else {
         updateSignedInUi(null);
       }
 
+      document.getElementById("accountResendVerifyBtn")?.addEventListener("click", async () => {
+        if (!auth) return;
+        const user = auth.currentUser;
+        if (!user || user.emailVerified) return;
+        try {
+          await sendEmailVerification(user);
+          setSyncStatus("Verification email sent. Check your inbox.", "ok");
+        } catch (e) {
+          setSyncStatus(e && e.message ? e.message : "Could not send email.", "error");
+        }
+      });
+
       document.getElementById("accountSignInBtn").addEventListener("click", async () => {
-        if (!auth) {
+        if (!auth || !db) {
           setAuthStatus("Firebase is not configured.", "error");
           return;
         }
-        const email = String(document.getElementById("accountEmail").value || "").trim();
-        const password = String(document.getElementById("accountPassword").value || "");
-        if (!email || !password) {
-          setAuthStatus("Enter email and password.", "error");
+        const rawU = String(document.getElementById("accountUsernameSignIn")?.value || "").trim();
+        const password = String(document.getElementById("accountPasswordSignIn")?.value || "");
+        if (!rawU || !password) {
+          setAuthStatus("Enter username and password.", "error");
           return;
         }
         setAuthStatus("Signing in…");
         try {
+          const { email } = await lookupEmailByUsername(db, rawU);
           await signInWithEmailAndPassword(auth, email, password);
-          setAuthStatus("Signed in. Syncing…", "ok");
+          setAuthStatus("Signed in.", "ok");
         } catch (e) {
           setAuthStatus(e && e.message ? e.message : "Sign-in failed.", "error");
         }
       });
 
       document.getElementById("accountSignUpBtn").addEventListener("click", async () => {
-        if (!auth) {
+        if (!auth || !db) {
           setAuthStatus("Firebase is not configured.", "error");
           return;
         }
-        const email = String(document.getElementById("accountEmail").value || "").trim();
-        const password = String(document.getElementById("accountPassword").value || "");
+        const rawU = String(document.getElementById("accountUsernameSignUp")?.value || "").trim();
+        const email = String(document.getElementById("accountEmailSignUp")?.value || "").trim();
+        const password = String(document.getElementById("accountPasswordSignUp")?.value || "");
+        const msg = validateUsername(rawU);
+        if (msg) {
+          setAuthStatus(msg, "error");
+          return;
+        }
         if (!email || !password) {
           setAuthStatus("Enter email and password.", "error");
           return;
@@ -692,12 +917,75 @@
           setAuthStatus("Password must be at least 6 characters.", "error");
           return;
         }
+        const recaptchaKey = window.__RECAPTCHA_SITE_KEY__ || "";
+        if (recaptchaKey) {
+          if (typeof grecaptcha === "undefined") {
+            setAuthStatus("reCAPTCHA is still loading. Wait a moment and try again.", "error");
+            return;
+          }
+          const wid = window.__accountRecaptchaWidgetId;
+          const token =
+            typeof wid === "number" ? grecaptcha.getResponse(wid) : grecaptcha.getResponse();
+          if (!token) {
+            setAuthStatus("Complete the reCAPTCHA.", "error");
+            return;
+          }
+        }
         setAuthStatus("Creating account…");
         try {
-          await createUserWithEmailAndPassword(auth, email, password);
-          setAuthStatus("Account created. Syncing…", "ok");
+          const avail = await isUsernameAvailable(db, rawU);
+          if (!avail.available) {
+            setAuthStatus(avail.message || "That username is already taken.", "error");
+            return;
+          }
+          const cred = await createUserWithEmailAndPassword(auth, email, password);
+          try {
+            await claimUsernameForNewUser(db, cred.user, avail.normalized, email);
+          } catch (err) {
+            await deleteUser(cred.user);
+            throw err;
+          }
+          await sendEmailVerification(cred.user);
+          if (recaptchaKey && typeof grecaptcha !== "undefined" && typeof window.__accountRecaptchaWidgetId === "number") {
+            grecaptcha.reset(window.__accountRecaptchaWidgetId);
+          }
+          setAuthStatus(
+            "Account created. Check your email to verify before syncing.",
+            "ok",
+          );
         } catch (e) {
           setAuthStatus(e && e.message ? e.message : "Sign-up failed.", "error");
+        }
+      });
+
+      const signUpUsernameInput = document.getElementById("accountUsernameSignUp");
+      const signUpUsernameHint = document.getElementById("accountUsernameSignUpHint");
+      signUpUsernameInput?.addEventListener("blur", async () => {
+        if (!db || !signUpUsernameHint) return;
+        const raw = String(signUpUsernameInput.value || "").trim();
+        if (!raw) {
+          signUpUsernameHint.textContent = "";
+          signUpUsernameHint.classList.remove("is-error", "is-ok");
+          return;
+        }
+        signUpUsernameHint.textContent = "Checking…";
+        signUpUsernameHint.classList.remove("is-error", "is-ok");
+        try {
+          const r = await isUsernameAvailable(db, raw);
+          if (!r.available) {
+            signUpUsernameHint.textContent = r.message || "That username is already taken.";
+            signUpUsernameHint.classList.add("is-error");
+          } else if (r.checkSkipped) {
+            signUpUsernameHint.textContent =
+              "Could not check availability (Firestore rules). Sign-up will still reject a taken name.";
+            signUpUsernameHint.classList.remove("is-error", "is-ok");
+          } else {
+            signUpUsernameHint.textContent = "Username is available.";
+            signUpUsernameHint.classList.add("is-ok");
+          }
+        } catch {
+          signUpUsernameHint.textContent = "";
+          signUpUsernameHint.classList.remove("is-error", "is-ok");
         }
       });
 
@@ -744,7 +1032,7 @@
         setSyncStatus("Downloading…");
         try {
           const snap = await getDoc(doc(db, SYNC_COLLECTION, user.uid));
-          if (!snap.exists) {
+          if (!snap.exists()) {
             setSyncStatus("No cloud backup found yet. Upload from a device first.", "error");
             return;
           }
@@ -754,8 +1042,10 @@
             return;
           }
           const n = applyLocalStoragePayload(blob);
+          const prof = await loadAndApplyUserProfile(user, db);
+          fillProfileForm(prof || { allianceList: [] });
           setSyncStatus(
-            `Restored ${n} key(s). Reload open Last War Tools tabs to pick up changes.`,
+            `Restored ${n} localStorage key(s) and profile from cloud. Reload open Last War Tools tabs to pick up changes.`,
             "ok",
           );
         } catch (e) {

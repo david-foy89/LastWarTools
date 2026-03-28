@@ -20,3 +20,6 @@ window.__FIREBASE_CONFIG__ = {
   appId: "YOUR_APP_ID",
   measurementId: "G-XXXXXXXXXX",
 };
+
+/** Google reCAPTCHA v2 site key (Sign up on account.html). Create at https://www.google.com/recaptcha/admin */
+window.__RECAPTCHA_SITE_KEY__ = "";
