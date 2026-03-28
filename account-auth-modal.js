@@ -162,11 +162,14 @@ function setPromoStripSignedInState(actionsEls, signedIn) {
 
 /**
  * Replace the top account promo strip with a right-aligned profile circle (avatar or initial), or restore when signed out.
+ * @returns {Promise<void>} Resolves when sync DOM updates finish (or immediately if there is nothing to load).
  */
 function refreshAccountPromoBanner(user, db) {
   captureAccountPromoActionsOriginals();
   var wraps = document.querySelectorAll(".account-promo-actions");
-  if (!wraps.length) return;
+  if (!wraps.length) {
+    return Promise.resolve();
+  }
 
   if (!user || !db) {
     setPromoStripSignedInState(wraps, false);
@@ -174,10 +177,10 @@ function refreshAccountPromoBanner(user, db) {
       var orig = promoActionsOriginalHtml.get(el);
       if (orig != null) el.innerHTML = orig;
     });
-    return;
+    return Promise.resolve();
   }
 
-  getDoc(doc(db, PROFILE_COLLECTION, user.uid))
+  return getDoc(doc(db, PROFILE_COLLECTION, user.uid))
     .then(function (snap) {
       var avatar = "";
       var username = "";
@@ -501,7 +504,7 @@ function boot() {
               window.__lwFillAccountProfileForm(profAfterSignUp);
             }
             setAuthStatus("Account created. Check your email to verify before syncing.", "ok");
-            refreshAccountPromoBanner(cred.user, db);
+            await refreshAccountPromoBanner(cred.user, db);
             closeAccountModal();
           } finally {
             accountModalSignUpInProgress = false;
