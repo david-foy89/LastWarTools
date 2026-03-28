@@ -414,12 +414,9 @@ function boot() {
       if (auth) {
         onAuthStateChanged(auth, function (user) {
           if (user && !accountModalSignUpInProgress) closeAccountModal();
+          /* Always sync banner to auth (cross-tab sign-in/out). Sign-up flag only gates closing the modal here. */
           if (db) {
-            if (user && !accountModalSignUpInProgress) {
-              refreshAccountPromoBanner(user, db);
-            } else if (!user) {
-              refreshAccountPromoBanner(null, db);
-            }
+            refreshAccountPromoBanner(user || null, db);
           }
         });
       }
