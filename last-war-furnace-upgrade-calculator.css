@@ -371,6 +371,11 @@ body {
   color: var(--text);
 }
 
+/* Signed-in: single profile circle replaces Create account / Sign in (account-auth-modal.js) */
+.account-promo-actions:has(.account-nav-chip) {
+  align-items: center;
+}
+
 .page-top-stack .account-promo-strip {
   margin-bottom: 10px;
 }

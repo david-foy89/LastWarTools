@@ -11,8 +11,9 @@ import {
   sendEmailVerification,
   deleteUser,
 } from "https://www.gstatic.com/firebasejs/9.22.2/firebase-auth.js";
-import { getFirestore } from "https://www.gstatic.com/firebasejs/9.22.2/firebase-firestore.js";
+import { getFirestore, doc, getDoc } from "https://www.gstatic.com/firebasejs/9.22.2/firebase-firestore.js";
 import { firebaseConfigOk } from "./account-sync-lib.js";
+import { PROFILE_COLLECTION } from "./account-profile-lib.js";
 import {
   resolveEmailForSignIn,
   claimUsernameForNewUser,
@@ -106,8 +107,99 @@ function injectModalIfNeeded() {
   document.body.insertAdjacentHTML("beforeend", MODAL_HTML);
 }
 
+/** Preserve default Create account / Sign in markup so we can restore after sign-out */
+const promoActionsOriginalHtml = new WeakMap();
+
+function captureAccountPromoActionsOriginals() {
+  document.querySelectorAll(".account-promo-actions").forEach(function (el) {
+    if (!promoActionsOriginalHtml.has(el)) {
+      promoActionsOriginalHtml.set(el, el.innerHTML);
+    }
+  });
+}
+
+function firstLetterForPromoChip(username, email) {
+  var u = String(username || "").trim();
+  if (u) {
+    var ch = u.charAt(0);
+    return ch ? ch.toUpperCase() : "?";
+  }
+  var e = String(email || "").trim();
+  var at = e.indexOf("@");
+  var local = at >= 0 ? e.slice(0, at) : e;
+  var m = local.match(/[a-zA-Z0-9]/);
+  return m ? m[0].toUpperCase() : "?";
+}
+
+/**
+ * Replace `.account-promo-actions` buttons with a profile circle (avatar or first letter), or restore when signed out.
+ */
+function refreshAccountPromoBanner(user, db) {
+  captureAccountPromoActionsOriginals();
+  var wraps = document.querySelectorAll(".account-promo-actions");
+  if (!wraps.length) return;
+
+  if (!user || !db) {
+    wraps.forEach(function (el) {
+      var orig = promoActionsOriginalHtml.get(el);
+      if (orig != null) el.innerHTML = orig;
+    });
+    return;
+  }
+
+  getDoc(doc(db, PROFILE_COLLECTION, user.uid))
+    .then(function (snap) {
+      var avatar = "";
+      var username = "";
+      if (snap.exists()) {
+        var d = snap.data();
+        avatar = typeof d.avatarDataUrl === "string" ? d.avatarDataUrl : "";
+        username = typeof d.username === "string" ? d.username : "";
+      }
+      var letter = firstLetterForPromoChip(username, user.email);
+      wraps.forEach(function (el) {
+        el.innerHTML = "";
+        var a = document.createElement("a");
+        a.href = "account.html";
+        a.className = "account-nav-chip account-promo-account-chip";
+        a.title = "Account settings";
+        a.setAttribute("aria-label", "Account settings");
+        if (avatar) {
+          var img = document.createElement("img");
+          img.src = avatar;
+          img.className = "account-nav-chip__img";
+          img.alt = "";
+          a.appendChild(img);
+        } else {
+          var span = document.createElement("span");
+          span.className = "account-nav-chip__initials";
+          span.textContent = letter;
+          a.appendChild(span);
+        }
+        el.appendChild(a);
+      });
+    })
+    .catch(function () {
+      var letter = firstLetterForPromoChip("", user.email);
+      wraps.forEach(function (el) {
+        el.innerHTML = "";
+        var a = document.createElement("a");
+        a.href = "account.html";
+        a.className = "account-nav-chip account-promo-account-chip";
+        a.title = "Account settings";
+        a.setAttribute("aria-label", "Account settings");
+        var span = document.createElement("span");
+        span.className = "account-nav-chip__initials";
+        span.textContent = letter;
+        a.appendChild(span);
+        el.appendChild(a);
+      });
+    });
+}
+
 function boot() {
   injectModalIfNeeded();
+  captureAccountPromoActionsOriginals();
 
   var accountModalBackdrop = document.getElementById("accountModalBackdrop");
   var accountModalSignInPanel = document.getElementById("accountModalSignInPanel");
@@ -228,6 +320,13 @@ function boot() {
       if (auth) {
         onAuthStateChanged(auth, function (user) {
           if (user && !accountModalSignUpInProgress) closeAccountModal();
+          if (db) {
+            if (user && !accountModalSignUpInProgress) {
+              refreshAccountPromoBanner(user, db);
+            } else if (!user) {
+              refreshAccountPromoBanner(null, db);
+            }
+          }
         });
       }
 
@@ -307,6 +406,8 @@ function boot() {
               grecaptcha.reset(window.__accountRecaptchaWidgetId);
             }
             setAuthStatus("Account created. Check your email to verify before syncing.", "ok");
+            refreshAccountPromoBanner(cred.user, db);
+            closeAccountModal();
           } finally {
             accountModalSignUpInProgress = false;
           }

@@ -231,15 +231,16 @@
             <div id="accountModalSignInPanel">
               <h2 id="accountModalTitleSignIn">Sign in</h2>
               <p class="account-muted">
-                Enter the username and password for your Last War Tools account.
+                Use your <strong>username</strong> or the <strong>email</strong> you registered with, plus your
+                password.
               </p>
               <div class="account-field">
-                <label for="accountUsernameSignIn">Username</label>
+                <label for="accountUsernameSignIn">Username or email</label>
                 <input
                   id="accountUsernameSignIn"
                   type="text"
                   autocomplete="username"
-                  maxlength="20"
+                  maxlength="320"
                   spellcheck="false"
                 />
               </div>
@@ -844,6 +845,10 @@
             setAuthStatus("");
           }
           void (async () => {
+            /* Skip while sign-up is claiming username — profile doc may not exist yet; handler reloads after claim. */
+            if (accountModalSignUpInProgress) {
+              return;
+            }
             if (user.emailVerified) {
               await mergeAndSyncToCloud(user, db, {
                 onStatus: (msg, kind) => setSyncStatus(msg, kind),
@@ -954,6 +959,16 @@
             await sendEmailVerification(cred.user);
             if (recaptchaKey && typeof grecaptcha !== "undefined" && typeof window.__accountRecaptchaWidgetId === "number") {
               grecaptcha.reset(window.__accountRecaptchaWidgetId);
+            }
+            const profAfterClaim = await loadAndApplyUserProfile(cred.user, db);
+            fillProfileForm(profAfterClaim || { allianceList: [] });
+            const handleAfter =
+              (profAfterClaim && profAfterClaim.username) || localStorage.getItem(LS_USERNAME) || "";
+            if (handleAfter) {
+              userLabel.textContent =
+                `Signed in as @${handleAfter}` + (cred.user.email ? ` (${cred.user.email})` : "");
+            } else {
+              userLabel.textContent = cred.user.email ? `Signed in as ${cred.user.email}` : "Signed in";
             }
             setAuthStatus(
               "Account created. Check your email to verify before syncing.",
