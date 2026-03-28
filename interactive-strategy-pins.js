@@ -572,7 +572,10 @@
     );
     var tzSave = getStrategyPinsTimezone();
     if (dt) {
-      var m = dt.match(/^(\d{4})-(\d{2})-(\d{2})T(\d{2}):(\d{2})/);
+      /* Wall time in user-selected zone — never use Date.parse (browser-local or UTC, not tzSave). */
+      var m = String(dt)
+        .trim()
+        .match(/^(\d{4})-(\d{2})-(\d{2})[T\s](\d{1,2}):(\d{2})(?::\d{2})?(?:\.\d+)?/);
       if (m) {
         pin.targetTime = zonedWallToUtcIso(
           +m[1],
@@ -583,7 +586,7 @@
           tzSave,
         );
       } else {
-        pin.targetTime = new Date(dt).toISOString();
+        pin.targetTime = null;
       }
     } else if (!Number.isNaN(mins) && mins > 0) {
       pin.targetTime = new Date(Date.now() + mins * 60000).toISOString();
