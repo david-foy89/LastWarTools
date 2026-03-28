@@ -224,9 +224,10 @@ function boot() {
         }
       }
 
+      var accountModalSignUpInProgress = false;
       if (auth) {
         onAuthStateChanged(auth, function (user) {
-          if (user) closeAccountModal();
+          if (user && !accountModalSignUpInProgress) closeAccountModal();
         });
       }
 
@@ -292,18 +293,23 @@ function boot() {
             setAuthStatus(avail.message || "That username is already taken.", "error");
             return;
           }
-          var cred = await createUserWithEmailAndPassword(auth, email, password);
+          accountModalSignUpInProgress = true;
           try {
-            await claimUsernameForNewUser(db, cred.user, avail.normalized, email);
-          } catch (err) {
-            await deleteUser(cred.user);
-            throw err;
+            var cred = await createUserWithEmailAndPassword(auth, email, password);
+            try {
+              await claimUsernameForNewUser(db, cred.user, avail.normalized, email);
+            } catch (err) {
+              await deleteUser(cred.user);
+              throw err;
+            }
+            await sendEmailVerification(cred.user);
+            if (recaptchaKey && typeof grecaptcha !== "undefined" && typeof window.__accountRecaptchaWidgetId === "number") {
+              grecaptcha.reset(window.__accountRecaptchaWidgetId);
+            }
+            setAuthStatus("Account created. Check your email to verify before syncing.", "ok");
+          } finally {
+            accountModalSignUpInProgress = false;
           }
-          await sendEmailVerification(cred.user);
-          if (recaptchaKey && typeof grecaptcha !== "undefined" && typeof window.__accountRecaptchaWidgetId === "number") {
-            grecaptcha.reset(window.__accountRecaptchaWidgetId);
-          }
-          setAuthStatus("Account created. Check your email to verify before syncing.", "ok");
         } catch (e) {
           setAuthStatus(e && e.message ? e.message : "Sign-up failed.", "error");
         }

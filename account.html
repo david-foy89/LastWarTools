@@ -549,6 +549,7 @@
       const accountModalSignUpPanel = document.getElementById("accountModalSignUpPanel");
       const accountModalDialog = document.getElementById("accountModalDialog");
       let accountModalPreviousFocus = null;
+      let accountModalSignUpInProgress = false;
 
       function ensureRecaptchaRendered() {
         const key = window.__RECAPTCHA_SITE_KEY__ || "";
@@ -838,8 +839,10 @@
             resetProfileForm();
             return;
           }
-          closeAccountModal();
-          setAuthStatus("");
+          if (!accountModalSignUpInProgress) {
+            closeAccountModal();
+            setAuthStatus("");
+          }
           void (async () => {
             if (user.emailVerified) {
               await mergeAndSyncToCloud(user, db, {
@@ -939,21 +942,26 @@
             setAuthStatus(avail.message || "That username is already taken.", "error");
             return;
           }
-          const cred = await createUserWithEmailAndPassword(auth, email, password);
+          accountModalSignUpInProgress = true;
           try {
-            await claimUsernameForNewUser(db, cred.user, avail.normalized, email);
-          } catch (err) {
-            await deleteUser(cred.user);
-            throw err;
+            const cred = await createUserWithEmailAndPassword(auth, email, password);
+            try {
+              await claimUsernameForNewUser(db, cred.user, avail.normalized, email);
+            } catch (err) {
+              await deleteUser(cred.user);
+              throw err;
+            }
+            await sendEmailVerification(cred.user);
+            if (recaptchaKey && typeof grecaptcha !== "undefined" && typeof window.__accountRecaptchaWidgetId === "number") {
+              grecaptcha.reset(window.__accountRecaptchaWidgetId);
+            }
+            setAuthStatus(
+              "Account created. Check your email to verify before syncing.",
+              "ok",
+            );
+          } finally {
+            accountModalSignUpInProgress = false;
           }
-          await sendEmailVerification(cred.user);
-          if (recaptchaKey && typeof grecaptcha !== "undefined" && typeof window.__accountRecaptchaWidgetId === "number") {
-            grecaptcha.reset(window.__accountRecaptchaWidgetId);
-          }
-          setAuthStatus(
-            "Account created. Check your email to verify before syncing.",
-            "ok",
-          );
         } catch (e) {
           setAuthStatus(e && e.message ? e.message : "Sign-up failed.", "error");
         }

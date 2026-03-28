@@ -226,12 +226,11 @@ export function parseAllianceCsv(text) {
     .filter(Boolean);
   if (lines.length === 0) return [];
   const headers = splitCsvLine(lines[0]).map(function (h, idx) {
-    const t = h.replace(/^"|"$/g, "");
-    return t || "col" + idx;
+    return h || "col" + idx;
   });
   const rows = [];
   for (let i = 1; i < lines.length; i++) {
-    const cells = splitCsvLine(lines[i]).map((c) => c.replace(/^"|"$/g, ""));
+    const cells = splitCsvLine(lines[i]);
     const row = {};
     headers.forEach(function (h, j) {
       row[h] = cells[j] != null ? String(cells[j]) : "";
