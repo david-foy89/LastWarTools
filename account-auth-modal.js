@@ -13,7 +13,11 @@ import {
 } from "https://www.gstatic.com/firebasejs/9.22.2/firebase-auth.js";
 import { getFirestore, doc, getDoc } from "https://www.gstatic.com/firebasejs/9.22.2/firebase-firestore.js";
 import { firebaseConfigOk } from "./account-sync-lib.js";
-import { PROFILE_COLLECTION, loadAndApplyUserProfile } from "./account-profile-lib.js";
+import {
+  PROFILE_COLLECTION,
+  loadAndApplyUserProfile,
+  accountChipInitialDisplay,
+} from "./account-profile-lib.js";
 import {
   resolveEmailForSignIn,
   claimUsernameForNewUser,
@@ -156,7 +160,7 @@ function refreshAccountPromoBanner(user, db) {
         avatar = typeof d.avatarDataUrl === "string" ? d.avatarDataUrl : "";
         username = typeof d.username === "string" ? d.username : "";
       }
-      var letter = firstLetterForPromoChip(username, user.email);
+      var letter = accountChipInitialDisplay(username, user.email);
       wraps.forEach(function (el) {
         el.innerHTML = "";
         var a = document.createElement("a");
@@ -180,7 +184,7 @@ function refreshAccountPromoBanner(user, db) {
       });
     })
     .catch(function () {
-      var letter = firstLetterForPromoChip("", user.email);
+      var letter = accountChipInitialDisplay("", user.email);
       wraps.forEach(function (el) {
         el.innerHTML = "";
         var a = document.createElement("a");

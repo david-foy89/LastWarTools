@@ -53,6 +53,23 @@ export function emptyProfile() {
 }
 
 /**
+ * One character for nav/promo account chips when no avatar: first char of username, else first
+ * alphanumeric of the email local-part. Shared by account-nav-chip.js and account-auth-modal.js.
+ */
+export function accountChipInitialDisplay(username, email) {
+  var u = String(username || "").trim();
+  if (u) {
+    var ch = u.charAt(0);
+    return ch ? ch.toUpperCase() : "?";
+  }
+  var e = String(email || "").trim();
+  var at = e.indexOf("@");
+  var local = at >= 0 ? e.slice(0, at) : e;
+  var m = local.match(/[a-zA-Z0-9]/);
+  return m ? m[0].toUpperCase() : "?";
+}
+
+/**
  * Load profile from Firestore and write tool-facing keys to localStorage.
  */
 export async function loadAndApplyUserProfile(user, db) {

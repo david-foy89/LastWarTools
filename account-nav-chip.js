@@ -9,17 +9,7 @@ import { initializeApp, getApp, getApps } from "https://www.gstatic.com/firebase
 import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/9.22.2/firebase-auth.js";
 import { getFirestore, doc, getDoc } from "https://www.gstatic.com/firebasejs/9.22.2/firebase-firestore.js";
 import { firebaseConfigOk } from "./account-sync-lib.js";
-import { PROFILE_COLLECTION } from "./account-profile-lib.js";
-
-function initialsFromUsername(u) {
-  if (!u) return "?";
-  const s = String(u).replace(/_/g, " ").trim();
-  const parts = s.split(/\s+/).filter(Boolean);
-  if (parts.length >= 2) {
-    return (parts[0][0] + parts[1][0]).toUpperCase().slice(0, 2);
-  }
-  return s.slice(0, 2).toUpperCase();
-}
+import { PROFILE_COLLECTION, accountChipInitialDisplay } from "./account-profile-lib.js";
 
 const MAX_WRAP_WAIT_ATTEMPTS = 80;
 
@@ -97,12 +87,12 @@ function attachAccountNavChip(attempt) {
           } else {
             const span = document.createElement("span");
             span.className = "account-nav-chip__initials";
-            span.textContent = initialsFromUsername(username || user.email || "?");
+            span.textContent = accountChipInitialDisplay(username, user.email);
             a.appendChild(span);
           }
         })
         .catch(function () {
-          placeholder.textContent = initialsFromUsername(user.email || "?");
+          placeholder.textContent = accountChipInitialDisplay("", user.email);
         });
     });
   } catch (e) {
