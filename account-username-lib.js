@@ -69,7 +69,7 @@ export async function isUsernameAvailable(db, rawUsername) {
     return { available: true, normalized: norm, message: "" };
   } catch (e) {
     if (isPermissionDeniedError(e)) {
-      // Pre-sign-up read is unauthenticated; rules must allow read on usernames/{name}, or we skip
+      // Pre-sign-up get is unauthenticated; rules must allow get on usernames/{name}, or we skip
       // the client check and rely on claimUsernameForNewUser (after auth) to enforce uniqueness.
       return { available: true, normalized: norm, message: "", checkSkipped: true };
     }

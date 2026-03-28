@@ -25,8 +25,9 @@ service cloud.firestore {
     }
 
     // --- Account: usernames (account.html, account-auth-modal.js) ---
+    // get only (not list) — app uses getDoc per name; blocks bulk enumeration of email/uid.
     match /usernames/{name} {
-      allow read: if true;
+      allow get: if true;
       allow create: if request.auth != null
         && !exists(/databases/$(database)/documents/usernames/$(name))
         && request.resource.data.uid == request.auth.uid

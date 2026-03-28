@@ -41,13 +41,13 @@ service cloud.firestore {
     // Pages: account.html (Create account / Sign in modals)
     //        Calculator pages: account-auth-modal.js (same flows in modal)
     // Actions:
-    //   - read: public (sign-up checks if name is taken before auth)
+    //   - get: public (single-doc only — isUsernameAvailable / lookup use getDoc; blocks list queries)
     //   - create: only when signed in, doc id unused, uid/email fields set (claimUsernameForNewUser)
     //   - update/delete: never (immutable after create)
     // Code: account-username-lib.js → usernames/{lowercaseUsername}
     // =============================================================================
     match /usernames/{name} {
-      allow read: if true;
+      allow get: if true;
       allow create: if request.auth != null
         && !exists(/databases/$(database)/documents/usernames/$(name))
         && request.resource.data.uid == request.auth.uid

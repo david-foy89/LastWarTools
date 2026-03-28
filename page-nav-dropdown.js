@@ -9,7 +9,6 @@
 
     ensureAllianceToolsLinks(nav);
     ensureSeason2SuppliesLink(nav);
-    ensureAccountNavChipWrap(nav);
     ensureAccountBackgroundSync();
     // Train Conductor and Server Search are now handled in the Alliance Tools dropdown in HTML
 
@@ -112,6 +111,8 @@
   /**
    * Load site-wide sign-in modal when promo uses links to account.html (not on account.html itself).
    * preventDefault runs synchronously so the browser does not navigate before the module loads.
+   * If account-auth-modal.js fails to load (onerror), we clone those links to drop listeners so
+   * account.html navigation works; otherwise promo links would stay dead for the page visit.
    */
   function fallbackPromoAccountLinksToNavigation() {
     document.querySelectorAll('.account-promo-actions a[href="account.html"]').forEach(function (a) {
@@ -149,14 +150,6 @@
       fallbackPromoAccountLinksToNavigation();
     };
     document.head.appendChild(s);
-  }
-
-  /** Placeholder for signed-in avatar / initials (see account-nav-chip.js). */
-  function ensureAccountNavChipWrap(nav) {
-    if (nav.querySelector('.account-nav-chip-wrap')) return;
-    var wrap = document.createElement('span');
-    wrap.className = 'account-nav-chip-wrap';
-    nav.prepend(wrap);
   }
 
   /**
@@ -209,9 +202,6 @@
         if (!skipGlobalMerge) {
           return appendScript('account-sync-global.js', true);
         }
-      })
-      .then(function () {
-        return appendScript('account-nav-chip.js', true);
       })
       .catch(function () {});
   }
