@@ -128,10 +128,10 @@
   }
 
   /**
-   * Load site-wide sign-in modal when promo uses links to account.html (not on account.html itself).
-   * preventDefault runs synchronously so the browser does not navigate before the module loads.
-   * If account-auth-modal.js fails to load (onerror), we clone those links to drop listeners so
-   * account.html navigation works; otherwise promo links would stay dead for the page visit.
+   * Load account-auth-modal.js whenever the page has `.account-promo-strip` (not on account.html).
+   * That module shows the signed-in profile chip via onAuthStateChanged; it must load even if the
+   * strip has no `a[href="account.html"]` links. Intercepts those links when present so the modal
+   * opens instead of navigating. On load failure, clones links so account.html still works.
    */
   function fallbackPromoAccountLinksToNavigation() {
     document.querySelectorAll('.account-promo-actions a[href="account.html"]').forEach(function (a) {
@@ -142,9 +142,13 @@
 
   function ensureAccountAuthModalForPromoLinks() {
     if (window.__lwAccountAuthModalScriptLoading) return;
+    var page = (window.location.pathname.split('/').pop() || '').toLowerCase();
+    if (page === 'account.html') return;
+
+    var strip = document.querySelector('.account-promo-strip');
+    if (!strip) return;
+
     var links = document.querySelectorAll('.account-promo-actions a[href="account.html"]');
-    if (!links.length) return;
-    window.__lwAccountAuthModalScriptLoading = true;
     links.forEach(function (a) {
       a.addEventListener(
         'click',
@@ -160,6 +164,8 @@
         { capture: true },
       );
     });
+
+    window.__lwAccountAuthModalScriptLoading = true;
     var s = document.createElement('script');
     s.type = 'module';
     s.src = 'account-auth-modal.js';

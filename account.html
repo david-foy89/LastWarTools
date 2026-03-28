@@ -489,6 +489,8 @@
         LS_ALLIANCE_LIST,
         LS_USERNAME,
         MAX_AVATAR_DATA_URL_CHARS,
+        PROFILE_COLLECTION,
+        accountChipInitialDisplay,
       } from "./account-profile-lib.js";
       import {
         resolveEmailForSignIn,
@@ -517,6 +519,8 @@
       const signedInEl = document.getElementById("accountSignedIn");
       const userLabel = document.getElementById("accountUserLabel");
       const accountTopPromo = document.getElementById("accountTopPromo");
+      const accountPromoActionsEl = accountTopPromo?.querySelector(".account-promo-actions");
+      const accountPromoActionsOriginalHtml = accountPromoActionsEl ? accountPromoActionsEl.innerHTML : "";
       const verifyBanner = document.getElementById("accountVerifyBanner");
 
       function setAuthStatus(msg, kind) {
@@ -552,18 +556,94 @@
         banner.innerHTML = firebaseConfigBannerHtml(firebaseConfig);
       }
 
+      function bindAccountPromoButtons() {
+        document.getElementById("accountPromoCreateBtn")?.addEventListener("click", () => openAccountModal("signUp"));
+        document.getElementById("accountPromoSignInBtn")?.addEventListener("click", () => openAccountModal("signIn"));
+      }
+
+      async function refreshAccountTopPromoChip(user) {
+        if (!accountTopPromo || !accountPromoActionsEl) return;
+        if (!user) {
+          accountTopPromo.classList.remove("account-promo-strip--signed-in");
+          if (accountPromoActionsEl.innerHTML !== accountPromoActionsOriginalHtml) {
+            accountPromoActionsEl.innerHTML = accountPromoActionsOriginalHtml;
+            bindAccountPromoButtons();
+          }
+          if (accountTopPromo.dataset.lwPromoAriaSaved !== undefined) {
+            accountTopPromo.setAttribute("aria-label", accountTopPromo.dataset.lwPromoAriaSaved);
+          }
+          return;
+        }
+        if (!db) return;
+        if (accountTopPromo.dataset.lwPromoAriaSaved === undefined) {
+          accountTopPromo.dataset.lwPromoAriaSaved = accountTopPromo.getAttribute("aria-label") || "";
+        }
+        accountTopPromo.classList.add("account-promo-strip--signed-in");
+        accountTopPromo.setAttribute("aria-label", "Account settings");
+        try {
+          const snap = await getDoc(doc(db, PROFILE_COLLECTION, user.uid));
+          let avatar = "";
+          let username = "";
+          if (snap.exists()) {
+            const d = snap.data();
+            avatar = typeof d.avatarDataUrl === "string" ? d.avatarDataUrl : "";
+            username = typeof d.username === "string" ? d.username : "";
+          }
+          const letter = accountChipInitialDisplay(username, user.email);
+          accountPromoActionsEl.innerHTML = "";
+          const btn = document.createElement("button");
+          btn.type = "button";
+          btn.className = "account-nav-chip account-promo-account-chip";
+          btn.title = "Jump to account details";
+          btn.setAttribute("aria-label", "Account settings");
+          btn.addEventListener("click", () => {
+            document.getElementById("accountSignedIn")?.scrollIntoView({ behavior: "smooth", block: "start" });
+          });
+          if (avatar) {
+            const img = document.createElement("img");
+            img.src = avatar;
+            img.className = "account-nav-chip__img";
+            img.alt = "";
+            btn.appendChild(img);
+          } else {
+            const span = document.createElement("span");
+            span.className = "account-nav-chip__initials";
+            span.textContent = letter;
+            btn.appendChild(span);
+          }
+          accountPromoActionsEl.appendChild(btn);
+        } catch {
+          const letter = accountChipInitialDisplay("", user.email);
+          accountPromoActionsEl.innerHTML = "";
+          const btn = document.createElement("button");
+          btn.type = "button";
+          btn.className = "account-nav-chip account-promo-account-chip";
+          btn.title = "Jump to account details";
+          btn.setAttribute("aria-label", "Account settings");
+          btn.addEventListener("click", () => {
+            document.getElementById("accountSignedIn")?.scrollIntoView({ behavior: "smooth", block: "start" });
+          });
+          const span = document.createElement("span");
+          span.className = "account-nav-chip__initials";
+          span.textContent = letter;
+          btn.appendChild(span);
+          accountPromoActionsEl.appendChild(btn);
+        }
+      }
+
       function updateSignedInUi(user) {
         const ok = !!(user && user.uid);
         signedOutEl.style.display = ok ? "none" : "block";
         signedInEl.style.display = ok ? "block" : "none";
         if (accountTopPromo) {
-          accountTopPromo.style.display = ok ? "none" : "";
+          accountTopPromo.style.display = "";
         }
         if (ok) {
           userLabel.textContent = user.email
             ? `Signed in as ${user.email}`
             : "Signed in";
         }
+        void refreshAccountTopPromoChip(user || null);
       }
 
       const accountModalBackdrop = document.getElementById("accountModalBackdrop");
@@ -637,8 +717,7 @@
         }
       });
 
-      document.getElementById("accountPromoCreateBtn")?.addEventListener("click", () => openAccountModal("signUp"));
-      document.getElementById("accountPromoSignInBtn")?.addEventListener("click", () => openAccountModal("signIn"));
+      bindAccountPromoButtons();
       document.getElementById("accountInlineCreateBtn")?.addEventListener("click", () => openAccountModal("signUp"));
       document.getElementById("accountInlineSignInBtn")?.addEventListener("click", () => openAccountModal("signIn"));
       document.getElementById("accountModalSwitchToSignUp")?.addEventListener("click", () => {
