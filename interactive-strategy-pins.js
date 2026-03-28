@@ -93,16 +93,18 @@
     return "UTC";
   }
 
-  function getWallClockInZone(ms, timeZone) {
-    var f = new Intl.DateTimeFormat("en-GB", {
-      timeZone: timeZone,
-      year: "numeric",
-      month: "numeric",
-      day: "numeric",
-      hour: "numeric",
-      minute: "numeric",
-      hourCycle: "h23",
-    });
+  function getWallClockInZone(ms, timeZone, formatter) {
+    var f =
+      formatter ||
+      new Intl.DateTimeFormat("en-GB", {
+        timeZone: timeZone,
+        year: "numeric",
+        month: "numeric",
+        day: "numeric",
+        hour: "numeric",
+        minute: "numeric",
+        hourCycle: "h23",
+      });
     var o = {};
     f.formatToParts(new Date(ms)).forEach(function (p) {
       if (p.type !== "literal") {
@@ -133,11 +135,20 @@
         /* fall through */
       }
     }
+    var wallFmt = new Intl.DateTimeFormat("en-GB", {
+      timeZone: timeZone,
+      year: "numeric",
+      month: "numeric",
+      day: "numeric",
+      hour: "numeric",
+      minute: "numeric",
+      hourCycle: "h23",
+    });
     var center = Date.UTC(y, mo - 1, d, h, min, 0);
     var start = center - 48 * 3600 * 1000;
     var end = center + 48 * 3600 * 1000;
     for (var guess = start; guess <= end; guess += 60000) {
-      var w = getWallClockInZone(guess, timeZone);
+      var w = getWallClockInZone(guess, timeZone, wallFmt);
       if (w.y === y && w.mo === mo && w.d === d && w.h === h && w.min === min) {
         return new Date(guess).toISOString();
       }

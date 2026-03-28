@@ -256,18 +256,24 @@ export function parseAllianceXlsxArrayBuffer(buf) {
   return rows.slice(0, MAX_ALLIANCE_ROWS);
 }
 
+function escapeCsvField(field) {
+  const v = field != null ? String(field) : "";
+  if (/[",\n]/.test(v)) return '"' + v.replace(/"/g, '""') + '"';
+  return v;
+}
+
 export function allianceListToCsv(rows) {
   if (!rows || rows.length === 0) return "name,server\n";
   const keys = Object.keys(rows[0]);
-  const header = keys.join(",");
+  const header = keys.map(function (k) {
+    return escapeCsvField(k);
+  }).join(",");
   const lines = [header];
   rows.forEach(function (row) {
     lines.push(
       keys
         .map(function (k) {
-          const v = row[k] != null ? String(row[k]) : "";
-          if (/[",\n]/.test(v)) return '"' + v.replace(/"/g, '""') + '"';
-          return v;
+          return escapeCsvField(row[k]);
         })
         .join(","),
     );

@@ -113,6 +113,13 @@
    * Load site-wide sign-in modal when promo uses links to account.html (not on account.html itself).
    * preventDefault runs synchronously so the browser does not navigate before the module loads.
    */
+  function fallbackPromoAccountLinksToNavigation() {
+    document.querySelectorAll('.account-promo-actions a[href="account.html"]').forEach(function (a) {
+      var replacement = a.cloneNode(true);
+      a.parentNode.replaceChild(replacement, a);
+    });
+  }
+
   function ensureAccountAuthModalForPromoLinks() {
     if (window.__lwAccountAuthModalScriptLoading) return;
     var links = document.querySelectorAll('.account-promo-actions a[href="account.html"]');
@@ -138,6 +145,8 @@
     s.src = 'account-auth-modal.js';
     s.onerror = function () {
       window.__lwAccountAuthModalScriptLoading = false;
+      window.__lwAccountAuthModalLoadFailed = true;
+      fallbackPromoAccountLinksToNavigation();
     };
     document.head.appendChild(s);
   }
