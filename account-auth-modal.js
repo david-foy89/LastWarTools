@@ -288,12 +288,17 @@ function boot() {
     }
   });
 
-  document.getElementById("accountModalSwitchToSignUp")?.addEventListener("click", function () {
-    openAccountModal("signUp");
-  });
-  document.getElementById("accountModalSwitchToSignIn")?.addEventListener("click", function () {
-    openAccountModal("signIn");
-  });
+  /* account.html registers these on the same elements; skip to avoid double openAccountModal per click */
+  var accountPage =
+    (location.pathname.split("/").pop() || "").toLowerCase() === "account.html";
+  if (!accountPage) {
+    document.getElementById("accountModalSwitchToSignUp")?.addEventListener("click", function () {
+      openAccountModal("signUp");
+    });
+    document.getElementById("accountModalSwitchToSignIn")?.addEventListener("click", function () {
+      openAccountModal("signIn");
+    });
+  }
 
   Promise.resolve()
     .then(function () {
@@ -405,7 +410,10 @@ function boot() {
             if (recaptchaKey && typeof grecaptcha !== "undefined" && typeof window.__accountRecaptchaWidgetId === "number") {
               grecaptcha.reset(window.__accountRecaptchaWidgetId);
             }
-            await loadAndApplyUserProfile(cred.user, db);
+            var profAfterSignUp = await loadAndApplyUserProfile(cred.user, db);
+            if (typeof window.__lwFillAccountProfileForm === "function") {
+              window.__lwFillAccountProfileForm(profAfterSignUp);
+            }
             setAuthStatus("Account created. Check your email to verify before syncing.", "ok");
             refreshAccountPromoBanner(cred.user, db);
             closeAccountModal();

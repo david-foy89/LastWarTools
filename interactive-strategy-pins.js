@@ -93,6 +93,15 @@
     return "UTC";
   }
 
+  function fmtPartToNum(o, key) {
+    var v = o[key];
+    if (v == null || v === "") {
+      return NaN;
+    }
+    var n = Number(v);
+    return Number.isFinite(n) ? n : NaN;
+  }
+
   function getWallClockInZone(ms, timeZone, formatter) {
     var f =
       formatter ||
@@ -112,12 +121,23 @@
       }
     });
     return {
-      y: +o.year,
-      mo: +o.month,
-      d: +o.day,
-      h: +o.hour,
-      min: +o.minute,
+      y: fmtPartToNum(o, "year"),
+      mo: fmtPartToNum(o, "month"),
+      d: fmtPartToNum(o, "day"),
+      h: fmtPartToNum(o, "hour"),
+      min: fmtPartToNum(o, "minute"),
     };
+  }
+
+  function wallClockPartsValid(w) {
+    return (
+      w &&
+      Number.isFinite(w.y) &&
+      Number.isFinite(w.mo) &&
+      Number.isFinite(w.d) &&
+      Number.isFinite(w.h) &&
+      Number.isFinite(w.min)
+    );
   }
 
   function zonedWallToUtcIso(y, mo, d, h, min, timeZone) {
@@ -149,6 +169,9 @@
     var end = center + 48 * 3600 * 1000;
     for (var guess = start; guess <= end; guess += 60000) {
       var w = getWallClockInZone(guess, timeZone, wallFmt);
+      if (!wallClockPartsValid(w)) {
+        continue;
+      }
       if (w.y === y && w.mo === mo && w.d === d && w.h === h && w.min === min) {
         return new Date(guess).toISOString();
       }
@@ -165,6 +188,9 @@
       return "";
     }
     var w = getWallClockInZone(ms, timeZone);
+    if (!wallClockPartsValid(w)) {
+      return "";
+    }
     var pad = function (n) {
       return (n < 10 ? "0" : "") + n;
     };
