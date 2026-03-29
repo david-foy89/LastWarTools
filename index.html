@@ -299,90 +299,22 @@
       </section>
     </div>
 
+    <script src="lwst-common.js"></script>
     <script>
       const languageSelect = document.getElementById("languageSelect");
       const STORAGE_KEY = "lastWarHomepageLanguageV1";
       let preferredLanguage = "en";
 
-      const languageOptions = [
-        { code: "en", label: "English" },
-        { code: "es", label: "Spanish" },
-        { code: "fr", label: "French" },
-        { code: "de", label: "German" },
-        { code: "it", label: "Italian" },
-        { code: "pt", label: "Portuguese" },
-        { code: "ru", label: "Russian" },
-        { code: "uk", label: "Ukrainian" },
-        { code: "pl", label: "Polish" },
-        { code: "tr", label: "Turkish" },
-        { code: "ar", label: "Arabic" },
-        { code: "fa", label: "Persian" },
-        { code: "he", label: "Hebrew" },
-        { code: "hi", label: "Hindi" },
-        { code: "bn", label: "Bengali" },
-        { code: "ur", label: "Urdu" },
-        { code: "th", label: "Thai" },
-        { code: "vi", label: "Vietnamese" },
-        { code: "id", label: "Indonesian" },
-        { code: "ms", label: "Malay" },
-        { code: "fil", label: "Filipino" },
-        { code: "ja", label: "Japanese" },
-        { code: "ko", label: "Korean" },
-        { code: "zh-CN", label: "Chinese (Simplified)" },
-        { code: "zh-TW", label: "Chinese (Traditional)" },
-        { code: "el", label: "Greek" },
-        { code: "nl", label: "Dutch" },
-        { code: "sv", label: "Swedish" },
-        { code: "da", label: "Danish" },
-        { code: "fi", label: "Finnish" },
-        { code: "no", label: "Norwegian" },
-        { code: "cs", label: "Czech" },
-        { code: "ro", label: "Romanian" },
-        { code: "hu", label: "Hungarian" },
-        { code: "sk", label: "Slovak" },
-        { code: "bg", label: "Bulgarian" },
-        { code: "hr", label: "Croatian" },
-        { code: "sr", label: "Serbian" },
-        { code: "sl", label: "Slovenian" },
-        { code: "lt", label: "Lithuanian" },
-        { code: "lv", label: "Latvian" },
-        { code: "et", label: "Estonian" },
-      ];
-
       function buildLanguageOptions() {
-        languageSelect.innerHTML = languageOptions
-          .map((lang) => `<option value="${lang.code}">${lang.label}</option>`)
-          .join("");
-        languageSelect.value = preferredLanguage;
+        window.LWSTCommon.buildLanguageOptions(languageSelect, preferredLanguage);
       }
 
       function applyGoogleLanguage(languageCode, retries = 25) {
-        const combo = document.querySelector(".goog-te-combo");
-        if (!combo) {
-          if (retries > 0) {
-            setTimeout(
-              () => applyGoogleLanguage(languageCode, retries - 1),
-              200,
-            );
-          }
-          return;
-        }
-
-        combo.value = languageCode;
-        combo.dispatchEvent(new Event("change"));
+        window.LWSTCommon.applyGoogleLanguage(languageCode, retries);
       }
 
       function loadGoogleTranslateScript() {
-        if (window.google && window.google.translate) {
-          window.googleTranslateElementInit();
-          return;
-        }
-
-        const script = document.createElement("script");
-        script.src =
-          "https://translate.google.com/translate_a/element.js?cb=googleTranslateElementInit";
-        script.async = true;
-        document.body.appendChild(script);
+        window.LWSTCommon.initGoogleTranslate(preferredLanguage);
       }
 
       function loadSavedState() {
@@ -395,7 +327,7 @@
           const state = JSON.parse(raw);
           if (
             state.language &&
-            languageOptions.some((lang) => lang.code === state.language)
+            window.LWSTCommon.isSupportedLanguage(state.language)
           ) {
             preferredLanguage = state.language;
           }

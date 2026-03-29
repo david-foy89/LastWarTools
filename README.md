@@ -34,6 +34,7 @@ Hosted on GitHub Pages via `index.html`.
 | `verus-tracker.html`                     | Verus tracker matching sheet columns (Tech/VS/Days) |
 | `last-war-furnace-upgrade-calculator.css`  | Shared stylesheet for all calculator pages            |
 | `page-nav-dropdown.js`                     | Shared dropdown behavior for top navigation           |
+| `lwst-common.js`                           | Shared language/translate + safe storage helpers      |
 | `sitemap.xml`                              | SEO sitemap listing all public tool pages             |
 | `robots.txt`                               | Search crawler directives and sitemap reference       |
 | `media/lwst.png`                           | Site logo                                             |
@@ -133,9 +134,44 @@ See `wireframes/desktop-wireframe.txt` and `wireframes/mobile-wireframe.txt` for
 
 `index.html` is the GitHub Pages entry point and is maintained as the dedicated homepage.
 
+## Tests
+
+Regression checks are included for inline troop planner data so updates to levels/costs/dependencies are validated automatically.
+
+### Run tests
+
+1. Ensure Node.js 18+ is installed.
+2. From the repo root, run:
+
+```bash
+npm test
+```
+
+### What the tests verify
+
+- `tests/t10-data-integrity.test.js`
+  - `treeRows` structure exists and is non-empty
+  - row IDs and element IDs are unique
+  - `levels` count matches `maxLevel`
+  - level numbering is sequential
+  - resource fields (`iron`, `food`, `gold`, `valor`) are finite and non-negative
+  - requirement references point to valid elements and in-range levels
+- `tests/t11-data-integrity.test.js`
+  - `t11Research` structure exists and is non-empty
+  - IDs are unique and include baseline entries (`helmet`, `body-armor`, `accessories`, `weapon`, `unlock`)
+  - totals (`materials`, `cores`, `oil`) are finite and non-negative
+  - stage cost labels (`early`, `mid`, `final`, `total`) exist and are non-empty strings
+- `tests/lwst-common.test.js`
+  - shared utility exports exist and remain callable
+  - language helpers (`isSupportedLanguage`, `resolveLanguageCode`) handle valid/invalid codes
+  - numeric helpers (`clampNumber`, `formatRoundedNumber`) enforce bounds and rounding behavior
+  - JSON storage helpers round-trip safely and return fallback values when needed
+  - key pages include `<script src="lwst-common.js"></script>`
+
 ## Customization
 
 - Shared style tokens, spacing, cards, grid, and navigation: edit `last-war-furnace-upgrade-calculator.css`.
+- Shared language + localStorage helper logic: edit `lwst-common.js`.
 - Calculator-specific labels, costs, output tables, and ETA logic: edit the relevant calculator HTML file.
 - Navigation links are duplicated across pages; when adding/removing a calculator page, update the nav block in each HTML file.
 - When adding/removing pages, also update `sitemap.xml` and ensure canonical URLs remain correct.

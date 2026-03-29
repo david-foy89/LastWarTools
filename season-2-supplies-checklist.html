@@ -882,6 +882,7 @@
 
     <script src="https://www.gstatic.com/firebasejs/10.12.5/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.12.5/firebase-database-compat.js"></script>
+    <script src="lwst-common.js"></script>
     <script>
       const DATA_URL = "season2_supplies_api.json";
       const STORAGE_KEY = "lastWarSeason2SuppliesChecklistV1";
@@ -1011,39 +1012,15 @@
       }
 
       function buildLanguageOptions() {
-        languageSelect.innerHTML = languageOptions
-          .map((lang) => `<option value="${lang.code}">${lang.label}</option>`)
-          .join("");
-        languageSelect.value = preferredLanguage;
+        window.LWSTCommon.buildLanguageOptions(languageSelect, preferredLanguage);
       }
 
       function applyGoogleLanguage(languageCode, retries = 25) {
-        const combo = document.querySelector(".goog-te-combo");
-        if (!combo) {
-          if (retries > 0) {
-            setTimeout(
-              () => applyGoogleLanguage(languageCode, retries - 1),
-              200,
-            );
-          }
-          return;
-        }
-
-        combo.value = languageCode;
-        combo.dispatchEvent(new Event("change"));
+        window.LWSTCommon.applyGoogleLanguage(languageCode, retries);
       }
 
       function loadGoogleTranslateScript() {
-        if (window.google && window.google.translate) {
-          window.googleTranslateElementInit();
-          return;
-        }
-
-        const script = document.createElement("script");
-        script.src =
-          "https://translate.google.com/translate_a/element.js?cb=googleTranslateElementInit";
-        script.async = true;
-        document.body.appendChild(script);
+        window.LWSTCommon.initGoogleTranslate(preferredLanguage);
       }
 
       window.googleTranslateElementInit =
@@ -1344,7 +1321,7 @@
           }
           if (
             typeof saved.language === "string" &&
-            languageOptions.some((option) => option.code === saved.language)
+            window.LWSTCommon.isSupportedLanguage(saved.language)
           ) {
             preferredLanguage = saved.language;
           }
