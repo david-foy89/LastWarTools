@@ -417,6 +417,12 @@
         text-overflow: ellipsis;
       }
 
+      .conductor-chip.conductor-chip-placeholder {
+        font-weight: 500;
+        font-style: italic;
+        opacity: 0.88;
+      }
+
       .none-chip {
         color: var(--muted);
         font-size: 0.78rem;
@@ -1075,6 +1081,19 @@
             <div class="field">
               <label for="startDateInput">Start date (snaps to Monday)</label>
               <input id="startDateInput" type="date" />
+              <p
+                class="field"
+                style="
+                  margin: 8px 0 0;
+                  font-size: 0.82rem;
+                  color: var(--muted);
+                  line-height: 1.35;
+                "
+              >
+                Moving the start date <strong>forward</strong> by whole weeks
+                shifts Week 1–4 names and assignments up; Week 4 becomes a blank
+                row (same as advancing Name Assignment Week).
+              </p>
               <div
                 class="field"
                 style="
@@ -1465,9 +1484,9 @@
       const state = {
         weeks: 2,
         nameEditWeek: 0,
-        conductorNamesByWeek: Array.from({ length: 4 }, () => [
-          ...DEFAULT_NAMES,
-        ]),
+        conductorNamesByWeek: Array.from({ length: 4 }, () =>
+          Array(7).fill(""),
+        ),
         startDateStr: "",
         conductors: DEFAULT_NAMES.map((name, i) => ({
           name,
@@ -1584,13 +1603,32 @@
       let pendingImportFileName = "";
       let editingAllianceMemberIdx = -1;
 
+      function conductorSlotIsUnset(raw, conductorIdx) {
+        if (raw === undefined || raw === null) return true;
+        if (typeof raw !== "string") return true;
+        const t = raw.trim();
+        if (t === "") return true;
+        return t === DEFAULT_NAMES[conductorIdx];
+      }
+
+      /** Display label for schedule, export, and banner (uses defaults when slot unset). */
       function getConductorName(weekIdx, conductorIdx) {
         const week = state.conductorNamesByWeek[weekIdx] || [];
         const raw = week[conductorIdx];
-        if (raw === "") return "";
-        return typeof raw === "string" && raw.trim()
-          ? raw.trim()
-          : DEFAULT_NAMES[conductorIdx];
+        if (conductorSlotIsUnset(raw, conductorIdx)) {
+          return DEFAULT_NAMES[conductorIdx];
+        }
+        return raw.trim().slice(0, 40);
+      }
+
+      /** Input value: empty when unset so browser placeholders show. */
+      function getConductorNameInputValue(weekIdx, conductorIdx) {
+        const week = state.conductorNamesByWeek[weekIdx] || [];
+        const raw = week[conductorIdx];
+        if (conductorSlotIsUnset(raw, conductorIdx)) {
+          return "";
+        }
+        return raw.trim().slice(0, 40);
       }
 
       /** Default Mon–Sun assignment row for a fresh week. */
@@ -1606,9 +1644,7 @@
           state.conductorNamesByWeek[w] = Array.from(
             { length: 7 },
             (_, i) =>
-              typeof nextNames?.[i] === "string"
-                ? nextNames[i]
-                : DEFAULT_NAMES[i],
+              typeof nextNames?.[i] === "string" ? nextNames[i] : "",
           );
           state.dayAssignmentsByWeek[w] = normalizeDayAssignmentsWeekRow(
             nextDays || freshDayAssignmentsWeek(),
@@ -1625,6 +1661,22 @@
         if (Number.isNaN(d.getTime())) return;
         d.setDate(d.getDate() + 7 * weekCount);
         state.startDateStr = toDateStr(getMondayOf(d));
+      }
+
+      /** How many whole weeks the new start Monday is after the previous one (0 if same or earlier). */
+      function forwardWeekStepsBetweenStartDates(prevMondayStr, nextMondayStr) {
+        if (!prevMondayStr || !nextMondayStr || prevMondayStr === nextMondayStr) {
+          return 0;
+        }
+        const prev = new Date(prevMondayStr + "T00:00:00");
+        const next = new Date(nextMondayStr + "T00:00:00");
+        if (Number.isNaN(prev.getTime()) || Number.isNaN(next.getTime())) {
+          return 0;
+        }
+        const diffDays = Math.round(
+          (next.getTime() - prev.getTime()) / (24 * 60 * 60 * 1000),
+        );
+        return Math.max(0, Math.floor(diffDays / 7));
       }
 
       function getMondayOf(date) {
@@ -3320,9 +3372,11 @@
           state.conductors[idx].vipGuardian = memberName.slice(0, 50);
           recordMemberHistory(memberName, "vip", idx);
         } else {
-          state.conductorNamesByWeek[state.nameEditWeek][idx] =
-            memberName || DEFAULT_NAMES[idx];
-          recordMemberHistory(memberName, "conductor", idx, state.nameEditWeek);
+          const n = sanitizeMemberName(memberName).slice(0, 40);
+          state.conductorNamesByWeek[state.nameEditWeek][idx] = n;
+          if (n) {
+            recordMemberHistory(memberName, "conductor", idx, state.nameEditWeek);
+          }
         }
 
         saveState();
@@ -3337,8 +3391,7 @@
         const idx = Number.isFinite(Number(state.allianceFillConductorIdx))
           ? Math.max(0, Math.min(6, Number(state.allianceFillConductorIdx)))
           : 0;
-        state.conductorNamesByWeek[state.nameEditWeek][idx] =
-          name || DEFAULT_NAMES[idx];
+        state.conductorNamesByWeek[state.nameEditWeek][idx] = name;
         recordMemberHistory(name, "conductor", idx, state.nameEditWeek);
         saveState();
         renderConductors();
@@ -3395,10 +3448,8 @@
           )
         ) {
           state.conductorNamesByWeek = saved.conductorNamesByWeek.map((week) =>
-            week.map((name, i) =>
-              typeof name === "string" && name.trim()
-                ? name.trim().slice(0, 40)
-                : DEFAULT_NAMES[i],
+            week.map((name) =>
+              typeof name === "string" ? name.trim().slice(0, 40) : "",
             ),
           );
         }
@@ -3647,10 +3698,8 @@
           ) {
             state.conductorNamesByWeek = saved.conductorNamesByWeek.map(
               (week) =>
-                week.map((name, i) =>
-                  typeof name === "string" && name.trim()
-                    ? name.trim().slice(0, 40)
-                    : DEFAULT_NAMES[i],
+                week.map((name) =>
+                  typeof name === "string" ? name.trim().slice(0, 40) : "",
                 ),
             );
           }
@@ -3790,7 +3839,7 @@
               <input
                 type="text"
                 class="conductor-name-input"
-                value="${escapeHtml(getConductorName(state.nameEditWeek, i))}"
+                value="${escapeHtml(getConductorNameInputValue(state.nameEditWeek, i))}"
                 data-idx="${i}"
                 maxlength="40"
                 placeholder="Conductor ${i + 1}"
@@ -3819,7 +3868,7 @@
             inp.addEventListener("input", () => {
               const idx = Number(inp.dataset.idx);
               state.conductorNamesByWeek[state.nameEditWeek][idx] =
-                inp.value.trim().slice(0, 40) || DEFAULT_NAMES[idx];
+                inp.value.trim().slice(0, 40);
               saveState();
               renderSchedule();
               renderAllianceMembers();
@@ -3899,10 +3948,15 @@
             if (conductorIdx >= 0 && conductorIdx < state.conductors.length) {
               const c = state.conductors[conductorIdx];
               const chipBg = hexToRgba(c.color, 0.18);
+              const rawSlot = (state.conductorNamesByWeek[w] || [])[
+                conductorIdx
+              ];
+              const slotUnset = conductorSlotIsUnset(rawSlot, conductorIdx);
               const displayName = withR4R5Crown(
                 getConductorName(w, conductorIdx),
               );
-              chipHtml = `<span class="conductor-chip" style="color:${escapeHtml(c.color)};border-color:${escapeHtml(c.color)};background:${chipBg};">${escapeHtml(displayName)}</span>`;
+              const phClass = slotUnset ? " conductor-chip-placeholder" : "";
+              chipHtml = `<span class="conductor-chip${phClass}" style="color:${escapeHtml(c.color)};border-color:${escapeHtml(c.color)};background:${chipBg};">${escapeHtml(displayName)}</span>`;
             }
 
             let vipHtml = "";
@@ -3945,6 +3999,14 @@
             todayConduectorIdx < state.conductors.length
           ) {
             const c = state.conductors[todayConduectorIdx];
+            const rawToday = (state.conductorNamesByWeek[todayWeekIdx] || [])[
+              todayConduectorIdx
+            ];
+            const todayUnset = conductorSlotIsUnset(
+              rawToday,
+              todayConduectorIdx,
+            );
+            const phClass = todayUnset ? " conductor-chip-placeholder" : "";
             const displayName = withR4R5Crown(
               getConductorName(todayWeekIdx, todayConduectorIdx),
             );
@@ -3953,7 +4015,7 @@
               const vipLabel = withR4R5Crown(c.vipGuardian?.trim()) || "VIP/Guardian";
               todayVipHtml = `<span class="vip-badge">${escapeHtml(vipLabel)}</span>`;
             }
-            bannerChip = `<span class="conductor-chip" style="color:${escapeHtml(c.color)};border-color:${escapeHtml(c.color)};">${escapeHtml(displayName)}</span>${todayVipHtml}<span class="today-banner-date">${escapeHtml(todayLabel)}</span>`;
+            bannerChip = `<span class="conductor-chip${phClass}" style="color:${escapeHtml(c.color)};border-color:${escapeHtml(c.color)};">${escapeHtml(displayName)}</span>${todayVipHtml}<span class="today-banner-date">${escapeHtml(todayLabel)}</span>`;
           }
           todayBannerContent.innerHTML = bannerChip;
           todayBanner.classList.remove("is-hidden");
@@ -4064,10 +4126,27 @@
         if (!startDateInput.value) return;
         const picked = new Date(startDateInput.value + "T00:00:00");
         const monday = getMondayOf(picked);
-        state.startDateStr = toDateStr(monday);
+        const newMondayStr = toDateStr(monday);
+        const prevMondayStr = state.startDateStr || "";
+
+        const steps = forwardWeekStepsBetweenStartDates(
+          prevMondayStr,
+          newMondayStr,
+        );
+        if (steps > 0) {
+          for (let s = 0; s < steps; s++) {
+            rotateWeekSlotsUp();
+          }
+          state.nameEditWeek = 3;
+          conductorWeekSelectProgrammatic = true;
+          conductorWeekSelect.value = "3";
+          conductorWeekSelectProgrammatic = false;
+        }
+
+        state.startDateStr = newMondayStr;
         startDateInput.value = state.startDateStr;
         saveState();
-        renderSchedule();
+        render();
       });
 
       // Reset
@@ -4089,9 +4168,9 @@
         conductorWeekSelectProgrammatic = true;
         conductorWeekSelect.value = "0";
         conductorWeekSelectProgrammatic = false;
-        state.conductorNamesByWeek = Array.from({ length: 4 }, () => [
-          ...DEFAULT_NAMES,
-        ]);
+        state.conductorNamesByWeek = Array.from({ length: 4 }, () =>
+          Array(7).fill(""),
+        );
         state.showVip = true;
         vipToggleInput.checked = true;
         saveState();
