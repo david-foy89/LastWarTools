@@ -217,6 +217,19 @@ export async function mergeAndSyncToCloud(user, db, options) {
     return;
   }
 
+  const existingPayloadStr =
+    snap && snap.exists() && typeof snap.data()?.payload === "string"
+      ? snap.data().payload
+      : "";
+  if (existingPayloadStr && existingPayloadStr === json) {
+    const ms = getCloudDocumentWriteMs(snap);
+    if (ms) {
+      writeLastMergedMeta(user.uid, ms);
+    }
+    onStatus("In sync with cloud (no upload needed).", "ok");
+    return;
+  }
+
   try {
     await setDoc(doc(db, SYNC_COLLECTION, user.uid), {
       payload: json,
@@ -232,7 +245,9 @@ export async function mergeAndSyncToCloud(user, db, options) {
       verify = await getDoc(doc(db, SYNC_COLLECTION, user.uid));
       newMs = getCloudDocumentWriteMs(verify);
     }
-    writeLastMergedMeta(user.uid, newMs || Date.now());
+    if (newMs) {
+      writeLastMergedMeta(user.uid, newMs);
+    }
     const note = preferCloud
       ? "Cloud data was merged into this device (then saved back)."
       : "This device’s data was merged up (local wins when cloud was not newer).";

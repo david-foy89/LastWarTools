@@ -31,7 +31,9 @@ const LAST_SYNC_KEY = "lwAccountBackgroundSyncAt";
 const SESSION_SYNCED_UID_KEY = "lwAccountSessionSyncUid";
 const BOOT_POLL_MS = 100;
 const BOOT_POLL_MAX = 50;
-const REMOTE_MERGE_DEBOUNCE_MS = 400;
+const REMOTE_MERGE_DEBOUNCE_MS = 1200;
+/** Fallback if snapshots are missed (mobile/background throttling, listener gaps). */
+const PERIODIC_SYNC_MS = 45_000;
 
 let syncStarted = false;
 /** @type {import("firebase/auth").Auth | null} */
@@ -79,6 +81,23 @@ function clearFirestoreListener() {
     unsubFirestore();
     unsubFirestore = null;
   }
+}
+
+function stopPeriodicSync() {
+  if (periodicSyncId != null) {
+    clearInterval(periodicSyncId);
+    periodicSyncId = null;
+  }
+}
+
+function startPeriodicSync() {
+  stopPeriodicSync();
+  periodicSyncId = setInterval(function () {
+    if (document.visibilityState !== "visible" || !authRef || !dbRef) return;
+    const u = authRef.currentUser;
+    if (!u || !u.emailVerified) return;
+    void runMergeIfPossible(u);
+  }, PERIODIC_SYNC_MS);
 }
 
 function clearLocalEditMergeTimer() {
@@ -237,6 +256,7 @@ function bootAccountSync() {
     onAuthStateChanged(authRef, async function (user) {
       clearFirestoreListener();
       clearLocalEditMergeTimer();
+      stopPeriodicSync();
       if (!user) {
         try {
           sessionStorage.removeItem(SESSION_SYNCED_UID_KEY);
@@ -282,6 +302,9 @@ function bootAccountSync() {
         );
       }
       attachFirestoreListener(user);
+      if (user.emailVerified) {
+        startPeriodicSync();
+      }
       try {
         await loadAndApplyUserProfile(user, dbRef);
       } catch (e) {
