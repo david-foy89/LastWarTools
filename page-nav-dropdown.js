@@ -27,6 +27,24 @@
     return '';
   }
 
+  /** Browsers request /favicon.ico by default; declare an icon so that 404 goes away on deploy. */
+  (function ensureFaviconLink() {
+    try {
+      if (document.querySelector('link[rel~="icon"]')) return;
+      var href =
+        window.location.protocol === 'https:' || window.location.protocol === 'http:'
+          ? new URL('favicon.svg', window.location.origin + '/').href
+          : lwScriptDirFromPageNavDropdown() + 'favicon.svg';
+      var l = document.createElement('link');
+      l.rel = 'icon';
+      l.type = 'image/svg+xml';
+      l.href = href;
+      document.head.appendChild(l);
+    } catch (_) {
+      /* ignore */
+    }
+  })();
+
   /** :has() layout fallback for browsers that skip those rules (banner + logo grid). */
   function markPageTopStackHasAccountPromo() {
     var stack = document.querySelector('.page-top-stack');
