@@ -346,6 +346,26 @@
         overflow: hidden;
         text-overflow: ellipsis;
         white-space: nowrap;
+        user-select: none;
+        -webkit-user-select: none;
+        touch-action: manipulation;
+      }
+      .hive-tab-rename {
+        flex: 0 0 auto;
+        padding: 5px 12px;
+        border-radius: 8px;
+        border: 1px solid var(--line-soft);
+        background: var(--panel);
+        color: var(--muted);
+        font-size: 0.76rem;
+        font-weight: 600;
+        font-family: inherit;
+        cursor: pointer;
+        transition: border-color 0.12s, color 0.12s, background 0.12s;
+      }
+      .hive-tab-rename:hover {
+        border-color: var(--accent, #64b4ff);
+        color: var(--text);
       }
       .hive-tab:hover {
         border-color: var(--accent, #64b4ff);
@@ -354,6 +374,14 @@
         border-color: var(--accent, #64b4ff);
         background: rgba(100, 180, 255, 0.12);
         color: var(--text);
+      }
+      .hive-tabs__list {
+        display: flex;
+        flex-wrap: wrap;
+        align-items: center;
+        gap: 6px;
+        flex: 1 1 auto;
+        min-width: 0;
       }
       .hive-tabs__hint {
         flex: 1 1 100%;
@@ -482,8 +510,7 @@
       <section class="hero">
         <h1>Alliance Hive</h1>
         <div class="sub">
-          A <strong>50×50</strong> hive planner grid (same cell count as common tools such as
-          <a href="https://cpt-hedge.com/maps/planner" rel="noopener noreferrer">Cpt Hedgehog’s Hive Planner</a>).
+          A <strong>50×50</strong> hive planner grid.
           Use <strong>Icons</strong> to pick single-tile paint, <strong>3×3</strong> markers (Alliance Exercise, <strong>R5–R1</strong>), a <strong>5×5 Alliance Furnace</strong>, or a <strong>9×9 Alliance Center</strong>. Click or tap to apply; right-click to clear (on touch, <strong>long-press</strong> ~½s).
           Coordinates are <strong>1–50</strong> from the top-left. <strong>Every 10 cells</strong> a heavier grid line helps with alignment.
         </div>
@@ -627,48 +654,59 @@
         <p class="hive-hint">
           The map is drawn on a canvas; zoom only changes on-screen size (cells stay 50×50). Nothing is sent to a server—marks stay in this tab until you refresh or clear.
         </p>
-        <div class="hive-tabs" role="tablist" aria-label="Hive layouts">
+        <div class="hive-tabs">
           <span class="hive-tabs__label" id="hiveTabsLegend">Hives</span>
           <button
             type="button"
-            class="hive-tab hive-tab--active"
-            role="tab"
-            aria-selected="true"
-            aria-controls="hiveCanvas"
-            id="hiveTabBtn0"
-            data-hive-tab="0"
+            class="hive-tab-rename"
+            id="hiveTabRenameBtn"
+            title="Rename the active hive"
+            aria-label="Rename the active hive"
           >
-            Hive 1
+            Rename
           </button>
-          <button type="button" class="hive-tab" role="tab" aria-selected="false" id="hiveTabBtn1" data-hive-tab="1">
-            Hive 2
-          </button>
-          <button type="button" class="hive-tab" role="tab" aria-selected="false" id="hiveTabBtn2" data-hive-tab="2">
-            Hive 3
-          </button>
-          <button type="button" class="hive-tab" role="tab" aria-selected="false" id="hiveTabBtn3" data-hive-tab="3">
-            Hive 4
-          </button>
-          <button type="button" class="hive-tab" role="tab" aria-selected="false" id="hiveTabBtn4" data-hive-tab="4">
-            Hive 5
-          </button>
-          <button type="button" class="hive-tab" role="tab" aria-selected="false" id="hiveTabBtn5" data-hive-tab="5">
-            Hive 6
-          </button>
-          <button type="button" class="hive-tab" role="tab" aria-selected="false" id="hiveTabBtn6" data-hive-tab="6">
-            Hive 7
-          </button>
-          <button type="button" class="hive-tab" role="tab" aria-selected="false" id="hiveTabBtn7" data-hive-tab="7">
-            Hive 8
-          </button>
-          <button type="button" class="hive-tab" role="tab" aria-selected="false" id="hiveTabBtn8" data-hive-tab="8">
-            Hive 9
-          </button>
-          <button type="button" class="hive-tab" role="tab" aria-selected="false" id="hiveTabBtn9" data-hive-tab="9">
-            Hive 10
-          </button>
+          <div class="hive-tabs__list" role="tablist" aria-label="Hive layouts">
+            <button
+              type="button"
+              class="hive-tab hive-tab--active"
+              role="tab"
+              aria-selected="true"
+              aria-controls="hiveCanvas"
+              id="hiveTabBtn0"
+              data-hive-tab="0"
+            >
+              Hive 1
+            </button>
+            <button type="button" class="hive-tab" role="tab" aria-selected="false" id="hiveTabBtn1" data-hive-tab="1">
+              Hive 2
+            </button>
+            <button type="button" class="hive-tab" role="tab" aria-selected="false" id="hiveTabBtn2" data-hive-tab="2">
+              Hive 3
+            </button>
+            <button type="button" class="hive-tab" role="tab" aria-selected="false" id="hiveTabBtn3" data-hive-tab="3">
+              Hive 4
+            </button>
+            <button type="button" class="hive-tab" role="tab" aria-selected="false" id="hiveTabBtn4" data-hive-tab="4">
+              Hive 5
+            </button>
+            <button type="button" class="hive-tab" role="tab" aria-selected="false" id="hiveTabBtn5" data-hive-tab="5">
+              Hive 6
+            </button>
+            <button type="button" class="hive-tab" role="tab" aria-selected="false" id="hiveTabBtn6" data-hive-tab="6">
+              Hive 7
+            </button>
+            <button type="button" class="hive-tab" role="tab" aria-selected="false" id="hiveTabBtn7" data-hive-tab="7">
+              Hive 8
+            </button>
+            <button type="button" class="hive-tab" role="tab" aria-selected="false" id="hiveTabBtn8" data-hive-tab="8">
+              Hive 9
+            </button>
+            <button type="button" class="hive-tab" role="tab" aria-selected="false" id="hiveTabBtn9" data-hive-tab="9">
+              Hive 10
+            </button>
+          </div>
           <p class="hive-tabs__hint">
-            Click a hive to switch layouts. <strong>Right-click</strong> a hive to rename it. Each hive is saved separately in this browser.
+            Click a hive to switch. <strong>Right-click</strong> or <strong>press and hold</strong> (~½&nbsp;s) a hive to rename it, or use <strong>Rename</strong> for the active hive. Saved separately in this browser.
           </p>
         </div>
         <div class="hive-canvas-wrap">
@@ -719,6 +757,7 @@
         for (hiTab = 0; hiTab < HIVE_TAB_COUNT; hiTab++) {
           hiveTabButtons.push(document.getElementById("hiveTabBtn" + hiTab));
         }
+        var hiveTabRenameBtn = document.getElementById("hiveTabRenameBtn");
         if (!canvas || !canvas.getContext) return;
         canvas.width = PX;
         canvas.height = PX;
@@ -2854,6 +2893,14 @@
 
         function initHiveTabs() {
           var i;
+          var hiveTabLongPressTimer = null;
+          var hiveTabSuppressClick = false;
+          function clearHiveTabLongPressTimer() {
+            if (hiveTabLongPressTimer) {
+              clearTimeout(hiveTabLongPressTimer);
+              hiveTabLongPressTimer = null;
+            }
+          }
           for (i = 0; i < HIVE_TAB_COUNT; i++) {
             hiveTabNames.push(defaultHiveTabName(i));
             hiveTabData.push(emptyHiveSnapshot());
@@ -2865,14 +2912,52 @@
             (function (idx) {
               var btn = hiveTabButtons[idx];
               if (!btn) return;
-              btn.addEventListener("click", function () {
+              btn.addEventListener("click", function (e) {
+                if (hiveTabSuppressClick) {
+                  hiveTabSuppressClick = false;
+                  e.preventDefault();
+                  e.stopPropagation();
+                  return;
+                }
                 switchHiveTab(idx);
               });
               btn.addEventListener("contextmenu", function (e) {
                 e.preventDefault();
+                clearHiveTabLongPressTimer();
                 renameHiveTabAt(idx);
               });
+              btn.addEventListener("pointerdown", function (e) {
+                if (e.pointerType === "mouse" && e.button !== 0) return;
+                clearHiveTabLongPressTimer();
+                var pid = e.pointerId;
+                hiveTabLongPressTimer = setTimeout(function () {
+                  hiveTabLongPressTimer = null;
+                  try {
+                    btn.releasePointerCapture(pid);
+                  } catch (_) {
+                    /* ignore */
+                  }
+                  renameHiveTabAt(idx);
+                  hiveTabSuppressClick = true;
+                }, 520);
+                try {
+                  btn.setPointerCapture(pid);
+                } catch (_) {
+                  /* ignore */
+                }
+              });
+              btn.addEventListener("pointerup", function () {
+                clearHiveTabLongPressTimer();
+              });
+              btn.addEventListener("pointercancel", function () {
+                clearHiveTabLongPressTimer();
+              });
             })(i);
+          }
+          if (hiveTabRenameBtn) {
+            hiveTabRenameBtn.addEventListener("click", function () {
+              renameHiveTabAt(currentHiveTab);
+            });
           }
           window.addEventListener("beforeunload", persistHiveTabsStorage);
         }
