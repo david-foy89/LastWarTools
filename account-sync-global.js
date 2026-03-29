@@ -39,6 +39,10 @@ let unsubFirestore = null;
 let mergeInFlight = false;
 let remoteDebounceTimer = null;
 
+/** After localStorage saves, upload is debounced so edits reach Firestore without waiting for the 90s page-load throttle. */
+const LOCAL_EDIT_MERGE_DEBOUNCE_MS = 2000;
+let localEditMergeTimer = null;
+
 function shouldRunBackgroundSync() {
   const now = Date.now();
   var last = 0;
@@ -69,6 +73,30 @@ function clearFirestoreListener() {
     unsubFirestore();
     unsubFirestore = null;
   }
+}
+
+function clearLocalEditMergeTimer() {
+  if (localEditMergeTimer) {
+    clearTimeout(localEditMergeTimer);
+    localEditMergeTimer = null;
+  }
+}
+
+/**
+ * Call after a tool writes to localStorage (e.g. saveState). Debounced merge+upload.
+ * No-op if not signed in, email not verified, or sync not booted.
+ */
+function scheduleMergeAfterLocalEdit() {
+  if (!syncStarted || !authRef) return;
+  const u = authRef.currentUser;
+  if (!u || !u.emailVerified) return;
+  clearLocalEditMergeTimer();
+  localEditMergeTimer = setTimeout(async function () {
+    localEditMergeTimer = null;
+    const u2 = authRef.currentUser;
+    if (!u2 || !u2.emailVerified) return;
+    await runMergeIfPossible(u2);
+  }, LOCAL_EDIT_MERGE_DEBOUNCE_MS);
 }
 
 /**
@@ -146,8 +174,21 @@ function bootAccountSync() {
       return mergeAndSyncToCloud(u, dbRef, {});
     };
 
+    window.__lwScheduleAccountMergeAfterLocalChange = scheduleMergeAfterLocalEdit;
+
+    document.addEventListener("pagehide", function () {
+      if (!syncStarted || !authRef) return;
+      if (!localEditMergeTimer) return;
+      clearLocalEditMergeTimer();
+      const u = authRef.currentUser;
+      if (u && u.emailVerified) {
+        void runMergeIfPossible(u);
+      }
+    });
+
     onAuthStateChanged(authRef, async function (user) {
       clearFirestoreListener();
+      clearLocalEditMergeTimer();
       if (!user) {
         try {
           sessionStorage.removeItem(SESSION_SYNCED_UID_KEY);

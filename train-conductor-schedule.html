@@ -86,6 +86,8 @@
     </script>
     <!-- Removed legacy exportAllianceMembersButton and exportAllianceMembers code. Only DOMContentLoaded handler remains. -->
     <link rel="stylesheet" href="last-war-furnace-upgrade-calculator.css" />
+    <script src="firebase-config.example.js"></script>
+    <script src="firebase-config.js"></script>
     <script src="page-nav-dropdown.js" defer></script>
     <script src="language-translate.js" defer></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
@@ -3661,6 +3663,16 @@
               allianceFillConductorIdx: state.allianceFillConductorIdx,
             }),
           );
+          try {
+            if (
+              typeof window.__lwScheduleAccountMergeAfterLocalChange ===
+              "function"
+            ) {
+              window.__lwScheduleAccountMergeAfterLocalChange();
+            }
+          } catch {
+            /* ignore */
+          }
         } catch {
           // ignore
         }

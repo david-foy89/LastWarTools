@@ -2348,12 +2348,26 @@
           return list;
         }
 
+        function lwScheduleAccountSync() {
+          try {
+            if (
+              typeof window.__lwScheduleAccountMergeAfterLocalChange ===
+              "function"
+            ) {
+              window.__lwScheduleAccountMergeAfterLocalChange();
+            }
+          } catch {
+            /* ignore */
+          }
+        }
+
         function commitCurrentWeekToMap() {
           if (!currentWeekKey) return;
           weeksMap[currentWeekKey] = verusRows;
           try {
             localStorage.setItem(STORAGE_ROOT, JSON.stringify(weeksMap));
             localStorage.setItem(LAST_WEEK_KEY, currentWeekKey);
+            lwScheduleAccountSync();
           } catch {
             // ignore
           }
@@ -2386,6 +2400,7 @@
           try {
             localStorage.setItem(LAST_WEEK_KEY, currentWeekKey);
             localStorage.setItem(STORAGE_ROOT, JSON.stringify(weeksMap));
+            lwScheduleAccountSync();
           } catch {
             // ignore
           }
