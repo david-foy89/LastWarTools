@@ -37,7 +37,7 @@ Hosted on GitHub Pages via `index.html`.
 | `verus-tracker-match-history.js`           | Module: Versus match history (loaded by tracker page) |
 | `transfer-tracker.html`                    | Alliance transfer intake: shareable links + Firestore |
 | `transfer-submit.html`                     | Public form target for generated transfer links       |
-| `alliance-hive.html`                       | Alliance hive layout / planning                       |
+| `alliance-hive.html`                       | Hive Builder — 50×50 hive layout / planning           |
 | `train-conductor-schedule.html`            | Train conductor schedule tool                         |
 | `server-search.html`                       | Server search utility                                 |
 | `account.html`                             | Optional account: profile, username, cloud sync       |
@@ -84,11 +84,11 @@ Hosted on GitHub Pages via `index.html`.
   - Consistent sidebar width and map area sizing
   - "Export Map" for sharing plans
   - Shared navigation, styling, and layout with calculator pages
-- **Alliance Tools** (dropdown in the top nav; `page-nav-dropdown.js` ensures Transfer, Versus, Desert Storm, and Alliance Hive links are present alongside any links authored in HTML):
+- **Alliance Tools** (dropdown in the top nav; `page-nav-dropdown.js` ensures Transfer, Versus, Desert Storm, and Hive Builder links are present alongside any links authored in HTML):
   - Desert Storm Tracker/Planner: day history, score-date navigation, roster import (CSV/TXT/Excel), screenshot/video OCR, filter/sort, no-show checkboxes, team map + PNG export
   - Versus Tracker: weekly Mon–Sat scores and VS total (Desert Storm server-day timing), CSV/Excel import/export, screenshot/recording OCR, optional match history when wired to DS
   - Transfer Tracker: generate shareable applicant links (and leadership link), Excel/CSV import, Firestore-backed table when `firebase-config.js` is set
-  - Alliance Hive, Train Conductor, Server Search (as linked from the dropdown)
+  - Hive Builder, Train Conductor, Server Search (as linked from the dropdown)
 - Optional **account** strip on many pages: local tools work without sign-in; `account.html` + Firebase enable profile and cross-device sync where implemented
 - Dedicated homepage describing major tools
 - Buy Me a Coffee support link at the top of every page
@@ -136,5 +136,5 @@ Interactive maps use a unified sidebar and map area across seasons; tracker page
 
 - Shared style tokens, spacing, cards, grid, and navigation: edit `last-war-furnace-upgrade-calculator.css`.
 - Calculator-specific labels, costs, output tables, and ETA logic: edit the relevant calculator HTML file.
-- Navigation links are duplicated across pages; when adding/removing a calculator page, update the nav block in each HTML file. The **Alliance Tools** menu also gets **Transfer Tracker**, **Versus Tracker**, **Desert Storm Tracker/Planner**, and **Alliance Hive** appended at runtime if missing—see `ensureAllianceToolsLinks` in `page-nav-dropdown.js`.
+- Navigation links are duplicated across pages; when adding/removing a calculator page, update the nav block in each HTML file. The **Alliance Tools** menu also gets **Transfer Tracker**, **Versus Tracker**, **Desert Storm Tracker/Planner**, and **Hive Builder** appended at runtime if missing—see `ensureAllianceToolsLinks` in `page-nav-dropdown.js`.
 - When adding/removing public pages, update `sitemap.xml` and keep canonical URLs correct.

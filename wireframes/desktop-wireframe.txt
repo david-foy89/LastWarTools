@@ -12,7 +12,7 @@ LAST WAR TOOLS - SHARED DESKTOP CALCULATOR WIREFRAME
 |          [Season 3 ▼] [Season 4 ▼] [Season 5 ▼]                                 |
 |   Season dropdowns: calculators + interactive map per season.                   |
 |   Alliance Tools: Train Conductor, Transfer, Server Search (HTML) + injected      |
-|   links for Versus Tracker, Desert Storm, Alliance Hive (page-nav-dropdown.js).   |
+|   links for Versus Tracker, Desert Storm, Hive Builder (page-nav-dropdown.js).   |
 +----------------------------------------------------------------------------------+
 | Hero: Page Title + short subtitle                                                |
 +----------------------------------------------------------------------------------+

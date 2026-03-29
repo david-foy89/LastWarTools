@@ -85,7 +85,6 @@
       });
     </script>
     <!-- Removed legacy exportAllianceMembersButton and exportAllianceMembers code. Only DOMContentLoaded handler remains. -->
-    </script>
     <link rel="stylesheet" href="last-war-furnace-upgrade-calculator.css" />
     <script src="page-nav-dropdown.js" defer></script>
     <script src="language-translate.js" defer></script>
@@ -1082,6 +1081,19 @@
                 <option value="2">Week 3</option>
                 <option value="3">Week 4</option>
               </select>
+              <p
+                class="field"
+                style="
+                  margin: 8px 0 0;
+                  font-size: 0.82rem;
+                  color: var(--muted);
+                  line-height: 1.35;
+                "
+              >
+                Choosing a <strong>later</strong> week (e.g. Week 1 → Week 2)
+                rolls the schedule forward: each prior week moves up, and
+                <strong>Week 4</strong> opens empty for new conductor names.
+              </p>
             </div>
             <div id="conductorsList" style="display: grid; gap: 10px"></div>
           </div>
@@ -1538,9 +1550,44 @@
       function getConductorName(weekIdx, conductorIdx) {
         const week = state.conductorNamesByWeek[weekIdx] || [];
         const raw = week[conductorIdx];
+        if (raw === "") return "";
         return typeof raw === "string" && raw.trim()
           ? raw.trim()
           : DEFAULT_NAMES[conductorIdx];
+      }
+
+      /** Default Mon–Sun assignment row for a fresh week. */
+      function freshDayAssignmentsWeek() {
+        return [0, 1, 2, 3, 4, 5, 6];
+      }
+
+      /** Shift week 2→1, 3→2, 4→3; clear week 4 for new names/assignments. */
+      function rotateWeekSlotsUp() {
+        for (let w = 0; w < 3; w++) {
+          const nextNames = state.conductorNamesByWeek[w + 1];
+          const nextDays = state.dayAssignmentsByWeek[w + 1];
+          state.conductorNamesByWeek[w] = Array.from(
+            { length: 7 },
+            (_, i) =>
+              typeof nextNames?.[i] === "string"
+                ? nextNames[i]
+                : DEFAULT_NAMES[i],
+          );
+          state.dayAssignmentsByWeek[w] = normalizeDayAssignmentsWeekRow(
+            nextDays || freshDayAssignmentsWeek(),
+          );
+        }
+        state.conductorNamesByWeek[3] = Array(7).fill("");
+        state.dayAssignmentsByWeek[3] = freshDayAssignmentsWeek();
+      }
+
+      /** Move schedule start forward by whole weeks (keeps table dates aligned). */
+      function advanceStartDateByWeeks(weekCount) {
+        if (!weekCount || !state.startDateStr) return;
+        const d = new Date(state.startDateStr + "T00:00:00");
+        if (Number.isNaN(d.getTime())) return;
+        d.setDate(d.getDate() + 7 * weekCount);
+        state.startDateStr = toDateStr(getMondayOf(d));
       }
 
       function getMondayOf(date) {
@@ -3854,6 +3901,8 @@
         renderSchedule();
       }
 
+      let conductorWeekSelectProgrammatic = false;
+
       // Init
       loadState();
       loadSharedStateFromUrl();
@@ -3863,7 +3912,9 @@
       }
       startDateInput.value = state.startDateStr;
       vipToggleInput.checked = state.showVip;
+      conductorWeekSelectProgrammatic = true;
       conductorWeekSelect.value = String(state.nameEditWeek);
+      conductorWeekSelectProgrammatic = false;
       allianceFillTargetSelect.value = state.allianceFillTarget;
 
       render();
@@ -3877,11 +3928,28 @@
           renderSchedule();
         });
       });
-
-      // Conductor naming week selector
+      // Conductor naming week: moving forward shifts stored weeks up; Week 4 becomes a fresh row.
       conductorWeekSelect.addEventListener("change", () => {
+        if (conductorWeekSelectProgrammatic) return;
         const n = Number(conductorWeekSelect.value);
-        state.nameEditWeek = n >= 0 && n <= 3 ? n : 0;
+        const newIdx = n >= 0 && n <= 3 ? n : 0;
+        const prevIdx = state.nameEditWeek;
+        if (newIdx > prevIdx) {
+          const steps = Math.min(newIdx - prevIdx, 4);
+          for (let s = 0; s < steps; s++) {
+            rotateWeekSlotsUp();
+          }
+          advanceStartDateByWeeks(steps);
+          state.nameEditWeek = 3;
+          conductorWeekSelectProgrammatic = true;
+          conductorWeekSelect.value = "3";
+          conductorWeekSelectProgrammatic = false;
+          if (startDateInput) {
+            startDateInput.value = state.startDateStr;
+          }
+        } else {
+          state.nameEditWeek = newIdx;
+        }
         saveState();
         renderConductors();
         renderSchedule();
@@ -3950,7 +4018,9 @@
         startDateInput.value = state.startDateStr;
         state.weeks = 2;
         state.nameEditWeek = 0;
+        conductorWeekSelectProgrammatic = true;
         conductorWeekSelect.value = "0";
+        conductorWeekSelectProgrammatic = false;
         state.conductorNamesByWeek = Array.from({ length: 4 }, () => [
           ...DEFAULT_NAMES,
         ]);

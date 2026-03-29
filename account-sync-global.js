@@ -6,8 +6,17 @@
  */
 import { initializeApp, getApp, getApps } from "https://www.gstatic.com/firebasejs/9.22.2/firebase-app.js";
 import { getAuth, onAuthStateChanged, reload } from "https://www.gstatic.com/firebasejs/9.22.2/firebase-auth.js";
-import { getFirestore } from "https://www.gstatic.com/firebasejs/9.22.2/firebase-firestore.js";
-import { firebaseConfigOk, mergeAndSyncToCloud } from "./account-sync-lib.js";
+import {
+  doc,
+  getDoc,
+  getFirestore,
+} from "https://www.gstatic.com/firebasejs/9.22.2/firebase-firestore.js";
+import {
+  firebaseConfigOk,
+  mergeAndSyncToCloud,
+  shouldPullCloudBeforeMerge,
+  SYNC_COLLECTION,
+} from "./account-sync-lib.js";
 import { loadAndApplyUserProfile } from "./account-profile-lib.js";
 
 const THROTTLE_MS = 90_000;
@@ -67,9 +76,18 @@ if (!firebaseConfigOk(cfg)) {
       }
       /** True when this tab has not yet recorded a successful merge for this uid (includes sign-in). */
       var accountJustChanged = sessionUid !== user.uid;
+      var needsPullFromCloud = false;
+      if (user.emailVerified) {
+        try {
+          var cloudSnap = await getDoc(doc(db, SYNC_COLLECTION, user.uid));
+          needsPullFromCloud = shouldPullCloudBeforeMerge(cloudSnap, user.uid);
+        } catch (peekErr) {
+          needsPullFromCloud = true;
+        }
+      }
       if (
         user.emailVerified &&
-        (accountJustChanged || shouldRunBackgroundSync())
+        (accountJustChanged || needsPullFromCloud || shouldRunBackgroundSync())
       ) {
         try {
           await mergeAndSyncToCloud(user, db, {});
@@ -82,6 +100,10 @@ if (!firebaseConfigOk(cfg)) {
         } catch (e) {
           console.warn("[Last War Tools] Background account sync failed:", e);
         }
+      } else if (user && !user.emailVerified) {
+        console.info(
+          "[Last War Tools] Cloud sync skipped: verify your email to merge data across devices.",
+        );
       }
       try {
         await loadAndApplyUserProfile(user, db);
