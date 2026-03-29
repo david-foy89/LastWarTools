@@ -208,8 +208,8 @@
             <h2 class="card-title">Quick Start</h2>
             <ol class="helper-list">
               <li>
-                Set your current Season 5 Squad Base (Tanker Bar) level and next
-                goal.
+                Set your current Tanker Bar level and target level (single step
+                or multi-level totals).
               </li>
               <li>
                 Enter current Coffee and apply any reduction bonus you use.
@@ -225,6 +225,10 @@
           <div class="field">
             <label for="currentLevel">Current Tanker Bar Level</label>
             <select id="currentLevel"></select>
+          </div>
+          <div class="field">
+            <label for="targetLevel">Target level (upgrade to)</label>
+            <select id="targetLevel"></select>
           </div>
           <div class="field">
             <label for="currentCoffee">Current Coffee</label>
@@ -261,11 +265,11 @@
           <h2 class="card-title">Next Upgrade</h2>
           <div class="summary">
             <div class="tile">
-              <div class="tile-key">Next Level</div>
+              <div class="tile-key">Target level</div>
               <div class="tile-value" id="nextLevelValue">Lv 2</div>
             </div>
             <div class="tile">
-              <div class="tile-key">Coffee Required</div>
+              <div class="tile-key">Coffee Required (total)</div>
               <div class="tile-value" id="requiredValue">4,300</div>
             </div>
             <div class="tile">
@@ -357,6 +361,7 @@
       }));
 
       const currentLevelInput = document.getElementById("currentLevel");
+      const targetLevelInput = document.getElementById("targetLevel");
       const currentCoffeeInput = document.getElementById("currentCoffee");
       const nextLevelValue = document.getElementById("nextLevelValue");
       const requiredValue = document.getElementById("requiredValue");
@@ -595,6 +600,10 @@
           applyGoogleLanguage(preferredLanguage);
         };
 
+      function getTankerBarMaxLevel() {
+        return tankerBarCosts[tankerBarCosts.length - 1].level;
+      }
+
       function buildLevelOptions() {
         currentLevelInput.innerHTML = "";
         for (let level = 1; level <= tankerBarCosts.length; level += 1) {
@@ -602,6 +611,22 @@
           currentLevelInput.appendChild(option);
         }
         currentLevelInput.value = "1";
+      }
+
+      function syncTargetLevelSelect() {
+        const current = Number(currentLevelInput.value || 1);
+        const maxLevel = getTankerBarMaxLevel();
+        const prevTarget = Number(targetLevelInput.value);
+        targetLevelInput.innerHTML = "";
+        for (let lvl = current + 1; lvl <= maxLevel; lvl += 1) {
+          targetLevelInput.appendChild(new Option(`Level ${lvl}`, String(lvl)));
+        }
+        if (targetLevelInput.options.length === 0) return;
+        const validPrev =
+          Number.isFinite(prevTarget) &&
+          prevTarget > current &&
+          prevTarget <= maxLevel;
+        targetLevelInput.value = String(validPrev ? prevTarget : current + 1);
       }
 
       function buildAllianceTechOptions() {
@@ -733,6 +758,16 @@
             currentLevelInput.value = String(state.currentLevel);
           }
 
+          syncTargetLevelSelect();
+          if (
+            Number.isFinite(Number(state.targetLevel)) &&
+            targetLevelInput.querySelector(
+              `option[value="${state.targetLevel}"]`,
+            )
+          ) {
+            targetLevelInput.value = String(state.targetLevel);
+          }
+
           if (Number.isFinite(Number(state.currentCoffee))) {
             currentCoffeeInput.value = String(
               Math.max(0, Number(state.currentCoffee)),
@@ -793,7 +828,13 @@
       }
 
       function updateCalculator() {
-        const currentLevel = Number(currentLevelInput.value);
+        const maxLevel = getTankerBarMaxLevel();
+        syncTargetLevelSelect();
+        const currentLevel = Number(currentLevelInput.value || 1);
+        const targetLevel =
+          targetLevelInput.options.length === 0
+            ? currentLevel
+            : Number(targetLevelInput.value || currentLevel + 1);
         const currentCoffee = Math.max(
           0,
           Number(currentCoffeeInput.value) || 0,
@@ -802,7 +843,7 @@
           (row) => row.level === currentLevel + 1,
         );
 
-        if (!nextUpgrade) {
+        if (!nextUpgrade || currentLevel >= maxLevel) {
           nextLevelValue.textContent = "Max";
           requiredValue.textContent = "0";
           ownedValue.textContent = formatResource(currentCoffee);
@@ -818,14 +859,20 @@
             tankerBarCosts[tankerBarCosts.length - 1].level,
           );
           updateCurrentTimeDisplay();
+          saveState();
           return;
         }
 
         const allianceTechPct = Number(allianceTechSelect.value || 0);
-        const requiredCoffee = Math.max(
-          0,
-          Math.round(nextUpgrade.coffee * (1 - allianceTechPct / 100)),
-        );
+        let requiredCoffee = 0;
+        for (let lvl = currentLevel + 1; lvl <= targetLevel; lvl += 1) {
+          const row = tankerBarCosts.find((r) => r.level === lvl);
+          if (!row) continue;
+          requiredCoffee += Math.max(
+            0,
+            Math.round(row.coffee * (1 - allianceTechPct / 100)),
+          );
+        }
         const remainingCoffee = Math.max(0, requiredCoffee - currentCoffee);
         const ready = remainingCoffee === 0;
         const totalOutputPerHour = getTotalMineOutput();
@@ -838,6 +885,7 @@
 
         const calcSignature = [
           currentLevel,
+          targetLevel,
           currentCoffee,
           allianceTechPct,
           getMineLevelsSignature(),
@@ -869,7 +917,10 @@
               )
             : formatReadyAt(estimatedHours, selectedTimeZone);
         readyAtValue.className = `tile-value ${ready ? "ok" : totalOutputPerHour > 0 ? "" : "warn"}`;
-        pathValue.textContent = `Level ${currentLevel} -> Level ${currentLevel + 1}`;
+        pathValue.textContent =
+          targetLevel <= currentLevel + 1
+            ? `Level ${currentLevel} -> Level ${targetLevel}`
+            : `Level ${currentLevel} -> Level ${targetLevel} (${targetLevel - currentLevel} upgrades)`;
         statusValue.textContent = ready
           ? "You already have enough coffee"
           : "Need more coffee";
@@ -896,6 +947,7 @@
       setInterval(updateCurrentTimeDisplay, 1000);
 
       currentLevelInput.addEventListener("change", updateCalculator);
+      targetLevelInput.addEventListener("change", updateCalculator);
       currentCoffeeInput.addEventListener("input", updateCalculator);
       timeZoneSelect.addEventListener("change", updateCalculator);
       allianceTechSelect.addEventListener("change", updateMineOutput);
