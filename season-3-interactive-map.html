@@ -11,9 +11,9 @@
       name="description"
       content="Interactive alliance map planning tool for Season 3. Manage cities, strongholds, and coordinate territories with real-time visualization and import/export functionality."
     />
-    <meta
-      name="canonical"
-      content="https://lastwarsurvivaltools.com/season-3-interactive-map.html"
+    <link
+      rel="canonical"
+      href="https://lastwarsurvivaltools.com/season-3-interactive-map.html"
     />
 
     <!-- Open Graph Tags -->
@@ -723,7 +723,10 @@
               >Train Conductor</a
             >
             <a href="transfer-tracker.html" class="page-link">Transfer Tracker</a>
+            <a href="verus-tracker.html" class="page-link">Versus Tracker</a>
+            <a href="ds-tracker.html" class="page-link">Desert Storm Tracker/Planner</a>
             <a href="server-search.html" class="page-link">Server Search</a>
+            <a href="alliance-hive.html" class="page-link">Hive Builder</a>
           </div>
         </details>
         <details class="page-nav-dropdown" name="troop-nav">
@@ -769,6 +772,9 @@
             <a href="season-2-interactive-map.html" class="page-link"
               >Interactive Map</a
             >
+            <a href="season-2-supplies-checklist.html" class="page-link"
+              >Supplies Checklist</a
+            >
           </div>
         </details>
         <details class="page-nav-dropdown active" name="season-nav">
@@ -781,7 +787,7 @@
             >
             <a href="altar-calculator.html" class="page-link">Altar</a>
             <a href="protectors-field-calculator.html" class="page-link"
-              >Protectors Field</a
+              >Protector's Field</a
             >
             <a href="season-3-interactive-map.html" class="page-link active"
               >Interactive Map</a
@@ -819,7 +825,7 @@
               >Protector's Field S5</a
             >
             <a href="season-5-squad-base-calculator.html" class="page-link"
-              >Season 5 Squad Base</a
+              >Season 5 Tanker Bar</a
             >
             <a href="season-5-interactive-map.html" class="page-link"
               >Interactive Map</a
@@ -1332,18 +1338,6 @@
               background: #111;
             "
           ></canvas>
-        </div>
-        <div style="margin: 10px 0; text-align: left">
-          <label style="font-size: 0.95em; color: rgba(217, 240, 255, 0.8)"
-            >Or import Excel (.xlsx):
-            <input
-              type="file"
-              id="importExcelInput"
-              accept=".xlsx,.xls,.csv"
-              style="margin-top: 6px; display: block"
-              onchange="handleExcelImport(event)"
-            />
-          </label>
         </div>
         <div class="modal-buttons">
           <button class="btn-confirm" onclick="importPlan()">Import</button>

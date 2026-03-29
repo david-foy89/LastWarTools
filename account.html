@@ -14,7 +14,7 @@
       })();
     </script>
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Account — Last War Tools</title>
+    <title>Last War Account — Last War Tools</title>
     <meta
       name="description"
       content="Optional sign-in to sync Last War Tools saved data across browsers and devices. All tools work without an account."
@@ -193,7 +193,6 @@
       <div id="google_translate_element" class="hidden-translate"></div>
 
       <nav class="page-nav" aria-label="Calculator pages">
-        <a href="index.html" class="page-link">Home</a>
         <a href="hq-upgrade-calculator.html" class="page-link">HQ Upgrade</a>
         <details class="page-nav-dropdown" name="alliance-nav">
           <summary class="page-link page-nav-dropdown-toggle">
@@ -204,13 +203,119 @@
               >Train Conductor</a
             >
             <a href="transfer-tracker.html" class="page-link">Transfer Tracker</a>
+            <a href="verus-tracker.html" class="page-link">Versus Tracker</a>
+            <a href="ds-tracker.html" class="page-link">Desert Storm Tracker/Planner</a>
             <a href="server-search.html" class="page-link">Server Search</a>
+            <a href="alliance-hive.html" class="page-link">Hive Builder</a>
+          </div>
+        </details>
+        <details class="page-nav-dropdown" name="troop-nav">
+          <summary class="page-link page-nav-dropdown-toggle">
+            Troop Tools
+          </summary>
+          <div class="page-nav-dropdown-menu">
+            <a href="t10-troops-calculator.html" class="page-link"
+              >T10 Troops</a
+            >
+            <a href="t11-troops-calculator.html" class="page-link"
+              >T11 Troops</a
+            >
+          </div>
+        </details>
+        <details class="page-nav-dropdown" name="season-nav">
+          <summary class="page-link page-nav-dropdown-toggle">
+            Season 1 Tools
+          </summary>
+          <div class="page-nav-dropdown-menu">
+            <a href="virus-research-institute-calculator.html" class="page-link"
+              >Virus Research Institute</a
+            >
+            <a href="season-1-squad-base-calculator.html" class="page-link"
+              >Season 1 Squad Base</a
+            >
+            <a href="season-1-interactive-map.html" class="page-link"
+              >Interactive Map</a
+            >
+          </div>
+        </details>
+        <details class="page-nav-dropdown" name="season-nav">
+          <summary class="page-link page-nav-dropdown-toggle">
+            Season 2 Tools
+          </summary>
+          <div class="page-nav-dropdown-menu">
+            <a href="last-war-furnace-upgrade-calculator.html" class="page-link"
+              >Furnace Calculator</a
+            >
+            <a href="season-2-tank-center-calculator.html" class="page-link"
+              >Season 2 Squad Base</a
+            >
+            <a href="season-2-interactive-map.html" class="page-link"
+              >Interactive Map</a
+            >
+            <a href="season-2-supplies-checklist.html" class="page-link"
+              >Supplies Checklist</a
+            >
+          </div>
+        </details>
+        <details class="page-nav-dropdown" name="season-nav">
+          <summary class="page-link page-nav-dropdown-toggle">
+            Season 3 Tools
+          </summary>
+          <div class="page-nav-dropdown-menu">
+            <a href="curse-research-lab-calculator.html" class="page-link"
+              >Curse Research Lab</a
+            >
+            <a href="altar-calculator.html" class="page-link">Altar</a>
+            <a href="protectors-field-calculator.html" class="page-link"
+              >Protector's Field</a
+            >
+            <a href="season-3-interactive-map.html" class="page-link"
+              >Interactive Map</a
+            >
+          </div>
+        </details>
+        <details class="page-nav-dropdown" name="season-nav">
+          <summary class="page-link page-nav-dropdown-toggle">
+            Season 4 Tools
+          </summary>
+          <div class="page-nav-dropdown-menu">
+            <a href="optoelectronic-lab-calculator.html" class="page-link"
+              >Optoelectronic Lab</a
+            >
+            <a href="protectors-field-s4-calculator.html" class="page-link"
+              >Protector's Field S4</a
+            >
+            <a href="lighthouse-s4-calculator.html" class="page-link"
+              >Lighthouse S4</a
+            >
+            <a href="season-4-interactive-map.html" class="page-link"
+              >Interactive Map</a
+            >
+          </div>
+        </details>
+        <details class="page-nav-dropdown" name="season-nav">
+          <summary class="page-link page-nav-dropdown-toggle">
+            Season 5 Tools
+          </summary>
+          <div class="page-nav-dropdown-menu">
+            <a href="caffeine-institute-calculator.html" class="page-link"
+              >Caffeine Institute</a
+            >
+            <a href="protectors-field-s5-calculator.html" class="page-link"
+              >Protector's Field S5</a
+            >
+            <a href="season-5-squad-base-calculator.html" class="page-link"
+              >Season 5 Tanker Bar</a
+            >
+            <a href="season-5-interactive-map.html" class="page-link"
+              >Interactive Map</a
+            >
           </div>
         </details>
       </nav>
 
       <section class="hero">
-        <h1>Account (optional)</h1>
+        <h1>Account</h1>
         <div class="sub">
           Sign in with your <strong>username</strong>. After you create an account, verify your email to
           enable cloud sync. <strong>All tools still work fully without an account.</strong>
@@ -223,9 +328,8 @@
         <div class="account-card" id="accountSignedOut">
           <h2>Sign in or create an account</h2>
           <p class="account-muted">
-            Use your <strong>username</strong> and password. Enable Email/Password in Firebase Console →
-            Authentication, reCAPTCHA site key in <code>firebase-config.js</code>, and deploy Firestore rules
-            (see <code>firestore.rules.example</code>).
+            Use your <strong>username</strong> and password. If sign-in is unavailable on this site, try again
+            later or use the tools without an account—everything still works locally in your browser.
           </p>
           <div class="account-actions">
             <button type="button" class="action-button" id="accountInlineCreateBtn">Create account</button>
@@ -292,7 +396,7 @@
               <h2 id="accountModalTitleSignUp">Create account</h2>
               <p class="account-muted">
                 Choose a unique username (any characters, max 100). Verify your email before syncing. Complete
-                reCAPTCHA when a site key is configured.
+                any verification step shown on this page if prompted.
               </p>
               <div class="account-field">
                 <label for="accountUsernameSignUp">Username</label>
@@ -511,12 +615,12 @@
 
       function firebaseConfigBannerHtml(cfg) {
         if (!cfg || typeof cfg !== "object") {
-          return "<strong>Firebase config not loaded.</strong> Add <code>firebase-config.js</code> next to this page (copy from <code>firebase-config.example.js</code>).";
+          return "<strong>Account sign-in isn’t configured on this copy of the site.</strong> You can still use every tool without signing in.";
         }
         if (String(cfg.apiKey || "").includes("YOUR_")) {
-          return "<strong>Replace placeholder API key</strong> in <code>firebase-config.js</code> from Firebase Console.";
+          return "<strong>Account sign-in isn’t fully set up yet.</strong> Saved data stays on this device until sign-in works.";
         }
-        return "<strong>Firebase did not initialize.</strong> Check the browser console.";
+        return "<strong>Sign-in couldn’t start.</strong> Try refreshing the page. You can keep using tools without an account.";
       }
 
       const banner = document.getElementById("firebaseConfigBanner");
@@ -898,7 +1002,7 @@
 
       document.getElementById("accountSaveProfileBtn")?.addEventListener("click", async () => {
         if (!auth || !db) {
-          setProfileStatus("Firebase is not configured.", "error");
+          setProfileStatus("Account features aren’t available on this site copy.", "error");
           return;
         }
         const user = auth.currentUser;
@@ -1028,7 +1132,7 @@
 
       document.getElementById("accountSignInBtn").addEventListener("click", async () => {
         if (!auth || !db) {
-          setAuthStatus("Firebase is not configured.", "error");
+          setAuthStatus("Sign-in isn’t available on this site copy.", "error");
           return;
         }
         const rawU = String(document.getElementById("accountUsernameSignIn")?.value || "").trim();
@@ -1049,7 +1153,7 @@
 
       document.getElementById("accountSignUpBtn").addEventListener("click", async () => {
         if (!auth || !db) {
-          setAuthStatus("Firebase is not configured.", "error");
+          setAuthStatus("Sign-in isn’t available on this site copy.", "error");
           return;
         }
         const rawU = String(document.getElementById("accountUsernameSignUp")?.value || "").trim();
@@ -1166,7 +1270,7 @@
 
       document.getElementById("accountUploadBtn").addEventListener("click", async () => {
         if (!auth || !db) {
-          setSyncStatus("Firebase is not configured.", "error");
+          setSyncStatus("Cloud sync isn’t available on this site copy.", "error");
           return;
         }
         const user = auth.currentUser;
@@ -1181,7 +1285,7 @@
 
       document.getElementById("accountRestoreBtn").addEventListener("click", async () => {
         if (!auth || !db) {
-          setSyncStatus("Firebase is not configured.", "error");
+          setSyncStatus("Cloud sync isn’t available on this site copy.", "error");
           return;
         }
         const user = auth.currentUser;

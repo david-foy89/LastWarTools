@@ -86,7 +86,10 @@
               >Train Conductor</a
             >
             <a href="transfer-tracker.html" class="page-link">Transfer Tracker</a>
+            <a href="verus-tracker.html" class="page-link">Versus Tracker</a>
+            <a href="ds-tracker.html" class="page-link">Desert Storm Tracker/Planner</a>
             <a href="server-search.html" class="page-link">Server Search</a>
+            <a href="alliance-hive.html" class="page-link">Hive Builder</a>
           </div>
         </details>
         <details class="page-nav-dropdown" name="troop-nav">
@@ -132,6 +135,9 @@
             <a href="season-2-interactive-map.html" class="page-link"
               >Interactive Map</a
             >
+            <a href="season-2-supplies-checklist.html" class="page-link"
+              >Supplies Checklist</a
+            >
           </div>
         </details>
         <details class="page-nav-dropdown active" name="season-nav">
@@ -144,7 +150,7 @@
             >
             <a href="altar-calculator.html" class="page-link active">Altar</a>
             <a href="protectors-field-calculator.html" class="page-link"
-              >Protectors Field</a
+              >Protector's Field</a
             >
             <a href="season-3-interactive-map.html" class="page-link"
               >Interactive Map</a
@@ -182,7 +188,7 @@
               >Protector's Field S5</a
             >
             <a href="season-5-squad-base-calculator.html" class="page-link"
-              >Season 5 Squad Base</a
+              >Season 5 Tanker Bar</a
             >
             <a href="season-5-interactive-map.html" class="page-link"
               >Interactive Map</a
@@ -196,7 +202,10 @@
         <div class="sub">
           Choose your current Altar level and enter your current mithril and
           sacred water. The calculator shows exactly what you need for the next
-          level.
+          level. Alliance construction reduction applies to both mithril and
+          sacred water costs; estimates for sacred water use your Blessing
+          Fountains and selected timezone (mithril is not passively generated
+          here).
         </div>
       </section>
 
@@ -213,6 +222,10 @@
               <li>
                 Set Blessing Fountain levels to estimate Sacred Water income and
                 readiness time.
+              </li>
+              <li>
+                Choose alliance RSS reduction and timezone for current time and
+                upgrade-ready clock.
               </li>
             </ol>
           </div>
@@ -243,6 +256,16 @@
                 value="0"
               />
             </div>
+          </div>
+          <div class="field">
+            <label for="allianceTechSelect"
+              >Reduced RSS required for building construction</label
+            >
+            <select id="allianceTechSelect"></select>
+          </div>
+          <div class="field">
+            <label for="timeZoneSelect">Timezone</label>
+            <select id="timeZoneSelect"></select>
           </div>
           <div class="field-group">
             <h2 class="card-title">Blessing Fountains</h2>
@@ -292,8 +315,12 @@
               <div class="tile-value" id="etaValue">No output</div>
             </div>
             <div class="tile">
-              <div class="tile-key">Build Time</div>
-              <div class="tile-value" id="buildTimeValue">00:18:45</div>
+              <div class="tile-key">Current Time</div>
+              <div class="tile-value" id="currentTimeValue">-</div>
+            </div>
+            <div class="tile tile-full">
+              <div class="tile-key">Upgrade Ready At</div>
+              <div class="tile-value" id="readyAtValue">No output</div>
             </div>
           </div>
 
@@ -315,6 +342,10 @@
             <div class="row">
               <div class="row-key">Blessing Fountain Output Used</div>
               <div class="row-value" id="mineRateValue">0/hr</div>
+            </div>
+            <div class="row">
+              <div class="row-key">Timezone Used</div>
+              <div class="row-value" id="timeZoneValue">Local</div>
             </div>
           </div>
 
@@ -411,7 +442,6 @@
       );
       const ownedSacredWater = document.getElementById("ownedSacredWater");
       const deficitSacredWater = document.getElementById("deficitSacredWater");
-      const buildTimeValue = document.getElementById("buildTimeValue");
       const pathValue = document.getElementById("pathValue");
       const statusMithril = document.getElementById("statusMithril");
       const statusSacredWater = document.getElementById("statusSacredWater");
@@ -421,8 +451,19 @@
       const totalMineOutput = document.getElementById("totalMineOutput");
       const etaValue = document.getElementById("etaValue");
       const mineRateValue = document.getElementById("mineRateValue");
+      const currentTimeValue = document.getElementById("currentTimeValue");
+      const readyAtValue = document.getElementById("readyAtValue");
+      const timeZoneValue = document.getElementById("timeZoneValue");
+      const timeZoneSelect = document.getElementById("timeZoneSelect");
+      const allianceTechSelect = document.getElementById("allianceTechSelect");
       const STORAGE_KEY = "lastWarAltarCalcStateV1";
       let preferredLanguage = "en";
+      let lastCalcSignature = "";
+      let lockedReadyAtTimestampMs = null;
+      let etaCountdownTimer = null;
+      let etaMs = 0;
+      let etaReady = false;
+      let lastEtaCurrentLevel = null;
 
       const languageOptions = [
         { code: "en", label: "English" },
@@ -469,8 +510,97 @@
         { code: "et", label: "Estonian" },
       ];
 
+      const commonTimeZones = [
+        "UTC",
+        "America/New_York",
+        "America/Chicago",
+        "America/Denver",
+        "America/Los_Angeles",
+        "America/Phoenix",
+        "America/Toronto",
+        "America/Sao_Paulo",
+        "Europe/London",
+        "Europe/Paris",
+        "Europe/Berlin",
+        "Europe/Athens",
+        "Africa/Johannesburg",
+        "Asia/Dubai",
+        "Asia/Kolkata",
+        "Asia/Singapore",
+        "Asia/Shanghai",
+        "Asia/Tokyo",
+        "Australia/Perth",
+        "Australia/Sydney",
+        "Pacific/Auckland",
+      ];
+
       function formatResource(value) {
         return Math.round(Number(value) || 0).toLocaleString();
+      }
+
+      function buildAllianceTechOptions() {
+        allianceTechSelect.innerHTML = Array.from(
+          { length: 201 },
+          (_, index) => {
+            const pct = (index * 0.5).toFixed(1);
+            return `<option value="${pct}">${pct}%</option>`;
+          },
+        ).join("");
+        allianceTechSelect.value = "0.0";
+      }
+
+      function buildTimeZoneOptions() {
+        const detectedTimeZone =
+          Intl.DateTimeFormat().resolvedOptions().timeZone || "UTC";
+        const zoneList = commonTimeZones.includes(detectedTimeZone)
+          ? commonTimeZones
+          : [detectedTimeZone, ...commonTimeZones];
+        timeZoneSelect.innerHTML = zoneList
+          .map((zone) => `<option value="${zone}">${zone}</option>`)
+          .join("");
+        timeZoneSelect.value = detectedTimeZone;
+      }
+
+      function formatReadyAt(hours, timeZone) {
+        if (!Number.isFinite(hours)) return "No output";
+        if (hours <= 0) return "Now";
+        const targetDate = new Date(Date.now() + hours * 3600 * 1000);
+        return new Intl.DateTimeFormat(undefined, {
+          timeZone,
+          month: "short",
+          day: "numeric",
+          hour: "numeric",
+          minute: "2-digit",
+          hour12: true,
+        }).format(targetDate);
+      }
+
+      function formatCurrentTime(timeZone) {
+        return new Intl.DateTimeFormat(undefined, {
+          timeZone,
+          month: "short",
+          day: "numeric",
+          hour: "numeric",
+          minute: "2-digit",
+          second: "2-digit",
+          hour12: true,
+        }).format(new Date());
+      }
+
+      function updateCurrentTimeDisplay() {
+        const selectedTimeZone = timeZoneSelect.value || "UTC";
+        try {
+          currentTimeValue.textContent = formatCurrentTime(selectedTimeZone);
+        } catch {
+          currentTimeValue.textContent = "Unavailable";
+        }
+      }
+
+      function clearEtaCountdown() {
+        if (etaCountdownTimer) {
+          clearInterval(etaCountdownTimer);
+          etaCountdownTimer = null;
+        }
       }
 
       function buildLanguageOptions() {
@@ -557,6 +687,24 @@
         );
       }
 
+      function getTotalMineOutput() {
+        let total = 0;
+        for (let index = 1; index <= 5; index += 1) {
+          const select = document.getElementById(`mineLevel${index}`);
+          total += getMineOutputForLevel(Number(select?.value || 0));
+        }
+        return total;
+      }
+
+      function getMineLevelsSignature() {
+        const levels = [];
+        for (let index = 1; index <= 5; index += 1) {
+          const select = document.getElementById(`mineLevel${index}`);
+          levels.push(Number(select?.value || 0));
+        }
+        return levels.join(",");
+      }
+
       function updateMineOutput() {
         let totalOutput = 0;
 
@@ -607,6 +755,10 @@
             currentSacredWater: Number(currentSacredWaterInput.value || 0),
             fountainLevels: fountainLevels,
             language: languageSelect.value,
+            timeZone: timeZoneSelect.value,
+            allianceTech: Number(allianceTechSelect.value || 0),
+            lockedReadyAtTimestampMs,
+            lastCalcSignature,
           };
 
           localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
@@ -669,6 +821,33 @@
             preferredLanguage = state.language;
             languageSelect.value = state.language;
           }
+
+          if (state.timeZone) {
+            if (
+              !timeZoneSelect.querySelector(`option[value="${state.timeZone}"]`)
+            ) {
+              timeZoneSelect.appendChild(
+                new Option(state.timeZone, state.timeZone),
+              );
+            }
+            timeZoneSelect.value = state.timeZone;
+          }
+
+          if (Number.isFinite(Number(state.allianceTech))) {
+            const savedTech = Number(state.allianceTech).toFixed(1);
+            if (
+              allianceTechSelect.querySelector(`option[value="${savedTech}"]`)
+            ) {
+              allianceTechSelect.value = savedTech;
+            }
+          }
+
+          if (Number.isFinite(Number(state.lockedReadyAtTimestampMs))) {
+            lockedReadyAtTimestampMs = Number(state.lockedReadyAtTimestampMs);
+          }
+          if (typeof state.lastCalcSignature === "string") {
+            lastCalcSignature = state.lastCalcSignature;
+          }
         } catch {
           // Ignore malformed stored state
         }
@@ -684,18 +863,12 @@
         const nextUpgrade = altarCosts.find(
           (row) => row.level === currentLevel + 1,
         );
-
-        // Calculate total fountain output
-        let totalFountainOutput = 0;
-        for (let index = 1; index <= 5; index += 1) {
-          const select = document.getElementById(`mineLevel${index}`);
-          if (select) {
-            const level = Number(select.value);
-            totalFountainOutput += getMineOutputForLevel(level);
-          }
-        }
+        const allianceTechPct = Number(allianceTechSelect.value || 0);
+        const selectedTimeZone = timeZoneSelect.value || "UTC";
+        const totalFountainOutput = getTotalMineOutput();
 
         if (!nextUpgrade) {
+          clearEtaCountdown();
           nextLevelValue.textContent = "Max";
           requiredMithril.textContent = "0";
           ownedMithril.textContent = formatResource(currentMith);
@@ -705,8 +878,8 @@
           ownedSacredWater.textContent = formatResource(currentSW);
           deficitSacredWater.textContent = "0";
           deficitSacredWater.className = "tile-value ok";
-          buildTimeValue.textContent = "-";
           etaValue.textContent = "-";
+          readyAtValue.textContent = "-";
           mineRateValue.textContent = "0/hr";
           pathValue.textContent = "Maximum level reached";
           statusMithril.textContent = "No higher level";
@@ -714,38 +887,138 @@
           costLevelSelect.value = String(
             altarCosts[altarCosts.length - 1].level,
           );
+          timeZoneValue.textContent = selectedTimeZone;
+          updateCurrentTimeDisplay();
+          saveState();
           return;
         }
 
-        const needMithril = Math.max(0, nextUpgrade.mithril - currentMith);
-        const needSW = Math.max(0, nextUpgrade.sacredWater - currentSW);
+        const reqMithril = Math.max(
+          0,
+          Math.round(nextUpgrade.mithril * (1 - allianceTechPct / 100)),
+        );
+        const reqSacredWater = Math.max(
+          0,
+          Math.round(nextUpgrade.sacredWater * (1 - allianceTechPct / 100)),
+        );
+        const needMithril = Math.max(0, reqMithril - currentMith);
+        const needSW = Math.max(0, reqSacredWater - currentSW);
         const mithrilReady = needMithril === 0;
         const swReady = needSW === 0;
+        const estimatedHours =
+          swReady || totalFountainOutput <= 0
+            ? 0
+            : needSW / totalFountainOutput;
 
-        // Calculate ETA for Sacred Water
-        let etaText = "No output";
-        if (totalFountainOutput > 0 && needSW > 0) {
-          const hoursNeeded = needSW / totalFountainOutput;
-          const hours = Math.floor(hoursNeeded);
-          const minutes = Math.round((hoursNeeded - hours) * 60);
-          etaText = `${hours}h ${minutes}m`;
-        } else if (needSW === 0) {
-          etaText = "Ready now";
+        const calcSignature = [
+          currentLevel,
+          currentMith,
+          currentSW,
+          allianceTechPct,
+          getMineLevelsSignature(),
+        ].join("|");
+        if (calcSignature !== lastCalcSignature) {
+          if (!swReady && Number.isFinite(estimatedHours) && estimatedHours > 0) {
+            lockedReadyAtTimestampMs =
+              Date.now() + estimatedHours * 3600 * 1000;
+          } else {
+            lockedReadyAtTimestampMs = null;
+          }
+          lastCalcSignature = calcSignature;
         }
 
+        let restartEta = false;
+        if (
+          lastEtaCurrentLevel === null ||
+          lastEtaCurrentLevel !== currentLevel
+        ) {
+          restartEta = true;
+          lastEtaCurrentLevel = currentLevel;
+        }
+        if (restartEta || etaMs === 0) {
+          if (!swReady && totalFountainOutput > 0) {
+            etaMs = Math.max(
+              0,
+              Math.round((needSW / totalFountainOutput) * 3600 * 1000),
+            );
+          } else {
+            etaMs = 0;
+          }
+        } else if (!swReady && totalFountainOutput > 0) {
+          etaMs = Math.max(
+            0,
+            Math.round((needSW / totalFountainOutput) * 3600 * 1000),
+          );
+        } else {
+          etaMs = 0;
+        }
+        etaReady = swReady;
+        clearEtaCountdown();
+        function formatCountdown(ms) {
+          if (!Number.isFinite(ms) || ms <= 0) return "Ready now";
+          let totalSeconds = Math.floor(ms / 1000);
+          const days = Math.floor(totalSeconds / 86400);
+          totalSeconds %= 86400;
+          const hours = Math.floor(totalSeconds / 3600);
+          totalSeconds %= 3600;
+          const minutes = Math.floor(totalSeconds / 60);
+          const seconds = totalSeconds % 60;
+          let out = "";
+          if (days > 0) out += `${days}d `;
+          if (hours > 0 || days > 0) out += `${hours}h `;
+          if (minutes > 0 || hours > 0 || days > 0) out += `${minutes}m `;
+          out += `${seconds}s`;
+          return out.trim();
+        }
+        function updateEtaField() {
+          if (etaReady || etaMs <= 0) {
+            etaValue.textContent = "Ready now";
+            etaValue.className = "tile-value ok";
+          } else {
+            etaValue.textContent = formatCountdown(etaMs);
+            etaValue.className = `tile-value ${totalFountainOutput > 0 ? "" : "warn"}`;
+            etaMs -= 1000;
+          }
+        }
+        updateEtaField();
+        if (!etaReady && etaMs > 0) {
+          etaCountdownTimer = setInterval(updateEtaField, 1000);
+        }
+
+        let readyAtTimestamp = null;
+        if (!etaReady && totalFountainOutput > 0 && etaMs > 0) {
+          if (
+            calcSignature === lastCalcSignature &&
+            Number.isFinite(lockedReadyAtTimestampMs)
+          ) {
+            readyAtTimestamp = lockedReadyAtTimestampMs;
+          } else {
+            readyAtTimestamp = Date.now() + etaMs;
+          }
+        }
+        readyAtValue.textContent = etaReady
+          ? "Now"
+          : readyAtTimestamp
+            ? new Intl.DateTimeFormat(undefined, {
+                timeZone: selectedTimeZone,
+                month: "short",
+                day: "numeric",
+                hour: "numeric",
+                minute: "2-digit",
+                hour12: true,
+              }).format(new Date(readyAtTimestamp))
+            : formatReadyAt(estimatedHours, selectedTimeZone);
+        readyAtValue.className = `tile-value ${etaReady ? "ok" : totalFountainOutput > 0 ? "" : "warn"}`;
+
         nextLevelValue.textContent = `Lv ${currentLevel + 1}`;
-        requiredMithril.textContent = formatResource(nextUpgrade.mithril);
+        requiredMithril.textContent = formatResource(reqMithril);
         ownedMithril.textContent = formatResource(currentMith);
         deficitMithril.textContent = formatResource(needMithril);
         deficitMithril.className = `tile-value ${mithrilReady ? "ok" : "warn"}`;
-        requiredSacredWater.textContent = formatResource(
-          nextUpgrade.sacredWater,
-        );
+        requiredSacredWater.textContent = formatResource(reqSacredWater);
         ownedSacredWater.textContent = formatResource(currentSW);
         deficitSacredWater.textContent = formatResource(needSW);
         deficitSacredWater.className = `tile-value ${swReady ? "ok" : "warn"}`;
-        buildTimeValue.textContent = "-";
-        etaValue.textContent = etaText;
         mineRateValue.textContent = `${formatResource(totalFountainOutput)}/hr`;
         pathValue.textContent = `Level ${currentLevel} -> Level ${currentLevel + 1}`;
         statusMithril.textContent = mithrilReady
@@ -755,21 +1028,28 @@
           ? "Have enough sacred water"
           : "Need more sacred water";
         costLevelSelect.value = String(nextUpgrade.level);
-
+        timeZoneValue.textContent = selectedTimeZone;
+        updateCurrentTimeDisplay();
         saveState();
       }
 
       buildLevelOptions();
       buildLanguageOptions();
+      buildAllianceTechOptions();
+      buildTimeZoneOptions();
       buildMineSelectors();
       buildTable();
       loadSavedState();
       updateCalculator();
+      updateCurrentTimeDisplay();
       loadGoogleTranslateScript();
+      setInterval(updateCurrentTimeDisplay, 1000);
 
       currentLevelInput.addEventListener("change", updateCalculator);
       currentMithrilInput.addEventListener("input", updateCalculator);
       currentSacredWaterInput.addEventListener("input", updateCalculator);
+      timeZoneSelect.addEventListener("change", updateCalculator);
+      allianceTechSelect.addEventListener("change", updateMineOutput);
       languageSelect.addEventListener("change", () => {
         preferredLanguage = languageSelect.value;
         applyGoogleLanguage(preferredLanguage);
