@@ -2474,33 +2474,14 @@
       function openImportPreview(fileName, candidates, options = {}) {
         const r4r5Candidates = dedupeNames(options.r4r5Candidates || []);
         pendingImportFileName = fileName;
-        const existingKeys = new Set(
-          state.allianceMembers
-            .map((n) => normalizeMemberName(n))
-            .filter(Boolean),
-        );
-        pendingImportCandidates = candidates.map((name) => {
-          const key = normalizeMemberName(name);
-          const alreadyInList = Boolean(key && existingKeys.has(key));
-          return {
-            name,
-            selected: !alreadyInList,
-          };
-        });
+        pendingImportCandidates = candidates.map((name) => ({
+          name,
+          selected: true,
+        }));
         pendingImportR4R5Candidates = r4r5Candidates;
 
         importPreviewFileName.textContent = fileName;
-        const alreadyInListCount = pendingImportCandidates.filter(
-          (e) => !e.selected,
-        ).length;
-        let summary = `${pendingImportCandidates.length} names detected. Uncheck any names you do not want to import.`;
-        if (alreadyInListCount > 0) {
-          summary += ` ${alreadyInListCount} already on your list ${alreadyInListCount === 1 ? "is" : "are"} unchecked so you do not import duplicates.`;
-        }
-        if (pendingImportR4R5Candidates.length) {
-          summary += ` R4/R5 section detected (${pendingImportR4R5Candidates.length} names).`;
-        }
-        importPreviewSummary.textContent = summary;
+        importPreviewSummary.textContent = `${pendingImportCandidates.length} names detected. Uncheck any names you do not want to import. Names already on your list are skipped on confirm (no duplicates).${pendingImportR4R5Candidates.length ? ` R4/R5 section detected (${pendingImportR4R5Candidates.length} names).` : ""}`;
         renderImportPreviewList();
         importPreviewModal.classList.add("show");
       }
@@ -2521,7 +2502,25 @@
           .join("");
       }
 
+      function syncImportPreviewFromDom() {
+        pendingImportCandidates.forEach((entry, idx) => {
+          const cb = importPreviewList.querySelector(
+            `input[type="checkbox"][data-preview-idx="${idx}"]`,
+          );
+          const nameInput = importPreviewList.querySelector(
+            `input.import-preview-name-input[data-preview-name-idx="${idx}"]`,
+          );
+          if (cb) {
+            entry.selected = cb.checked;
+          }
+          if (nameInput) {
+            entry.name = sanitizeMemberName(nameInput.value);
+          }
+        });
+      }
+
       function commitPreviewImport() {
+        syncImportPreviewFromDom();
         const chosen = dedupeNames(
           pendingImportCandidates
             .filter((entry) => entry.selected)
