@@ -262,7 +262,9 @@ body {
 }
 
 /* Logo left; account strip (includes language via page-nav-dropdown.js) on the right */
-.page-top-stack:has(.account-promo-strip) {
+/* :has() for modern browsers; .page-top-stack--has-account-promo set by page-nav-dropdown.js for older / quirky UAs */
+.page-top-stack:has(.account-promo-strip),
+.page-top-stack.page-top-stack--has-account-promo {
   display: grid;
   grid-template-columns: auto minmax(0, 1fr);
   column-gap: 16px;
@@ -270,16 +272,19 @@ body {
   margin-bottom: 12px;
 }
 
-.page-top-stack:has(.account-promo-strip) .page-top-controls {
+.page-top-stack:has(.account-promo-strip) .page-top-controls,
+.page-top-stack.page-top-stack--has-account-promo .page-top-controls {
   display: contents;
 }
 
-.page-top-stack:has(.account-promo-strip) .logo-control {
+.page-top-stack:has(.account-promo-strip) .logo-control,
+.page-top-stack.page-top-stack--has-account-promo .logo-control {
   grid-column: 1;
   grid-row: 1;
 }
 
-.page-top-stack:has(.account-promo-strip) .account-promo-strip {
+.page-top-stack:has(.account-promo-strip) .account-promo-strip,
+.page-top-stack.page-top-stack--has-account-promo .account-promo-strip {
   grid-column: 2;
   grid-row: 1;
   margin-bottom: 0;
@@ -290,7 +295,8 @@ body {
 }
 
 /* Language before actions/chip: pull block to the right of promo text */
-.page-top-stack:has(.account-promo-strip) .account-promo-strip .language-control {
+.page-top-stack:has(.account-promo-strip) .account-promo-strip .language-control,
+.page-top-stack.page-top-stack--has-account-promo .account-promo-strip .language-control {
   flex: 0 1 140px;
   min-width: 0;
   width: min(140px, 100%);
@@ -299,14 +305,16 @@ body {
   font-size: 0.78rem;
 }
 
-.page-top-stack:has(.account-promo-strip) .account-promo-strip .language-control label {
+.page-top-stack:has(.account-promo-strip) .account-promo-strip .language-control label,
+.page-top-stack.page-top-stack--has-account-promo .account-promo-strip .language-control label {
   display: block;
   font-size: 0.72rem;
   margin-bottom: 2px;
   color: var(--muted);
 }
 
-.page-top-stack:has(.account-promo-strip) .account-promo-strip .language-control select {
+.page-top-stack:has(.account-promo-strip) .account-promo-strip .language-control select,
+.page-top-stack.page-top-stack--has-account-promo .account-promo-strip .language-control select {
   width: 100%;
   max-width: 100%;
   box-sizing: border-box;
@@ -319,30 +327,35 @@ body {
   color: var(--text);
 }
 
-.page-top-stack:has(.account-promo-strip) .account-promo-strip .account-promo-actions {
+.page-top-stack:has(.account-promo-strip) .account-promo-strip .account-promo-actions,
+.page-top-stack.page-top-stack--has-account-promo .account-promo-strip .account-promo-actions {
   flex-shrink: 0;
 }
 
 @media (max-width: 720px) {
-  .page-top-stack:has(.account-promo-strip) {
+  .page-top-stack:has(.account-promo-strip),
+  .page-top-stack.page-top-stack--has-account-promo {
     grid-template-columns: 1fr;
     row-gap: 10px;
   }
 
-  .page-top-stack:has(.account-promo-strip) .logo-control {
+  .page-top-stack:has(.account-promo-strip) .logo-control,
+  .page-top-stack.page-top-stack--has-account-promo .logo-control {
     grid-column: 1;
     grid-row: 1;
     justify-self: center;
   }
 
-  .page-top-stack:has(.account-promo-strip) .account-promo-strip {
+  .page-top-stack:has(.account-promo-strip) .account-promo-strip,
+  .page-top-stack.page-top-stack--has-account-promo .account-promo-strip {
     grid-column: 1;
     grid-row: 2;
     justify-self: stretch;
     max-width: none;
   }
 
-  .page-top-stack:has(.account-promo-strip) .account-promo-strip .language-control {
+  .page-top-stack:has(.account-promo-strip) .account-promo-strip .language-control,
+  .page-top-stack.page-top-stack--has-account-promo .account-promo-strip .language-control {
     flex: 1 1 100%;
     width: 100%;
     max-width: none;
@@ -476,7 +489,8 @@ body {
   display: none;
 }
 
-.page-top-stack:has(.account-promo-strip) .account-promo-strip.account-promo-strip--signed-in {
+.page-top-stack:has(.account-promo-strip) .account-promo-strip.account-promo-strip--signed-in,
+.page-top-stack.page-top-stack--has-account-promo .account-promo-strip.account-promo-strip--signed-in {
   margin-bottom: 0;
   padding: 8px 14px;
 }

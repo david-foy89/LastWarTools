@@ -2,12 +2,49 @@
   /** Same-tab hint: account-auth-modal.js sets this when signed in so the next page can paint the chip before Firebase loads. */
   var AUTH_BANNER_SESSION_UID_KEY = 'lwAuthBannerUid';
 
+  /** Resolves account.html links in the promo strip (relative, root-relative, or absolute same-origin). */
+  function lwIsPromoAccountHtmlLink(a) {
+    if (!a || !a.getAttribute) return false;
+    try {
+      var u = new URL(a.getAttribute('href') || '', window.location.href);
+      if (u.origin !== window.location.origin) return false;
+      var p = u.pathname || '';
+      return p === '/account.html' || p.endsWith('/account.html');
+    } catch (_) {
+      return false;
+    }
+  }
+
+  /** Directory containing page-nav-dropdown.js (fixes module URL on subpaths / CDNs). */
+  function lwScriptDirFromPageNavDropdown() {
+    var scripts = document.getElementsByTagName('script');
+    for (var i = scripts.length - 1; i >= 0; i--) {
+      var src = scripts[i].src || '';
+      if (src.indexOf('page-nav-dropdown.js') !== -1) {
+        return src.replace(/[^/]+$/, '');
+      }
+    }
+    return '';
+  }
+
+  /** :has() layout fallback for browsers that skip those rules (banner + logo grid). */
+  function markPageTopStackHasAccountPromo() {
+    var stack = document.querySelector('.page-top-stack');
+    if (stack && stack.querySelector('.account-promo-strip')) {
+      stack.classList.add('page-top-stack--has-account-promo');
+    }
+  }
+
   /** Save server-rendered promo buttons before optional optimistic chip (WeakMap in auth modal needs this for sign-out). */
   function stashPromoActionsBaselineHtml() {
     document.querySelectorAll('.account-promo-actions').forEach(function (el) {
       if (el._lwPromoBaselineHtml != null) return;
-      if (el.querySelector('a[href="account.html"]')) {
-        el._lwPromoBaselineHtml = el.innerHTML;
+      var anchors = el.querySelectorAll('a[href]');
+      for (var i = 0; i < anchors.length; i++) {
+        if (lwIsPromoAccountHtmlLink(anchors[i])) {
+          el._lwPromoBaselineHtml = el.innerHTML;
+          return;
+        }
       }
     });
   }
@@ -91,6 +128,7 @@
   }
 
   function initPageDropdowns() {
+    markPageTopStackHasAccountPromo();
     moveLanguageIntoAccountPromoStrip();
     stashPromoActionsBaselineHtml();
     paintOptimisticSignedInPromoFromSession();
@@ -210,7 +248,8 @@
    * opens instead of navigating. On load failure, clones links so account.html still works.
    */
   function fallbackPromoAccountLinksToNavigation() {
-    document.querySelectorAll('.account-promo-actions a[href="account.html"]').forEach(function (a) {
+    document.querySelectorAll('.account-promo-actions a[href]').forEach(function (a) {
+      if (!lwIsPromoAccountHtmlLink(a)) return;
       var replacement = a.cloneNode(true);
       a.parentNode.replaceChild(replacement, a);
     });
@@ -224,13 +263,16 @@
     var strip = document.querySelector('.account-promo-strip');
     if (!strip) return;
 
-    var links = document.querySelectorAll('.account-promo-actions a[href="account.html"]');
-    links.forEach(function (a) {
+    document.querySelectorAll('.account-promo-actions a[href]').forEach(function (a) {
+      if (!lwIsPromoAccountHtmlLink(a)) return;
       a.addEventListener(
         'click',
         function (e) {
           e.preventDefault();
-          var mode = /sign\s*in/i.test(a.textContent || '') ? 'signIn' : 'signUp';
+          var mode = a.getAttribute('data-account-auth-mode');
+          if (mode !== 'signIn' && mode !== 'signUp') {
+            mode = /sign\s*in/i.test(a.textContent || '') ? 'signIn' : 'signUp';
+          }
           if (typeof window.__lwOpenAccountAuthModal === 'function') {
             window.__lwOpenAccountAuthModal(mode);
           } else {
@@ -244,7 +286,8 @@
     window.__lwAccountAuthModalScriptLoading = true;
     var s = document.createElement('script');
     s.type = 'module';
-    s.src = 'account-auth-modal.js';
+    var base = lwScriptDirFromPageNavDropdown();
+    s.src = (base || '') + 'account-auth-modal.js';
     s.onerror = function () {
       window.__lwAccountAuthModalScriptLoading = false;
       window.__lwAccountAuthModalLoadFailed = true;
