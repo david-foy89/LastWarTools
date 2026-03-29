@@ -433,6 +433,16 @@ document.addEventListener("keydown", function (ev) {
   }
 });
 
+window.addEventListener("lw-localstorage-synced", function (ev) {
+  var keys = ev.detail && ev.detail.keys;
+  var mine = new Set([LS_TEMPLATE_KEY, LS_MAIL_DAY_PREF, LS_MAIL_HISTORY]);
+  if (keys && keys.length && !keys.some(function (k) { return mine.has(k); })) return;
+  loadTemplateFromStorage();
+  syncMailDayOnOpen();
+  refreshHistorySelect();
+  if (isModalOpen()) runGenerate();
+});
+
 const cfg = window.__FIREBASE_CONFIG__;
 if (!firebaseConfigOk(cfg)) {
   setOpenButtonVisible(false);

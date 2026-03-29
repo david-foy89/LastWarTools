@@ -13,6 +13,9 @@ import {
 export const SYNC_COLLECTION = "userLocalStorageSync";
 export const MAX_PAYLOAD_CHARS = 900000;
 
+/** Fired on `window` after cloud merge writes localStorage (same-tab; `storage` event does not run in the writer). */
+export const LOCALSTORAGE_SYNCED_EVENT = "lw-localstorage-synced";
+
 /** Device-local only (never uploaded) — used for cross-device merge tie-breaking */
 export const LS_LAST_MERGED_CLOUD_MS = "lwLastMergedCloudDocMs";
 export const LS_LAST_MERGED_UID = "lwAccountLastMergedUid";
@@ -52,15 +55,28 @@ export function collectSyncableLocalStorage() {
 export function applyLocalStoragePayload(obj) {
   if (!obj || typeof obj !== "object") return 0;
   let n = 0;
+  const changedKeys = [];
   Object.keys(obj).forEach((key) => {
     if (!shouldSyncKey(key)) return;
     try {
       localStorage.setItem(key, String(obj[key]));
       n += 1;
+      changedKeys.push(key);
     } catch {
       // quota or private mode
     }
   });
+  if (changedKeys.length > 0 && typeof window !== "undefined") {
+    try {
+      window.dispatchEvent(
+        new CustomEvent(LOCALSTORAGE_SYNCED_EVENT, {
+          detail: { keys: changedKeys },
+        }),
+      );
+    } catch {
+      /* ignore */
+    }
+  }
   return n;
 }
 

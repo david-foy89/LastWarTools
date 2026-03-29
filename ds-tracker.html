@@ -2959,6 +2959,26 @@
         document.addEventListener("keydown", function (e) {
           if (e.key === "Escape") closeMapModal();
         });
+        window.addEventListener("lw-localstorage-synced", function (ev) {
+          const keys = ev.detail && ev.detail.keys;
+          const tracked = new Set([
+            HISTORY_KEY,
+            PLAYER_LIST_KEY,
+            MAP_PLAN_KEY,
+          ]);
+          if (
+            keys &&
+            keys.length &&
+            !keys.some(function (k) {
+              return tracked.has(k);
+            })
+          ) {
+            return;
+          }
+          loadSelectedDay();
+          refreshMapPlayerSelect();
+          renderMapPins();
+        });
         loadSelectedDay();
       })();
     </script>

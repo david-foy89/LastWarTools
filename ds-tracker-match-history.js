@@ -735,6 +735,20 @@ document.addEventListener("keydown", function (ev) {
   if (isModalOpen()) closeModal();
 });
 
+window.addEventListener("lw-localstorage-synced", function (ev) {
+  var keys = ev.detail && ev.detail.keys;
+  var mine = new Set([LS_KEY, OPPONENTS_LS_KEY]);
+  if (keys && keys.length && !keys.some(function (k) { return mine.has(k); })) return;
+  refreshWeekJumpSelect();
+  if (isModalOpen() && weekInput) {
+    var k = normalizeMatchDateKey(weekInput.value);
+    if (k) loadWeekIntoForm(k);
+  }
+  if (comparePanel && !comparePanel.hasAttribute("hidden")) {
+    renderComparePanel();
+  }
+});
+
 const cfg = window.__FIREBASE_CONFIG__;
 if (!firebaseConfigOk(cfg)) {
   setOpenButtonVisible(false);

@@ -2875,6 +2875,26 @@
         initWeekAndRows();
         renderTable();
 
+        window.addEventListener("lw-localstorage-synced", function (ev) {
+          const keys = ev.detail && ev.detail.keys;
+          const tracked = new Set([
+            STORAGE_ROOT,
+            LAST_WEEK_KEY,
+            LAST_DS_DAY_KEY,
+          ]);
+          if (
+            keys &&
+            keys.length &&
+            !keys.some(function (k) {
+              return tracked.has(k);
+            })
+          ) {
+            return;
+          }
+          initWeekAndRows();
+          renderTable();
+        });
+
         window.__lwVersusGetMatchHistoryDate = function () {
           const dsPicker = document.getElementById("verusDsDayPicker");
           const v = dsPicker && dsPicker.value ? String(dsPicker.value).trim() : "";

@@ -317,18 +317,22 @@
 
     function appendScript(src, isModule) {
       return new Promise(function (resolve) {
-        if (scriptFilenamePresent(src.split('/').pop())) {
+        var name = src.split('/').pop();
+        if (scriptFilenamePresent(name)) {
           resolve();
           return;
         }
+        var base = lwScriptDirFromPageNavDropdown();
+        var fullSrc = (base || '') + name;
         var el = document.createElement('script');
-        el.src = src;
+        el.src = fullSrc;
         if (isModule) el.type = 'module';
         el.async = true;
         el.onload = function () {
           resolve();
         };
         el.onerror = function () {
+          console.warn('[Last War Tools] Failed to load script (account sync / Firebase): ' + fullSrc);
           resolve();
         };
         document.head.appendChild(el);
