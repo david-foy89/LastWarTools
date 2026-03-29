@@ -20,7 +20,9 @@ export const LS_LAST_MERGED_UID = "lwAccountLastMergedUid";
 export function firebaseConfigOk(cfg) {
   if (!cfg || typeof cfg !== "object") return false;
   const k = String(cfg.apiKey || "");
+  const pid = String(cfg.projectId || "");
   if (!k || k.includes("YOUR_")) return false;
+  if (!pid || pid.includes("YOUR_")) return false;
   return true;
 }
 

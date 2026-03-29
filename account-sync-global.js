@@ -1,8 +1,9 @@
 /**
  * Optional background sync: when the user is signed in, merge localStorage with
  * Firestore. Runs immediately when the signed-in account changes (sign-in / switch user);
- * otherwise throttled on page reload. Loaded from page-nav-dropdown.js.
- * Silent — no UI. Requires firebase-config scripts to run first.
+ * otherwise throttled on page reload. Subscribes to the cloud doc so updates from other
+ * devices apply without reload. Loaded from page-nav-dropdown.js.
+ * Silent — no UI. Retries boot briefly if firebase-config.js loads after this module.
  */
 import { initializeApp, getApp, getApps } from "https://www.gstatic.com/firebasejs/9.22.2/firebase-app.js";
 import { getAuth, onAuthStateChanged, reload } from "https://www.gstatic.com/firebasejs/9.22.2/firebase-auth.js";
@@ -10,6 +11,7 @@ import {
   doc,
   getDoc,
   getFirestore,
+  onSnapshot,
 } from "https://www.gstatic.com/firebasejs/9.22.2/firebase-firestore.js";
 import {
   firebaseConfigOk,
@@ -23,6 +25,19 @@ const THROTTLE_MS = 90_000;
 const LAST_SYNC_KEY = "lwAccountBackgroundSyncAt";
 /** Per-tab: last uid we attributed a “session” merge to — when uid changes, sync immediately */
 const SESSION_SYNCED_UID_KEY = "lwAccountSessionSyncUid";
+const BOOT_POLL_MS = 100;
+const BOOT_POLL_MAX = 50;
+const REMOTE_MERGE_DEBOUNCE_MS = 400;
+
+let syncStarted = false;
+/** @type {import("firebase/auth").Auth | null} */
+let authRef = null;
+/** @type {import("firebase/firestore").Firestore | null} */
+let dbRef = null;
+
+let unsubFirestore = null;
+let mergeInFlight = false;
+let remoteDebounceTimer = null;
 
 function shouldRunBackgroundSync() {
   const now = Date.now();
@@ -45,16 +60,94 @@ function markBackgroundSynced() {
   }
 }
 
-const cfg = window.__FIREBASE_CONFIG__;
-if (!firebaseConfigOk(cfg)) {
-  // Missing or placeholder config — tools work locally without sync.
-} else {
+function clearFirestoreListener() {
+  if (remoteDebounceTimer) {
+    clearTimeout(remoteDebounceTimer);
+    remoteDebounceTimer = null;
+  }
+  if (unsubFirestore) {
+    unsubFirestore();
+    unsubFirestore = null;
+  }
+}
+
+/**
+ * @param {import("firebase/auth").User} user
+ */
+async function runMergeIfPossible(user) {
+  if (!user || !user.emailVerified || !dbRef) return;
+  if (mergeInFlight) return;
+  mergeInFlight = true;
+  try {
+    await mergeAndSyncToCloud(user, dbRef, {});
+    markBackgroundSynced();
+  } catch (e) {
+    console.warn("[Last War Tools] Account merge failed:", e);
+  } finally {
+    mergeInFlight = false;
+  }
+}
+
+function scheduleMergeFromRemote(expectedUid) {
+  if (!dbRef || !authRef) return;
+  if (remoteDebounceTimer) clearTimeout(remoteDebounceTimer);
+  remoteDebounceTimer = setTimeout(async function () {
+    remoteDebounceTimer = null;
+    const u = authRef.currentUser;
+    if (!u || u.uid !== expectedUid || !u.emailVerified) return;
+    await runMergeIfPossible(u);
+  }, REMOTE_MERGE_DEBOUNCE_MS);
+}
+
+/**
+ * @param {import("firebase/auth").User} user
+ */
+function attachFirestoreListener(user) {
+  clearFirestoreListener();
+  if (!user || !user.emailVerified || !dbRef) return;
+  try {
+    unsubFirestore = onSnapshot(
+      doc(dbRef, SYNC_COLLECTION, user.uid),
+      function (snap) {
+        if (snap.metadata.hasPendingWrites) return;
+        if (!shouldPullCloudBeforeMerge(snap, user.uid)) return;
+        scheduleMergeFromRemote(user.uid);
+      },
+      function (err) {
+        console.warn("[Last War Tools] Firestore sync listener:", err);
+      },
+    );
+  } catch (e) {
+    console.warn("[Last War Tools] Could not subscribe to cloud sync:", e);
+  }
+}
+
+function bootAccountSync() {
+  if (syncStarted) return true;
+  const cfg = window.__FIREBASE_CONFIG__;
+  if (!firebaseConfigOk(cfg)) return false;
+
   try {
     const app = getApps().length ? getApp() : initializeApp(cfg);
-    const auth = getAuth(app);
-    const db = getFirestore(app);
+    authRef = getAuth(app);
+    dbRef = getFirestore(app);
 
-    onAuthStateChanged(auth, async (user) => {
+    window.__lwForceAccountMerge = async function () {
+      const u = authRef && authRef.currentUser;
+      if (!u || !u.emailVerified) {
+        throw new Error("Not signed in or email not verified");
+      }
+      if (!dbRef) throw new Error("Firestore not ready");
+      for (var w = 0; w < 40 && mergeInFlight; w++) {
+        await new Promise(function (r) {
+          setTimeout(r, 50);
+        });
+      }
+      return mergeAndSyncToCloud(u, dbRef, {});
+    };
+
+    onAuthStateChanged(authRef, async function (user) {
+      clearFirestoreListener();
       if (!user) {
         try {
           sessionStorage.removeItem(SESSION_SYNCED_UID_KEY);
@@ -74,12 +167,11 @@ if (!firebaseConfigOk(cfg)) {
       } catch {
         sessionUid = "";
       }
-      /** True when this tab has not yet recorded a successful merge for this uid (includes sign-in). */
       var accountJustChanged = sessionUid !== user.uid;
       var needsPullFromCloud = false;
       if (user.emailVerified) {
         try {
-          var cloudSnap = await getDoc(doc(db, SYNC_COLLECTION, user.uid));
+          var cloudSnap = await getDoc(doc(dbRef, SYNC_COLLECTION, user.uid));
           needsPullFromCloud = shouldPullCloudBeforeMerge(cloudSnap, user.uid);
         } catch (peekErr) {
           needsPullFromCloud = true;
@@ -89,29 +181,51 @@ if (!firebaseConfigOk(cfg)) {
         user.emailVerified &&
         (accountJustChanged || needsPullFromCloud || shouldRunBackgroundSync())
       ) {
+        await runMergeIfPossible(user);
         try {
-          await mergeAndSyncToCloud(user, db, {});
-          markBackgroundSynced();
-          try {
-            sessionStorage.setItem(SESSION_SYNCED_UID_KEY, user.uid);
-          } catch {
-            /* ignore */
-          }
-        } catch (e) {
-          console.warn("[Last War Tools] Background account sync failed:", e);
+          sessionStorage.setItem(SESSION_SYNCED_UID_KEY, user.uid);
+        } catch {
+          /* ignore */
         }
       } else if (user && !user.emailVerified) {
         console.info(
           "[Last War Tools] Cloud sync skipped: verify your email to merge data across devices.",
         );
       }
+      attachFirestoreListener(user);
       try {
-        await loadAndApplyUserProfile(user, db);
+        await loadAndApplyUserProfile(user, dbRef);
       } catch (e) {
         console.warn("[Last War Tools] Profile load failed:", e);
       }
     });
+
+    syncStarted = true;
+    return true;
   } catch (e) {
     console.warn("[Last War Tools] Account sync could not start:", e);
+    authRef = null;
+    dbRef = null;
+    return false;
   }
 }
+
+(function startBootRetry() {
+  if (bootAccountSync()) return;
+  var n = 0;
+  var id = setInterval(function () {
+    n++;
+    if (bootAccountSync()) {
+      clearInterval(id);
+      return;
+    }
+    if (n >= BOOT_POLL_MAX) {
+      clearInterval(id);
+      if (!firebaseConfigOk(window.__FIREBASE_CONFIG__)) {
+        console.warn(
+          "[Last War Tools] Account sync disabled: deploy firebase-config.js (copy from firebase-config.example.js) with a real apiKey and projectId. Without it, data will not sync across devices.",
+        );
+      }
+    }
+  }, BOOT_POLL_MS);
+})();

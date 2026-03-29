@@ -13,7 +13,7 @@ import {
   deleteUser,
 } from "https://www.gstatic.com/firebasejs/9.22.2/firebase-auth.js";
 import { getFirestore, doc, getDoc } from "https://www.gstatic.com/firebasejs/9.22.2/firebase-firestore.js";
-import { firebaseConfigOk } from "./account-sync-lib.js";
+import { firebaseConfigOk, mergeAndSyncToCloud } from "./account-sync-lib.js";
 import {
   PROFILE_COLLECTION,
   loadAndApplyUserProfile,
@@ -519,7 +519,25 @@ function boot() {
         setAuthStatus("Signing in…");
         try {
           var email = await resolveEmailForSignIn(db, rawU);
-          await signInWithEmailAndPassword(auth, email, password);
+          var cred = await signInWithEmailAndPassword(auth, email, password);
+          try {
+            await cred.user.reload();
+          } catch (reloadErr) {
+            /* ignore */
+          }
+          if (cred.user.emailVerified) {
+            try {
+              await mergeAndSyncToCloud(cred.user, db, {
+                onStatus: function (msg, kind) {
+                  if (kind === "error") {
+                    console.warn("[Last War Tools] Sync after sign-in:", msg);
+                  }
+                },
+              });
+            } catch (syncErr) {
+              console.warn("[Last War Tools] Sync after sign-in failed:", syncErr);
+            }
+          }
           setAuthStatus("Signed in.", "ok");
         } catch (e) {
           setAuthStatus(formatFirebaseAuthSignInError(e), "error");
