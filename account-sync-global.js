@@ -21,6 +21,7 @@ import {
   firebaseConfigOk,
   mergeAndSyncToCloud,
   shouldPullCloudBeforeMerge,
+  shouldSyncKey,
   SYNC_COLLECTION,
 } from "./account-sync-lib.js";
 import { loadAndApplyUserProfile } from "./account-profile-lib.js";
@@ -52,6 +53,36 @@ let periodicSyncId = null;
 /** After localStorage saves, upload is debounced so edits reach Firestore without waiting for the 90s page-load throttle. */
 const LOCAL_EDIT_MERGE_DEBOUNCE_MS = 2000;
 let localEditMergeTimer = null;
+let localStorageSaveHookInstalled = false;
+
+/**
+ * Any tool that saves to localStorage should trigger a debounced upload. Only a few pages
+ * called __lwScheduleAccountMergeAfterLocalChange; without this, cloud listeners can merge
+ * while Firestore still has an older payload and overwrite fresh local data.
+ */
+function installLocalStorageSaveHook() {
+  if (localStorageSaveHookInstalled) return;
+  localStorageSaveHookInstalled = true;
+  try {
+    const proto = Storage.prototype;
+    const origSet = proto.setItem;
+    const origRemove = proto.removeItem;
+    proto.setItem = function (key, value) {
+      origSet.call(this, key, value);
+      if (this === localStorage && shouldSyncKey(key)) {
+        scheduleMergeAfterLocalEdit();
+      }
+    };
+    proto.removeItem = function (key) {
+      origRemove.call(this, key);
+      if (this === localStorage && shouldSyncKey(key)) {
+        scheduleMergeAfterLocalEdit();
+      }
+    };
+  } catch (e) {
+    console.warn("[Last War Tools] Could not hook localStorage for account sync:", e);
+  }
+}
 
 function shouldRunBackgroundSync() {
   const now = Date.now();
@@ -225,6 +256,7 @@ function bootAccountSync() {
     const app = getApps().length ? getApp() : initializeApp(cfg);
     authRef = getAuth(app);
     dbRef = getFirestore(app);
+    installLocalStorageSaveHook();
 
     window.__lwForceAccountMerge = async function () {
       const u = authRef && authRef.currentUser;

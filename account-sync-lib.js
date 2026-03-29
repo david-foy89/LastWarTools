@@ -276,9 +276,9 @@ export async function mergeAndSyncToCloud(user, db, options) {
       : "";
   if (existingPayloadStr && syncPayloadsAreEquivalent(existingPayloadStr, json)) {
     const ms = getCloudDocumentWriteMs(snap);
-    if (ms) {
-      writeLastMergedMeta(user.uid, ms);
-    }
+    // Always record uid + server time (or 0). Skipping when updatedAt was missing left
+    // lastMergedUid unset so shouldPullCloudBeforeMerge always preferred cloud over local.
+    writeLastMergedMeta(user.uid, ms || 0);
     onStatus("In sync with cloud (no upload needed).", "ok");
     return;
   }
@@ -298,9 +298,7 @@ export async function mergeAndSyncToCloud(user, db, options) {
       verify = await getDoc(doc(db, SYNC_COLLECTION, user.uid));
       newMs = getCloudDocumentWriteMs(verify);
     }
-    if (newMs) {
-      writeLastMergedMeta(user.uid, newMs);
-    }
+    writeLastMergedMeta(user.uid, newMs || 0);
     const note = preferCloud
       ? "Cloud data was merged into this device (then saved back)."
       : "This device’s data was merged up (local wins when cloud was not newer).";
