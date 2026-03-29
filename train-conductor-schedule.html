@@ -469,6 +469,23 @@
         color: var(--muted);
       }
 
+      .train-alliance-total {
+        margin: 14px 0 0;
+        font-size: 0.95rem;
+        line-height: 1.45;
+        color: var(--muted);
+      }
+
+      .train-alliance-total strong {
+        color: var(--text);
+        font-weight: 600;
+      }
+
+      .train-alliance-total-cap {
+        font-weight: 400;
+        color: var(--muted);
+      }
+
       .alliance-members-add {
         display: grid;
         grid-template-columns: 1fr auto;
@@ -1027,6 +1044,15 @@
           across up to 4 weeks. Name and color-code up to 7 conductors, then set
           who runs each day. Today's conductor is highlighted automatically.
         </div>
+        <p
+          class="train-alliance-total"
+          id="trainAllianceMembersTotal"
+          aria-live="polite"
+        >
+          Total alliance members:
+          <strong>0</strong>
+          <span class="train-alliance-total-cap"></span>
+        </p>
       </section>
 
       <section class="layout conductor-layout">
@@ -1483,6 +1509,9 @@
       const exportMenu = document.getElementById("exportMenu");
       const allianceMembersCount = document.getElementById(
         "allianceMembersCount",
+      );
+      const trainAllianceMembersTotal = document.getElementById(
+        "trainAllianceMembersTotal",
       );
       const allianceMemberInput = document.getElementById(
         "allianceMemberInput",
@@ -2445,14 +2474,33 @@
       function openImportPreview(fileName, candidates, options = {}) {
         const r4r5Candidates = dedupeNames(options.r4r5Candidates || []);
         pendingImportFileName = fileName;
-        pendingImportCandidates = candidates.map((name) => ({
-          name,
-          selected: true,
-        }));
+        const existingKeys = new Set(
+          state.allianceMembers
+            .map((n) => normalizeMemberName(n))
+            .filter(Boolean),
+        );
+        pendingImportCandidates = candidates.map((name) => {
+          const key = normalizeMemberName(name);
+          const alreadyInList = Boolean(key && existingKeys.has(key));
+          return {
+            name,
+            selected: !alreadyInList,
+          };
+        });
         pendingImportR4R5Candidates = r4r5Candidates;
 
         importPreviewFileName.textContent = fileName;
-        importPreviewSummary.textContent = `${pendingImportCandidates.length} names detected. Uncheck any names you do not want to import.${pendingImportR4R5Candidates.length ? ` R4/R5 section detected (${pendingImportR4R5Candidates.length} names).` : ""}`;
+        const alreadyInListCount = pendingImportCandidates.filter(
+          (e) => !e.selected,
+        ).length;
+        let summary = `${pendingImportCandidates.length} names detected. Uncheck any names you do not want to import.`;
+        if (alreadyInListCount > 0) {
+          summary += ` ${alreadyInListCount} already on your list ${alreadyInListCount === 1 ? "is" : "are"} unchecked so you do not import duplicates.`;
+        }
+        if (pendingImportR4R5Candidates.length) {
+          summary += ` R4/R5 section detected (${pendingImportR4R5Candidates.length} names).`;
+        }
+        importPreviewSummary.textContent = summary;
         renderImportPreviewList();
         importPreviewModal.classList.add("show");
       }
@@ -2484,12 +2532,16 @@
         const chosenKeys = new Set(chosen.map((name) => normalizeMemberName(name)));
 
         let addedCount = 0;
+        let skippedDuplicates = 0;
         chosen.forEach((name) => {
-          if (
-            state.allianceMembers.length < MAX_ALLIANCE_MEMBERS &&
-            addAllianceMember(name)
-          ) {
+          if (state.allianceMembers.length >= MAX_ALLIANCE_MEMBERS) {
+            return;
+          }
+          const result = addAllianceMember(name);
+          if (result === true) {
             addedCount += 1;
+          } else if (result === "duplicate") {
+            skippedDuplicates += 1;
           }
         });
 
@@ -2509,13 +2561,18 @@
         renderAllianceMembers();
         closeImportPreview();
 
+        const dupPart =
+          skippedDuplicates > 0
+            ? ` Skipped ${skippedDuplicates} duplicate name(s) already on your list.`
+            : "";
+
         if (addedCount > 0) {
           setAllianceImportStatus(
-            `Imported ${addedCount} member(s) from ${importedFileName}.${hasR4R5Section ? ` Imported ${importedR4R5Count} R4/R5 member(s).` : ""}`,
+            `Imported ${addedCount} member(s) from ${importedFileName}.${dupPart}${hasR4R5Section ? ` Imported ${importedR4R5Count} R4/R5 member(s).` : ""}`,
           );
         } else {
           setAllianceImportStatus(
-            `No new members were imported from ${importedFileName}.${hasR4R5Section ? ` Imported ${importedR4R5Count} R4/R5 member(s).` : ""}`,
+            `No new members were imported from ${importedFileName}.${dupPart}${hasR4R5Section ? ` Imported ${importedR4R5Count} R4/R5 member(s).` : ""}`,
           );
         }
       }
@@ -2730,7 +2787,11 @@
           state.r4r5Members,
           state.allianceMembers,
         );
-        allianceMembersCount.textContent = `${state.allianceMembers.length} / ${MAX_ALLIANCE_MEMBERS}`;
+        const memberTotal = state.allianceMembers.length;
+        allianceMembersCount.textContent = `${memberTotal} / ${MAX_ALLIANCE_MEMBERS}`;
+        if (trainAllianceMembersTotal) {
+          trainAllianceMembersTotal.innerHTML = `Total alliance members: <strong>${memberTotal}</strong> <span class="train-alliance-total-cap">(max ${MAX_ALLIANCE_MEMBERS})</span>`;
+        }
         allianceFillTargetSelect.value = state.allianceFillTarget;
         allianceMemberSearchInput.value = state.allianceMemberSearch;
         if (allianceMemberSearchClearButton) {
@@ -2897,7 +2958,7 @@
         parts.forEach((name) => {
           if (
             state.allianceMembers.length < MAX_ALLIANCE_MEMBERS &&
-            addAllianceMember(name)
+            addAllianceMember(name) === true
           ) {
             added += 1;
           }
