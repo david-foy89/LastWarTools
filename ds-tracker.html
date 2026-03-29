@@ -11,6 +11,8 @@
     <link rel="stylesheet" href="last-war-furnace-upgrade-calculator.css" />
     <script src="page-nav-dropdown.js" defer></script>
     <script src="language-translate.js" defer></script>
+    <script src="firebase-config.example.js"></script>
+    <script src="firebase-config.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/tesseract.js@5/dist/tesseract.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
     <style>
@@ -303,6 +305,605 @@
         max-height: 92vh;
         object-fit: contain;
         background: #0a1420;
+      }
+      .ds-fight-plan-modal {
+        position: fixed;
+        inset: 0;
+        display: none;
+        align-items: center;
+        justify-content: center;
+        background: rgba(0, 0, 0, 0.72);
+        z-index: 1150;
+        padding: 16px;
+      }
+      .ds-fight-plan-modal.open {
+        display: flex;
+      }
+      .ds-fight-plan-modal-inner {
+        position: relative;
+        width: min(96vw, 640px);
+        max-height: min(90vh, 720px);
+        border: 1px solid var(--line-soft);
+        border-radius: 12px;
+        background: var(--panel);
+        box-shadow: 0 16px 40px rgba(0, 0, 0, 0.35);
+        padding: 16px 18px 18px;
+        display: flex;
+        flex-direction: column;
+        gap: 10px;
+        overflow: hidden;
+      }
+      .ds-fight-plan-modal-inner h2 {
+        margin: 0 36px 0 0;
+        font-size: 1.15rem;
+        font-weight: 700;
+        color: var(--text);
+      }
+      .ds-fight-plan-tabs {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 6px;
+        margin-top: 4px;
+      }
+      .ds-fight-plan-tabs [role="tab"] {
+        flex: 1 1 auto;
+        min-width: 0;
+        padding: 8px 10px;
+        border-radius: 8px;
+        border: 1px solid var(--line-soft);
+        background: var(--panel-2);
+        color: var(--muted);
+        font-size: 0.82rem;
+        font-weight: 600;
+        cursor: pointer;
+      }
+      .ds-fight-plan-tabs [role="tab"][aria-selected="true"] {
+        background: var(--accent-soft, rgba(100, 180, 255, 0.15));
+        border-color: var(--accent, #64b4ff);
+        color: var(--text);
+      }
+      .ds-fight-plan-tabs [role="tab"]:focus-visible {
+        outline: 2px solid var(--accent, #64b4ff);
+        outline-offset: 2px;
+      }
+      .ds-fight-plan-tabpanels {
+        flex: 1 1 auto;
+        min-height: 200px;
+        display: flex;
+        flex-direction: column;
+        overflow: hidden;
+      }
+      .ds-fight-plan-tab-textarea {
+        width: 100%;
+        min-height: 200px;
+        flex: 1 1 auto;
+        box-sizing: border-box;
+        padding: 12px 14px;
+        border-radius: 10px;
+        border: 1px solid var(--line-soft);
+        background: var(--panel-2);
+        color: var(--text);
+        font-size: 0.88rem;
+        line-height: 1.45;
+        font-family: ui-monospace, "Cascadia Code", "Segoe UI Mono", monospace;
+        resize: vertical;
+      }
+      .ds-fight-plan-tab-textarea[readonly] {
+        opacity: 0.98;
+      }
+      .ds-fight-plan-hint {
+        font-size: 0.88rem;
+        color: var(--muted);
+        margin: 0;
+        line-height: 1.45;
+      }
+      .ds-fight-plan-mail-toolbar {
+        display: flex;
+        flex-wrap: wrap;
+        align-items: center;
+        gap: 8px 12px;
+        margin-top: 4px;
+      }
+      .ds-fight-plan-mail-toolbar label {
+        font-size: 0.82rem;
+        color: var(--muted);
+        white-space: nowrap;
+      }
+      .ds-fight-plan-mail-toolbar input[type="date"] {
+        padding: 7px 10px;
+        border-radius: 8px;
+        border: 1px solid var(--line-soft);
+        background: var(--panel-2);
+        color: var(--text);
+        font-size: 0.85rem;
+        min-height: 36px;
+      }
+      .ds-fight-plan-mail-toolbar select {
+        flex: 1 1 160px;
+        min-width: 0;
+        max-width: 100%;
+        padding: 7px 10px;
+        border-radius: 8px;
+        border: 1px solid var(--line-soft);
+        background: var(--panel-2);
+        color: var(--text);
+        font-size: 0.82rem;
+        min-height: 36px;
+      }
+      .ds-match-history-modal {
+        position: fixed;
+        inset: 0;
+        display: none;
+        align-items: center;
+        justify-content: center;
+        background: rgba(0, 0, 0, 0.72);
+        z-index: 1160;
+        padding: 8px;
+      }
+      .ds-match-history-modal.open {
+        display: flex;
+      }
+      .ds-match-history-inner {
+        position: relative;
+        width: min(98vw, 1040px);
+        height: calc(min(100vh, 100dvh) - 16px);
+        max-height: calc(min(100vh, 100dvh) - 16px);
+        border: 1px solid var(--line-soft);
+        border-radius: 12px;
+        background: var(--panel);
+        box-shadow: 0 16px 40px rgba(0, 0, 0, 0.35);
+        padding: 8px 10px 8px;
+        display: flex;
+        flex-direction: column;
+        gap: 5px;
+        overflow: hidden;
+        min-height: 0;
+      }
+      .ds-match-history-inner h2 {
+        margin: 0;
+        padding-right: 6.75rem;
+        box-sizing: border-box;
+        font-size: 1.05rem;
+        font-weight: 700;
+        color: var(--text);
+        flex-shrink: 0;
+      }
+      .ds-match-history-inner > .ds-fight-plan-hint {
+        margin: 0;
+        font-size: 0.76rem;
+        line-height: 1.35;
+        flex-shrink: 0;
+      }
+      .ds-match-history-inner > h2 + .ds-fight-plan-hint {
+        padding-right: 6.75rem;
+        box-sizing: border-box;
+      }
+      .ds-match-history-toolbar {
+        display: flex;
+        flex-wrap: wrap;
+        align-items: center;
+        gap: 6px 10px;
+        flex-shrink: 0;
+      }
+      .ds-match-history-toolbar label {
+        font-size: 0.82rem;
+        color: var(--muted);
+      }
+      .ds-match-history-toolbar input[type="date"] {
+        padding: 5px 8px;
+        border-radius: 8px;
+        border: 1px solid var(--line-soft);
+        background: var(--panel-2);
+        color: var(--text);
+        font-size: 0.82rem;
+        min-height: 32px;
+      }
+      .ds-match-history-toolbar select {
+        flex: 1 1 200px;
+        min-width: 0;
+        max-width: 100%;
+        padding: 5px 8px;
+        border-radius: 8px;
+        border: 1px solid var(--line-soft);
+        background: var(--panel-2);
+        color: var(--text);
+        font-size: 0.8rem;
+        min-height: 32px;
+      }
+      .ds-match-history-grid {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 8px 12px;
+        align-items: stretch;
+        min-height: 0;
+        flex: 1 1 0;
+        overflow: hidden;
+        padding: 0;
+      }
+      @media (max-width: 800px) {
+        .ds-match-history-grid {
+          grid-template-columns: 1fr;
+          grid-template-rows: auto auto;
+          overflow-y: auto;
+          flex: 1 1 0;
+          -webkit-overflow-scrolling: touch;
+        }
+        .ds-match-history-col {
+          min-height: 280px;
+        }
+      }
+      .ds-match-history-col {
+        display: flex;
+        flex-direction: column;
+        min-height: 0;
+        overflow: hidden;
+        gap: 0;
+      }
+      .ds-match-history-col h3 {
+        margin: 0 0 2px;
+        font-size: 0.92rem;
+        font-weight: 700;
+        color: var(--text);
+        flex-shrink: 0;
+      }
+      .ds-mh-alliance-title-row {
+        display: flex;
+        flex-wrap: wrap;
+        align-items: baseline;
+        gap: 8px 12px;
+        margin-bottom: 2px;
+        flex-shrink: 0;
+      }
+      .ds-mh-alliance-title-row > h3 {
+        margin: 0;
+      }
+      .ds-mh-alliance-record {
+        font-size: 0.78rem;
+        font-weight: 600;
+        font-variant-numeric: tabular-nums;
+        color: var(--muted);
+        letter-spacing: 0.02em;
+      }
+      .ds-mh-alliance-record .ds-mh-alliance-record-w {
+        color: #34d399;
+      }
+      .ds-mh-alliance-record .ds-mh-alliance-record-l {
+        color: #f87171;
+      }
+      .ds-mh-alliance-record .ds-mh-alliance-record-suffix {
+        font-weight: 500;
+        color: var(--muted);
+      }
+      .ds-mh-opponent-title-row {
+        display: flex;
+        flex-wrap: wrap;
+        align-items: flex-end;
+        gap: 6px 10px;
+        margin-bottom: 2px;
+        flex-shrink: 0;
+      }
+      .ds-mh-opponent-title-row > h3 {
+        margin: 0;
+        flex: 0 0 auto;
+        line-height: 1.2;
+      }
+      .ds-mh-opponent-meta {
+        display: flex;
+        flex-wrap: wrap;
+        align-items: center;
+        gap: 6px 10px;
+        flex: 1 1 220px;
+        min-width: 0;
+      }
+      .ds-mh-opponent-meta .ds-mh-inline-label {
+        font-size: 0.78rem;
+        color: var(--muted);
+        white-space: nowrap;
+      }
+      .ds-mh-opponent-meta input.ds-mh-inline-input {
+        flex: 1 1 100px;
+        min-width: 72px;
+        max-width: 200px;
+        padding: 6px 9px;
+        border-radius: 8px;
+        border: 1px solid var(--line-soft);
+        background: var(--panel-2);
+        color: var(--text);
+        font-size: 0.84rem;
+      }
+      .ds-mh-opponent-actions {
+        display: flex;
+        flex-wrap: wrap;
+        align-items: center;
+        gap: 8px 10px;
+        margin: 0 0 6px;
+        flex-shrink: 0;
+      }
+      .ds-mh-opponent-actions .ds-mh-import-select {
+        flex: 1 1 200px;
+        min-width: 0;
+        max-width: 100%;
+        padding: 6px 9px;
+        border-radius: 8px;
+        border: 1px solid var(--line-soft);
+        background: var(--panel-2);
+        color: var(--text);
+        font-size: 0.82rem;
+      }
+      .ds-match-history-col .ds-mh-sub {
+        font-size: 0.72rem;
+        color: var(--muted);
+        margin: 0 0 4px;
+        line-height: 1.3;
+        flex-shrink: 0;
+      }
+      .ds-match-history-col label.ds-mh-label {
+        display: block;
+        font-size: 0.72rem;
+        color: var(--muted);
+        margin-top: 5px;
+        margin-bottom: 2px;
+        flex-shrink: 0;
+      }
+      .ds-match-history-col label.ds-mh-label:first-of-type {
+        margin-top: 2px;
+      }
+      .ds-mh-textarea {
+        width: 100%;
+        box-sizing: border-box;
+        flex: 1 1 0;
+        min-height: 0;
+        padding: 6px 8px;
+        border-radius: 8px;
+        border: 1px solid var(--line-soft);
+        background: var(--panel-2);
+        color: var(--text);
+        font-size: 0.78rem;
+        line-height: 1.35;
+        font-family: ui-monospace, "Cascadia Code", "Segoe UI Mono", monospace;
+        resize: none;
+        overflow-y: auto;
+      }
+      .ds-mh-power-input {
+        width: 100%;
+        max-width: 200px;
+        box-sizing: border-box;
+        padding: 5px 8px;
+        border-radius: 8px;
+        border: 1px solid var(--line-soft);
+        background: var(--panel-2);
+        color: var(--text);
+        font-size: 0.82rem;
+        flex-shrink: 0;
+      }
+      .ds-mh-power-result-row {
+        display: flex;
+        flex-wrap: wrap;
+        align-items: flex-end;
+        gap: 10px 18px;
+        margin-bottom: 2px;
+      }
+      .ds-mh-power-result-row__power {
+        flex: 1 1 140px;
+        min-width: 0;
+      }
+      .ds-mh-power-result-row__power .ds-mh-power-input {
+        max-width: 100%;
+      }
+      .ds-mh-power-result-row__result {
+        display: flex;
+        flex-wrap: wrap;
+        align-items: center;
+        gap: 6px 14px;
+        padding-bottom: 1px;
+      }
+      .ds-mh-power-result-row__result .ds-mh-inline-label {
+        margin: 0;
+      }
+      .ds-mh-check-label {
+        display: inline-flex;
+        align-items: center;
+        gap: 5px;
+        font-size: 0.82rem;
+        color: var(--text);
+        cursor: pointer;
+        white-space: nowrap;
+      }
+      .ds-mh-check-label input {
+        width: 1rem;
+        height: 1rem;
+        margin: 0;
+        flex-shrink: 0;
+      }
+      .ds-mh-check-label.ds-mh-check--win:has(input:checked) {
+        color: #34d399;
+        font-weight: 600;
+      }
+      .ds-mh-check-label.ds-mh-check--loss:has(input:checked) {
+        color: #f87171;
+        font-weight: 600;
+      }
+      .ds-mh-top5 {
+        margin-top: 2px;
+        flex-shrink: 0;
+      }
+      .ds-mh-top5-head {
+        display: grid;
+        grid-template-columns: 1fr 80px;
+        gap: 6px;
+        font-size: 0.68rem;
+        color: var(--muted);
+        margin-bottom: 2px;
+        padding: 0 1px;
+      }
+      .ds-mh-top5-row {
+        display: grid;
+        grid-template-columns: 1fr 80px;
+        gap: 6px;
+        margin-bottom: 3px;
+      }
+      .ds-mh-top5-row input {
+        padding: 4px 6px;
+        border-radius: 6px;
+        border: 1px solid var(--line-soft);
+        background: var(--panel-2);
+        color: var(--text);
+        font-size: 0.76rem;
+        min-width: 0;
+      }
+      .ds-mh-browser {
+        flex-shrink: 0;
+        display: flex;
+        flex-direction: column;
+        gap: 6px;
+        padding: 8px 0 4px;
+        border-bottom: 1px solid var(--line-soft);
+        margin-bottom: 2px;
+      }
+      .ds-mh-browser-search-row {
+        display: flex;
+        flex-wrap: wrap;
+        align-items: center;
+        gap: 6px 10px;
+      }
+      .ds-mh-browser-search-row label {
+        font-size: 0.76rem;
+        color: var(--muted);
+        white-space: nowrap;
+      }
+      .ds-mh-browser-search-row input[type="search"] {
+        flex: 1 1 160px;
+        min-width: 0;
+        max-width: 100%;
+        padding: 5px 8px;
+        border-radius: 8px;
+        border: 1px solid var(--line-soft);
+        background: var(--panel-2);
+        color: var(--text);
+        font-size: 0.8rem;
+        min-height: 30px;
+      }
+      .ds-mh-saved-matches-label {
+        display: block;
+        font-size: 0.76rem;
+        color: var(--muted);
+        margin: 2px 0 3px;
+      }
+      .ds-mh-saved-matches-select {
+        width: 100%;
+        max-width: 100%;
+        box-sizing: border-box;
+        border: 1px solid var(--line-soft);
+        border-radius: 8px;
+        background: var(--panel-2);
+        color: var(--text);
+        font-size: 0.8rem;
+        line-height: 1.35;
+        padding: 6px 8px;
+        min-height: 34px;
+        font-family: inherit;
+      }
+      .ds-mh-saved-matches-hint {
+        margin: 4px 0 0;
+        font-size: 0.7rem;
+        color: var(--muted);
+        line-height: 1.35;
+      }
+      .ds-mh-browser-actions {
+        display: flex;
+        flex-wrap: wrap;
+        align-items: center;
+        gap: 6px 8px;
+      }
+      .ds-mh-browser-actions .action-button {
+        font-size: 0.78rem;
+        padding: 5px 10px;
+      }
+      .ds-mh-compare-panel {
+        flex-shrink: 0;
+        display: flex;
+        flex-direction: column;
+        gap: 6px;
+        max-height: min(38vh, 380px);
+        min-height: 0;
+        padding: 6px 0 4px;
+        border-bottom: 1px solid var(--line-soft);
+        margin-bottom: 2px;
+      }
+      .ds-mh-compare-panel[hidden] {
+        display: none !important;
+      }
+      .ds-mh-compare-head {
+        display: flex;
+        flex-wrap: wrap;
+        align-items: center;
+        justify-content: space-between;
+        gap: 6px;
+      }
+      .ds-mh-compare-title {
+        margin: 0;
+        font-size: 0.88rem;
+        font-weight: 700;
+        color: var(--text);
+      }
+      .ds-mh-compare-scroll {
+        display: flex;
+        flex-direction: row;
+        gap: 10px;
+        overflow-x: auto;
+        overflow-y: hidden;
+        padding: 4px 2px 8px;
+        -webkit-overflow-scrolling: touch;
+        flex: 1 1 auto;
+        min-height: 0;
+      }
+      .ds-mh-compare-card {
+        flex: 0 0 min(260px, 85vw);
+        max-width: min(260px, 85vw);
+        display: flex;
+        flex-direction: column;
+        min-height: 0;
+        border: 1px solid var(--line-soft);
+        border-radius: 10px;
+        background: var(--panel-2);
+        overflow: hidden;
+      }
+      .ds-mh-compare-card-h {
+        padding: 8px 10px;
+        border-bottom: 1px solid var(--line-soft);
+        flex-shrink: 0;
+      }
+      .ds-mh-compare-card-h strong {
+        display: block;
+        font-size: 0.82rem;
+        margin-bottom: 4px;
+      }
+      .ds-mh-compare-card-h span {
+        font-size: 0.72rem;
+        color: var(--muted);
+      }
+      .ds-mh-compare-card-body {
+        padding: 8px 10px;
+        font-size: 0.72rem;
+        line-height: 1.35;
+        overflow-y: auto;
+        flex: 1 1 auto;
+        min-height: 120px;
+        max-height: min(28vh, 260px);
+      }
+      .ds-mh-compare-card-body dt {
+        font-weight: 600;
+        color: var(--muted);
+        margin-top: 8px;
+        font-size: 0.68rem;
+      }
+      .ds-mh-compare-card-body dt:first-child {
+        margin-top: 0;
+      }
+      .ds-mh-compare-card-body dd {
+        margin: 2px 0 0;
+        white-space: pre-wrap;
+        word-break: break-word;
       }
       @media (max-width: 720px) {
         .ds-actions .action-button {
@@ -611,6 +1212,12 @@
             </div>
             <label for="dsPlayerListInput" class="action-button">Import player list</label>
             <div class="ds-score-nav-actions">
+              <button type="button" id="dsFightPlanBtn" class="action-button" hidden>
+                Desert Storm Mail
+              </button>
+              <button type="button" id="dsMatchHistoryBtn" class="action-button" hidden>
+                Match history
+              </button>
               <button type="button" id="dsMapBtn" class="action-button">Map</button>
             </div>
           </div>
@@ -692,6 +1299,305 @@
         </div>
       </section>
     </div>
+    <div
+      class="ds-fight-plan-modal"
+      id="dsFightPlanModal"
+      role="dialog"
+      aria-modal="true"
+      aria-labelledby="dsFightPlanTitle"
+      aria-hidden="true"
+    >
+      <div class="ds-fight-plan-modal-inner">
+        <button type="button" id="dsFightPlanModalCloseBtn" class="action-button ds-map-modal-close" aria-label="Close">
+          Close
+        </button>
+        <h2 id="dsFightPlanTitle">Desert Storm Mail</h2>
+        <p class="ds-fight-plan-hint">
+          Choose a <strong>mail day</strong> for the header and map pins (rosters use the current
+          table). Template is saved in this browser. Use <strong>Save to history</strong> to keep a
+          snapshot you can reload from <strong>Mail history</strong>.
+        </p>
+        <div class="ds-fight-plan-mail-toolbar">
+          <label for="dsFightPlanMailDay">Mail day</label>
+          <input type="date" id="dsFightPlanMailDay" aria-label="Mail day for Desert Storm Mail" />
+          <label for="dsFightPlanHistorySelect" style="margin-left: 4px">Mail history</label>
+          <select id="dsFightPlanHistorySelect" aria-label="Load a saved mail from history">
+            <option value="">— Select —</option>
+          </select>
+          <button type="button" id="dsFightPlanSaveHistoryBtn" class="action-button">
+            Save to history
+          </button>
+        </div>
+        <div class="ds-fight-plan-tabs" role="tablist" aria-label="Desert Storm Mail sections">
+          <button
+            type="button"
+            role="tab"
+            id="dsFightPlanTabTemplate"
+            aria-selected="true"
+            aria-controls="dsFightPlanPanelTemplate"
+          >
+            Template
+          </button>
+          <button
+            type="button"
+            role="tab"
+            id="dsFightPlanTabA"
+            aria-selected="false"
+            aria-controls="dsFightPlanPanelA"
+          >
+            Team A
+          </button>
+          <button
+            type="button"
+            role="tab"
+            id="dsFightPlanTabB"
+            aria-selected="false"
+            aria-controls="dsFightPlanPanelB"
+          >
+            Team B
+          </button>
+        </div>
+        <div class="ds-fight-plan-tabpanels">
+          <div id="dsFightPlanPanelTemplate" role="tabpanel" aria-labelledby="dsFightPlanTabTemplate">
+            <textarea
+              id="dsFightPlanTextareaTemplate"
+              class="ds-fight-plan-tab-textarea"
+              spellcheck="false"
+              placeholder="Callouts, timing, or outline for this match…"
+              aria-label="Desert Storm Mail template"
+            ></textarea>
+          </div>
+          <div id="dsFightPlanPanelA" role="tabpanel" aria-labelledby="dsFightPlanTabA" hidden>
+            <textarea
+              id="dsFightPlanTextareaA"
+              class="ds-fight-plan-tab-textarea"
+              spellcheck="false"
+              readonly
+              aria-label="Desert Storm Mail Team A"
+            ></textarea>
+          </div>
+          <div id="dsFightPlanPanelB" role="tabpanel" aria-labelledby="dsFightPlanTabB" hidden>
+            <textarea
+              id="dsFightPlanTextareaB"
+              class="ds-fight-plan-tab-textarea"
+              spellcheck="false"
+              readonly
+              aria-label="Desert Storm Mail Team B"
+            ></textarea>
+          </div>
+        </div>
+        <div class="ds-actions" style="flex-wrap: wrap; margin-top: 4px">
+          <button type="button" id="dsFightPlanSaveTemplateBtn" class="action-button" hidden>
+            Save template
+          </button>
+          <button type="button" id="dsFightPlanGenerateBtn" class="action-button">Refresh</button>
+          <button type="button" id="dsFightPlanCopyBtn" class="action-button">Copy to clipboard</button>
+        </div>
+        <p id="dsFightPlanStatus" class="ds-fight-plan-hint" style="min-height: 1.2em"></p>
+      </div>
+    </div>
+
+    <div
+      class="ds-match-history-modal"
+      id="dsMatchHistoryModal"
+      role="dialog"
+      aria-modal="true"
+      aria-labelledby="dsMatchHistoryTitle"
+      aria-hidden="true"
+    >
+      <div class="ds-match-history-inner">
+        <button
+          type="button"
+          id="dsMatchHistoryModalCloseBtn"
+          class="action-button ds-map-modal-close"
+          aria-label="Close"
+        >
+          Close
+        </button>
+        <h2 id="dsMatchHistoryTitle">Match history</h2>
+        <p class="ds-fight-plan-hint">
+          Your lineup and plan vs the opponent for the <strong>match date</strong> you pick on the calendar (one saved entry per date). Search
+          filters <strong>Saved matches</strong>. Pick a match from the dropdown to load it; use <strong>Add to compare</strong> or <strong>Select visible</strong>
+          to build a comparison set. Data stays in this browser.
+        </p>
+        <div class="ds-match-history-toolbar">
+          <label for="dsMatchHistoryWeekStart">Match date</label>
+          <input type="date" id="dsMatchHistoryWeekStart" aria-label="Match date" />
+          <button type="button" id="dsMatchHistorySaveBtn" class="action-button">Save match</button>
+        </div>
+        <div class="ds-mh-browser">
+          <div class="ds-mh-browser-search-row">
+            <label for="dsMatchHistorySearchOpp">Search opponent</label>
+            <input
+              type="search"
+              id="dsMatchHistorySearchOpp"
+              placeholder="Filter saved matches by opponent name…"
+              autocomplete="off"
+              aria-label="Filter saved matches by opponent name"
+            />
+          </div>
+          <label class="ds-mh-saved-matches-label" for="dsMatchHistoryWeekList">Saved matches</label>
+          <select
+            id="dsMatchHistoryWeekList"
+            class="ds-mh-saved-matches-select"
+            aria-label="Saved matches — choose one to load into the form"
+          ></select>
+          <p class="ds-mh-saved-matches-hint">
+            Choosing a match loads it. Use <strong>Add to compare</strong> for the current dropdown or match date, or <strong>Select visible</strong> for all filtered matches.
+          </p>
+          <div class="ds-mh-browser-actions">
+            <button type="button" class="action-button" id="dsMatchHistoryAddCompareBtn">Add to compare</button>
+            <button type="button" class="action-button" id="dsMatchHistorySelectVisibleBtn">Select visible</button>
+            <button type="button" class="action-button" id="dsMatchHistoryClearSelBtn">Clear selection</button>
+            <button type="button" class="action-button subtle" id="dsMatchHistoryDeleteSavedBtn">
+              Delete selected
+            </button>
+            <button type="button" class="action-button" id="dsMatchHistoryCompareBtn">Compare selected</button>
+          </div>
+        </div>
+        <div id="dsMatchHistoryComparePanel" class="ds-mh-compare-panel" hidden>
+          <div class="ds-mh-compare-head">
+            <h3 class="ds-mh-compare-title" id="dsMatchHistoryCompareTitle">Comparison</h3>
+            <button type="button" class="action-button" id="dsMatchHistoryCompareHideBtn">Hide comparison</button>
+          </div>
+          <div id="dsMatchHistoryCompareScroll" class="ds-mh-compare-scroll"></div>
+        </div>
+        <div class="ds-match-history-grid">
+          <div class="ds-match-history-col">
+            <div class="ds-mh-alliance-title-row">
+              <h3>Our alliance</h3>
+              <span
+                id="dsMHAllianceRecord"
+                class="ds-mh-alliance-record"
+                title="Wins and losses from saved match weeks (match history)"
+                aria-live="polite"
+              ></span>
+            </div>
+            <p class="ds-mh-sub">Lineup and plan for this match week.</p>
+            <label class="ds-mh-label" for="dsMHOurLineup">Lineup</label>
+            <textarea
+              id="dsMHOurLineup"
+              class="ds-mh-textarea"
+              spellcheck="false"
+              placeholder="Roster notes, key players, squads…"
+            ></textarea>
+            <label class="ds-mh-label" for="dsMHOurPlan">Plan</label>
+            <textarea
+              id="dsMHOurPlan"
+              class="ds-mh-textarea"
+              spellcheck="false"
+              placeholder="Objectives, timing, calls…"
+            ></textarea>
+          </div>
+          <div class="ds-match-history-col">
+            <div class="ds-mh-opponent-title-row">
+              <h3>Opponent</h3>
+              <div class="ds-mh-opponent-meta">
+                <input
+                  type="text"
+                  id="dsMHOpponentName"
+                  class="ds-mh-inline-input"
+                  maxlength="120"
+                  placeholder="Alliance name"
+                  autocomplete="off"
+                  aria-label="Opponent alliance name"
+                />
+                <label class="ds-mh-inline-label" for="dsMHOpponentServer">Server</label>
+                <input
+                  type="text"
+                  id="dsMHOpponentServer"
+                  class="ds-mh-inline-input"
+                  maxlength="32"
+                  placeholder="#"
+                  inputmode="numeric"
+                  autocomplete="off"
+                  aria-label="Opponent server number"
+                />
+              </div>
+            </div>
+            <p class="ds-mh-sub">Their lineup, plan, and intel you track.</p>
+            <div class="ds-mh-opponent-actions">
+              <button type="button" class="action-button" id="dsMHSaveOpponentBtn">Save to roster</button>
+              <select
+                id="dsMHImportOpponent"
+                class="ds-mh-import-select"
+                aria-label="Import opponent intel from roster or match history"
+              >
+                <option value="">— Import opponent intel —</option>
+              </select>
+            </div>
+            <div class="ds-mh-power-result-row">
+              <div class="ds-mh-power-result-row__power">
+                <label class="ds-mh-label" for="dsMHOpponentAlliancePower">Alliance total power (M)</label>
+                <input
+                  type="text"
+                  id="dsMHOpponentAlliancePower"
+                  class="ds-mh-power-input"
+                  inputmode="decimal"
+                  placeholder="e.g. 125000"
+                  autocomplete="off"
+                />
+              </div>
+              <div
+                class="ds-mh-power-result-row__result"
+                role="group"
+                aria-labelledby="dsMHResultLegend"
+              >
+                <span id="dsMHResultLegend" class="ds-mh-inline-label">Result</span>
+                <label class="ds-mh-check-label ds-mh-check--win" for="dsMHResultWin">
+                  <input type="checkbox" id="dsMHResultWin" />
+                  Win
+                </label>
+                <label class="ds-mh-check-label ds-mh-check--loss" for="dsMHResultLoss">
+                  <input type="checkbox" id="dsMHResultLoss" />
+                  Loss
+                </label>
+              </div>
+            </div>
+            <label class="ds-mh-label" for="dsMHTheirLineup">Lineup</label>
+            <textarea
+              id="dsMHTheirLineup"
+              class="ds-mh-textarea"
+              spellcheck="false"
+              placeholder="What you know about their roster…"
+            ></textarea>
+            <label class="ds-mh-label" for="dsMHTheirPlan">Plan</label>
+            <textarea
+              id="dsMHTheirPlan"
+              class="ds-mh-textarea"
+              spellcheck="false"
+              placeholder="Expected strategy, targets…"
+            ></textarea>
+            <label class="ds-mh-label">Top 5 biggest players (M)</label>
+            <div class="ds-mh-top5" id="dsMHOpponentTop5">
+              <div class="ds-mh-top5-head"><span>Player</span><span>Power (M)</span></div>
+              <div class="ds-mh-top5-row">
+                <input type="text" class="ds-mh-op-name" data-idx="0" placeholder="Name" maxlength="120" />
+                <input type="text" class="ds-mh-op-power" data-idx="0" placeholder="M" inputmode="decimal" />
+              </div>
+              <div class="ds-mh-top5-row">
+                <input type="text" class="ds-mh-op-name" data-idx="1" placeholder="Name" maxlength="120" />
+                <input type="text" class="ds-mh-op-power" data-idx="1" placeholder="M" inputmode="decimal" />
+              </div>
+              <div class="ds-mh-top5-row">
+                <input type="text" class="ds-mh-op-name" data-idx="2" placeholder="Name" maxlength="120" />
+                <input type="text" class="ds-mh-op-power" data-idx="2" placeholder="M" inputmode="decimal" />
+              </div>
+              <div class="ds-mh-top5-row">
+                <input type="text" class="ds-mh-op-name" data-idx="3" placeholder="Name" maxlength="120" />
+                <input type="text" class="ds-mh-op-power" data-idx="3" placeholder="M" inputmode="decimal" />
+              </div>
+              <div class="ds-mh-top5-row">
+                <input type="text" class="ds-mh-op-name" data-idx="4" placeholder="Name" maxlength="120" />
+                <input type="text" class="ds-mh-op-power" data-idx="4" placeholder="M" inputmode="decimal" />
+              </div>
+            </div>
+          </div>
+        </div>
+        <p id="dsMatchHistoryStatus" class="ds-fight-plan-hint"></p>
+      </div>
+    </div>
+
     <div class="ds-map-modal" id="dsMapModal" aria-hidden="true">
       <div class="ds-map-modal-card">
         <button type="button" id="dsMapCloseBtn" class="action-button ds-map-modal-close">
@@ -840,6 +1746,23 @@
           return formatYmd(new Date());
         }
 
+        /**
+         * Desert Storm Mail modal can override the planner day (window.__lwDsFightPlanMailDay).
+         * Set by ds-tracker-fight-plan.js from the mail day input.
+         */
+        function getFightPlanMailDay() {
+          try {
+            const w =
+              typeof window !== "undefined" && window.__lwDsFightPlanMailDay != null
+                ? String(window.__lwDsFightPlanMailDay)
+                : "";
+            if (/^\d{4}-\d{2}-\d{2}$/.test(w)) return w;
+          } catch (_) {
+            /* ignore */
+          }
+          return getSelectedDay();
+        }
+
         function updateScoreHeaders(dayStr) {
           const base = new Date(`${dayStr}T00:00:00`);
           if (!Number.isFinite(base.getTime())) return;
@@ -977,6 +1900,119 @@
             };
           });
         }
+
+        function getResolvedPinsForDayTeam(dayStr, team) {
+          const plan = loadMapPlan();
+          const key = `${dayStr}|${String(team || "A").toUpperCase()}`;
+          const pins = Array.isArray(plan[key]) ? plan[key] : [];
+          const byName = new Map(
+            mapPlayersFromTable().map((p) => [normalizeMatchName(p.name), p]),
+          );
+          return pins.map((pin) => {
+            const live = byName.get(normalizeMatchName(pin.name || ""));
+            return {
+              name: live ? live.name : String(pin.name || ""),
+              assignment: live ? live.assignment : String(pin.assignment || ""),
+              x: Number(pin.x || 0),
+              y: Number(pin.y || 0),
+            };
+          });
+        }
+
+        function rowToFightPlanLine(r) {
+          const bits = [];
+          bits.push(String(r.name || "").trim() || "(unnamed)");
+          if (String(r.power || "").trim()) bits.push(`${String(r.power).trim()}M power`);
+          if (String(r.r2b || "").trim()) bits.push(`Req ${String(r.r2b).trim()}`);
+          if (String(r.assignment || "").trim()) bits.push(`Assignment: ${String(r.assignment).trim()}`);
+          const sc = [r.s1, r.s2, r.s3, r.s4].map((x) => String(x || "").trim()).filter(Boolean);
+          if (sc.length) bits.push(`Scores: ${sc.join(" / ")}`);
+          if (r.noshow) bits.push("NO SHOW");
+          return bits.join(" — ");
+        }
+
+        const FIGHT_PLAN_TEAM_ORDER = [
+          { key: "A", label: "Team A", reqs: new Set(["A", "A-S", "A-X"]) },
+          { key: "B", label: "Team B", reqs: new Set(["B", "B-S", "B-X"]) },
+        ];
+
+        /** Same key as ds-tracker-fight-plan.js — saved template is prepended to Team A / Team B text. */
+        const DS_FIGHT_PLAN_TEMPLATE_LS_KEY = "dsFightPlanTemplateTextV1";
+
+        function getSavedFightPlanTemplateForText() {
+          try {
+            return String(localStorage.getItem(DS_FIGHT_PLAN_TEMPLATE_LS_KEY) || "").trim();
+          } catch (_) {
+            return "";
+          }
+        }
+
+        function prependSavedTemplateLines(lines) {
+          const t = getSavedFightPlanTemplateForText();
+          if (!t) return;
+          lines.push(t);
+          lines.push("");
+        }
+
+        function appendFightPlanTeamLines(lines, day, teamKey, label, reqs) {
+          const rows = collectRows().filter((r) => String(r.name || "").trim());
+          const teamRows = rows.filter((r) => reqs.has(String(r.r2b || "").toUpperCase()));
+          if (!teamRows.length) {
+            lines.push(`--- ${label} ---`);
+            lines.push("(no players in table for this team)");
+            lines.push("");
+            return;
+          }
+          teamRows.sort((a, b) => sortByName(a.name, b.name));
+          lines.push(`--- ${label} ---`);
+          teamRows.forEach((r) => {
+            lines.push(rowToFightPlanLine(r));
+          });
+          lines.push("");
+          const pins = getResolvedPinsForDayTeam(day, teamKey);
+          if (pins.length) {
+            lines.push(`Map pins (${label})`);
+            pins.forEach((pin, i) => {
+              const nm = String(pin.name || "").trim() || "(unnamed)";
+              const as = String(pin.assignment || "").trim();
+              const pos = `~${Math.round(Number(pin.x || 0))}%, ${Math.round(Number(pin.y || 0))}%`;
+              lines.push(`  ${i + 1}. ${nm}${as ? " — " + as : ""} @ ${pos}`);
+            });
+            lines.push("");
+          }
+        }
+
+        /**
+         * Single-team Desert Storm Mail body (header + roster + map pins for A or B).
+         * @param {"A"|"B"} teamKey
+         */
+        function buildFightPlanTeamText(teamKey) {
+          const def = FIGHT_PLAN_TEAM_ORDER.find((t) => t.key === teamKey);
+          if (!def) return "";
+          const day = getFightPlanMailDay();
+          const lines = [];
+          prependSavedTemplateLines(lines);
+          lines.push(`Desert Storm Mail — ${day}`);
+          lines.push("");
+          appendFightPlanTeamLines(lines, day, def.key, def.label, def.reqs);
+          return lines.join("\n").replace(/\n+$/, "");
+        }
+
+        function buildFightPlanText() {
+          const day = getFightPlanMailDay();
+          const lines = [];
+          prependSavedTemplateLines(lines);
+          lines.push(`Desert Storm Mail — ${day}`);
+          lines.push("");
+          FIGHT_PLAN_TEAM_ORDER.forEach(({ key: teamKey, label, reqs }) => {
+            appendFightPlanTeamLines(lines, day, teamKey, label, reqs);
+          });
+          return lines.join("\n").replace(/\n+$/, "");
+        }
+
+        window.__lwDsBuildFightPlanText = buildFightPlanText;
+        window.__lwDsBuildFightPlanTeamText = buildFightPlanTeamText;
+        window.__lwDsGetSelectedDay = getSelectedDay;
 
         function placeSelectedPlayerAt(clientX, clientY) {
           if (!mapImage || !mapPlayerSelect) return;
@@ -1926,6 +2962,8 @@
         loadSelectedDay();
       })();
     </script>
+    <script type="module" src="ds-tracker-fight-plan.js"></script>
+    <script type="module" src="ds-tracker-match-history.js"></script>
   </body>
 </html>
 

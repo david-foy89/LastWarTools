@@ -1,0 +1,3229 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Alliance Hive | Last War Survival Tools</title>
+    <meta
+      name="description"
+      content="Alliance Hive: a 50×50 hive planner grid with zoom, similar to common Last War layout tools."
+    />
+    <link rel="canonical" href="https://lastwarsurvivaltools.com/alliance-hive.html" />
+    <meta property="og:type" content="website" />
+    <meta property="og:title" content="Alliance Hive | Last War Survival Tools" />
+    <meta
+      property="og:description"
+      content="A 50×50 hive planner grid with zoom for alliance planning in Last War: Survival."
+    />
+    <meta property="og:url" content="https://lastwarsurvivaltools.com/alliance-hive.html" />
+    <meta property="og:image" content="https://lastwarsurvivaltools.com/media/lwst.png" />
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:title" content="Alliance Hive | Last War Survival Tools" />
+    <meta
+      name="twitter:description"
+      content="A 50×50 hive planner grid with zoom for alliance planning in Last War: Survival."
+    />
+    <meta name="twitter:image" content="https://lastwarsurvivaltools.com/media/lwst.png" />
+    <script type="application/ld+json">
+      {
+        "@context": "https://schema.org",
+        "@type": "WebPage",
+        "name": "Alliance Hive",
+        "description": "A 50×50 hive planner grid with zoom for alliance planning in Last War: Survival.",
+        "url": "https://lastwarsurvivaltools.com/alliance-hive.html"
+      }
+    </script>
+    <link rel="stylesheet" href="last-war-furnace-upgrade-calculator.css" />
+    <script src="page-nav-dropdown.js" defer></script>
+    <script src="language-translate.js" defer></script>
+    <style>
+      .hive-card {
+        background: var(--panel);
+        border: 1px solid var(--line);
+        border-radius: 18px;
+        padding: 22px 24px 28px;
+        margin: 0 auto 28px;
+        max-width: min(1020px, 100%);
+      }
+      .hive-toolbar {
+        display: flex;
+        flex-wrap: wrap;
+        align-items: center;
+        gap: 12px 16px;
+        margin-bottom: 10px;
+      }
+      .hive-planner-bar {
+        display: flex;
+        flex-wrap: wrap;
+        align-items: center;
+        gap: 8px 14px;
+        margin-bottom: 12px;
+        padding: 8px 12px;
+        border-radius: 10px;
+        border: 1px solid var(--line-soft);
+        background: var(--panel-2);
+        font-size: 0.84rem;
+        color: var(--muted);
+      }
+      .hive-planner-bar__sep {
+        opacity: 0.45;
+        user-select: none;
+      }
+      .hive-zoom-select {
+        margin-left: 6px;
+        padding: 4px 8px;
+        border-radius: 8px;
+        border: 1px solid var(--line-soft);
+        background: var(--panel);
+        color: var(--text);
+        font-size: 0.82rem;
+        font-family: inherit;
+        min-height: 30px;
+        vertical-align: middle;
+      }
+      .hive-tool-row {
+        display: flex;
+        flex-wrap: wrap;
+        align-items: stretch;
+        gap: 8px;
+        margin-bottom: 10px;
+      }
+      .hive-tool-row__label {
+        font-size: 0.76rem;
+        color: var(--muted);
+        align-self: center;
+        margin-right: 4px;
+      }
+      .hive-tool-btn {
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        padding: 6px 12px;
+        border-radius: 10px;
+        border: 1px solid var(--line-soft);
+        background: var(--panel-2);
+        color: var(--text);
+        font-size: 0.82rem;
+        font-weight: 600;
+        font-family: inherit;
+        cursor: pointer;
+        transition: border-color 0.12s, background 0.12s;
+      }
+      .hive-tool-btn:hover {
+        border-color: var(--accent, #64b4ff);
+      }
+      .hive-tool-btn.hive-tool-btn--active {
+        border-color: var(--accent, #64b4ff);
+        background: rgba(100, 180, 255, 0.12);
+        color: var(--text);
+      }
+      .hive-tool-r5-icon {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        width: 1.35em;
+        height: 1.35em;
+        font-size: 1.1em;
+        line-height: 1;
+        color: #e8b84a;
+        text-shadow: 0 0 1px rgba(0, 0, 0, 0.5);
+      }
+      .hive-tool-r4-icon {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        width: 1.35em;
+        height: 1.35em;
+        font-size: 1.1em;
+        line-height: 1;
+        color: #e85555;
+        text-shadow: 0 0 1px rgba(0, 0, 0, 0.5);
+      }
+      .hive-tool-r3-icon {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        width: 1.35em;
+        height: 1.35em;
+        font-size: 1.1em;
+        line-height: 1;
+        color: #b388ff;
+        text-shadow: 0 0 1px rgba(0, 0, 0, 0.5);
+      }
+      .hive-tool-r2-icon {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        width: 1.35em;
+        height: 1.35em;
+        font-size: 1.1em;
+        line-height: 1;
+        color: #6eb5ff;
+        text-shadow: 0 0 1px rgba(0, 0, 0, 0.5);
+      }
+      .hive-tool-r1-icon {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        width: 1.35em;
+        height: 1.35em;
+        font-size: 1.1em;
+        line-height: 1;
+        color: #e8a04a;
+        text-shadow: 0 0 1px rgba(0, 0, 0, 0.5);
+      }
+      .hive-tool-ae-icon {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        width: 1.35em;
+        height: 1.35em;
+        font-size: 1.1em;
+        line-height: 1;
+        color: #4ec9a8;
+        text-shadow: 0 0 1px rgba(0, 0, 0, 0.5);
+      }
+      .hive-tool-btn.hive-tool-btn--ae {
+        flex-wrap: nowrap;
+        max-width: none;
+        text-align: left;
+        line-height: 1.2;
+      }
+      .hive-tool-ae-line {
+        display: inline-flex;
+        align-items: baseline;
+        flex-wrap: nowrap;
+        gap: 0.4em;
+      }
+      .hive-tool-ae-text {
+        font-size: 0.78rem;
+        font-weight: 600;
+      }
+      .hive-tool-furnace-icon {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        width: 1.35em;
+        height: 1.35em;
+        font-size: 1.1em;
+        line-height: 1;
+        color: #1a1a1a;
+        text-shadow: 0 0 1px rgba(255, 255, 255, 0.25);
+      }
+      .hive-tool-btn.hive-tool-btn--furnace {
+        flex-wrap: nowrap;
+        max-width: none;
+        text-align: left;
+        line-height: 1.2;
+      }
+      .hive-tool-furnace-line {
+        display: inline-flex;
+        align-items: baseline;
+        flex-wrap: nowrap;
+        gap: 0.4em;
+      }
+      .hive-tool-furnace-text {
+        font-size: 0.78rem;
+        font-weight: 600;
+      }
+      .hive-tool-acenter-icon {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        width: 1.35em;
+        height: 1.35em;
+        font-size: 1.1em;
+        line-height: 1;
+        color: #c9a86c;
+        text-shadow: 0 0 1px rgba(0, 0, 0, 0.45);
+      }
+      .hive-tool-btn.hive-tool-btn--acenter {
+        flex-wrap: wrap;
+        max-width: 10.5rem;
+        text-align: left;
+        line-height: 1.2;
+      }
+      .hive-tool-acenter-text {
+        font-size: 0.78rem;
+        font-weight: 600;
+      }
+      .hive-tool-sub {
+        font-size: 0.72rem;
+        font-weight: 500;
+        color: var(--muted);
+      }
+      .hive-custom-tool-wrap {
+        display: inline-flex;
+        flex-wrap: wrap;
+        align-items: center;
+        gap: 6px 10px;
+      }
+      .hive-custom-input {
+        width: 7.25rem;
+        max-width: 100%;
+        padding: 4px 8px;
+        border-radius: 8px;
+        border: 1px solid var(--line-soft);
+        background: var(--panel);
+        color: var(--text);
+        font-size: 0.8rem;
+        font-family: inherit;
+      }
+      .hive-custom-num {
+        width: 3rem;
+        padding: 4px 6px;
+        border-radius: 8px;
+        border: 1px solid var(--line-soft);
+        background: var(--panel);
+        color: var(--text);
+        font-size: 0.8rem;
+        font-family: inherit;
+        font-variant-numeric: tabular-nums;
+      }
+      .hive-custom-label {
+        display: inline-flex;
+        align-items: center;
+        gap: 4px;
+        font-size: 0.76rem;
+        color: var(--muted);
+        font-weight: 500;
+      }
+      .hive-tool-custom-icon {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        width: 1.35em;
+        height: 1.35em;
+        font-size: 1.1em;
+        line-height: 1;
+        color: #8b9aab;
+        text-shadow: 0 0 1px rgba(0, 0, 0, 0.45);
+      }
+      .hive-coord {
+        font-size: 0.88rem;
+        color: var(--muted);
+        font-variant-numeric: tabular-nums;
+        min-height: 1.25em;
+      }
+      .hive-hint {
+        margin: 0 0 12px;
+        font-size: 0.82rem;
+        color: var(--muted);
+        line-height: 1.45;
+      }
+      .hive-tabs {
+        display: flex;
+        flex-wrap: wrap;
+        align-items: center;
+        gap: 6px;
+        margin: 0 0 12px;
+        padding: 8px 10px;
+        border-radius: 12px;
+        border: 1px solid var(--line-soft);
+        background: var(--panel-2);
+      }
+      .hive-tabs__label {
+        font-size: 0.76rem;
+        color: var(--muted);
+        font-weight: 600;
+        margin-right: 4px;
+        flex: 0 0 auto;
+      }
+      .hive-tab {
+        flex: 0 1 auto;
+        min-width: 0;
+        max-width: 8.5rem;
+        padding: 5px 10px;
+        border-radius: 8px;
+        border: 1px solid var(--line-soft);
+        background: var(--panel);
+        color: var(--text);
+        font-size: 0.76rem;
+        font-weight: 600;
+        font-family: inherit;
+        cursor: pointer;
+        transition: border-color 0.12s, background 0.12s;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+      }
+      .hive-tab:hover {
+        border-color: var(--accent, #64b4ff);
+      }
+      .hive-tab.hive-tab--active {
+        border-color: var(--accent, #64b4ff);
+        background: rgba(100, 180, 255, 0.12);
+        color: var(--text);
+      }
+      .hive-tabs__hint {
+        flex: 1 1 100%;
+        margin: 2px 0 0;
+        font-size: 0.72rem;
+        color: var(--muted);
+        line-height: 1.35;
+      }
+      .hive-canvas-wrap {
+        display: flex;
+        justify-content: center;
+        padding: 6px 0 2px;
+        overflow: auto;
+        -webkit-overflow-scrolling: touch;
+      }
+      #hiveCanvas {
+        display: block;
+        /* Display size set in JS from zoom; fallback before script runs. */
+        width: min(90vmin, 880px);
+        height: min(90vmin, 880px);
+        max-width: none;
+        border: 2px solid var(--line-soft);
+        border-radius: 10px;
+        cursor: crosshair;
+        touch-action: none;
+        vertical-align: middle;
+      }
+      @media (max-width: 520px) {
+        .hive-card {
+          padding: 16px 14px 20px;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <div class="page">
+      <div class="page-top-stack">
+        <aside class="account-promo-strip" aria-label="Optional account">
+          <p class="account-promo-strip__text">
+            <strong>No account required.</strong> Every calculator works in your browser without signing up.
+            Create a free account only if you want to sync saved data across devices.
+          </p>
+          <div class="account-promo-actions">
+            <a href="account.html" class="action-button">Create account</a>
+            <a href="account.html" class="action-button action-button--quiet">Sign in</a>
+          </div>
+        </aside>
+        <div class="page-top-controls">
+          <div class="logo-control">
+            <a href="index.html" aria-label="Go to homepage">
+              <img src="media/lwst.png" alt="LWST logo" class="site-logo" />
+            </a>
+          </div>
+          <div class="language-control">
+            <label for="languageSelect">Language</label>
+            <select id="languageSelect"></select>
+          </div>
+        </div>
+      </div>
+      <div id="google_translate_element" class="hidden-translate"></div>
+
+      <nav class="page-nav" aria-label="Calculator pages">
+        <a href="hq-upgrade-calculator.html" class="page-link">HQ Upgrade</a>
+        <details class="page-nav-dropdown active" name="alliance-nav">
+          <summary class="page-link page-nav-dropdown-toggle">Alliance Tools</summary>
+          <div class="page-nav-dropdown-menu">
+            <a href="train-conductor-schedule.html" class="page-link">Train Conductor</a>
+            <a href="transfer-tracker.html" class="page-link">Transfer Tracker</a>
+            <a href="server-search.html" class="page-link">Server Search</a>
+          </div>
+        </details>
+        <details class="page-nav-dropdown" name="troop-nav">
+          <summary class="page-link page-nav-dropdown-toggle">Troop Tools</summary>
+          <div class="page-nav-dropdown-menu">
+            <a href="t10-troops-calculator.html" class="page-link">T10 Troops</a>
+            <a href="t11-troops-calculator.html" class="page-link">T11 Troops</a>
+          </div>
+        </details>
+        <details class="page-nav-dropdown" name="season-nav">
+          <summary class="page-link page-nav-dropdown-toggle">Season 1 Tools</summary>
+          <div class="page-nav-dropdown-menu">
+            <a href="virus-research-institute-calculator.html" class="page-link"
+              >Virus Research Institute</a
+            >
+            <a href="season-1-squad-base-calculator.html" class="page-link">Season 1 Squad Base</a>
+            <a href="season-1-interactive-map.html" class="page-link">Interactive Map</a>
+          </div>
+        </details>
+        <details class="page-nav-dropdown" name="season-nav">
+          <summary class="page-link page-nav-dropdown-toggle">Season 2 Tools</summary>
+          <div class="page-nav-dropdown-menu">
+            <a href="last-war-furnace-upgrade-calculator.html" class="page-link">Furnace Calculator</a>
+            <a href="season-2-tank-center-calculator.html" class="page-link">Season 2 Squad Base</a>
+            <a href="season-2-interactive-map.html" class="page-link">Interactive Map</a>
+          </div>
+        </details>
+        <details class="page-nav-dropdown" name="season-nav">
+          <summary class="page-link page-nav-dropdown-toggle">Season 3 Tools</summary>
+          <div class="page-nav-dropdown-menu">
+            <a href="curse-research-lab-calculator.html" class="page-link">Curse Research Lab</a>
+            <a href="altar-calculator.html" class="page-link">Altar</a>
+            <a href="protectors-field-calculator.html" class="page-link">Protectors Field</a>
+            <a href="season-3-interactive-map.html" class="page-link">Interactive Map</a>
+          </div>
+        </details>
+        <details class="page-nav-dropdown" name="season-nav">
+          <summary class="page-link page-nav-dropdown-toggle">Season 4 Tools</summary>
+          <div class="page-nav-dropdown-menu">
+            <a href="optoelectronic-lab-calculator.html" class="page-link">Optoelectronic Lab</a>
+            <a href="protectors-field-s4-calculator.html" class="page-link">Protector's Field S4</a>
+            <a href="lighthouse-s4-calculator.html" class="page-link">Lighthouse S4</a>
+            <a href="season-4-interactive-map.html" class="page-link">Interactive Map</a>
+          </div>
+        </details>
+        <details class="page-nav-dropdown" name="season-nav">
+          <summary class="page-link page-nav-dropdown-toggle">Season 5 Tools</summary>
+          <div class="page-nav-dropdown-menu">
+            <a href="caffeine-institute-calculator.html" class="page-link">Caffeine Institute</a>
+            <a href="protectors-field-s5-calculator.html" class="page-link">Protector's Field S5</a>
+            <a href="season-5-squad-base-calculator.html" class="page-link">Season 5 Squad Base</a>
+            <a href="season-5-interactive-map.html" class="page-link">Interactive Map</a>
+          </div>
+        </details>
+      </nav>
+
+      <section class="hero">
+        <h1>Alliance Hive</h1>
+        <div class="sub">
+          A <strong>50×50</strong> hive planner grid (same cell count as common tools such as
+          <a href="https://cpt-hedge.com/maps/planner" rel="noopener noreferrer">Cpt Hedgehog’s Hive Planner</a>).
+          Use <strong>Icons</strong> to pick single-tile paint, <strong>3×3</strong> markers (Alliance Exercise, <strong>R5–R1</strong>), a <strong>5×5 Alliance Furnace</strong>, or a <strong>9×9 Alliance Center</strong>. Click or tap to apply; right-click to clear (on touch, <strong>long-press</strong> ~½s).
+          Coordinates are <strong>1–50</strong> from the top-left. <strong>Every 10 cells</strong> a heavier grid line helps with alignment.
+        </div>
+      </section>
+
+      <div class="hive-card">
+        <div class="hive-planner-bar">
+          <span class="hive-planner-bar__item">
+            Zoom:
+            <select id="hiveZoom" class="hive-zoom-select" aria-label="Map zoom percentage">
+              <option value="50">50%</option>
+              <option value="75">75%</option>
+              <option value="100" selected>100%</option>
+              <option value="125">125%</option>
+              <option value="150">150%</option>
+              <option value="200">200%</option>
+            </select>
+          </span>
+          <span class="hive-planner-bar__sep">·</span>
+          <span class="hive-planner-bar__item">Grid: <strong>50×50</strong></span>
+        </div>
+        <div class="hive-tool-row" role="radiogroup" aria-label="Paint icons">
+          <span class="hive-tool-row__label">Icons</span>
+          <button type="button" id="hiveToolMark" class="hive-tool-btn hive-tool-btn--active" aria-pressed="true">
+            Single tile
+          </button>
+          <button
+            type="button"
+            id="hiveToolAE"
+            class="hive-tool-btn hive-tool-btn--ae"
+            aria-pressed="false"
+            title="Place Alliance Exercise — fills a 3×3 block (teal)"
+          >
+            <span class="hive-tool-ae-icon" aria-hidden="true">◆</span>
+            <span class="hive-tool-ae-line">
+              <span class="hive-tool-ae-text">Alliance Exercise</span>
+              <span class="hive-tool-sub">3×3</span>
+            </span>
+          </button>
+          <button
+            type="button"
+            id="hiveToolFurnace"
+            class="hive-tool-btn hive-tool-btn--furnace"
+            aria-pressed="false"
+            title="Place Alliance Furnace — fills a 5×5 block (black)"
+          >
+            <span class="hive-tool-furnace-icon" aria-hidden="true">◆</span>
+            <span class="hive-tool-furnace-line">
+              <span class="hive-tool-furnace-text">Alliance Furnace</span>
+              <span class="hive-tool-sub">5×5</span>
+            </span>
+          </button>
+          <button
+            type="button"
+            id="hiveToolACenter"
+            class="hive-tool-btn hive-tool-btn--acenter"
+            aria-pressed="false"
+            title="Place Alliance Center — fills a 9×9 block"
+          >
+            <span class="hive-tool-acenter-icon" aria-hidden="true">◆</span>
+            <span class="hive-tool-acenter-text">Alliance Center</span>
+            <span class="hive-tool-sub">9×9</span>
+          </button>
+          <button type="button" id="hiveToolR5" class="hive-tool-btn" aria-pressed="false" title="Place R5 — fills a 3×3 block">
+            <span class="hive-tool-r5-icon" aria-hidden="true">◆</span>
+            R5
+            <span class="hive-tool-sub">3×3</span>
+          </button>
+          <button type="button" id="hiveToolR4" class="hive-tool-btn" aria-pressed="false" title="Place R4 — fills a 3×3 block (red)">
+            <span class="hive-tool-r4-icon" aria-hidden="true">◆</span>
+            R4
+            <span class="hive-tool-sub">3×3</span>
+          </button>
+          <button type="button" id="hiveToolR3" class="hive-tool-btn" aria-pressed="false" title="Place R3 — fills a 3×3 block">
+            <span class="hive-tool-r3-icon" aria-hidden="true">◆</span>
+            R3
+            <span class="hive-tool-sub">3×3</span>
+          </button>
+          <button type="button" id="hiveToolR2" class="hive-tool-btn" aria-pressed="false" title="Place R2 — fills a 3×3 block">
+            <span class="hive-tool-r2-icon" aria-hidden="true">◆</span>
+            R2
+            <span class="hive-tool-sub">3×3</span>
+          </button>
+          <button type="button" id="hiveToolR1" class="hive-tool-btn" aria-pressed="false" title="Place R1 — fills a 3×3 block">
+            <span class="hive-tool-r1-icon" aria-hidden="true">◆</span>
+            R1
+            <span class="hive-tool-sub">3×3</span>
+          </button>
+          <div class="hive-custom-tool-wrap">
+            <button
+              type="button"
+              id="hiveToolCustom"
+              class="hive-tool-btn"
+              aria-pressed="false"
+              title="Place a custom block — set name and width × height, then click the map"
+            >
+              <span class="hive-tool-custom-icon" aria-hidden="true">◆</span>
+              Custom
+            </button>
+            <label class="hive-custom-label">
+              <input
+                type="text"
+                id="hiveCustomName"
+                class="hive-custom-input"
+                maxlength="40"
+                placeholder="Name"
+                autocomplete="off"
+                aria-label="Custom block name"
+              />
+            </label>
+            <label class="hive-custom-label">
+              W
+              <input
+                type="number"
+                id="hiveCustomW"
+                class="hive-custom-num"
+                min="1"
+                max="50"
+                value="3"
+                aria-label="Custom block width in cells"
+              />
+            </label>
+            <label class="hive-custom-label">
+              H
+              <input
+                type="number"
+                id="hiveCustomH"
+                class="hive-custom-num"
+                min="1"
+                max="50"
+                value="3"
+                aria-label="Custom block height in cells"
+              />
+            </label>
+          </div>
+        </div>
+        <div class="hive-toolbar">
+          <button type="button" id="hiveClearBtn" class="action-button">Clear all tiles</button>
+          <span id="hiveCoord" class="hive-coord" aria-live="polite"></span>
+        </div>
+        <p class="hive-hint">
+          The map is drawn on a canvas; zoom only changes on-screen size (cells stay 50×50). Nothing is sent to a server—marks stay in this tab until you refresh or clear.
+        </p>
+        <div class="hive-tabs" role="tablist" aria-label="Hive layouts">
+          <span class="hive-tabs__label" id="hiveTabsLegend">Hives</span>
+          <button
+            type="button"
+            class="hive-tab hive-tab--active"
+            role="tab"
+            aria-selected="true"
+            aria-controls="hiveCanvas"
+            id="hiveTabBtn0"
+            data-hive-tab="0"
+          >
+            Hive 1
+          </button>
+          <button type="button" class="hive-tab" role="tab" aria-selected="false" id="hiveTabBtn1" data-hive-tab="1">
+            Hive 2
+          </button>
+          <button type="button" class="hive-tab" role="tab" aria-selected="false" id="hiveTabBtn2" data-hive-tab="2">
+            Hive 3
+          </button>
+          <button type="button" class="hive-tab" role="tab" aria-selected="false" id="hiveTabBtn3" data-hive-tab="3">
+            Hive 4
+          </button>
+          <button type="button" class="hive-tab" role="tab" aria-selected="false" id="hiveTabBtn4" data-hive-tab="4">
+            Hive 5
+          </button>
+          <button type="button" class="hive-tab" role="tab" aria-selected="false" id="hiveTabBtn5" data-hive-tab="5">
+            Hive 6
+          </button>
+          <button type="button" class="hive-tab" role="tab" aria-selected="false" id="hiveTabBtn6" data-hive-tab="6">
+            Hive 7
+          </button>
+          <button type="button" class="hive-tab" role="tab" aria-selected="false" id="hiveTabBtn7" data-hive-tab="7">
+            Hive 8
+          </button>
+          <button type="button" class="hive-tab" role="tab" aria-selected="false" id="hiveTabBtn8" data-hive-tab="8">
+            Hive 9
+          </button>
+          <button type="button" class="hive-tab" role="tab" aria-selected="false" id="hiveTabBtn9" data-hive-tab="9">
+            Hive 10
+          </button>
+          <p class="hive-tabs__hint">
+            Click a hive to switch layouts. <strong>Right-click</strong> a hive to rename it. Each hive is saved separately in this browser.
+          </p>
+        </div>
+        <div class="hive-canvas-wrap">
+          <canvas
+            id="hiveCanvas"
+            width="800"
+            height="800"
+            role="img"
+            aria-label="Hive map with 50 by 50 tiles. Use mouse or touch to mark tiles."
+          ></canvas>
+        </div>
+      </div>
+    </div>
+
+    <script>
+      (function () {
+        /** Same grid count as typical Last War hive planners (e.g. cpt-hedge.com/maps/planner). */
+        var TILES = 50;
+        /** Device pixels per logical cell — 50×16 = 800px map, lines stay visible when zoomed. */
+        var SCALE = 16;
+        var PX = TILES * SCALE;
+        var TOTAL = TILES * TILES;
+        var MAJOR = 10;
+        var canvas = document.getElementById("hiveCanvas");
+        var coordEl = document.getElementById("hiveCoord");
+        var clearBtn = document.getElementById("hiveClearBtn");
+        var zoomEl = document.getElementById("hiveZoom");
+        var toolMarkBtn = document.getElementById("hiveToolMark");
+        var toolR5Btn = document.getElementById("hiveToolR5");
+        var toolR4Btn = document.getElementById("hiveToolR4");
+        var toolR3Btn = document.getElementById("hiveToolR3");
+        var toolR2Btn = document.getElementById("hiveToolR2");
+        var toolR1Btn = document.getElementById("hiveToolR1");
+        var toolAEBtn = document.getElementById("hiveToolAE");
+        var toolFurnaceBtn = document.getElementById("hiveToolFurnace");
+        var toolACenterBtn = document.getElementById("hiveToolACenter");
+        var toolCustomBtn = document.getElementById("hiveToolCustom");
+        var customNameInput = document.getElementById("hiveCustomName");
+        var customWInput = document.getElementById("hiveCustomW");
+        var customHInput = document.getElementById("hiveCustomH");
+        var HIVE_TAB_COUNT = 10;
+        var HIVE_LS_KEY = "allianceHiveTabs_v1";
+        var currentHiveTab = 0;
+        var hiveTabNames = [];
+        var hiveTabData = [];
+        var hiveTabButtons = [];
+        var hiTab;
+        for (hiTab = 0; hiTab < HIVE_TAB_COUNT; hiTab++) {
+          hiveTabButtons.push(document.getElementById("hiveTabBtn" + hiTab));
+        }
+        if (!canvas || !canvas.getContext) return;
+        canvas.width = PX;
+        canvas.height = PX;
+        var ctx = canvas.getContext("2d");
+        var STATE_EMPTY = 0;
+        var STATE_MARK = 1;
+        var STATE_R5 = 2;
+        var STATE_R4 = 3;
+        var STATE_AE = 4;
+        var STATE_R3 = 5;
+        var STATE_R2 = 6;
+        var STATE_R1 = 7;
+        var STATE_FURNACE = 8;
+        var STATE_ALLIANCE_CENTER = 9;
+        var STATE_CUSTOM = 10;
+        /** Half-width in cells: 3×3 → 1; 5×5 → 2; 9×9 → 4 (center ±half). */
+        var BLOCK_HALF_3 = 1;
+        var BLOCK_HALF_5 = 2;
+        var BLOCK_HALF_9 = 4;
+        var FURNACE_CMIN = BLOCK_HALF_5;
+        var FURNACE_CMAX = TILES - 1 - BLOCK_HALF_5;
+        var ACENTER_CMIN = BLOCK_HALF_9;
+        var ACENTER_CMAX = TILES - 1 - BLOCK_HALF_9;
+        var tiles = new Uint8Array(TOTAL);
+        /** Center cell (grid coords) for each R5 placement — used for the "R5" label. */
+        var r5Centers = [];
+        /** Center cell for each R4 placement — used for the "R4" label. */
+        var r4Centers = [];
+        /** Center cell for each Alliance Exercise placement — shows "AE" on the grid. */
+        var aeCenters = [];
+        var r3Centers = [];
+        var r2Centers = [];
+        var r1Centers = [];
+        var furnaceCenters = [];
+        var allianceCenterCenters = [];
+        /** { left, top, w, h, name } in grid cells — rectangle [left, left+w) × [top, top+h). */
+        var customBlocks = [];
+        var activeTool = "mark";
+        /** Pointer drag: maybeTap | maybeDrag | dragging */
+        var drag = null;
+        var longPressTimer = null;
+        var suppressClick = false;
+        var baseLayer = document.createElement("canvas");
+        baseLayer.width = PX;
+        baseLayer.height = PX;
+
+        function cssVar(name, fallback) {
+          var v = getComputedStyle(document.documentElement).getPropertyValue(name).trim();
+          return v || fallback;
+        }
+
+        function buildBaseLayer() {
+          var bctx = baseLayer.getContext("2d");
+          if (!bctx) return;
+          var bg = cssVar("--panel-2", "#162434");
+          var minor = cssVar("--line-soft", "#3d5670");
+          var major = cssVar("--line", "#5a7a96");
+          bctx.fillStyle = bg;
+          bctx.fillRect(0, 0, PX, PX);
+          bctx.lineCap = "butt";
+          bctx.lineJoin = "miter";
+          var i;
+          var p;
+          bctx.strokeStyle = minor;
+          bctx.lineWidth = 1;
+          for (i = 0; i <= TILES; i++) {
+            if (i % MAJOR === 0) continue;
+            p = i * SCALE;
+            bctx.beginPath();
+            bctx.moveTo(p + 0.5, 0);
+            bctx.lineTo(p + 0.5, PX);
+            bctx.stroke();
+            bctx.beginPath();
+            bctx.moveTo(0, p + 0.5);
+            bctx.lineTo(PX, p + 0.5);
+            bctx.stroke();
+          }
+          bctx.strokeStyle = major;
+          bctx.lineWidth = 2;
+          for (i = 0; i <= TILES; i += MAJOR) {
+            p = i * SCALE;
+            bctx.beginPath();
+            bctx.moveTo(p + 0.5, 0);
+            bctx.lineTo(p + 0.5, PX);
+            bctx.stroke();
+            bctx.beginPath();
+            bctx.moveTo(0, p + 0.5);
+            bctx.lineTo(PX, p + 0.5);
+            bctx.stroke();
+          }
+          var cx = PX / 2;
+          var cy = PX / 2;
+          bctx.fillStyle = cssVar("--line", "#5a7a96");
+          bctx.beginPath();
+          bctx.arc(cx, cy, 2.25, 0, Math.PI * 2);
+          bctx.fill();
+        }
+
+        /** Side length at 100% zoom: as large as fits in the viewport, up to 960px. */
+        function getBaseDisplaySize() {
+          var w = window.innerWidth - 40;
+          var h = window.innerHeight - 168;
+          var side = Math.floor(Math.min(w, h));
+          return Math.min(960, Math.max(300, side));
+        }
+
+        var resizeTimer = null;
+        function applyZoom() {
+          var pct = parseInt(zoomEl && zoomEl.value, 10);
+          if (!Number.isFinite(pct) || pct < 25) pct = 100;
+          var s = Math.round(getBaseDisplaySize() * (pct / 100));
+          canvas.style.width = s + "px";
+          canvas.style.height = s + "px";
+        }
+
+        function draw() {
+          var fillMark = cssVar("--accent", "#64b4ff");
+          var fillR5 = "#c9952c";
+          var fillR4 = "#c93838";
+          var fillR3 = "#8b5fc9";
+          var fillR2 = "#4a8fd9";
+          var fillR1 = "#d9a04a";
+          var fillAE = "#2a9d7a";
+          ctx.clearRect(0, 0, PX, PX);
+          ctx.drawImage(baseLayer, 0, 0);
+          var i;
+          var x;
+          var y;
+          var v;
+          for (i = 0; i < TOTAL; i++) {
+            v = tiles[i];
+            if (v === STATE_EMPTY) continue;
+            x = i % TILES;
+            y = (i / TILES) | 0;
+            if (v === STATE_MARK) {
+              ctx.fillStyle = fillMark;
+              ctx.globalAlpha = 0.5;
+            } else if (v === STATE_R5) {
+              ctx.fillStyle = fillR5;
+              ctx.globalAlpha = 0.55;
+            } else if (v === STATE_R4) {
+              ctx.fillStyle = fillR4;
+              ctx.globalAlpha = 0.55;
+            } else if (v === STATE_R3) {
+              ctx.fillStyle = fillR3;
+              ctx.globalAlpha = 0.55;
+            } else if (v === STATE_R2) {
+              ctx.fillStyle = fillR2;
+              ctx.globalAlpha = 0.55;
+            } else if (v === STATE_R1) {
+              ctx.fillStyle = fillR1;
+              ctx.globalAlpha = 0.55;
+            } else if (v === STATE_AE) {
+              ctx.fillStyle = fillAE;
+              ctx.globalAlpha = 0.55;
+            } else if (v === STATE_FURNACE) {
+              ctx.fillStyle = "#0a0a0a";
+              ctx.globalAlpha = 0.62;
+            } else if (v === STATE_ALLIANCE_CENTER) {
+              ctx.fillStyle = "#7d6b8c";
+              ctx.globalAlpha = 0.56;
+            } else if (v === STATE_CUSTOM) {
+              ctx.fillStyle = "#5a6d82";
+              ctx.globalAlpha = 0.58;
+            }
+            ctx.fillRect(x * SCALE, y * SCALE, SCALE, SCALE);
+          }
+          ctx.globalAlpha = 1;
+          var textFill = cssVar("--text", "#e8eef5");
+          var textStroke = cssVar("--panel-2", "#0d1520");
+          var fs = Math.max(10, Math.floor(SCALE * 0.68));
+          ctx.font = "bold " + fs + 'px system-ui, "Segoe UI", sans-serif';
+          ctx.textAlign = "center";
+          ctx.textBaseline = "middle";
+          ctx.lineJoin = "round";
+          var k;
+          var c;
+          for (k = 0; k < r5Centers.length; k++) {
+            c = r5Centers[k];
+            var px5 = c.cx * SCALE + SCALE / 2;
+            var py5 = c.cy * SCALE + SCALE / 2;
+            ctx.lineWidth = Math.max(2, Math.ceil(fs / 7));
+            ctx.strokeStyle = textStroke;
+            ctx.strokeText("R5", px5, py5);
+            ctx.fillStyle = textFill;
+            ctx.fillText("R5", px5, py5);
+          }
+          for (k = 0; k < r4Centers.length; k++) {
+            c = r4Centers[k];
+            var px4 = c.cx * SCALE + SCALE / 2;
+            var py4 = c.cy * SCALE + SCALE / 2;
+            ctx.lineWidth = Math.max(2, Math.ceil(fs / 7));
+            ctx.strokeStyle = textStroke;
+            ctx.strokeText("R4", px4, py4);
+            ctx.fillStyle = textFill;
+            ctx.fillText("R4", px4, py4);
+          }
+          for (k = 0; k < r3Centers.length; k++) {
+            c = r3Centers[k];
+            var px3 = c.cx * SCALE + SCALE / 2;
+            var py3 = c.cy * SCALE + SCALE / 2;
+            ctx.lineWidth = Math.max(2, Math.ceil(fs / 7));
+            ctx.strokeStyle = textStroke;
+            ctx.strokeText("R3", px3, py3);
+            ctx.fillStyle = textFill;
+            ctx.fillText("R3", px3, py3);
+          }
+          for (k = 0; k < r2Centers.length; k++) {
+            c = r2Centers[k];
+            var px2 = c.cx * SCALE + SCALE / 2;
+            var py2 = c.cy * SCALE + SCALE / 2;
+            ctx.lineWidth = Math.max(2, Math.ceil(fs / 7));
+            ctx.strokeStyle = textStroke;
+            ctx.strokeText("R2", px2, py2);
+            ctx.fillStyle = textFill;
+            ctx.fillText("R2", px2, py2);
+          }
+          for (k = 0; k < r1Centers.length; k++) {
+            c = r1Centers[k];
+            var px1 = c.cx * SCALE + SCALE / 2;
+            var py1 = c.cy * SCALE + SCALE / 2;
+            ctx.lineWidth = Math.max(2, Math.ceil(fs / 7));
+            ctx.strokeStyle = textStroke;
+            ctx.strokeText("R1", px1, py1);
+            ctx.fillStyle = textFill;
+            ctx.fillText("R1", px1, py1);
+          }
+          for (k = 0; k < aeCenters.length; k++) {
+            c = aeCenters[k];
+            var pxa = c.cx * SCALE + SCALE / 2;
+            var pya = c.cy * SCALE + SCALE / 2;
+            var fsAeSub = Math.max(5, Math.floor(fs * 0.52));
+            var yAeMain = pya - Math.max(2, Math.ceil(fsAeSub * 0.65));
+            var yAeSub = pya + Math.max(2, Math.ceil(fs * 0.58));
+            ctx.lineWidth = Math.max(2, Math.ceil(fs / 7));
+            ctx.strokeStyle = textStroke;
+            ctx.strokeText("AE", pxa, yAeMain);
+            ctx.fillStyle = textFill;
+            ctx.fillText("AE", pxa, yAeMain);
+            ctx.font = "bold " + fsAeSub + 'px system-ui, "Segoe UI", sans-serif';
+            ctx.lineWidth = Math.max(1, Math.ceil(fsAeSub / 6));
+            ctx.strokeText("3×3", pxa, yAeSub);
+            ctx.fillStyle = textFill;
+            ctx.fillText("3×3", pxa, yAeSub);
+            ctx.font = "bold " + fs + 'px system-ui, "Segoe UI", sans-serif';
+          }
+          for (k = 0; k < furnaceCenters.length; k++) {
+            c = furnaceCenters[k];
+            var pxf = c.cx * SCALE + SCALE / 2;
+            var pyf = c.cy * SCALE + SCALE / 2;
+            var fsFu = Math.max(9, Math.floor(SCALE * 0.4));
+            var fsFuSub = Math.max(6, Math.floor(fsFu * 0.58));
+            var yFuMain = pyf - Math.max(2, Math.ceil(fsFuSub * 0.65));
+            var yFuSub = pyf + Math.max(2, Math.ceil(fsFu * 0.58));
+            ctx.font = "bold " + fsFu + 'px system-ui, "Segoe UI", sans-serif';
+            ctx.lineWidth = Math.max(2, Math.ceil(fsFu / 7));
+            ctx.strokeStyle = textStroke;
+            ctx.strokeText("Furnace", pxf, yFuMain);
+            ctx.fillStyle = textFill;
+            ctx.fillText("Furnace", pxf, yFuMain);
+            ctx.font = "bold " + fsFuSub + 'px system-ui, "Segoe UI", sans-serif';
+            ctx.lineWidth = Math.max(1, Math.ceil(fsFuSub / 6));
+            ctx.strokeText("5×5", pxf, yFuSub);
+            ctx.fillStyle = textFill;
+            ctx.fillText("5×5", pxf, yFuSub);
+          }
+          ctx.font = "bold " + fs + 'px system-ui, "Segoe UI", sans-serif';
+          for (k = 0; k < allianceCenterCenters.length; k++) {
+            c = allianceCenterCenters[k];
+            var pxac = c.cx * SCALE + SCALE / 2;
+            var pyac = c.cy * SCALE + SCALE / 2;
+            var fsAlc = Math.max(6, Math.floor(SCALE * 0.28));
+            var fsAlcSub = Math.max(5, Math.floor(SCALE * 0.2));
+            var yAcMain = pyac - Math.max(2, Math.ceil(fsAlcSub * 0.7));
+            var yAcSub = pyac + Math.max(2, Math.ceil(fsAlc * 0.58));
+            ctx.font = "bold " + fsAlc + 'px system-ui, "Segoe UI", sans-serif';
+            ctx.lineWidth = Math.max(1, Math.ceil(fsAlc / 6));
+            ctx.strokeStyle = textStroke;
+            ctx.strokeText("Alliance Center", pxac, yAcMain);
+            ctx.fillStyle = textFill;
+            ctx.fillText("Alliance Center", pxac, yAcMain);
+            ctx.font = "bold " + fsAlcSub + 'px system-ui, "Segoe UI", sans-serif';
+            ctx.lineWidth = Math.max(1, Math.ceil(fsAlcSub / 6));
+            ctx.strokeText("9×9", pxac, yAcSub);
+            ctx.fillStyle = textFill;
+            ctx.fillText("9×9", pxac, yAcSub);
+          }
+          ctx.font = "bold " + fs + 'px system-ui, "Segoe UI", sans-serif';
+          var b;
+          var pxCu;
+          var pyCu;
+          var fsCu;
+          var fsCuSub;
+          var yCuM;
+          var yCuS;
+          var nm;
+          var szStr;
+          for (k = 0; k < customBlocks.length; k++) {
+            b = customBlocks[k];
+            pxCu = (b.left + b.w / 2) * SCALE;
+            pyCu = (b.top + b.h / 2) * SCALE;
+            fsCu = Math.max(
+              5,
+              Math.floor(Math.min(b.w, b.h) * SCALE * 0.09)
+            );
+            fsCu = Math.min(fsCu, Math.floor(SCALE * 0.34));
+            fsCuSub = Math.max(4, Math.floor(fsCu * 0.68));
+            yCuM = pyCu - Math.max(2, Math.ceil(fsCuSub * 0.65));
+            yCuS = pyCu + Math.max(2, Math.ceil(fsCu * 0.55));
+            nm = b.name.length > 22 ? b.name.slice(0, 21) + "…" : b.name;
+            szStr = b.w + "×" + b.h;
+            ctx.font = "bold " + fsCu + 'px system-ui, "Segoe UI", sans-serif';
+            ctx.lineWidth = Math.max(1, Math.ceil(fsCu / 6));
+            ctx.strokeStyle = textStroke;
+            ctx.strokeText(nm, pxCu, yCuM);
+            ctx.fillStyle = textFill;
+            ctx.fillText(nm, pxCu, yCuM);
+            ctx.font = "bold " + fsCuSub + 'px system-ui, "Segoe UI", sans-serif';
+            ctx.lineWidth = Math.max(1, Math.ceil(fsCuSub / 6));
+            ctx.strokeText(szStr, pxCu, yCuS);
+            ctx.fillStyle = textFill;
+            ctx.fillText(szStr, pxCu, yCuS);
+          }
+          ctx.font = "bold " + fs + 'px system-ui, "Segoe UI", sans-serif';
+          drawDragPreviewOverlay();
+        }
+
+        function drawDragPreviewOverlay() {
+          if (!drag || drag.phase !== "dragging" || !drag.hoverCell) return;
+          var fillMark = cssVar("--accent", "#64b4ff");
+          var fillR5 = "#c9952c";
+          var fillR4 = "#c93838";
+          var fillR3 = "#8b5fc9";
+          var fillR2 = "#4a8fd9";
+          var fillR1 = "#d9a04a";
+          var fillAE = "#2a9d7a";
+          var fillFurnace = "#0a0a0a";
+          var fillACenter = "#7d6b8c";
+          var hx = drag.hoverCell.x;
+          var hy = drag.hoverCell.y;
+          ctx.save();
+          ctx.globalAlpha = 0.42;
+          if (drag.kind === "mark") {
+            ctx.fillStyle = fillMark;
+            ctx.fillRect(hx * SCALE, hy * SCALE, SCALE, SCALE);
+          } else if (drag.kind === "acenter") {
+            var nca = Math.max(ACENTER_CMIN, Math.min(ACENTER_CMAX, hx - drag.grabDx));
+            var ncyac = Math.max(ACENTER_CMIN, Math.min(ACENTER_CMAX, hy - drag.grabDy));
+            ctx.fillStyle = fillACenter;
+            var dxac;
+            var dyac;
+            for (dyac = -BLOCK_HALF_9; dyac <= BLOCK_HALF_9; dyac++) {
+              for (dxac = -BLOCK_HALF_9; dxac <= BLOCK_HALF_9; dxac++) {
+                ctx.fillRect((nca + dxac) * SCALE, (ncyac + dyac) * SCALE, SCALE, SCALE);
+              }
+            }
+            var pxac = nca * SCALE + SCALE / 2;
+            var pyac = ncyac * SCALE + SCALE / 2;
+            var textStrokeAc = cssVar("--panel-2", "#0d1520");
+            var textFillAc = cssVar("--text", "#e8eef5");
+            ctx.globalAlpha = 0.75;
+            var fsac = Math.max(6, Math.floor(SCALE * 0.28));
+            var fsacSub = Math.max(5, Math.floor(SCALE * 0.2));
+            var yAcM = pyac - Math.max(2, Math.ceil(fsacSub * 0.7));
+            var yAcS = pyac + Math.max(2, Math.ceil(fsac * 0.58));
+            ctx.textAlign = "center";
+            ctx.textBaseline = "middle";
+            ctx.font = "bold " + fsac + 'px system-ui, "Segoe UI", sans-serif';
+            ctx.lineWidth = Math.max(1, Math.ceil(fsac / 6));
+            ctx.strokeStyle = textStrokeAc;
+            ctx.strokeText("Alliance Center", pxac, yAcM);
+            ctx.fillStyle = textFillAc;
+            ctx.fillText("Alliance Center", pxac, yAcM);
+            ctx.font = "bold " + fsacSub + 'px system-ui, "Segoe UI", sans-serif';
+            ctx.lineWidth = Math.max(1, Math.ceil(fsacSub / 6));
+            ctx.strokeStyle = textStrokeAc;
+            ctx.strokeText("9×9", pxac, yAcS);
+            ctx.fillStyle = textFillAc;
+            ctx.fillText("9×9", pxac, yAcS);
+          } else if (drag.kind === "furnace") {
+            var ncf = Math.max(FURNACE_CMIN, Math.min(FURNACE_CMAX, hx - drag.grabDx));
+            var ncyf = Math.max(FURNACE_CMIN, Math.min(FURNACE_CMAX, hy - drag.grabDy));
+            ctx.fillStyle = fillFurnace;
+            var dxf;
+            var dyf;
+            for (dyf = -BLOCK_HALF_5; dyf <= BLOCK_HALF_5; dyf++) {
+              for (dxf = -BLOCK_HALF_5; dxf <= BLOCK_HALF_5; dxf++) {
+                ctx.fillRect((ncf + dxf) * SCALE, (ncyf + dyf) * SCALE, SCALE, SCALE);
+              }
+            }
+            var pxf = ncf * SCALE + SCALE / 2;
+            var pyf = ncyf * SCALE + SCALE / 2;
+            var textStrokeF = cssVar("--panel-2", "#0d1520");
+            var textFillF = cssVar("--text", "#e8eef5");
+            ctx.globalAlpha = 0.75;
+            var fsf = Math.max(9, Math.floor(SCALE * 0.4));
+            var fsfSub = Math.max(6, Math.floor(fsf * 0.58));
+            var yFuM = pyf - Math.max(2, Math.ceil(fsfSub * 0.65));
+            var yFuS = pyf + Math.max(2, Math.ceil(fsf * 0.58));
+            ctx.textAlign = "center";
+            ctx.textBaseline = "middle";
+            ctx.font = "bold " + fsf + 'px system-ui, "Segoe UI", sans-serif';
+            ctx.lineWidth = Math.max(2, Math.ceil(fsf / 7));
+            ctx.strokeStyle = textStrokeF;
+            ctx.strokeText("Furnace", pxf, yFuM);
+            ctx.fillStyle = textFillF;
+            ctx.fillText("Furnace", pxf, yFuM);
+            ctx.font = "bold " + fsfSub + 'px system-ui, "Segoe UI", sans-serif';
+            ctx.lineWidth = Math.max(1, Math.ceil(fsfSub / 6));
+            ctx.strokeText("5×5", pxf, yFuS);
+            ctx.fillStyle = textFillF;
+            ctx.fillText("5×5", pxf, yFuS);
+          } else if (drag.kind === "custom" && drag.origCustom) {
+            var ocu = drag.origCustom;
+            var nLc = hx - drag.grabDx;
+            var nTc = hy - drag.grabDy;
+            if (nLc < 0) nLc = 0;
+            if (nTc < 0) nTc = 0;
+            if (nLc + ocu.w > TILES) nLc = TILES - ocu.w;
+            if (nTc + ocu.h > TILES) nTc = TILES - ocu.h;
+            ctx.fillStyle = "#5a6d82";
+            ctx.globalAlpha = 0.42;
+            var dxcu;
+            var dycu;
+            for (dycu = 0; dycu < ocu.h; dycu++) {
+              for (dxcu = 0; dxcu < ocu.w; dxcu++) {
+                ctx.fillRect((nLc + dxcu) * SCALE, (nTc + dycu) * SCALE, SCALE, SCALE);
+              }
+            }
+            var pxCu = (nLc + ocu.w / 2) * SCALE;
+            var pyCu = (nTc + ocu.h / 2) * SCALE;
+            var fsCu = Math.max(
+              5,
+              Math.floor(Math.min(ocu.w, ocu.h) * SCALE * 0.09)
+            );
+            fsCu = Math.min(fsCu, Math.floor(SCALE * 0.34));
+            var fsCuSub = Math.max(4, Math.floor(fsCu * 0.68));
+            var yCuM = pyCu - Math.max(2, Math.ceil(fsCuSub * 0.65));
+            var yCuS = pyCu + Math.max(2, Math.ceil(fsCu * 0.55));
+            var nmv =
+              ocu.name.length > 22 ? ocu.name.slice(0, 21) + "…" : ocu.name;
+            var szStrv = ocu.w + "×" + ocu.h;
+            var textStrokeCu = cssVar("--panel-2", "#0d1520");
+            var textFillCu = cssVar("--text", "#e8eef5");
+            ctx.globalAlpha = 0.75;
+            ctx.textAlign = "center";
+            ctx.textBaseline = "middle";
+            ctx.font = "bold " + fsCu + 'px system-ui, "Segoe UI", sans-serif';
+            ctx.lineWidth = Math.max(1, Math.ceil(fsCu / 6));
+            ctx.strokeStyle = textStrokeCu;
+            ctx.strokeText(nmv, pxCu, yCuM);
+            ctx.fillStyle = textFillCu;
+            ctx.fillText(nmv, pxCu, yCuM);
+            ctx.font = "bold " + fsCuSub + 'px system-ui, "Segoe UI", sans-serif';
+            ctx.lineWidth = Math.max(1, Math.ceil(fsCuSub / 6));
+            ctx.strokeText(szStrv, pxCu, yCuS);
+            ctx.fillStyle = textFillCu;
+            ctx.fillText(szStrv, pxCu, yCuS);
+          } else {
+            var ncx = Math.max(1, Math.min(TILES - 2, hx - drag.grabDx));
+            var ncy = Math.max(1, Math.min(TILES - 2, hy - drag.grabDy));
+            var fillBlk = fillR5;
+            if (drag.kind === "r4") {
+              fillBlk = fillR4;
+            } else if (drag.kind === "r3") {
+              fillBlk = fillR3;
+            } else if (drag.kind === "r2") {
+              fillBlk = fillR2;
+            } else if (drag.kind === "r1") {
+              fillBlk = fillR1;
+            } else if (drag.kind === "ae") {
+              fillBlk = fillAE;
+            }
+            ctx.fillStyle = fillBlk;
+            var dx;
+            var dy;
+            for (dy = -1; dy <= 1; dy++) {
+              for (dx = -1; dx <= 1; dx++) {
+                ctx.fillRect((ncx + dx) * SCALE, (ncy + dy) * SCALE, SCALE, SCALE);
+              }
+            }
+            var px = ncx * SCALE + SCALE / 2;
+            var py = ncy * SCALE + SCALE / 2;
+            var textStroke = cssVar("--panel-2", "#0d1520");
+            var textFill = cssVar("--text", "#e8eef5");
+            ctx.globalAlpha = 0.75;
+            var fs = Math.max(10, Math.floor(SCALE * 0.68));
+            ctx.font = "bold " + fs + 'px system-ui, "Segoe UI", sans-serif';
+            ctx.textAlign = "center";
+            ctx.textBaseline = "middle";
+            ctx.lineWidth = Math.max(2, Math.ceil(fs / 7));
+            ctx.strokeStyle = textStroke;
+            var lbl = "R5";
+            if (drag.kind === "r4") {
+              lbl = "R4";
+            } else if (drag.kind === "r3") {
+              lbl = "R3";
+            } else if (drag.kind === "r2") {
+              lbl = "R2";
+            } else if (drag.kind === "r1") {
+              lbl = "R1";
+            } else if (drag.kind === "ae") {
+              lbl = "AE";
+            }
+            if (drag.kind === "ae") {
+              var fsAeSub = Math.max(5, Math.floor(fs * 0.52));
+              var yAeM = py - Math.max(2, Math.ceil(fsAeSub * 0.65));
+              var yAeS = py + Math.max(2, Math.ceil(fs * 0.58));
+              ctx.strokeText(lbl, px, yAeM);
+              ctx.fillStyle = textFill;
+              ctx.fillText(lbl, px, yAeM);
+              ctx.font = "bold " + fsAeSub + 'px system-ui, "Segoe UI", sans-serif';
+              ctx.lineWidth = Math.max(1, Math.ceil(fsAeSub / 6));
+              ctx.strokeStyle = textStroke;
+              ctx.strokeText("3×3", px, yAeS);
+              ctx.fillStyle = textFill;
+              ctx.fillText("3×3", px, yAeS);
+            } else {
+              ctx.strokeText(lbl, px, py);
+              ctx.fillStyle = textFill;
+              ctx.fillText(lbl, px, py);
+            }
+          }
+          ctx.restore();
+        }
+
+        function eventToCell(ev) {
+          var r = canvas.getBoundingClientRect();
+          if (r.width <= 0 || r.height <= 0) return null;
+          var scaleX = PX / r.width;
+          var scaleY = PX / r.height;
+          var devX = (ev.clientX - r.left) * scaleX;
+          var devY = (ev.clientY - r.top) * scaleY;
+          var x = Math.floor(devX / SCALE);
+          var y = Math.floor(devY / SCALE);
+          if (x < 0 || y < 0 || x >= TILES || y >= TILES) return null;
+          return { x: x, y: y };
+        }
+
+        function setCoordText(cell) {
+          if (!coordEl) return;
+          if (!cell) {
+            coordEl.textContent = "";
+            return;
+          }
+          coordEl.textContent =
+            "Column " + (cell.x + 1) + ", row " + (cell.y + 1) + " (of " + TILES + ")";
+        }
+
+        function blockCentersOverlap(cxa, cya, halfA, cxb, cyb, halfB) {
+          return (
+            Math.abs(cxa - cxb) <= halfA + halfB && Math.abs(cya - cyb) <= halfA + halfB
+          );
+        }
+
+        function rectsOverlap(la, ta, wa, ha, lb, tb, wb, hb) {
+          return la < lb + wb && lb < la + wa && ta < tb + hb && tb < ta + ha;
+        }
+
+        function clearR5AtIndex(k) {
+          var c = r5Centers[k];
+          var dx;
+          var dy;
+          for (dy = -1; dy <= 1; dy++) {
+            for (dx = -1; dx <= 1; dx++) {
+              tiles[(c.cy + dy) * TILES + (c.cx + dx)] = STATE_EMPTY;
+            }
+          }
+          r5Centers.splice(k, 1);
+        }
+
+        function clearR4AtIndex(k) {
+          var c = r4Centers[k];
+          var dx;
+          var dy;
+          for (dy = -1; dy <= 1; dy++) {
+            for (dx = -1; dx <= 1; dx++) {
+              tiles[(c.cy + dy) * TILES + (c.cx + dx)] = STATE_EMPTY;
+            }
+          }
+          r4Centers.splice(k, 1);
+        }
+
+        function clearAeAtIndex(k) {
+          var c = aeCenters[k];
+          var dx;
+          var dy;
+          for (dy = -1; dy <= 1; dy++) {
+            for (dx = -1; dx <= 1; dx++) {
+              tiles[(c.cy + dy) * TILES + (c.cx + dx)] = STATE_EMPTY;
+            }
+          }
+          aeCenters.splice(k, 1);
+        }
+
+        function clearR3AtIndex(k) {
+          var c = r3Centers[k];
+          var dx;
+          var dy;
+          for (dy = -1; dy <= 1; dy++) {
+            for (dx = -1; dx <= 1; dx++) {
+              tiles[(c.cy + dy) * TILES + (c.cx + dx)] = STATE_EMPTY;
+            }
+          }
+          r3Centers.splice(k, 1);
+        }
+
+        function clearR2AtIndex(k) {
+          var c = r2Centers[k];
+          var dx;
+          var dy;
+          for (dy = -1; dy <= 1; dy++) {
+            for (dx = -1; dx <= 1; dx++) {
+              tiles[(c.cy + dy) * TILES + (c.cx + dx)] = STATE_EMPTY;
+            }
+          }
+          r2Centers.splice(k, 1);
+        }
+
+        function clearR1AtIndex(k) {
+          var c = r1Centers[k];
+          var dx;
+          var dy;
+          for (dy = -1; dy <= 1; dy++) {
+            for (dx = -1; dx <= 1; dx++) {
+              tiles[(c.cy + dy) * TILES + (c.cx + dx)] = STATE_EMPTY;
+            }
+          }
+          r1Centers.splice(k, 1);
+        }
+
+        function clearFurnaceAtIndex(k) {
+          var c = furnaceCenters[k];
+          var dx;
+          var dy;
+          for (dy = -BLOCK_HALF_5; dy <= BLOCK_HALF_5; dy++) {
+            for (dx = -BLOCK_HALF_5; dx <= BLOCK_HALF_5; dx++) {
+              tiles[(c.cy + dy) * TILES + (c.cx + dx)] = STATE_EMPTY;
+            }
+          }
+          furnaceCenters.splice(k, 1);
+        }
+
+        function clearAllianceCenterAtIndex(k) {
+          var c = allianceCenterCenters[k];
+          var dx;
+          var dy;
+          for (dy = -BLOCK_HALF_9; dy <= BLOCK_HALF_9; dy++) {
+            for (dx = -BLOCK_HALF_9; dx <= BLOCK_HALF_9; dx++) {
+              tiles[(c.cy + dy) * TILES + (c.cx + dx)] = STATE_EMPTY;
+            }
+          }
+          allianceCenterCenters.splice(k, 1);
+        }
+
+        function removeOverlapsForNew3x3(cx, cy) {
+          var k;
+          var c;
+          for (k = r5Centers.length - 1; k >= 0; k--) {
+            c = r5Centers[k];
+            if (blockCentersOverlap(cx, cy, BLOCK_HALF_3, c.cx, c.cy, BLOCK_HALF_3)) {
+              clearR5AtIndex(k);
+            }
+          }
+          for (k = r4Centers.length - 1; k >= 0; k--) {
+            c = r4Centers[k];
+            if (blockCentersOverlap(cx, cy, BLOCK_HALF_3, c.cx, c.cy, BLOCK_HALF_3)) {
+              clearR4AtIndex(k);
+            }
+          }
+          for (k = aeCenters.length - 1; k >= 0; k--) {
+            c = aeCenters[k];
+            if (blockCentersOverlap(cx, cy, BLOCK_HALF_3, c.cx, c.cy, BLOCK_HALF_3)) {
+              clearAeAtIndex(k);
+            }
+          }
+          for (k = r3Centers.length - 1; k >= 0; k--) {
+            c = r3Centers[k];
+            if (blockCentersOverlap(cx, cy, BLOCK_HALF_3, c.cx, c.cy, BLOCK_HALF_3)) {
+              clearR3AtIndex(k);
+            }
+          }
+          for (k = r2Centers.length - 1; k >= 0; k--) {
+            c = r2Centers[k];
+            if (blockCentersOverlap(cx, cy, BLOCK_HALF_3, c.cx, c.cy, BLOCK_HALF_3)) {
+              clearR2AtIndex(k);
+            }
+          }
+          for (k = r1Centers.length - 1; k >= 0; k--) {
+            c = r1Centers[k];
+            if (blockCentersOverlap(cx, cy, BLOCK_HALF_3, c.cx, c.cy, BLOCK_HALF_3)) {
+              clearR1AtIndex(k);
+            }
+          }
+          for (k = furnaceCenters.length - 1; k >= 0; k--) {
+            c = furnaceCenters[k];
+            if (blockCentersOverlap(cx, cy, BLOCK_HALF_3, c.cx, c.cy, BLOCK_HALF_5)) {
+              clearFurnaceAtIndex(k);
+            }
+          }
+          for (k = allianceCenterCenters.length - 1; k >= 0; k--) {
+            c = allianceCenterCenters[k];
+            if (blockCentersOverlap(cx, cy, BLOCK_HALF_3, c.cx, c.cy, BLOCK_HALF_9)) {
+              clearAllianceCenterAtIndex(k);
+            }
+          }
+          clearCustomOverlappingRect(cx - 1, cy - 1, 3, 3, null);
+        }
+
+        function removeOverlapsForNew5x5(cx, cy) {
+          var k;
+          var c;
+          for (k = r5Centers.length - 1; k >= 0; k--) {
+            c = r5Centers[k];
+            if (blockCentersOverlap(cx, cy, BLOCK_HALF_5, c.cx, c.cy, BLOCK_HALF_3)) {
+              clearR5AtIndex(k);
+            }
+          }
+          for (k = r4Centers.length - 1; k >= 0; k--) {
+            c = r4Centers[k];
+            if (blockCentersOverlap(cx, cy, BLOCK_HALF_5, c.cx, c.cy, BLOCK_HALF_3)) {
+              clearR4AtIndex(k);
+            }
+          }
+          for (k = aeCenters.length - 1; k >= 0; k--) {
+            c = aeCenters[k];
+            if (blockCentersOverlap(cx, cy, BLOCK_HALF_5, c.cx, c.cy, BLOCK_HALF_3)) {
+              clearAeAtIndex(k);
+            }
+          }
+          for (k = r3Centers.length - 1; k >= 0; k--) {
+            c = r3Centers[k];
+            if (blockCentersOverlap(cx, cy, BLOCK_HALF_5, c.cx, c.cy, BLOCK_HALF_3)) {
+              clearR3AtIndex(k);
+            }
+          }
+          for (k = r2Centers.length - 1; k >= 0; k--) {
+            c = r2Centers[k];
+            if (blockCentersOverlap(cx, cy, BLOCK_HALF_5, c.cx, c.cy, BLOCK_HALF_3)) {
+              clearR2AtIndex(k);
+            }
+          }
+          for (k = r1Centers.length - 1; k >= 0; k--) {
+            c = r1Centers[k];
+            if (blockCentersOverlap(cx, cy, BLOCK_HALF_5, c.cx, c.cy, BLOCK_HALF_3)) {
+              clearR1AtIndex(k);
+            }
+          }
+          for (k = furnaceCenters.length - 1; k >= 0; k--) {
+            c = furnaceCenters[k];
+            if (blockCentersOverlap(cx, cy, BLOCK_HALF_5, c.cx, c.cy, BLOCK_HALF_5)) {
+              clearFurnaceAtIndex(k);
+            }
+          }
+          for (k = allianceCenterCenters.length - 1; k >= 0; k--) {
+            c = allianceCenterCenters[k];
+            if (blockCentersOverlap(cx, cy, BLOCK_HALF_5, c.cx, c.cy, BLOCK_HALF_9)) {
+              clearAllianceCenterAtIndex(k);
+            }
+          }
+          clearCustomOverlappingRect(cx - BLOCK_HALF_5, cy - BLOCK_HALF_5, 5, 5, null);
+        }
+
+        function removeOverlapsForNew9x9(cx, cy) {
+          var k;
+          var c;
+          for (k = r5Centers.length - 1; k >= 0; k--) {
+            c = r5Centers[k];
+            if (blockCentersOverlap(cx, cy, BLOCK_HALF_9, c.cx, c.cy, BLOCK_HALF_3)) {
+              clearR5AtIndex(k);
+            }
+          }
+          for (k = r4Centers.length - 1; k >= 0; k--) {
+            c = r4Centers[k];
+            if (blockCentersOverlap(cx, cy, BLOCK_HALF_9, c.cx, c.cy, BLOCK_HALF_3)) {
+              clearR4AtIndex(k);
+            }
+          }
+          for (k = aeCenters.length - 1; k >= 0; k--) {
+            c = aeCenters[k];
+            if (blockCentersOverlap(cx, cy, BLOCK_HALF_9, c.cx, c.cy, BLOCK_HALF_3)) {
+              clearAeAtIndex(k);
+            }
+          }
+          for (k = r3Centers.length - 1; k >= 0; k--) {
+            c = r3Centers[k];
+            if (blockCentersOverlap(cx, cy, BLOCK_HALF_9, c.cx, c.cy, BLOCK_HALF_3)) {
+              clearR3AtIndex(k);
+            }
+          }
+          for (k = r2Centers.length - 1; k >= 0; k--) {
+            c = r2Centers[k];
+            if (blockCentersOverlap(cx, cy, BLOCK_HALF_9, c.cx, c.cy, BLOCK_HALF_3)) {
+              clearR2AtIndex(k);
+            }
+          }
+          for (k = r1Centers.length - 1; k >= 0; k--) {
+            c = r1Centers[k];
+            if (blockCentersOverlap(cx, cy, BLOCK_HALF_9, c.cx, c.cy, BLOCK_HALF_3)) {
+              clearR1AtIndex(k);
+            }
+          }
+          for (k = furnaceCenters.length - 1; k >= 0; k--) {
+            c = furnaceCenters[k];
+            if (blockCentersOverlap(cx, cy, BLOCK_HALF_9, c.cx, c.cy, BLOCK_HALF_5)) {
+              clearFurnaceAtIndex(k);
+            }
+          }
+          for (k = allianceCenterCenters.length - 1; k >= 0; k--) {
+            c = allianceCenterCenters[k];
+            if (blockCentersOverlap(cx, cy, BLOCK_HALF_9, c.cx, c.cy, BLOCK_HALF_9)) {
+              clearAllianceCenterAtIndex(k);
+            }
+          }
+          clearCustomOverlappingRect(cx - BLOCK_HALF_9, cy - BLOCK_HALF_9, 9, 9, null);
+        }
+
+        function clearR5Containing(cell) {
+          var k;
+          for (k = r5Centers.length - 1; k >= 0; k--) {
+            var c = r5Centers[k];
+            if (
+              cell.x >= c.cx - 1 &&
+              cell.x <= c.cx + 1 &&
+              cell.y >= c.cy - 1 &&
+              cell.y <= c.cy + 1
+            ) {
+              clearR5AtIndex(k);
+              draw();
+              return;
+            }
+          }
+        }
+
+        function clearR4Containing(cell) {
+          var k;
+          for (k = r4Centers.length - 1; k >= 0; k--) {
+            var c = r4Centers[k];
+            if (
+              cell.x >= c.cx - 1 &&
+              cell.x <= c.cx + 1 &&
+              cell.y >= c.cy - 1 &&
+              cell.y <= c.cy + 1
+            ) {
+              clearR4AtIndex(k);
+              draw();
+              return;
+            }
+          }
+        }
+
+        function clearAeContaining(cell) {
+          var k;
+          for (k = aeCenters.length - 1; k >= 0; k--) {
+            var c = aeCenters[k];
+            if (
+              cell.x >= c.cx - 1 &&
+              cell.x <= c.cx + 1 &&
+              cell.y >= c.cy - 1 &&
+              cell.y <= c.cy + 1
+            ) {
+              clearAeAtIndex(k);
+              draw();
+              return;
+            }
+          }
+        }
+
+        function clearR3Containing(cell) {
+          var k;
+          for (k = r3Centers.length - 1; k >= 0; k--) {
+            var c = r3Centers[k];
+            if (
+              cell.x >= c.cx - 1 &&
+              cell.x <= c.cx + 1 &&
+              cell.y >= c.cy - 1 &&
+              cell.y <= c.cy + 1
+            ) {
+              clearR3AtIndex(k);
+              draw();
+              return;
+            }
+          }
+        }
+
+        function clearR2Containing(cell) {
+          var k;
+          for (k = r2Centers.length - 1; k >= 0; k--) {
+            var c = r2Centers[k];
+            if (
+              cell.x >= c.cx - 1 &&
+              cell.x <= c.cx + 1 &&
+              cell.y >= c.cy - 1 &&
+              cell.y <= c.cy + 1
+            ) {
+              clearR2AtIndex(k);
+              draw();
+              return;
+            }
+          }
+        }
+
+        function clearR1Containing(cell) {
+          var k;
+          for (k = r1Centers.length - 1; k >= 0; k--) {
+            var c = r1Centers[k];
+            if (
+              cell.x >= c.cx - 1 &&
+              cell.x <= c.cx + 1 &&
+              cell.y >= c.cy - 1 &&
+              cell.y <= c.cy + 1
+            ) {
+              clearR1AtIndex(k);
+              draw();
+              return;
+            }
+          }
+        }
+
+        function findR5Placement(cell) {
+          var k;
+          for (k = 0; k < r5Centers.length; k++) {
+            var c = r5Centers[k];
+            if (
+              cell.x >= c.cx - 1 &&
+              cell.x <= c.cx + 1 &&
+              cell.y >= c.cy - 1 &&
+              cell.y <= c.cy + 1
+            ) {
+              return { cx: c.cx, cy: c.cy, index: k };
+            }
+          }
+          return null;
+        }
+
+        function findR4Placement(cell) {
+          var k;
+          for (k = 0; k < r4Centers.length; k++) {
+            var c = r4Centers[k];
+            if (
+              cell.x >= c.cx - 1 &&
+              cell.x <= c.cx + 1 &&
+              cell.y >= c.cy - 1 &&
+              cell.y <= c.cy + 1
+            ) {
+              return { cx: c.cx, cy: c.cy, index: k };
+            }
+          }
+          return null;
+        }
+
+        function findAePlacement(cell) {
+          var k;
+          for (k = 0; k < aeCenters.length; k++) {
+            var c = aeCenters[k];
+            if (
+              cell.x >= c.cx - 1 &&
+              cell.x <= c.cx + 1 &&
+              cell.y >= c.cy - 1 &&
+              cell.y <= c.cy + 1
+            ) {
+              return { cx: c.cx, cy: c.cy, index: k };
+            }
+          }
+          return null;
+        }
+
+        function findR3Placement(cell) {
+          var k;
+          for (k = 0; k < r3Centers.length; k++) {
+            var c = r3Centers[k];
+            if (
+              cell.x >= c.cx - 1 &&
+              cell.x <= c.cx + 1 &&
+              cell.y >= c.cy - 1 &&
+              cell.y <= c.cy + 1
+            ) {
+              return { cx: c.cx, cy: c.cy, index: k };
+            }
+          }
+          return null;
+        }
+
+        function findR2Placement(cell) {
+          var k;
+          for (k = 0; k < r2Centers.length; k++) {
+            var c = r2Centers[k];
+            if (
+              cell.x >= c.cx - 1 &&
+              cell.x <= c.cx + 1 &&
+              cell.y >= c.cy - 1 &&
+              cell.y <= c.cy + 1
+            ) {
+              return { cx: c.cx, cy: c.cy, index: k };
+            }
+          }
+          return null;
+        }
+
+        function findR1Placement(cell) {
+          var k;
+          for (k = 0; k < r1Centers.length; k++) {
+            var c = r1Centers[k];
+            if (
+              cell.x >= c.cx - 1 &&
+              cell.x <= c.cx + 1 &&
+              cell.y >= c.cy - 1 &&
+              cell.y <= c.cy + 1
+            ) {
+              return { cx: c.cx, cy: c.cy, index: k };
+            }
+          }
+          return null;
+        }
+
+        function findFurnacePlacement(cell) {
+          var k;
+          for (k = 0; k < furnaceCenters.length; k++) {
+            var c = furnaceCenters[k];
+            if (
+              cell.x >= c.cx - BLOCK_HALF_5 &&
+              cell.x <= c.cx + BLOCK_HALF_5 &&
+              cell.y >= c.cy - BLOCK_HALF_5 &&
+              cell.y <= c.cy + BLOCK_HALF_5
+            ) {
+              return { cx: c.cx, cy: c.cy, index: k };
+            }
+          }
+          return null;
+        }
+
+        function clearFurnaceContaining(cell) {
+          var k;
+          for (k = furnaceCenters.length - 1; k >= 0; k--) {
+            var c = furnaceCenters[k];
+            if (
+              cell.x >= c.cx - BLOCK_HALF_5 &&
+              cell.x <= c.cx + BLOCK_HALF_5 &&
+              cell.y >= c.cy - BLOCK_HALF_5 &&
+              cell.y <= c.cy + BLOCK_HALF_5
+            ) {
+              clearFurnaceAtIndex(k);
+              draw();
+              return;
+            }
+          }
+        }
+
+        function findAllianceCenterPlacement(cell) {
+          var k;
+          for (k = 0; k < allianceCenterCenters.length; k++) {
+            var c = allianceCenterCenters[k];
+            if (
+              cell.x >= c.cx - BLOCK_HALF_9 &&
+              cell.x <= c.cx + BLOCK_HALF_9 &&
+              cell.y >= c.cy - BLOCK_HALF_9 &&
+              cell.y <= c.cy + BLOCK_HALF_9
+            ) {
+              return { cx: c.cx, cy: c.cy, index: k };
+            }
+          }
+          return null;
+        }
+
+        function clearAllianceCenterContaining(cell) {
+          var k;
+          for (k = allianceCenterCenters.length - 1; k >= 0; k--) {
+            var c = allianceCenterCenters[k];
+            if (
+              cell.x >= c.cx - BLOCK_HALF_9 &&
+              cell.x <= c.cx + BLOCK_HALF_9 &&
+              cell.y >= c.cy - BLOCK_HALF_9 &&
+              cell.y <= c.cy + BLOCK_HALF_9
+            ) {
+              clearAllianceCenterAtIndex(k);
+              draw();
+              return;
+            }
+          }
+        }
+
+        function clearCustomAtIndex(k) {
+          var b = customBlocks[k];
+          var dx;
+          var dy;
+          for (dy = 0; dy < b.h; dy++) {
+            for (dx = 0; dx < b.w; dx++) {
+              tiles[(b.top + dy) * TILES + (b.left + dx)] = STATE_EMPTY;
+            }
+          }
+          customBlocks.splice(k, 1);
+        }
+
+        function clearCustomContaining(cell) {
+          var k;
+          for (k = customBlocks.length - 1; k >= 0; k--) {
+            var b = customBlocks[k];
+            if (
+              cell.x >= b.left &&
+              cell.x < b.left + b.w &&
+              cell.y >= b.top &&
+              cell.y < b.top + b.h
+            ) {
+              clearCustomAtIndex(k);
+              draw();
+              return;
+            }
+          }
+        }
+
+        function findCustomPlacement(cell) {
+          var k;
+          for (k = 0; k < customBlocks.length; k++) {
+            var b = customBlocks[k];
+            if (
+              cell.x >= b.left &&
+              cell.x < b.left + b.w &&
+              cell.y >= b.top &&
+              cell.y < b.top + b.h
+            ) {
+              return {
+                index: k,
+                left: b.left,
+                top: b.top,
+                w: b.w,
+                h: b.h,
+                name: b.name,
+              };
+            }
+          }
+          return null;
+        }
+
+        function clearCustomOverlappingRect(l, t, w, h, skipIdx) {
+          var k;
+          var b;
+          for (k = customBlocks.length - 1; k >= 0; k--) {
+            if (skipIdx != null && k === skipIdx) continue;
+            b = customBlocks[k];
+            if (rectsOverlap(l, t, w, h, b.left, b.top, b.w, b.h)) {
+              clearCustomAtIndex(k);
+            }
+          }
+        }
+
+        function clearStandardOverlappingRect(l, t, w, h) {
+          var k;
+          var c;
+          for (k = r5Centers.length - 1; k >= 0; k--) {
+            c = r5Centers[k];
+            if (rectsOverlap(l, t, w, h, c.cx - 1, c.cy - 1, 3, 3)) {
+              clearR5AtIndex(k);
+            }
+          }
+          for (k = r4Centers.length - 1; k >= 0; k--) {
+            c = r4Centers[k];
+            if (rectsOverlap(l, t, w, h, c.cx - 1, c.cy - 1, 3, 3)) {
+              clearR4AtIndex(k);
+            }
+          }
+          for (k = aeCenters.length - 1; k >= 0; k--) {
+            c = aeCenters[k];
+            if (rectsOverlap(l, t, w, h, c.cx - 1, c.cy - 1, 3, 3)) {
+              clearAeAtIndex(k);
+            }
+          }
+          for (k = r3Centers.length - 1; k >= 0; k--) {
+            c = r3Centers[k];
+            if (rectsOverlap(l, t, w, h, c.cx - 1, c.cy - 1, 3, 3)) {
+              clearR3AtIndex(k);
+            }
+          }
+          for (k = r2Centers.length - 1; k >= 0; k--) {
+            c = r2Centers[k];
+            if (rectsOverlap(l, t, w, h, c.cx - 1, c.cy - 1, 3, 3)) {
+              clearR2AtIndex(k);
+            }
+          }
+          for (k = r1Centers.length - 1; k >= 0; k--) {
+            c = r1Centers[k];
+            if (rectsOverlap(l, t, w, h, c.cx - 1, c.cy - 1, 3, 3)) {
+              clearR1AtIndex(k);
+            }
+          }
+          for (k = furnaceCenters.length - 1; k >= 0; k--) {
+            c = furnaceCenters[k];
+            if (rectsOverlap(l, t, w, h, c.cx - BLOCK_HALF_5, c.cy - BLOCK_HALF_5, 5, 5)) {
+              clearFurnaceAtIndex(k);
+            }
+          }
+          for (k = allianceCenterCenters.length - 1; k >= 0; k--) {
+            c = allianceCenterCenters[k];
+            if (rectsOverlap(l, t, w, h, c.cx - BLOCK_HALF_9, c.cy - BLOCK_HALF_9, 9, 9)) {
+              clearAllianceCenterAtIndex(k);
+            }
+          }
+        }
+
+        function stompMarksInRect(l, t, w, h) {
+          var dx;
+          var dy;
+          for (dy = 0; dy < h; dy++) {
+            for (dx = 0; dx < w; dx++) {
+              var ii = (t + dy) * TILES + (l + dx);
+              if (tiles[ii] === STATE_MARK) {
+                tiles[ii] = STATE_EMPTY;
+              }
+            }
+          }
+        }
+
+        function removeOverlapsForNewCustom(left, top, wc, hc) {
+          stompMarksInRect(left, top, wc, hc);
+          clearStandardOverlappingRect(left, top, wc, hc);
+          clearCustomOverlappingRect(left, top, wc, hc, null);
+        }
+
+        function readCustomSpec() {
+          var raw =
+            customNameInput && typeof customNameInput.value === "string"
+              ? customNameInput.value.trim()
+              : "";
+          var name = raw.length ? raw.slice(0, 40) : "Custom";
+          var w = customWInput ? parseInt(customWInput.value, 10) : 3;
+          var h = customHInput ? parseInt(customHInput.value, 10) : 3;
+          if (!Number.isFinite(w)) w = 3;
+          if (!Number.isFinite(h)) h = 3;
+          w = Math.max(1, Math.min(TILES, Math.floor(w)));
+          h = Math.max(1, Math.min(TILES, Math.floor(h)));
+          return { name: name, w: w, h: h };
+        }
+
+        function clampCustomOrigin(ix, iy, w, h) {
+          var left = ix - Math.floor(w / 2);
+          var top = iy - Math.floor(h / 2);
+          if (left < 0) left = 0;
+          if (top < 0) top = 0;
+          if (left + w > TILES) left = TILES - w;
+          if (top + h > TILES) top = TILES - h;
+          return { left: left, top: top };
+        }
+
+        function placeCustomAtRect(left, top, w, h, name) {
+          removeOverlapsForNewCustom(left, top, w, h);
+          var dx;
+          var dy;
+          for (dy = 0; dy < h; dy++) {
+            for (dx = 0; dx < w; dx++) {
+              tiles[(top + dy) * TILES + (left + dx)] = STATE_CUSTOM;
+            }
+          }
+          customBlocks.push({ left: left, top: top, w: w, h: h, name: name });
+          draw();
+        }
+
+        function placeCustom(ix, iy) {
+          var spec = readCustomSpec();
+          var o = clampCustomOrigin(ix, iy, spec.w, spec.h);
+          placeCustomAtRect(o.left, o.top, spec.w, spec.h, spec.name);
+        }
+
+        function placeR5AtCenter(cx, cy) {
+          cx = Math.max(1, Math.min(TILES - 2, cx));
+          cy = Math.max(1, Math.min(TILES - 2, cy));
+          var nu = { cx: cx, cy: cy };
+          removeOverlapsForNew3x3(cx, cy);
+          var dx;
+          var dy;
+          for (dy = -1; dy <= 1; dy++) {
+            for (dx = -1; dx <= 1; dx++) {
+              tiles[(cy + dy) * TILES + (cx + dx)] = STATE_R5;
+            }
+          }
+          r5Centers.push(nu);
+          draw();
+        }
+
+        function placeR4AtCenter(cx, cy) {
+          cx = Math.max(1, Math.min(TILES - 2, cx));
+          cy = Math.max(1, Math.min(TILES - 2, cy));
+          var nu = { cx: cx, cy: cy };
+          removeOverlapsForNew3x3(cx, cy);
+          var dx;
+          var dy;
+          for (dy = -1; dy <= 1; dy++) {
+            for (dx = -1; dx <= 1; dx++) {
+              tiles[(cy + dy) * TILES + (cx + dx)] = STATE_R4;
+            }
+          }
+          r4Centers.push(nu);
+          draw();
+        }
+
+        function placeR5(ix, iy) {
+          var cx = Math.max(1, Math.min(TILES - 2, ix));
+          var cy = Math.max(1, Math.min(TILES - 2, iy));
+          placeR5AtCenter(cx, cy);
+        }
+
+        function placeR4(ix, iy) {
+          var cx = Math.max(1, Math.min(TILES - 2, ix));
+          var cy = Math.max(1, Math.min(TILES - 2, iy));
+          placeR4AtCenter(cx, cy);
+        }
+
+        function placeAeAtCenter(cx, cy) {
+          cx = Math.max(1, Math.min(TILES - 2, cx));
+          cy = Math.max(1, Math.min(TILES - 2, cy));
+          var nu = { cx: cx, cy: cy };
+          removeOverlapsForNew3x3(cx, cy);
+          var dx;
+          var dy;
+          for (dy = -1; dy <= 1; dy++) {
+            for (dx = -1; dx <= 1; dx++) {
+              tiles[(cy + dy) * TILES + (cx + dx)] = STATE_AE;
+            }
+          }
+          aeCenters.push(nu);
+          draw();
+        }
+
+        function placeAe(ix, iy) {
+          var cx = Math.max(1, Math.min(TILES - 2, ix));
+          var cy = Math.max(1, Math.min(TILES - 2, iy));
+          placeAeAtCenter(cx, cy);
+        }
+
+        function placeR3AtCenter(cx, cy) {
+          cx = Math.max(1, Math.min(TILES - 2, cx));
+          cy = Math.max(1, Math.min(TILES - 2, cy));
+          var nu = { cx: cx, cy: cy };
+          removeOverlapsForNew3x3(cx, cy);
+          var dx;
+          var dy;
+          for (dy = -1; dy <= 1; dy++) {
+            for (dx = -1; dx <= 1; dx++) {
+              tiles[(cy + dy) * TILES + (cx + dx)] = STATE_R3;
+            }
+          }
+          r3Centers.push(nu);
+          draw();
+        }
+
+        function placeR2AtCenter(cx, cy) {
+          cx = Math.max(1, Math.min(TILES - 2, cx));
+          cy = Math.max(1, Math.min(TILES - 2, cy));
+          var nu = { cx: cx, cy: cy };
+          removeOverlapsForNew3x3(cx, cy);
+          var dx;
+          var dy;
+          for (dy = -1; dy <= 1; dy++) {
+            for (dx = -1; dx <= 1; dx++) {
+              tiles[(cy + dy) * TILES + (cx + dx)] = STATE_R2;
+            }
+          }
+          r2Centers.push(nu);
+          draw();
+        }
+
+        function placeR1AtCenter(cx, cy) {
+          cx = Math.max(1, Math.min(TILES - 2, cx));
+          cy = Math.max(1, Math.min(TILES - 2, cy));
+          var nu = { cx: cx, cy: cy };
+          removeOverlapsForNew3x3(cx, cy);
+          var dx;
+          var dy;
+          for (dy = -1; dy <= 1; dy++) {
+            for (dx = -1; dx <= 1; dx++) {
+              tiles[(cy + dy) * TILES + (cx + dx)] = STATE_R1;
+            }
+          }
+          r1Centers.push(nu);
+          draw();
+        }
+
+        function placeR3(ix, iy) {
+          var cx = Math.max(1, Math.min(TILES - 2, ix));
+          var cy = Math.max(1, Math.min(TILES - 2, iy));
+          placeR3AtCenter(cx, cy);
+        }
+
+        function placeR2(ix, iy) {
+          var cx = Math.max(1, Math.min(TILES - 2, ix));
+          var cy = Math.max(1, Math.min(TILES - 2, iy));
+          placeR2AtCenter(cx, cy);
+        }
+
+        function placeR1(ix, iy) {
+          var cx = Math.max(1, Math.min(TILES - 2, ix));
+          var cy = Math.max(1, Math.min(TILES - 2, iy));
+          placeR1AtCenter(cx, cy);
+        }
+
+        function placeFurnaceAtCenter(cx, cy) {
+          cx = Math.max(FURNACE_CMIN, Math.min(FURNACE_CMAX, cx));
+          cy = Math.max(FURNACE_CMIN, Math.min(FURNACE_CMAX, cy));
+          var nu = { cx: cx, cy: cy };
+          removeOverlapsForNew5x5(cx, cy);
+          var dx;
+          var dy;
+          for (dy = -BLOCK_HALF_5; dy <= BLOCK_HALF_5; dy++) {
+            for (dx = -BLOCK_HALF_5; dx <= BLOCK_HALF_5; dx++) {
+              tiles[(cy + dy) * TILES + (cx + dx)] = STATE_FURNACE;
+            }
+          }
+          furnaceCenters.push(nu);
+          draw();
+        }
+
+        function placeFurnace(ix, iy) {
+          var cx = Math.max(FURNACE_CMIN, Math.min(FURNACE_CMAX, ix));
+          var cy = Math.max(FURNACE_CMIN, Math.min(FURNACE_CMAX, iy));
+          placeFurnaceAtCenter(cx, cy);
+        }
+
+        function placeAllianceCenterAtCenter(cx, cy) {
+          cx = Math.max(ACENTER_CMIN, Math.min(ACENTER_CMAX, cx));
+          cy = Math.max(ACENTER_CMIN, Math.min(ACENTER_CMAX, cy));
+          var nu = { cx: cx, cy: cy };
+          removeOverlapsForNew9x9(cx, cy);
+          var dx;
+          var dy;
+          for (dy = -BLOCK_HALF_9; dy <= BLOCK_HALF_9; dy++) {
+            for (dx = -BLOCK_HALF_9; dx <= BLOCK_HALF_9; dx++) {
+              tiles[(cy + dy) * TILES + (cx + dx)] = STATE_ALLIANCE_CENTER;
+            }
+          }
+          allianceCenterCenters.push(nu);
+          draw();
+        }
+
+        function placeAllianceCenter(ix, iy) {
+          var cx = Math.max(ACENTER_CMIN, Math.min(ACENTER_CMAX, ix));
+          var cy = Math.max(ACENTER_CMIN, Math.min(ACENTER_CMAX, iy));
+          placeAllianceCenterAtCenter(cx, cy);
+        }
+
+        function clearCellOrBlock(cell) {
+          if (!cell) return;
+          var idx = cell.y * TILES + cell.x;
+          if (tiles[idx] === STATE_R5) {
+            clearR5Containing(cell);
+          } else if (tiles[idx] === STATE_R4) {
+            clearR4Containing(cell);
+          } else if (tiles[idx] === STATE_R3) {
+            clearR3Containing(cell);
+          } else if (tiles[idx] === STATE_R2) {
+            clearR2Containing(cell);
+          } else if (tiles[idx] === STATE_R1) {
+            clearR1Containing(cell);
+          } else if (tiles[idx] === STATE_AE) {
+            clearAeContaining(cell);
+          } else if (tiles[idx] === STATE_FURNACE) {
+            clearFurnaceContaining(cell);
+          } else if (tiles[idx] === STATE_ALLIANCE_CENTER) {
+            clearAllianceCenterContaining(cell);
+          } else if (tiles[idx] === STATE_CUSTOM) {
+            clearCustomContaining(cell);
+          } else {
+            tiles[idx] = STATE_EMPTY;
+            draw();
+          }
+        }
+
+        function onPrimaryEmptyTap(cell) {
+          if (!cell) return;
+          if (activeTool === "r5") {
+            placeR5(cell.x, cell.y);
+          } else if (activeTool === "r4") {
+            placeR4(cell.x, cell.y);
+          } else if (activeTool === "r3") {
+            placeR3(cell.x, cell.y);
+          } else if (activeTool === "r2") {
+            placeR2(cell.x, cell.y);
+          } else if (activeTool === "r1") {
+            placeR1(cell.x, cell.y);
+          } else if (activeTool === "ae") {
+            placeAe(cell.x, cell.y);
+          } else if (activeTool === "furnace") {
+            placeFurnace(cell.x, cell.y);
+          } else if (activeTool === "acenter") {
+            placeAllianceCenter(cell.x, cell.y);
+          } else if (activeTool === "custom") {
+            placeCustom(cell.x, cell.y);
+          } else {
+            tiles[cell.y * TILES + cell.x] = STATE_MARK;
+            draw();
+          }
+        }
+
+        function onPrimaryTapOccupied(cell) {
+          if (!cell) return;
+          if (activeTool === "r5") {
+            placeR5(cell.x, cell.y);
+            return;
+          }
+          if (activeTool === "r4") {
+            placeR4(cell.x, cell.y);
+            return;
+          }
+          if (activeTool === "r3") {
+            placeR3(cell.x, cell.y);
+            return;
+          }
+          if (activeTool === "r2") {
+            placeR2(cell.x, cell.y);
+            return;
+          }
+          if (activeTool === "r1") {
+            placeR1(cell.x, cell.y);
+            return;
+          }
+          if (activeTool === "ae") {
+            placeAe(cell.x, cell.y);
+            return;
+          }
+          if (activeTool === "furnace") {
+            placeFurnace(cell.x, cell.y);
+            return;
+          }
+          if (activeTool === "acenter") {
+            placeAllianceCenter(cell.x, cell.y);
+            return;
+          }
+          if (activeTool === "custom") {
+            placeCustom(cell.x, cell.y);
+            return;
+          }
+          var idx = cell.y * TILES + cell.x;
+          if (tiles[idx] === STATE_R5) {
+            clearR5Containing(cell);
+            return;
+          }
+          if (tiles[idx] === STATE_R4) {
+            clearR4Containing(cell);
+            return;
+          }
+          if (tiles[idx] === STATE_R3) {
+            clearR3Containing(cell);
+            return;
+          }
+          if (tiles[idx] === STATE_R2) {
+            clearR2Containing(cell);
+            return;
+          }
+          if (tiles[idx] === STATE_R1) {
+            clearR1Containing(cell);
+            return;
+          }
+          if (tiles[idx] === STATE_AE) {
+            clearAeContaining(cell);
+            return;
+          }
+          if (tiles[idx] === STATE_FURNACE) {
+            clearFurnaceContaining(cell);
+            return;
+          }
+          if (tiles[idx] === STATE_ALLIANCE_CENTER) {
+            clearAllianceCenterContaining(cell);
+            return;
+          }
+          if (tiles[idx] === STATE_CUSTOM) {
+            clearCustomContaining(cell);
+            return;
+          }
+          tiles[idx] = STATE_EMPTY;
+          draw();
+        }
+
+        function clearLongPressTimer() {
+          if (longPressTimer) {
+            clearTimeout(longPressTimer);
+            longPressTimer = null;
+          }
+        }
+
+        function beginLiftFromBoard(d) {
+          clearLongPressTimer();
+          if (d.kind === "mark") {
+            tiles[d.cell.y * TILES + d.cell.x] = STATE_EMPTY;
+          } else if (d.kind === "r5") {
+            clearR5AtIndex(d.r5.index);
+          } else if (d.kind === "r4") {
+            clearR4AtIndex(d.r4.index);
+          } else if (d.kind === "r3") {
+            clearR3AtIndex(d.r3.index);
+          } else if (d.kind === "r2") {
+            clearR2AtIndex(d.r2.index);
+          } else if (d.kind === "r1") {
+            clearR1AtIndex(d.r1.index);
+          } else if (d.kind === "ae") {
+            clearAeAtIndex(d.ae.index);
+          } else if (d.kind === "furnace") {
+            clearFurnaceAtIndex(d.furnace.index);
+          } else if (d.kind === "acenter") {
+            clearAllianceCenterAtIndex(d.ac.index);
+          } else if (d.kind === "custom") {
+            clearCustomAtIndex(d.custom.index);
+          }
+          d.phase = "dragging";
+          d.hoverCell = d.cell;
+          draw();
+        }
+
+        function cancelDragRestore(d) {
+          if (!d) return;
+          if (d.kind === "mark") {
+            tiles[d.origMark.y * TILES + d.origMark.x] = STATE_MARK;
+            draw();
+          } else if (d.kind === "r5") {
+            placeR5AtCenter(d.origR5.cx, d.origR5.cy);
+          } else if (d.kind === "r4") {
+            placeR4AtCenter(d.origR4.cx, d.origR4.cy);
+          } else if (d.kind === "r3") {
+            placeR3AtCenter(d.origR3.cx, d.origR3.cy);
+          } else if (d.kind === "r2") {
+            placeR2AtCenter(d.origR2.cx, d.origR2.cy);
+          } else if (d.kind === "r1") {
+            placeR1AtCenter(d.origR1.cx, d.origR1.cy);
+          } else if (d.kind === "ae") {
+            placeAeAtCenter(d.origAe.cx, d.origAe.cy);
+          } else if (d.kind === "furnace") {
+            placeFurnaceAtCenter(d.origFurnace.cx, d.origFurnace.cy);
+          } else if (d.kind === "acenter") {
+            placeAllianceCenterAtCenter(d.origAc.cx, d.origAc.cy);
+          } else if (d.kind === "custom" && d.origCustom) {
+            placeCustomAtRect(
+              d.origCustom.left,
+              d.origCustom.top,
+              d.origCustom.w,
+              d.origCustom.h,
+              d.origCustom.name
+            );
+          }
+        }
+
+        function clearFootprintConflicts(ncx, ncy) {
+          var dx;
+          var dy;
+          for (dy = -1; dy <= 1; dy++) {
+            for (dx = -1; dx <= 1; dx++) {
+              var gx = ncx + dx;
+              var gy = ncy + dy;
+              var ii = gy * TILES + gx;
+              if (tiles[ii] === STATE_MARK) {
+                tiles[ii] = STATE_EMPTY;
+              } else if (tiles[ii] === STATE_R5) {
+                clearR5Containing({ x: gx, y: gy });
+              } else if (tiles[ii] === STATE_R4) {
+                clearR4Containing({ x: gx, y: gy });
+              } else if (tiles[ii] === STATE_AE) {
+                clearAeContaining({ x: gx, y: gy });
+              } else if (tiles[ii] === STATE_R3) {
+                clearR3Containing({ x: gx, y: gy });
+              } else if (tiles[ii] === STATE_R2) {
+                clearR2Containing({ x: gx, y: gy });
+              } else if (tiles[ii] === STATE_R1) {
+                clearR1Containing({ x: gx, y: gy });
+              } else if (tiles[ii] === STATE_FURNACE) {
+                clearFurnaceContaining({ x: gx, y: gy });
+              } else if (tiles[ii] === STATE_ALLIANCE_CENTER) {
+                clearAllianceCenterContaining({ x: gx, y: gy });
+              } else if (tiles[ii] === STATE_CUSTOM) {
+                clearCustomContaining({ x: gx, y: gy });
+              }
+            }
+          }
+        }
+
+        function clearFootprintConflictsFurnace(ncx, ncy) {
+          var dx;
+          var dy;
+          for (dy = -BLOCK_HALF_5; dy <= BLOCK_HALF_5; dy++) {
+            for (dx = -BLOCK_HALF_5; dx <= BLOCK_HALF_5; dx++) {
+              var gx = ncx + dx;
+              var gy = ncy + dy;
+              var ii = gy * TILES + gx;
+              if (tiles[ii] === STATE_MARK) {
+                tiles[ii] = STATE_EMPTY;
+              } else if (tiles[ii] === STATE_R5) {
+                clearR5Containing({ x: gx, y: gy });
+              } else if (tiles[ii] === STATE_R4) {
+                clearR4Containing({ x: gx, y: gy });
+              } else if (tiles[ii] === STATE_AE) {
+                clearAeContaining({ x: gx, y: gy });
+              } else if (tiles[ii] === STATE_R3) {
+                clearR3Containing({ x: gx, y: gy });
+              } else if (tiles[ii] === STATE_R2) {
+                clearR2Containing({ x: gx, y: gy });
+              } else if (tiles[ii] === STATE_R1) {
+                clearR1Containing({ x: gx, y: gy });
+              } else if (tiles[ii] === STATE_FURNACE) {
+                clearFurnaceContaining({ x: gx, y: gy });
+              } else if (tiles[ii] === STATE_ALLIANCE_CENTER) {
+                clearAllianceCenterContaining({ x: gx, y: gy });
+              } else if (tiles[ii] === STATE_CUSTOM) {
+                clearCustomContaining({ x: gx, y: gy });
+              }
+            }
+          }
+        }
+
+        function clearFootprintConflictsAllianceCenter(ncx, ncy) {
+          var dx;
+          var dy;
+          for (dy = -BLOCK_HALF_9; dy <= BLOCK_HALF_9; dy++) {
+            for (dx = -BLOCK_HALF_9; dx <= BLOCK_HALF_9; dx++) {
+              var gx = ncx + dx;
+              var gy = ncy + dy;
+              var ii = gy * TILES + gx;
+              if (tiles[ii] === STATE_MARK) {
+                tiles[ii] = STATE_EMPTY;
+              } else if (tiles[ii] === STATE_R5) {
+                clearR5Containing({ x: gx, y: gy });
+              } else if (tiles[ii] === STATE_R4) {
+                clearR4Containing({ x: gx, y: gy });
+              } else if (tiles[ii] === STATE_AE) {
+                clearAeContaining({ x: gx, y: gy });
+              } else if (tiles[ii] === STATE_R3) {
+                clearR3Containing({ x: gx, y: gy });
+              } else if (tiles[ii] === STATE_R2) {
+                clearR2Containing({ x: gx, y: gy });
+              } else if (tiles[ii] === STATE_R1) {
+                clearR1Containing({ x: gx, y: gy });
+              } else if (tiles[ii] === STATE_FURNACE) {
+                clearFurnaceContaining({ x: gx, y: gy });
+              } else if (tiles[ii] === STATE_ALLIANCE_CENTER) {
+                clearAllianceCenterContaining({ x: gx, y: gy });
+              } else if (tiles[ii] === STATE_CUSTOM) {
+                clearCustomContaining({ x: gx, y: gy });
+              }
+            }
+          }
+        }
+
+        function clearFootprintConflictsCustom(left, top, wc, hc) {
+          var dx;
+          var dy;
+          for (dy = 0; dy < hc; dy++) {
+            for (dx = 0; dx < wc; dx++) {
+              var gx = left + dx;
+              var gy = top + dy;
+              var ii = gy * TILES + gx;
+              if (tiles[ii] === STATE_MARK) {
+                tiles[ii] = STATE_EMPTY;
+              } else if (tiles[ii] === STATE_R5) {
+                clearR5Containing({ x: gx, y: gy });
+              } else if (tiles[ii] === STATE_R4) {
+                clearR4Containing({ x: gx, y: gy });
+              } else if (tiles[ii] === STATE_AE) {
+                clearAeContaining({ x: gx, y: gy });
+              } else if (tiles[ii] === STATE_R3) {
+                clearR3Containing({ x: gx, y: gy });
+              } else if (tiles[ii] === STATE_R2) {
+                clearR2Containing({ x: gx, y: gy });
+              } else if (tiles[ii] === STATE_R1) {
+                clearR1Containing({ x: gx, y: gy });
+              } else if (tiles[ii] === STATE_FURNACE) {
+                clearFurnaceContaining({ x: gx, y: gy });
+              } else if (tiles[ii] === STATE_ALLIANCE_CENTER) {
+                clearAllianceCenterContaining({ x: gx, y: gy });
+              } else if (tiles[ii] === STATE_CUSTOM) {
+                clearCustomContaining({ x: gx, y: gy });
+              }
+            }
+          }
+        }
+
+        function commitDrag(d, dropCell) {
+          if (!dropCell) {
+            cancelDragRestore(d);
+            return;
+          }
+          if (d.kind === "mark") {
+            var tidx = dropCell.y * TILES + dropCell.x;
+            if (tiles[tidx] === STATE_R5) {
+              clearR5Containing(dropCell);
+            } else if (tiles[tidx] === STATE_R4) {
+              clearR4Containing(dropCell);
+            } else if (tiles[tidx] === STATE_R3) {
+              clearR3Containing(dropCell);
+            } else if (tiles[tidx] === STATE_R2) {
+              clearR2Containing(dropCell);
+            } else if (tiles[tidx] === STATE_R1) {
+              clearR1Containing(dropCell);
+            } else if (tiles[tidx] === STATE_AE) {
+              clearAeContaining(dropCell);
+            } else if (tiles[tidx] === STATE_FURNACE) {
+              clearFurnaceContaining(dropCell);
+            } else if (tiles[tidx] === STATE_ALLIANCE_CENTER) {
+              clearAllianceCenterContaining(dropCell);
+            } else if (tiles[tidx] === STATE_CUSTOM) {
+              clearCustomContaining(dropCell);
+            }
+            tidx = dropCell.y * TILES + dropCell.x;
+            if (tiles[tidx] === STATE_MARK) {
+              tiles[tidx] = STATE_EMPTY;
+            }
+            tiles[dropCell.y * TILES + dropCell.x] = STATE_MARK;
+            draw();
+            return;
+          }
+          if (d.kind === "acenter") {
+            var ncac = Math.max(ACENTER_CMIN, Math.min(ACENTER_CMAX, dropCell.x - d.grabDx));
+            var ncyac = Math.max(ACENTER_CMIN, Math.min(ACENTER_CMAX, dropCell.y - d.grabDy));
+            clearFootprintConflictsAllianceCenter(ncac, ncyac);
+            placeAllianceCenterAtCenter(ncac, ncyac);
+            return;
+          }
+          if (d.kind === "furnace") {
+            var ncf = Math.max(FURNACE_CMIN, Math.min(FURNACE_CMAX, dropCell.x - d.grabDx));
+            var ncyf = Math.max(FURNACE_CMIN, Math.min(FURNACE_CMAX, dropCell.y - d.grabDy));
+            clearFootprintConflictsFurnace(ncf, ncyf);
+            placeFurnaceAtCenter(ncf, ncyf);
+            return;
+          }
+          if (d.kind === "custom" && d.origCustom) {
+            var oc = d.origCustom;
+            var nL = dropCell.x - d.grabDx;
+            var nT = dropCell.y - d.grabDy;
+            if (nL < 0) nL = 0;
+            if (nT < 0) nT = 0;
+            if (nL + oc.w > TILES) nL = TILES - oc.w;
+            if (nT + oc.h > TILES) nT = TILES - oc.h;
+            clearFootprintConflictsCustom(nL, nT, oc.w, oc.h);
+            placeCustomAtRect(nL, nT, oc.w, oc.h, oc.name);
+            return;
+          }
+          var ncx = Math.max(1, Math.min(TILES - 2, dropCell.x - d.grabDx));
+          var ncy = Math.max(1, Math.min(TILES - 2, dropCell.y - d.grabDy));
+          clearFootprintConflicts(ncx, ncy);
+          if (d.kind === "r5") {
+            placeR5AtCenter(ncx, ncy);
+          } else if (d.kind === "r4") {
+            placeR4AtCenter(ncx, ncy);
+          } else if (d.kind === "r3") {
+            placeR3AtCenter(ncx, ncy);
+          } else if (d.kind === "r2") {
+            placeR2AtCenter(ncx, ncy);
+          } else if (d.kind === "r1") {
+            placeR1AtCenter(ncx, ncy);
+          } else {
+            placeAeAtCenter(ncx, ncy);
+          }
+        }
+
+        function setTool(tool) {
+          activeTool = tool;
+          if (toolMarkBtn) {
+            toolMarkBtn.classList.toggle("hive-tool-btn--active", tool === "mark");
+            toolMarkBtn.setAttribute("aria-pressed", tool === "mark" ? "true" : "false");
+          }
+          if (toolR5Btn) {
+            toolR5Btn.classList.toggle("hive-tool-btn--active", tool === "r5");
+            toolR5Btn.setAttribute("aria-pressed", tool === "r5" ? "true" : "false");
+          }
+          if (toolR4Btn) {
+            toolR4Btn.classList.toggle("hive-tool-btn--active", tool === "r4");
+            toolR4Btn.setAttribute("aria-pressed", tool === "r4" ? "true" : "false");
+          }
+          if (toolAEBtn) {
+            toolAEBtn.classList.toggle("hive-tool-btn--active", tool === "ae");
+            toolAEBtn.setAttribute("aria-pressed", tool === "ae" ? "true" : "false");
+          }
+          if (toolR3Btn) {
+            toolR3Btn.classList.toggle("hive-tool-btn--active", tool === "r3");
+            toolR3Btn.setAttribute("aria-pressed", tool === "r3" ? "true" : "false");
+          }
+          if (toolR2Btn) {
+            toolR2Btn.classList.toggle("hive-tool-btn--active", tool === "r2");
+            toolR2Btn.setAttribute("aria-pressed", tool === "r2" ? "true" : "false");
+          }
+          if (toolR1Btn) {
+            toolR1Btn.classList.toggle("hive-tool-btn--active", tool === "r1");
+            toolR1Btn.setAttribute("aria-pressed", tool === "r1" ? "true" : "false");
+          }
+          if (toolFurnaceBtn) {
+            toolFurnaceBtn.classList.toggle("hive-tool-btn--active", tool === "furnace");
+            toolFurnaceBtn.setAttribute("aria-pressed", tool === "furnace" ? "true" : "false");
+          }
+          if (toolACenterBtn) {
+            toolACenterBtn.classList.toggle("hive-tool-btn--active", tool === "acenter");
+            toolACenterBtn.setAttribute("aria-pressed", tool === "acenter" ? "true" : "false");
+          }
+          if (toolCustomBtn) {
+            toolCustomBtn.classList.toggle("hive-tool-btn--active", tool === "custom");
+            toolCustomBtn.setAttribute("aria-pressed", tool === "custom" ? "true" : "false");
+          }
+        }
+
+        function defaultHiveTabName(i) {
+          return "Hive " + (i + 1);
+        }
+
+        function emptyHiveSnapshot() {
+          var t = new Array(TOTAL);
+          var zi;
+          for (zi = 0; zi < TOTAL; zi++) t[zi] = 0;
+          return {
+            tiles: t,
+            r5Centers: [],
+            r4Centers: [],
+            aeCenters: [],
+            r3Centers: [],
+            r2Centers: [],
+            r1Centers: [],
+            furnaceCenters: [],
+            allianceCenterCenters: [],
+            customBlocks: [],
+            activeTool: "mark",
+            customName: "",
+            customW: "3",
+            customH: "3",
+          };
+        }
+
+        function normalizeHiveSnapshot(tab) {
+          var e = emptyHiveSnapshot();
+          if (!tab || typeof tab !== "object") return e;
+          var tt = tab.tiles;
+          var i;
+          if (Array.isArray(tt) && tt.length === TOTAL) {
+            for (i = 0; i < TOTAL; i++) e.tiles[i] = tt[i] | 0;
+          }
+          function pullCenters(key) {
+            var a = tab[key];
+            if (!Array.isArray(a)) return [];
+            return a.map(function (c) {
+              return { cx: c.cx | 0, cy: c.cy | 0 };
+            });
+          }
+          e.r5Centers = pullCenters("r5Centers");
+          e.r4Centers = pullCenters("r4Centers");
+          e.aeCenters = pullCenters("aeCenters");
+          e.r3Centers = pullCenters("r3Centers");
+          e.r2Centers = pullCenters("r2Centers");
+          e.r1Centers = pullCenters("r1Centers");
+          e.furnaceCenters = pullCenters("furnaceCenters");
+          e.allianceCenterCenters = pullCenters("allianceCenterCenters");
+          e.customBlocks = Array.isArray(tab.customBlocks)
+            ? tab.customBlocks.map(function (b) {
+                return {
+                  left: b.left | 0,
+                  top: b.top | 0,
+                  w: Math.max(1, b.w | 0),
+                  h: Math.max(1, b.h | 0),
+                  name: typeof b.name === "string" ? b.name : "Custom",
+                };
+              })
+            : [];
+          e.activeTool = typeof tab.activeTool === "string" ? tab.activeTool : "mark";
+          e.customName = typeof tab.customName === "string" ? tab.customName : "";
+          e.customW = tab.customW != null ? String(tab.customW) : "3";
+          e.customH = tab.customH != null ? String(tab.customH) : "3";
+          return e;
+        }
+
+        function captureHiveSnapshot() {
+          var i;
+          var t = new Array(TOTAL);
+          for (i = 0; i < TOTAL; i++) t[i] = tiles[i];
+          return {
+            tiles: t,
+            r5Centers: r5Centers.map(function (c) {
+              return { cx: c.cx, cy: c.cy };
+            }),
+            r4Centers: r4Centers.map(function (c) {
+              return { cx: c.cx, cy: c.cy };
+            }),
+            aeCenters: aeCenters.map(function (c) {
+              return { cx: c.cx, cy: c.cy };
+            }),
+            r3Centers: r3Centers.map(function (c) {
+              return { cx: c.cx, cy: c.cy };
+            }),
+            r2Centers: r2Centers.map(function (c) {
+              return { cx: c.cx, cy: c.cy };
+            }),
+            r1Centers: r1Centers.map(function (c) {
+              return { cx: c.cx, cy: c.cy };
+            }),
+            furnaceCenters: furnaceCenters.map(function (c) {
+              return { cx: c.cx, cy: c.cy };
+            }),
+            allianceCenterCenters: allianceCenterCenters.map(function (c) {
+              return { cx: c.cx, cy: c.cy };
+            }),
+            customBlocks: customBlocks.map(function (b) {
+              return {
+                left: b.left,
+                top: b.top,
+                w: b.w,
+                h: b.h,
+                name: b.name,
+              };
+            }),
+            activeTool: activeTool,
+            customName: customNameInput ? customNameInput.value : "",
+            customW: customWInput ? String(customWInput.value) : "3",
+            customH: customHInput ? String(customHInput.value) : "3",
+          };
+        }
+
+        function applyHiveSnapshot(s) {
+          var i;
+          var tt = s.tiles;
+          if (Array.isArray(tt) && tt.length === TOTAL) {
+            for (i = 0; i < TOTAL; i++) tiles[i] = tt[i] | 0;
+          } else {
+            tiles.fill(STATE_EMPTY);
+          }
+          function fillCenters(dst, arr) {
+            dst.length = 0;
+            if (!Array.isArray(arr)) return;
+            arr.forEach(function (c) {
+              dst.push({ cx: c.cx | 0, cy: c.cy | 0 });
+            });
+          }
+          fillCenters(r5Centers, s.r5Centers);
+          fillCenters(r4Centers, s.r4Centers);
+          fillCenters(aeCenters, s.aeCenters);
+          fillCenters(r3Centers, s.r3Centers);
+          fillCenters(r2Centers, s.r2Centers);
+          fillCenters(r1Centers, s.r1Centers);
+          fillCenters(furnaceCenters, s.furnaceCenters);
+          fillCenters(allianceCenterCenters, s.allianceCenterCenters);
+          customBlocks.length = 0;
+          if (Array.isArray(s.customBlocks)) {
+            s.customBlocks.forEach(function (b) {
+              customBlocks.push({
+                left: b.left | 0,
+                top: b.top | 0,
+                w: b.w | 0,
+                h: b.h | 0,
+                name: typeof b.name === "string" ? b.name : "Custom",
+              });
+            });
+          }
+          setTool(s.activeTool || "mark");
+          if (customNameInput) {
+            customNameInput.value = s.customName != null ? s.customName : "";
+          }
+          if (customWInput) {
+            customWInput.value = s.customW != null ? s.customW : "3";
+          }
+          if (customHInput) {
+            customHInput.value = s.customH != null ? s.customH : "3";
+          }
+        }
+
+        function refreshHiveTabUi() {
+          var i;
+          for (i = 0; i < HIVE_TAB_COUNT; i++) {
+            var b = hiveTabButtons[i];
+            if (!b) continue;
+            b.textContent = hiveTabNames[i] || defaultHiveTabName(i);
+            b.classList.toggle("hive-tab--active", i === currentHiveTab);
+            b.setAttribute("aria-selected", i === currentHiveTab ? "true" : "false");
+          }
+        }
+
+        function persistHiveTabsStorage() {
+          hiveTabData[currentHiveTab] = captureHiveSnapshot();
+          var payload = {
+            v: 1,
+            active: currentHiveTab,
+            names: hiveTabNames.slice(),
+            tabs: hiveTabData.slice(),
+          };
+          try {
+            localStorage.setItem(HIVE_LS_KEY, JSON.stringify(payload));
+          } catch (err) {
+            /* ignore quota / private mode */
+          }
+        }
+
+        function loadHiveTabsStorage() {
+          try {
+            var raw = localStorage.getItem(HIVE_LS_KEY);
+            if (!raw) return false;
+            var o = JSON.parse(raw);
+            if (!o || o.v !== 1 || !Array.isArray(o.tabs) || o.tabs.length !== HIVE_TAB_COUNT) {
+              return false;
+            }
+            var i;
+            if (Array.isArray(o.names) && o.names.length === HIVE_TAB_COUNT) {
+              for (i = 0; i < HIVE_TAB_COUNT; i++) {
+                hiveTabNames[i] =
+                  typeof o.names[i] === "string" && o.names[i].trim()
+                    ? o.names[i].trim().slice(0, 40)
+                    : defaultHiveTabName(i);
+              }
+            }
+            for (i = 0; i < HIVE_TAB_COUNT; i++) {
+              hiveTabData[i] = normalizeHiveSnapshot(o.tabs[i]);
+            }
+            if (typeof o.active === "number" && o.active >= 0 && o.active < HIVE_TAB_COUNT) {
+              currentHiveTab = o.active;
+            }
+            return true;
+          } catch (err) {
+            return false;
+          }
+        }
+
+        function switchHiveTab(idx) {
+          if (idx < 0 || idx >= HIVE_TAB_COUNT || idx === currentHiveTab) return;
+          if (drag) {
+            if (drag.phase === "dragging") {
+              cancelDragRestore(drag);
+            }
+            drag = null;
+          }
+          clearLongPressTimer();
+          hiveTabData[currentHiveTab] = captureHiveSnapshot();
+          currentHiveTab = idx;
+          applyHiveSnapshot(hiveTabData[currentHiveTab]);
+          refreshHiveTabUi();
+          draw();
+          persistHiveTabsStorage();
+        }
+
+        function renameHiveTabAt(idx) {
+          if (idx < 0 || idx >= HIVE_TAB_COUNT) return;
+          var def = hiveTabNames[idx] || defaultHiveTabName(idx);
+          var n = window.prompt("Name for this hive:", def);
+          if (n === null) return;
+          n = n.trim().slice(0, 40);
+          hiveTabNames[idx] = n || defaultHiveTabName(idx);
+          refreshHiveTabUi();
+          persistHiveTabsStorage();
+        }
+
+        function initHiveTabs() {
+          var i;
+          for (i = 0; i < HIVE_TAB_COUNT; i++) {
+            hiveTabNames.push(defaultHiveTabName(i));
+            hiveTabData.push(emptyHiveSnapshot());
+          }
+          loadHiveTabsStorage();
+          applyHiveSnapshot(hiveTabData[currentHiveTab]);
+          refreshHiveTabUi();
+          for (i = 0; i < HIVE_TAB_COUNT; i++) {
+            (function (idx) {
+              var btn = hiveTabButtons[idx];
+              if (!btn) return;
+              btn.addEventListener("click", function () {
+                switchHiveTab(idx);
+              });
+              btn.addEventListener("contextmenu", function (e) {
+                e.preventDefault();
+                renameHiveTabAt(idx);
+              });
+            })(i);
+          }
+          window.addEventListener("beforeunload", persistHiveTabsStorage);
+        }
+
+        toolMarkBtn?.addEventListener("click", function () {
+          setTool("mark");
+        });
+        toolR5Btn?.addEventListener("click", function () {
+          setTool("r5");
+        });
+        toolR4Btn?.addEventListener("click", function () {
+          setTool("r4");
+        });
+        toolR3Btn?.addEventListener("click", function () {
+          setTool("r3");
+        });
+        toolR2Btn?.addEventListener("click", function () {
+          setTool("r2");
+        });
+        toolR1Btn?.addEventListener("click", function () {
+          setTool("r1");
+        });
+        toolAEBtn?.addEventListener("click", function () {
+          setTool("ae");
+        });
+        toolFurnaceBtn?.addEventListener("click", function () {
+          setTool("furnace");
+        });
+        toolACenterBtn?.addEventListener("click", function () {
+          setTool("acenter");
+        });
+        toolCustomBtn?.addEventListener("click", function () {
+          setTool("custom");
+        });
+
+        canvas.addEventListener("click", function (ev) {
+          if (suppressClick) {
+            ev.preventDefault();
+            ev.stopPropagation();
+            suppressClick = false;
+          }
+        });
+
+        canvas.addEventListener("mousemove", function (ev) {
+          if (!drag || drag.phase !== "dragging") {
+            setCoordText(eventToCell(ev));
+          }
+        });
+        canvas.addEventListener("mouseleave", function () {
+          if (!drag || drag.phase !== "dragging") {
+            setCoordText(null);
+          }
+        });
+
+        canvas.addEventListener("contextmenu", function (ev) {
+          ev.preventDefault();
+          var c = eventToCell(ev);
+          if (c) clearCellOrBlock(c);
+        });
+
+        canvas.addEventListener("pointerdown", function (ev) {
+          if (ev.button !== 0) return;
+          var cell = eventToCell(ev);
+          if (!cell) return;
+          try {
+            canvas.setPointerCapture(ev.pointerId);
+          } catch (_) {
+            /* ignore */
+          }
+          var idx = cell.y * TILES + cell.x;
+          var st = tiles[idx];
+          drag = {
+            phase: st === STATE_EMPTY ? "maybeTap" : "maybeDrag",
+            cell: cell,
+            startX: ev.clientX,
+            startY: ev.clientY,
+            pid: ev.pointerId,
+          };
+          if (st === STATE_EMPTY) {
+            drag.tool = activeTool;
+            return;
+          }
+          if (st === STATE_MARK) {
+            drag.kind = "mark";
+          } else if (st === STATE_R5) {
+            drag.kind = "r5";
+          } else if (st === STATE_R4) {
+            drag.kind = "r4";
+          } else if (st === STATE_R3) {
+            drag.kind = "r3";
+          } else if (st === STATE_R2) {
+            drag.kind = "r2";
+          } else if (st === STATE_R1) {
+            drag.kind = "r1";
+          } else if (st === STATE_AE) {
+            drag.kind = "ae";
+          } else if (st === STATE_FURNACE) {
+            drag.kind = "furnace";
+          } else if (st === STATE_ALLIANCE_CENTER) {
+            drag.kind = "acenter";
+          } else if (st === STATE_CUSTOM) {
+            drag.kind = "custom";
+          }
+          drag.origMark =
+            st === STATE_MARK ? { x: cell.x, y: cell.y } : null;
+          function nullBlockDragRefs() {
+            drag.r5 = drag.origR5 = drag.r4 = drag.origR4 = drag.r3 = drag.origR3 = drag.r2 = drag.origR2 = drag.r1 = drag.origR1 = drag.ae = drag.origAe = drag.furnace = drag.origFurnace = drag.ac = drag.origAc = drag.custom = drag.origCustom = null;
+          }
+          if (st === STATE_R5) {
+            var rp = findR5Placement(cell);
+            if (!rp) {
+              drag = null;
+              return;
+            }
+            nullBlockDragRefs();
+            drag.r5 = rp;
+            drag.grabDx = cell.x - rp.cx;
+            drag.grabDy = cell.y - rp.cy;
+            drag.origR5 = { cx: rp.cx, cy: rp.cy };
+          } else if (st === STATE_R4) {
+            var r4p = findR4Placement(cell);
+            if (!r4p) {
+              drag = null;
+              return;
+            }
+            nullBlockDragRefs();
+            drag.r4 = r4p;
+            drag.grabDx = cell.x - r4p.cx;
+            drag.grabDy = cell.y - r4p.cy;
+            drag.origR4 = { cx: r4p.cx, cy: r4p.cy };
+          } else if (st === STATE_R3) {
+            var r3p = findR3Placement(cell);
+            if (!r3p) {
+              drag = null;
+              return;
+            }
+            nullBlockDragRefs();
+            drag.r3 = r3p;
+            drag.grabDx = cell.x - r3p.cx;
+            drag.grabDy = cell.y - r3p.cy;
+            drag.origR3 = { cx: r3p.cx, cy: r3p.cy };
+          } else if (st === STATE_R2) {
+            var r2p = findR2Placement(cell);
+            if (!r2p) {
+              drag = null;
+              return;
+            }
+            nullBlockDragRefs();
+            drag.r2 = r2p;
+            drag.grabDx = cell.x - r2p.cx;
+            drag.grabDy = cell.y - r2p.cy;
+            drag.origR2 = { cx: r2p.cx, cy: r2p.cy };
+          } else if (st === STATE_R1) {
+            var r1p = findR1Placement(cell);
+            if (!r1p) {
+              drag = null;
+              return;
+            }
+            nullBlockDragRefs();
+            drag.r1 = r1p;
+            drag.grabDx = cell.x - r1p.cx;
+            drag.grabDy = cell.y - r1p.cy;
+            drag.origR1 = { cx: r1p.cx, cy: r1p.cy };
+          } else if (st === STATE_AE) {
+            var aep = findAePlacement(cell);
+            if (!aep) {
+              drag = null;
+              return;
+            }
+            nullBlockDragRefs();
+            drag.ae = aep;
+            drag.grabDx = cell.x - aep.cx;
+            drag.grabDy = cell.y - aep.cy;
+            drag.origAe = { cx: aep.cx, cy: aep.cy };
+          } else if (st === STATE_FURNACE) {
+            var fp = findFurnacePlacement(cell);
+            if (!fp) {
+              drag = null;
+              return;
+            }
+            nullBlockDragRefs();
+            drag.furnace = fp;
+            drag.grabDx = cell.x - fp.cx;
+            drag.grabDy = cell.y - fp.cy;
+            drag.origFurnace = { cx: fp.cx, cy: fp.cy };
+          } else if (st === STATE_ALLIANCE_CENTER) {
+            var acp = findAllianceCenterPlacement(cell);
+            if (!acp) {
+              drag = null;
+              return;
+            }
+            nullBlockDragRefs();
+            drag.ac = acp;
+            drag.grabDx = cell.x - acp.cx;
+            drag.grabDy = cell.y - acp.cy;
+            drag.origAc = { cx: acp.cx, cy: acp.cy };
+          } else if (st === STATE_CUSTOM) {
+            var cup = findCustomPlacement(cell);
+            if (!cup) {
+              drag = null;
+              return;
+            }
+            nullBlockDragRefs();
+            drag.custom = cup;
+            drag.grabDx = cell.x - cup.left;
+            drag.grabDy = cell.y - cup.top;
+            drag.origCustom = {
+              left: cup.left,
+              top: cup.top,
+              w: cup.w,
+              h: cup.h,
+              name: cup.name,
+            };
+          } else {
+            drag.grabDx = 0;
+            drag.grabDy = 0;
+            nullBlockDragRefs();
+          }
+          clearLongPressTimer();
+          longPressTimer = setTimeout(function () {
+            longPressTimer = null;
+            if (drag && drag.phase === "maybeDrag" && drag.cell) {
+              clearCellOrBlock(drag.cell);
+              drag = null;
+            }
+          }, 520);
+        });
+
+        canvas.addEventListener("pointermove", function (ev) {
+          if (!drag || ev.pointerId !== drag.pid) return;
+          var dist = Math.hypot(ev.clientX - drag.startX, ev.clientY - drag.startY);
+          if (dist > 6) {
+            clearLongPressTimer();
+          }
+          if (drag.phase === "maybeTap") {
+            if (dist > 8) {
+              drag = null;
+            }
+            return;
+          }
+          if (drag.phase === "maybeDrag") {
+            if (dist > 8) {
+              beginLiftFromBoard(drag);
+            }
+            return;
+          }
+          if (drag.phase === "dragging") {
+            drag.hoverCell = eventToCell(ev);
+            setCoordText(drag.hoverCell);
+            draw();
+          }
+        });
+
+        canvas.addEventListener("pointerup", function (ev) {
+          if (!drag || ev.pointerId !== drag.pid) return;
+          try {
+            canvas.releasePointerCapture(ev.pointerId);
+          } catch (_) {
+            /* ignore */
+          }
+          clearLongPressTimer();
+          var endCell = eventToCell(ev);
+          if (drag.phase === "maybeTap") {
+            if (endCell && endCell.x === drag.cell.x && endCell.y === drag.cell.y) {
+              onPrimaryEmptyTap(drag.cell);
+            }
+            drag = null;
+            return;
+          }
+          if (drag.phase === "maybeDrag") {
+            if (endCell && endCell.x === drag.cell.x && endCell.y === drag.cell.y) {
+              onPrimaryTapOccupied(drag.cell);
+            }
+            drag = null;
+            return;
+          }
+          if (drag.phase === "dragging") {
+            suppressClick = true;
+            commitDrag(drag, endCell);
+            drag = null;
+            setCoordText(null);
+          }
+        });
+
+        canvas.addEventListener("pointercancel", function (ev) {
+          if (!drag || ev.pointerId !== drag.pid) return;
+          clearLongPressTimer();
+          try {
+            canvas.releasePointerCapture(ev.pointerId);
+          } catch (_) {
+            /* ignore */
+          }
+          if (drag.phase === "dragging") {
+            cancelDragRestore(drag);
+          }
+          drag = null;
+          setCoordText(null);
+        });
+
+        clearBtn?.addEventListener("click", function () {
+          if (
+            !window.confirm(
+              "Clear the entire map? All marks and blocks will be removed. This cannot be undone."
+            )
+          ) {
+            return;
+          }
+          clearLongPressTimer();
+          drag = null;
+          tiles.fill(STATE_EMPTY);
+          r5Centers.length = 0;
+          r4Centers.length = 0;
+          r3Centers.length = 0;
+          r2Centers.length = 0;
+          r1Centers.length = 0;
+          aeCenters.length = 0;
+          furnaceCenters.length = 0;
+          allianceCenterCenters.length = 0;
+          customBlocks.length = 0;
+          draw();
+          hiveTabData[currentHiveTab] = captureHiveSnapshot();
+          persistHiveTabsStorage();
+        });
+
+        initHiveTabs();
+        buildBaseLayer();
+        draw();
+        applyZoom();
+        zoomEl?.addEventListener("change", applyZoom);
+        window.addEventListener("resize", function () {
+          clearTimeout(resizeTimer);
+          resizeTimer = setTimeout(applyZoom, 100);
+        });
+
+        try {
+          var mq = window.matchMedia && window.matchMedia("(prefers-color-scheme: light)");
+          if (mq) {
+            function onColorScheme() {
+              buildBaseLayer();
+              draw();
+            }
+            if (typeof mq.addEventListener === "function") {
+              mq.addEventListener("change", onColorScheme);
+            } else if (typeof mq.addListener === "function") {
+              mq.addListener(onColorScheme);
+            }
+          }
+        } catch (_) {
+          /* ignore */
+        }
+      })();
+    </script>
+  </body>
+</html>
