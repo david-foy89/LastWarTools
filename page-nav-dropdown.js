@@ -347,6 +347,23 @@
         return appendScript('firebase-config.js', false);
       })
       .then(function () {
+        try {
+          var c = window.__FIREBASE_CONFIG__;
+          var k = c && c.apiKey ? String(c.apiKey) : '';
+          var p = c && c.projectId ? String(c.projectId) : '';
+          var ok =
+            k &&
+            k.indexOf('YOUR_') === -1 &&
+            p &&
+            p.indexOf('YOUR_') === -1;
+          if (!ok) {
+            console.warn(
+              '[Last War Tools] firebase-config.js is missing or still contains YOUR_ placeholders. Cross-device sync will not run until you add a real firebase-config.js next to your HTML (copy from firebase-config.example.js).',
+            );
+          }
+        } catch (e) {
+          /* ignore */
+        }
         if (!skipGlobalMerge) {
           return appendScript('account-sync-global.js', true);
         }

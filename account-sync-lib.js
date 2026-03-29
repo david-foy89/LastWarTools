@@ -52,6 +52,46 @@ export function collectSyncableLocalStorage() {
   return out;
 }
 
+/** Sort keys so the same localStorage data stringifies identically on every browser. */
+function sortStorageDataObject(obj) {
+  const out = {};
+  const keys = Object.keys(obj || {}).sort();
+  for (let i = 0; i < keys.length; i++) {
+    const k = keys[i];
+    out[k] = obj[k];
+  }
+  return out;
+}
+
+export function buildCanonicalSyncPayloadString(merged) {
+  const data =
+    merged && typeof merged === "object" ? sortStorageDataObject(merged) : {};
+  return JSON.stringify({ v: 1, data });
+}
+
+/** True if Firestore payload string matches merged data (ignores JSON key order). */
+export function syncPayloadsAreEquivalent(storedPayloadStr, canonicalPayloadStr) {
+  if (!storedPayloadStr || !canonicalPayloadStr) return false;
+  if (storedPayloadStr === canonicalPayloadStr) return true;
+  try {
+    const a = JSON.parse(storedPayloadStr);
+    const b = JSON.parse(canonicalPayloadStr);
+    const ad = a?.data && typeof a.data === "object" ? a.data : null;
+    const bd = b?.data && typeof b.data === "object" ? b.data : null;
+    if (!ad || !bd) return false;
+    const ka = Object.keys(ad).sort();
+    const kb = Object.keys(bd).sort();
+    if (ka.length !== kb.length) return false;
+    for (let i = 0; i < ka.length; i++) {
+      if (ka[i] !== kb[i]) return false;
+      if (String(ad[ka[i]]) !== String(bd[kb[i]])) return false;
+    }
+    return true;
+  } catch {
+    return false;
+  }
+}
+
 export function applyLocalStoragePayload(obj) {
   if (!obj || typeof obj !== "object") return 0;
   let n = 0;
@@ -221,7 +261,7 @@ export async function mergeAndSyncToCloud(user, db, options) {
   }
 
   applyLocalStoragePayload(merged);
-  const json = JSON.stringify({ v: 1, data: merged });
+  const json = buildCanonicalSyncPayloadString(merged);
   if (json.length > MAX_PAYLOAD_CHARS) {
     onStatus(
       "Merged data is too large for one upload. Clear some tool data and try again.",
@@ -234,7 +274,7 @@ export async function mergeAndSyncToCloud(user, db, options) {
     snap && snap.exists() && typeof snap.data()?.payload === "string"
       ? snap.data().payload
       : "";
-  if (existingPayloadStr && existingPayloadStr === json) {
+  if (existingPayloadStr && syncPayloadsAreEquivalent(existingPayloadStr, json)) {
     const ms = getCloudDocumentWriteMs(snap);
     if (ms) {
       writeLastMergedMeta(user.uid, ms);

@@ -143,7 +143,29 @@ async function runMergeIfPossible(user) {
   try {
     do {
       mergeQueued = false;
-      await mergeAndSyncToCloud(user, dbRef, {});
+      await mergeAndSyncToCloud(user, dbRef, {
+        onStatus(msg, kind) {
+          if (kind === "error") {
+            console.error("[Last War Tools] Account sync:", msg);
+            try {
+              window.__lwLastAccountSyncError = String(msg || "");
+              window.dispatchEvent(
+                new CustomEvent("lw-account-sync-error", {
+                  detail: { message: String(msg || "") },
+                }),
+              );
+            } catch {
+              /* ignore */
+            }
+          } else if (kind === "ok") {
+            try {
+              window.__lwLastAccountSyncError = "";
+            } catch {
+              /* ignore */
+            }
+          }
+        },
+      });
       markBackgroundSynced();
       if (mergeQueued) {
         user = authRef.currentUser;
@@ -311,6 +333,23 @@ function bootAccountSync() {
         console.warn("[Last War Tools] Profile load failed:", e);
       }
     });
+
+    window.__lwAccountSyncDiagnostics = function () {
+      const u = authRef && authRef.currentUser;
+      return {
+        configOk: firebaseConfigOk(window.__FIREBASE_CONFIG__),
+        syncStarted: true,
+        uid: u ? u.uid : null,
+        emailVerified: !!(u && u.emailVerified),
+        lastError: (function () {
+          try {
+            return window.__lwLastAccountSyncError || null;
+          } catch {
+            return null;
+          }
+        })(),
+      };
+    };
 
     syncStarted = true;
     return true;
