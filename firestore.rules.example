@@ -32,7 +32,8 @@ service cloud.firestore {
         && !exists(/databases/$(database)/documents/usernames/$(name))
         && request.resource.data.uid == request.auth.uid
         && request.resource.data.email is string;
-      allow update, delete: if false;
+      allow update: if false;
+      allow delete: if request.auth != null && resource.data.uid == request.auth.uid;
     }
 
     match /{document=**} {

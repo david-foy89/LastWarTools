@@ -481,16 +481,27 @@ body {
   padding: 8px 14px;
 }
 
+/* Lock page scroll when account modal / iframe popup is open (account-auth-modal.js) */
+body.lw-account-modal-open {
+  overflow: hidden;
+  overscroll-behavior: none;
+}
+
 /* Site-wide account sign-in / sign-up modal (account-auth-modal.js on promo link pages) */
 .account-modal-backdrop {
   position: fixed;
   inset: 0;
-  z-index: 1000;
+  z-index: 50000;
   display: flex;
+  flex-direction: column;
   align-items: center;
-  justify-content: center;
-  padding: 16px;
+  min-height: 100dvh;
+  min-height: 100svh;
+  padding: max(12px, env(safe-area-inset-top, 0px)) max(14px, env(safe-area-inset-right, 0px))
+    max(12px, env(safe-area-inset-bottom, 0px)) max(14px, env(safe-area-inset-left, 0px));
   box-sizing: border-box;
+  overflow-y: auto;
+  overscroll-behavior: contain;
   background: rgba(0, 0, 0, 0.55);
   backdrop-filter: blur(2px);
 }
@@ -501,26 +512,34 @@ body {
 
 .account-modal-dialog {
   position: relative;
-  width: 100%;
+  width: min(520px, calc(100vw - 28px));
   max-width: 520px;
-  max-height: min(92vh, 900px);
-  overflow-y: auto;
-  padding: 20px 20px 16px;
+  flex-shrink: 0;
+  margin-top: auto;
+  margin-bottom: auto;
+  padding: 14px 16px 12px;
   border-radius: 14px;
   border: 1px solid var(--line-soft);
   background: linear-gradient(180deg, var(--panel) 0%, var(--panel-2) 100%);
   box-shadow: 0 12px 40px rgba(0, 0, 0, 0.45);
 }
 
+.account-modal-dialog h2 {
+  margin: 0 0 6px;
+  font-size: 1.12rem;
+  font-weight: 600;
+  line-height: 1.25;
+}
+
 .account-modal-dialog .account-muted {
   color: var(--muted);
-  font-size: 0.92rem;
-  line-height: 1.45;
-  margin-bottom: 14px;
+  font-size: 0.86rem;
+  line-height: 1.35;
+  margin-bottom: 10px;
 }
 
 .account-modal-dialog .account-field {
-  margin-bottom: 12px;
+  margin-bottom: 8px;
 }
 
 .account-modal-dialog .account-field label {
@@ -544,14 +563,14 @@ body {
 .account-modal-dialog .account-actions {
   display: flex;
   flex-wrap: wrap;
-  gap: 10px;
-  margin-top: 14px;
+  gap: 8px;
+  margin-top: 10px;
 }
 
 .account-modal-dialog .account-status {
-  margin-top: 12px;
-  min-height: 22px;
-  font-size: 0.9rem;
+  margin-top: 8px;
+  min-height: 1.25em;
+  font-size: 0.85rem;
   color: var(--muted);
   white-space: pre-wrap;
   word-break: break-word;
@@ -567,10 +586,10 @@ body {
 
 .account-modal__close {
   position: absolute;
-  top: 10px;
-  right: 10px;
-  width: 36px;
-  height: 36px;
+  top: 8px;
+  right: 8px;
+  width: 34px;
+  height: 34px;
   padding: 0;
   border-radius: 8px;
   border: 1px solid var(--line-soft);
@@ -587,8 +606,8 @@ body {
 }
 
 .account-modal-switch {
-  margin-top: 14px;
-  font-size: 0.88rem;
+  margin-top: 10px;
+  font-size: 0.84rem;
   color: var(--muted);
 }
 
@@ -607,19 +626,24 @@ body {
 }
 
 .account-recaptcha-mount {
-  margin-bottom: 12px;
+  margin-bottom: 8px;
 }
 
 /* Full account page in overlay iframe (account-auth-modal.js — signed-in profile chip) */
 .account-page-popup-backdrop {
   position: fixed;
   inset: 0;
-  z-index: 1001;
+  z-index: 50001;
   display: flex;
+  flex-direction: column;
   align-items: center;
-  justify-content: center;
-  padding: 12px;
+  min-height: 100dvh;
+  min-height: 100svh;
+  padding: max(8px, env(safe-area-inset-top, 0px)) max(10px, env(safe-area-inset-right, 0px))
+    max(8px, env(safe-area-inset-bottom, 0px)) max(10px, env(safe-area-inset-left, 0px));
   box-sizing: border-box;
+  overflow-y: auto;
+  overscroll-behavior: contain;
   background: rgba(0, 0, 0, 0.55);
   backdrop-filter: blur(2px);
 }
@@ -629,12 +653,14 @@ body {
 }
 
 .account-page-popup-dialog {
-  display: grid;
-  grid-template-rows: auto minmax(0, 1fr);
-  width: 100%;
-  max-width: min(920px, 100%);
-  height: min(92vh, 900px);
-  max-height: 92vh;
+  display: flex;
+  flex-direction: column;
+  width: min(920px, calc(100vw - 20px));
+  max-width: 920px;
+  max-height: min(900px, calc(100svh - 20px), calc(100dvh - 20px));
+  flex-shrink: 0;
+  margin-top: auto;
+  margin-bottom: auto;
   padding: 0;
   border-radius: 14px;
   border: 1px solid var(--line-soft);
@@ -648,8 +674,18 @@ body {
   align-items: center;
   justify-content: space-between;
   gap: 12px;
+  flex-shrink: 0;
   padding: 12px 14px;
   border-bottom: 1px solid var(--line-soft);
+}
+
+.account-page-popup-body {
+  flex: 1 1 auto;
+  min-height: 0;
+  overflow-x: hidden;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  -webkit-overflow-scrolling: touch;
 }
 
 .account-page-popup-title {
@@ -665,7 +701,7 @@ body {
 
 .account-page-popup-iframe {
   width: 100%;
-  min-height: 0;
+  min-height: 200px;
   border: 0;
   background: var(--panel-2);
   display: block;

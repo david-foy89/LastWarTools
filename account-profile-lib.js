@@ -60,8 +60,9 @@ export function emptyProfile() {
 export function accountChipInitialDisplay(username, email) {
   var u = String(username || "").trim();
   if (u) {
-    var ch = u.charAt(0);
-    return ch ? ch.toUpperCase() : "?";
+    var arr = Array.from(u);
+    var ch = arr.length ? arr[0] : "";
+    return ch ? ch.toLocaleUpperCase() : "?";
   }
   var e = String(email || "").trim();
   var at = e.indexOf("@");
@@ -101,7 +102,7 @@ export function applyProfileToLocalStorage(profile) {
 }
 
 /**
- * @param {{ timezone?: string, allianceName?: string, serverNumber?: string, allianceList?: object[], avatarDataUrl?: string | null, removeAvatar?: boolean }} profileData
+ * @param {{ username?: string, timezone?: string, allianceName?: string, serverNumber?: string, allianceList?: object[], avatarDataUrl?: string | null, removeAvatar?: boolean }} profileData
  */
 export async function saveUserProfile(user, db, profileData) {
   if (!user?.uid || !db) throw new Error("Not signed in or database unavailable");
@@ -126,6 +127,10 @@ export async function saveUserProfile(user, db, profileData) {
     client: "last-war-tools-account",
   };
 
+  if (profileData.username !== undefined) {
+    data.username = String(profileData.username || "").trim().slice(0, 128);
+  }
+
   if (profileData.removeAvatar) {
     data.avatarDataUrl = deleteField();
   } else if (
@@ -139,7 +144,10 @@ export async function saveUserProfile(user, db, profileData) {
   await setDoc(ref, data, { merge: true });
 
   const applied = {
-    username: localStorage.getItem(LS_USERNAME) || "",
+    username:
+      profileData.username !== undefined
+        ? data.username || ""
+        : localStorage.getItem(LS_USERNAME) || "",
     timezone: data.timezone,
     allianceName: data.allianceName,
     serverNumber: data.serverNumber,

@@ -49,10 +49,10 @@ const MODAL_HTML = `
     </div>
     <div id="accountModalSignUpPanel" hidden>
       <h2 id="accountModalTitleSignUp">Create account</h2>
-      <p class="account-muted">Choose a unique username (3–20 characters: letters, numbers, underscores). Verify your email before syncing. Complete reCAPTCHA when a site key is configured.</p>
+      <p class="account-muted">Username: any characters, max 100. Verify email before syncing. reCAPTCHA if the site uses it.</p>
       <div class="account-field">
         <label for="accountUsernameSignUp">Username</label>
-        <input id="accountUsernameSignUp" type="text" autocomplete="off" maxlength="20" spellcheck="false" />
+        <input id="accountUsernameSignUp" type="text" autocomplete="off" maxlength="100" spellcheck="false" />
         <p id="accountUsernameSignUpHint" class="account-status" style="margin-top:6px;min-height:1.1em" aria-live="polite"></p>
       </div>
       <div class="account-field">
@@ -80,7 +80,9 @@ const ACCOUNT_PAGE_POPUP_HTML = `
       <h2 id="accountPagePopupTitle" class="account-page-popup-title">Account</h2>
       <button type="button" class="account-modal__close" id="accountPagePopupCloseBtn" aria-label="Close">×</button>
     </div>
-    <iframe id="accountPagePopupFrame" class="account-page-popup-iframe" title="Account settings"></iframe>
+    <div class="account-page-popup-body">
+      <iframe id="accountPagePopupFrame" class="account-page-popup-iframe" title="Account settings"></iframe>
+    </div>
   </div>
 </div>`;
 
@@ -275,6 +277,18 @@ function boot() {
   var accountPagePopupBackdrop = document.getElementById("accountPagePopupBackdrop");
   var accountPagePopupFrame = document.getElementById("accountPagePopupFrame");
   var accountPagePopupPreviousFocus = null;
+  var lwBodyScrollLockDepth = 0;
+  function pushBodyScrollLock() {
+    lwBodyScrollLockDepth++;
+    document.body.classList.add("lw-account-modal-open");
+  }
+  function popBodyScrollLock() {
+    if (lwBodyScrollLockDepth <= 0) return;
+    lwBodyScrollLockDepth--;
+    if (lwBodyScrollLockDepth === 0) {
+      document.body.classList.remove("lw-account-modal-open");
+    }
+  }
 
   function setAuthStatus(msg, kind) {
     if (!authStatus) return;
@@ -300,7 +314,7 @@ function boot() {
     if (!accountModalBackdrop || accountModalBackdrop.hasAttribute("hidden")) return;
     accountModalBackdrop.setAttribute("hidden", "");
     accountModalBackdrop.setAttribute("aria-hidden", "true");
-    document.body.style.overflow = "";
+    popBodyScrollLock();
     if (accountModalPreviousFocus && typeof accountModalPreviousFocus.focus === "function") {
       try {
         accountModalPreviousFocus.focus();
@@ -313,10 +327,13 @@ function boot() {
 
   function openAccountModal(mode) {
     if (!accountModalBackdrop || !accountModalSignInPanel || !accountModalSignUpPanel || !accountModalDialog) return;
-    accountModalPreviousFocus = document.activeElement;
+    var wasHidden = accountModalBackdrop.hasAttribute("hidden");
+    if (wasHidden) {
+      accountModalPreviousFocus = document.activeElement;
+    }
     accountModalBackdrop.removeAttribute("hidden");
     accountModalBackdrop.setAttribute("aria-hidden", "false");
-    document.body.style.overflow = "hidden";
+    if (wasHidden) pushBodyScrollLock();
     ensureRecaptchaScript();
     if (mode === "signUp") {
       accountModalSignInPanel.hidden = true;
@@ -341,8 +358,11 @@ function boot() {
     if (!accountPagePopupBackdrop || accountPagePopupBackdrop.hasAttribute("hidden")) return;
     accountPagePopupBackdrop.setAttribute("hidden", "");
     accountPagePopupBackdrop.setAttribute("aria-hidden", "true");
-    if (accountPagePopupFrame) accountPagePopupFrame.src = "about:blank";
-    document.body.style.overflow = "";
+    if (accountPagePopupFrame) {
+      accountPagePopupFrame.src = "about:blank";
+      accountPagePopupFrame.style.height = "";
+    }
+    popBodyScrollLock();
     if (accountPagePopupPreviousFocus && typeof accountPagePopupPreviousFocus.focus === "function") {
       try {
         accountPagePopupPreviousFocus.focus();
@@ -358,11 +378,15 @@ function boot() {
     var backdrop = document.getElementById("accountPagePopupBackdrop");
     var frame = document.getElementById("accountPagePopupFrame");
     if (!backdrop || !frame) return;
-    accountPagePopupPreviousFocus = document.activeElement;
+    var wasHidden = backdrop.hasAttribute("hidden");
+    if (wasHidden) {
+      accountPagePopupPreviousFocus = document.activeElement;
+    }
+    frame.style.height = "";
     frame.src = "account.html?embed=1";
     backdrop.removeAttribute("hidden");
     backdrop.setAttribute("aria-hidden", "false");
-    document.body.style.overflow = "hidden";
+    if (wasHidden) pushBodyScrollLock();
     window.setTimeout(function () {
       document.getElementById("accountPagePopupCloseBtn")?.focus();
     }, 0);
@@ -384,6 +408,14 @@ function boot() {
     if (ev.data.type === "lw-account-profile-updated") {
       if (typeof window.__lwRefreshAccountPromoBanner === "function") {
         window.__lwRefreshAccountPromoBanner({ forceProfile: true });
+      }
+      return;
+    }
+    if (ev.data.type === "lw-account-embed-height" && typeof ev.data.height === "number") {
+      var embedFrame = document.getElementById("accountPagePopupFrame");
+      if (embedFrame && embedFrame.contentWindow === ev.source) {
+        var px = Math.max(80, Math.ceil(ev.data.height));
+        embedFrame.style.height = px + "px";
       }
     }
   });

@@ -138,18 +138,24 @@
         opacity: 0;
         pointer-events: none;
       }
-      .account-username-readonly {
-        opacity: 0.85;
-        cursor: not-allowed;
-      }
       /* iframe popup from calculator pages (account-auth-modal.js): trim chrome */
       html.account-embed .page-top-stack,
       html.account-embed .page-nav,
       html.account-embed .hero {
         display: none !important;
       }
+      /* Avoid iframe-internal scrollbar: doc height = content; parent sets iframe height via postMessage */
+      html.account-embed {
+        min-height: 0;
+        height: auto;
+      }
+      html.account-embed body {
+        min-height: 0;
+        height: auto;
+        background-attachment: scroll, scroll;
+      }
       html.account-embed .page {
-        padding-top: 4px;
+        padding: 8px 12px 16px;
       }
     </style>
     <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
@@ -285,8 +291,8 @@
             <div id="accountModalSignUpPanel" hidden>
               <h2 id="accountModalTitleSignUp">Create account</h2>
               <p class="account-muted">
-                Choose a unique username (3–20 characters: letters, numbers, underscores). Verify your email
-                before syncing. Complete reCAPTCHA when a site key is configured.
+                Choose a unique username (any characters, max 100). Verify your email before syncing. Complete
+                reCAPTCHA when a site key is configured.
               </p>
               <div class="account-field">
                 <label for="accountUsernameSignUp">Username</label>
@@ -294,7 +300,7 @@
                   id="accountUsernameSignUp"
                   type="text"
                   autocomplete="off"
-                  maxlength="20"
+                  maxlength="100"
                   spellcheck="false"
                 />
                 <p
@@ -379,8 +385,9 @@
           <div class="account-card account-profile-card" style="margin-top: 20px">
             <h2>Profile &amp; alliance list</h2>
             <p class="account-muted">
-              Username cannot be changed. Other details are stored with your account and copied into this browser for
-              tools (<code>lwProfile*</code> / <code>lwAllianceListJson</code>). Import CSV or Excel, or export to share.
+              Change your username here (any characters; max 100). It must stay unique. Other details are stored with
+              your account and copied into this browser for tools (<code>lwProfile*</code> /
+              <code>lwAllianceListJson</code>). Import CSV or Excel, or export to share.
             </p>
 
             <div class="account-field">
@@ -388,9 +395,9 @@
               <input
                 id="accountUsernameReadonly"
                 type="text"
-                class="account-username-readonly"
-                readonly
+                maxlength="100"
                 spellcheck="false"
+                autocomplete="username"
               />
             </div>
 
@@ -495,9 +502,9 @@
       import {
         resolveEmailForSignIn,
         claimUsernameForNewUser,
+        changeUsernameForUser,
         isUsernameAvailable,
         validateUsername,
-        normalizeUsername,
         formatFirestoreAccountError,
         formatFirebaseAuthSignInError,
       } from "./account-username-lib.js";
@@ -522,6 +529,8 @@
       const accountPromoActionsEl = accountTopPromo?.querySelector(".account-promo-actions");
       const accountPromoActionsOriginalHtml = accountPromoActionsEl ? accountPromoActionsEl.innerHTML : "";
       const verifyBanner = document.getElementById("accountVerifyBanner");
+      /** Server-side username last loaded into the profile form (for rename detection on save). */
+      let profileUsernameBaseline = "";
 
       function setAuthStatus(msg, kind) {
         authStatus.textContent = msg || "";
@@ -788,8 +797,9 @@
             /* ignore */
           }
         }
-        const usernameReadonly = document.getElementById("accountUsernameReadonly");
-        if (usernameReadonly) usernameReadonly.value = p.username || "";
+        const usernameInput = document.getElementById("accountUsernameReadonly");
+        if (usernameInput) usernameInput.value = p.username || "";
+        profileUsernameBaseline = String(p.username || "").trim();
         if (accountTimezone) accountTimezone.value = p.timezone || "";
         const an = document.getElementById("accountAllianceName");
         const sn = document.getElementById("accountServerNumber");
@@ -903,11 +913,19 @@
           setProfileStatus("Alliance list CSV is invalid. Check quoting and headers.", "error");
           return;
         }
+        const newUsername = String(document.getElementById("accountUsernameReadonly")?.value || "").trim();
+        const nameErr = validateUsername(newUsername);
+        if (nameErr) {
+          setProfileStatus(nameErr, "error");
+          return;
+        }
+
         const payload = {
           timezone: accountTimezone ? accountTimezone.value : "",
           allianceName: String(document.getElementById("accountAllianceName")?.value || "").trim(),
           serverNumber: String(document.getElementById("accountServerNumber")?.value || "").trim(),
           allianceList: rows,
+          username: newUsername,
         };
         if (profileAvatarRemove) {
           payload.removeAvatar = true;
@@ -916,6 +934,10 @@
         }
         setProfileStatus("Saving…", "progress");
         try {
+          if (newUsername !== profileUsernameBaseline) {
+            await changeUsernameForUser(db, user, profileUsernameBaseline, newUsername, user.email || "");
+            profileUsernameBaseline = newUsername;
+          }
           await saveUserProfile(user, db, payload);
           profileAvatarStored = profileAvatarRemove ? "" : profileAvatarPending || profileAvatarStored;
           profileAvatarPending = null;
@@ -925,6 +947,11 @@
             onStatus: (msg, kind) => setSyncStatus(msg, kind),
           });
           setProfileStatus("Profile saved and synced to this browser.", "ok");
+          if (userLabel && user) {
+            userLabel.textContent =
+              `Signed in as @${newUsername}` + (user.email ? ` (${user.email})` : "");
+          }
+          void refreshAccountTopPromoChip(user);
           if (document.documentElement.classList.contains("account-embed")) {
             try {
               parent.postMessage({ type: "lw-account-profile-updated" }, location.origin);
@@ -1206,6 +1233,32 @@
             /* ignore */
           }
         });
+        (function () {
+          var raf = 0;
+          function sendEmbedHeight() {
+            raf = 0;
+            try {
+              var doc = document.documentElement;
+              var h = Math.max(doc.scrollHeight, document.body ? document.body.scrollHeight : 0);
+              parent.postMessage({ type: "lw-account-embed-height", height: h }, location.origin);
+            } catch (_) {
+              /* ignore */
+            }
+          }
+          function scheduleSend() {
+            if (raf) return;
+            raf = requestAnimationFrame(sendEmbedHeight);
+          }
+          scheduleSend();
+          window.addEventListener("load", function () {
+            scheduleSend();
+            requestAnimationFrame(scheduleSend);
+          });
+          if (typeof ResizeObserver !== "undefined" && document.body) {
+            new ResizeObserver(scheduleSend).observe(document.body);
+          }
+          window.addEventListener("resize", scheduleSend);
+        })();
       }
     </script>
   </body>

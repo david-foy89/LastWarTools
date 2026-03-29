@@ -43,8 +43,9 @@ service cloud.firestore {
     // Actions:
     //   - get: public (single-doc only — isUsernameAvailable / lookup use getDoc; blocks list queries)
     //   - create: only when signed in, doc id unused, uid/email fields set (claimUsernameForNewUser)
-    //   - update/delete: never (immutable after create)
-    // Code: account-username-lib.js → usernames/{lowercaseUsername}
+    //   - delete: signed-in owner only (account-username-lib.js changeUsernameForUser)
+    //   - update: never
+    // Code: account-username-lib.js → usernames/{encodeURIComponent(trim(name)) or legacy lowercase key}
     // =============================================================================
     match /usernames/{name} {
       allow get: if true;
@@ -52,7 +53,8 @@ service cloud.firestore {
         && !exists(/databases/$(database)/documents/usernames/$(name))
         && request.resource.data.uid == request.auth.uid
         && request.resource.data.email is string;
-      allow update, delete: if false;
+      allow update: if false;
+      allow delete: if request.auth != null && resource.data.uid == request.auth.uid;
     }
 
     // =============================================================================
