@@ -46,6 +46,8 @@ let mergeInFlight = false;
 /** If true, run at least one more merge after the current one (remote + local edits must not drop each other). */
 let mergeQueued = false;
 let remoteDebounceTimer = null;
+/** @type {ReturnType<typeof setInterval> | null} */
+let periodicSyncId = null;
 
 /** After localStorage saves, upload is debounced so edits reach Firestore without waiting for the 90s page-load throttle. */
 const LOCAL_EDIT_MERGE_DEBOUNCE_MS = 2000;
@@ -338,7 +340,7 @@ function bootAccountSync() {
       const u = authRef && authRef.currentUser;
       return {
         configOk: firebaseConfigOk(window.__FIREBASE_CONFIG__),
-        syncStarted: true,
+        syncStarted,
         uid: u ? u.uid : null,
         emailVerified: !!(u && u.emailVerified),
         lastError: (function () {
