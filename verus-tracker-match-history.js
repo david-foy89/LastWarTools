@@ -1,5 +1,5 @@
 /**
- * Verus Tracker: Match history — our vs opponent lineup/plan + opponent intel per match date.
+ * Versus Tracker: Match history — our vs opponent lineup/plan + opponent intel per match date.
  * Stored in localStorage (verusMatchHistoryByWeekV1) keyed by calendar date (YYYY-MM-DD). Same sign-in gate as DS match history.
  */
 import { initializeApp, getApp, getApps } from "https://www.gstatic.com/firebasejs/9.22.2/firebase-app.js";
@@ -569,9 +569,9 @@ function openModal() {
   modal.setAttribute("aria-hidden", "false");
   document.body.style.overflow = "hidden";
   var mon = "";
-  if (typeof window.__lwVerusGetMatchHistoryDate === "function") {
+  if (typeof window.__lwVersusGetMatchHistoryDate === "function") {
     try {
-      mon = String(window.__lwVerusGetMatchHistoryDate() || "");
+      mon = String(window.__lwVersusGetMatchHistoryDate() || "");
     } catch (_) {
       mon = "";
     }

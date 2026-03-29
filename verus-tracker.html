@@ -3,10 +3,10 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Verus Tracker</title>
+    <title>Versus Tracker</title>
     <meta
       name="description"
-      content="Verus Tracker for Last War: Survival. Tracks players, weekly day scores, and VS Total."
+      content="Versus Tracker for Last War: Survival. Tracks players, weekly day scores, and VS Total."
     />
     <link rel="stylesheet" href="last-war-furnace-upgrade-calculator.css" />
     <script src="page-nav-dropdown.js" defer></script>
@@ -857,7 +857,7 @@
       </nav>
 
       <section class="hero">
-        <h1>Verus Tracker</h1>
+        <h1>Versus Tracker</h1>
         <div class="sub">
           Pick a calendar week; each week is stored separately in your browser.
           Monday–Saturday scores and VS Total (sum) use Desert Storm server-day timing:
@@ -2875,7 +2875,7 @@
         initWeekAndRows();
         renderTable();
 
-        window.__lwVerusGetMatchHistoryDate = function () {
+        window.__lwVersusGetMatchHistoryDate = function () {
           const dsPicker = document.getElementById("verusDsDayPicker");
           const v = dsPicker && dsPicker.value ? String(dsPicker.value).trim() : "";
           if (/^\d{4}-\d{2}-\d{2}$/.test(v)) return v;

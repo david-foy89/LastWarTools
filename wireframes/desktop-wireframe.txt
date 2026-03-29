@@ -1,16 +1,18 @@
 LAST WAR TOOLS - SHARED DESKTOP CALCULATOR WIREFRAME
 =====================================================
 
-[NOTE: As of 2026, all interactive map and calculator pages use a unified sidebar width and map/grid sizing for a consistent experience across all seasons. The "Export Map" feature is available on all maps, and import has been removed.]
+[NOTE: As of 2026, all interactive map and calculator pages use a unified sidebar width and map/grid sizing for a consistent experience across all seasons. The "Export Map" feature is available on all maps, and import has been removed. Top nav includes an Alliance Tools dropdown; some links are injected by page-nav-dropdown.js—see Versus / Transfer wireframe sections below.]
 
 +----------------------------------------------------------------------------------+
 | Top Support Bar: [Buy Me a Coffee]                                              |
 +----------------------------------------------------------------------------------+
 | Header: [LWST Logo]                                              [Language ▼]   |
 +----------------------------------------------------------------------------------+
-| Top Nav: [HQ] [Troop ▼] [Season 1 ▼] [Season 2 ▼] [Season 3 ▼] [Season 4 ▼]    |
-|          [Season 5 ▼]                                                           |
-|   Dropdowns contain links to each calculator page in that group.                |
+| Top Nav: [HQ] [Alliance Tools ▼] [Troop ▼] [Season 1 ▼] [Season 2 ▼] …        |
+|          [Season 3 ▼] [Season 4 ▼] [Season 5 ▼]                                 |
+|   Season dropdowns: calculators + interactive map per season.                   |
+|   Alliance Tools: Train Conductor, Transfer, Server Search (HTML) + injected      |
+|   links for Versus Tracker, Desert Storm, Alliance Hive (page-nav-dropdown.js).   |
 +----------------------------------------------------------------------------------+
 | Hero: Page Title + short subtitle                                                |
 +----------------------------------------------------------------------------------+
@@ -52,7 +54,7 @@ LAST WAR TOOLS - SUPPLIES CHECKLIST DESKTOP WIREFRAME
 +----------------------------------------------------------------------------------+
 | Header: [LWST Logo]                                              [Language ▼]   |
 +----------------------------------------------------------------------------------+
-| Top Nav: [HQ] [Troop ▼] [Season 1 ▼] [Season 2 ▼] [Season 3 ▼] ...            |
+| Top Nav: [HQ] [Alliance Tools ▼] [Troop ▼] [Season 1 ▼] … [Season 5 ▼]        |
 +----------------------------------------------------------------------------------+
 | [Shared Checklist Banner - shown only when a ?share= URL param is present]      |
 | "N completed supplies shared with you. Load them into your checklist?"          |
@@ -129,5 +131,62 @@ LAST WAR TOOLS - DESERT STORM TRACKER/PLANNER DESKTOP WIREFRAME
 | - Click map to place selected player marker                                        |
 | - Click marker to remove                                                           |
 | - Markers show player + assignment text                                            |
++----------------------------------------------------------------------------------+
+
+
+LAST WAR TOOLS - VERSUS TRACKER DESKTOP WIREFRAME
+=================================================
+(Used by: verus-tracker.html — product name "Versus Tracker")
+
++----------------------------------------------------------------------------------+
+| Top Support Bar: [Buy Me a Coffee]                                              |
++----------------------------------------------------------------------------------+
+| Header: [LWST Logo]   [optional account promo: Create account / Sign in / chip] |
+|                      [Language ▼]                                                |
++----------------------------------------------------------------------------------+
+| Top Nav: [HQ] [Alliance Tools ▼] [Troop ▼] [Season 1 ▼] … [Season 5 ▼]         |
++----------------------------------------------------------------------------------+
+| Hero: "Versus Tracker" + subtitle (week storage, DS server-day timing, OCR)      |
++----------------------------------------------------------------------------------+
+| Main card (single column, full width)                                            |
+| Week row: [Week type=week] [◀][▶]  DS day [date]  Mon–Sat range (live text)       |
+| Actions: [Add player] [Import names] [ ] Replace table  [Clear]  [Export CSV]   |
+|          [Match history] (when enabled)                                          |
+| OCR row: Screenshot→day [select]  OCR language [select]  [ ] Match roster only  |
+|          [Choose screenshot(s) or recording(s)]  [Import from screenshot/rec]    |
+|          Status line                                                                |
+|----------------------------------------------------------------------------------|
+| Table (horizontal scroll if needed)                                              |
+| # | Player | Mon Tue Wed Thu Fri Sat (sort buttons) | VS Total | Tech | …        |
+| - Editable cells; VS Total computed from week                                    |
++----------------------------------------------------------------------------------+
+
+
+LAST WAR TOOLS - TRANSFER TRACKER DESKTOP WIREFRAME
+===================================================
+(Used by: transfer-tracker.html — Firestore when configured)
+
++----------------------------------------------------------------------------------+
+| Top Support Bar + Header + Nav (same pattern as Versus; optional account promo)   |
++----------------------------------------------------------------------------------+
+| Hero: "Transfer Tracker" + subtitle                                              |
++----------------------------------------------------------------------------------+
+| [Optional banner] Firebase / config instructions if keys missing                 |
++----------------------------------------------------------------------------------+
+| Two-column TOP CARDS (CSS subgrid: intros + spacer + actions align across cols)  |
+| +-----------------------------+ +-----------------------------+                  |
+| | Create shareable link card  | | Import from file card        |                  |
+| | H2 + short description      | | H2 + short description       |                  |
+| | (vertical stretch)          | | (vertical stretch)           |                  |
+| | [Generate Unique Link]      | | [Choose File] [Upload]       |                  |
+| | [Leadership Link]           | | filename line                |                  |
+| +-----------------------------+ +-----------------------------+                  |
+| FULL-WIDTH row below cards: generated link(s) / leadership link output          |
++----------------------------------------------------------------------------------+
+| Filter bar: [toggle filters] search, selects, action buttons (collapsible mobile)  |
++----------------------------------------------------------------------------------+
+| Table: Name | S# | Current alliance | Squad power | Hero power | Target | Status  |
+|        | Info | … | row actions (edit/delete/info)                                 |
+| Footer / modals: mass delete, export, etc. as implemented                         |
 +----------------------------------------------------------------------------------+
 

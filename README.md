@@ -1,6 +1,6 @@
 # Last War Tools
 
-A lightweight set of browser-based tools for planning upgrades in Last War: Survival. The site includes a dedicated homepage plus HQ, troop planners, and Season 1 through Season 5 calculator pages with shared styling and consistent navigation.
+A lightweight set of browser-based tools for planning upgrades in Last War: Survival. The site includes a dedicated homepage, HQ and troop planners, Season 1 through Season 5 calculators and maps, alliance utilities (Desert Storm / Versus / transfer tracking, hive map, train conductor, server search), and an optional account page for cross-device sync where Firebase is configured.
 
 ## Live Site
 
@@ -31,9 +31,22 @@ Hosted on GitHub Pages via `index.html`.
 | `t10-troops-calculator.html`               | T10 troop research planner                            |
 | `t11-troops-calculator.html`               | T11 troop research planner                            |
 | `ds-tracker.html`                          | Desert Storm tracker/planner with OCR + map planning  |
-| `verus-tracker.html`                     | Verus tracker matching sheet columns (Tech/VS/Days) |
+| `verus-tracker.html`                       | Versus tracker: weekly Mon–Sat scores, VS total, OCR  |
+| `ds-tracker-match-history.js`              | Module: Desert Storm match history UI (loaded by DS)  |
+| `ds-tracker-fight-plan.js`                 | Module: fight-plan helpers for DS tracker             |
+| `verus-tracker-match-history.js`           | Module: Versus match history (loaded by tracker page) |
+| `transfer-tracker.html`                    | Alliance transfer intake: shareable links + Firestore |
+| `transfer-submit.html`                     | Public form target for generated transfer links       |
+| `alliance-hive.html`                       | Alliance hive layout / planning                       |
+| `train-conductor-schedule.html`            | Train conductor schedule tool                         |
+| `server-search.html`                       | Server search utility                                 |
+| `account.html`                             | Optional account: profile, username, cloud sync       |
+| `account-auth-modal.js`                    | Sign-in/up modal and promo-strip chip (ES module)   |
+| `account-sync-global.js`                   | Background merge of local data when signed in         |
+| `firebase-config.example.js`               | Template for Firebase web config (deploy as `firebase-config.js`) |
+| `language-translate.js`                    | Google Translate widget wiring                        |
 | `last-war-furnace-upgrade-calculator.css`  | Shared stylesheet for all calculator pages            |
-| `page-nav-dropdown.js`                     | Shared dropdown behavior for top navigation           |
+| `page-nav-dropdown.js`                     | Dropdowns, Alliance Tools link injection, account modal load |
 | `sitemap.xml`                              | SEO sitemap listing all public tool pages             |
 | `robots.txt`                               | Search crawler directives and sitemap reference       |
 | `media/lwst.png`                           | Site logo                                             |
@@ -46,11 +59,11 @@ Hosted on GitHub Pages via `index.html`.
 - HQ upgrade calculator with prerequisite tracking
 - Troop planners:
   - T10 research path planner with quick actions and focus filters
-    A lightweight set of browser-based tools for planning upgrades in Last War: Survival. The site includes a dedicated homepage plus HQ, troop planners, and Season 1 through Season 5 calculator pages with unified styling, navigation, and map layouts.
+  - T11 percentage-based research planner with prorated remaining totals
 - Season 1 calculators and planning tools:
   - Virus Research Institute
   - Squad Base
-  - Interactive Alliance Map (real-time territory planning, import/export)
+  - Interactive Alliance Map (real-time territory planning; export map; import removed)
 - Season 2 calculators:
   - Furnace (single resource + mine output ETA)
   - Squad Base (two resources + factory output ETA)
@@ -67,62 +80,48 @@ Hosted on GitHub Pages via `index.html`.
   - Caffeine Institute
   - Protector's Field S5
   - Squad Base
-- Desert Storm Tracker/Planner:
-  - Daily history with date picker and score-date navigation
-  - Player roster import from CSV/TXT/Excel (`.xlsx`, `.xls`)
-  - Screenshot OCR import and auto-matching to existing rows
-  - Filter/sort controls for roster management
-  - No-show tracking with persisted checkbox state
-  - Team-based map planning and PNG export
-- Verus Tracker:
-  - Table layout matching the provided Verus sheet columns
-  - Editable player and Monday–Saturday values; VS Total is computed from the week
-  - Import/export CSV (and Excel via upload) for spreadsheet workflow
-- Dedicated homepage describing what each calculator is used for
-- Buy Me a Coffee support link at the top of every page
-- Quick Start guidance block at the top of each calculator input card
-- Level cost dropdowns showing configured costs per tier
-- Alliance tech discount support (RSS reduction %)
-- Timezone selector with live current-time display
-- Multi-language support via Google Translate dropdown on every page (persisted)
-- Separate `localStorage` persistence per calculator page
-- Season 2 Supplies Checklist:
-  - Tracks all scattered supply coordinates by level (data from `season2_supplies_api.json`)
-  - Level dropdown selector with colored dot indicator
-  - Text search by coordinate or supply code
-  - Hide completed toggle
-  - Per-level and overall progress bars
-
-## Features
-
 - Unified interactive map tools for Seasons 1–5:
-  - Consistent sidebar width and map area sizing across all seasons
-  - "Export Map" feature for sharing plans (replaces "Export Plan")
-  - Import feature removed for simplicity and reliability
-  - Shared navigation, styling, and layout for all calculators
-- HQ upgrade calculator with prerequisite tracking
-- Troop planners:
-  - T10 research path planner with quick actions and focus filters
-  - T11 percentage-based research planner with prorated remaining totals
-- Season calculators and planning tools:
-  - Virus Research Institute
-  - Squad Base
+  - Consistent sidebar width and map area sizing
+  - "Export Map" for sharing plans
+  - Shared navigation, styling, and layout with calculator pages
+- **Alliance Tools** (dropdown in the top nav; `page-nav-dropdown.js` ensures Transfer, Versus, Desert Storm, and Alliance Hive links are present alongside any links authored in HTML):
+  - Desert Storm Tracker/Planner: day history, score-date navigation, roster import (CSV/TXT/Excel), screenshot/video OCR, filter/sort, no-show checkboxes, team map + PNG export
+  - Versus Tracker: weekly Mon–Sat scores and VS total (Desert Storm server-day timing), CSV/Excel import/export, screenshot/recording OCR, optional match history when wired to DS
+  - Transfer Tracker: generate shareable applicant links (and leadership link), Excel/CSV import, Firestore-backed table when `firebase-config.js` is set
+  - Alliance Hive, Train Conductor, Server Search (as linked from the dropdown)
+- Optional **account** strip on many pages: local tools work without sign-in; `account.html` + Firebase enable profile and cross-device sync where implemented
+- Dedicated homepage describing major tools
+- Buy Me a Coffee support link at the top of every page
+- Quick Start guidance on calculator input cards
+- Level cost dropdowns, alliance tech RSS reduction, and timezone + live clock on calculators that use them
+- Multi-language support via Google Translate (persisted)
+- Separate `localStorage` persistence per calculator page (unless a page uses cloud storage)
+- Season 2 Supplies Checklist:
+  - Coordinates from `season2_supplies_api.json`
+  - Level selector, search, hide completed, per-level and overall progress
+
 
 ## How To Use
 
+1. Open `index.html` to view the homepage and calculator overview.
+2. Use the top navigation for **HQ Upgrade**, **Troop Tools**, **Season 1–5** dropdowns, and **Alliance Tools** (Desert Storm, Versus, Transfer, Hive, Train Conductor, Server Search—exact set may include HTML-authored links plus injected links from `page-nav-dropdown.js`).
+3. On standard calculators, enter your current level and resource values; set workshop/mine/factory levels where the page models income.
+4. Set alliance tech RSS reduction and timezone when those controls appear.
+5. Review summary tiles for deficits, ETA, and ready-time estimates.
+6. For alliance trackers and transfer tools, follow each page’s hero text and controls (week/day pickers, import buttons, or Firebase setup banners as applicable).
+
 ## Wireframes
 
-See `wireframes/desktop-wireframe.txt` and `wireframes/mobile-wireframe.txt` for shared layout patterns. All interactive map and calculator pages now use a unified sidebar and map/grid sizing for a consistent experience across all seasons.
+ASCII wireframes live in:
 
-1. Open `index.html` to view the homepage and calculator overview.
-2. Use the top navigation to choose Troop, Season 1, Season 2, Season 3, Season 4, or Season 5 calculators.
-3. Enter your current level and current resource values.
-4. For calculators with income modeling, set workshop/mine/factory levels.
-5. Set alliance tech RSS reduction and timezone.
-6. Review the summary tiles for deficits, ETA, and ready-time estimates.
+- `wireframes/desktop-wireframe.txt` — shared two-column calculator layout, Season 2 supplies checklist, Desert Storm tracker, **Versus Tracker**, **Transfer Tracker**.
+- `wireframes/mobile-wireframe.txt` — stacked-card layouts for the same page types.
+
+Interactive maps use a unified sidebar and map area across seasons; tracker pages follow the shared header, nav, and hero pattern from the main stylesheet.
 
 ## Data Notes
 
+- Pages that use Firebase (for example `transfer-tracker.html`, `account.html`) expect `firebase-config.js` beside the HTML; copy from `firebase-config.example.js` and supply real project values where documented in-repo.
 - Calculator cost data and hourly output tables are stored as JavaScript arrays inside each page's `<script>` block.
 - Examples include `titaniumCosts`, `squadBaseCosts`, `quartzCosts`, `protectorsFieldS4Costs`, and `lighthouseS4Costs`.
 - Output tables are page-specific (mine/workshop/factory arrays), and are used to compute ETA and ready-time displays.
@@ -137,5 +136,5 @@ See `wireframes/desktop-wireframe.txt` and `wireframes/mobile-wireframe.txt` for
 
 - Shared style tokens, spacing, cards, grid, and navigation: edit `last-war-furnace-upgrade-calculator.css`.
 - Calculator-specific labels, costs, output tables, and ETA logic: edit the relevant calculator HTML file.
-- Navigation links are duplicated across pages; when adding/removing a calculator page, update the nav block in each HTML file.
-- When adding/removing pages, also update `sitemap.xml` and ensure canonical URLs remain correct.
+- Navigation links are duplicated across pages; when adding/removing a calculator page, update the nav block in each HTML file. The **Alliance Tools** menu also gets **Transfer Tracker**, **Versus Tracker**, **Desert Storm Tracker/Planner**, and **Alliance Hive** appended at runtime if missing—see `ensureAllianceToolsLinks` in `page-nav-dropdown.js`.
+- When adding/removing public pages, update `sitemap.xml` and keep canonical URLs correct.

@@ -1,15 +1,15 @@
 LAST WAR TOOLS - SHARED MOBILE CALCULATOR WIREFRAME
 ===================================================
 
-[NOTE: As of 2026, all interactive map and calculator pages use a unified sidebar width and map/grid sizing for a consistent experience across all seasons. The "Export Map" feature is available on all maps, and import has been removed.]
+[NOTE: As of 2026, all interactive map and calculator pages use a unified sidebar width and map/grid sizing for a consistent experience across all seasons. The "Export Map" feature is available on all maps, and import has been removed. Nav rows below include Alliance Tools (abbreviated "Alliance ▼" on small screens).]
 
 +----------------------------------------------+
 | Top Support: [Buy Me a Coffee]               |
 +----------------------------------------------+
 | Header: [LWST Logo]          [Language ▼]    |
 +----------------------------------------------+
-| Nav row: [HQ] [Troop ▼] [S1 ▼] [S2 ▼]        |
-|          [S3 ▼] [S4 ▼] [S5 ▼]                |
+| Nav row: [HQ] [Alliance ▼] [Troop ▼] [S1 ▼]  |
+|          [S2 ▼] [S3 ▼] [S4 ▼] [S5 ▼]         |
 +----------------------------------------------+
 | Hero: Title + subtitle                        |
 +----------------------------------------------+
@@ -58,7 +58,7 @@ LAST WAR TOOLS - SUPPLIES CHECKLIST MOBILE WIREFRAME
 +----------------------------------------------+
 | Header: [LWST Logo]          [Language ▼]    |
 +----------------------------------------------+
-| Nav row: [HQ] [Troop ▼] [S1 ▼] [S2 ▼] ...   |
+| Nav row: [HQ] [Alliance ▼] [Troop ▼] [S1 ▼] … |
 +----------------------------------------------+
 | [Shared Checklist Banner - conditional]       |
 | "N supplies shared with you."                 |
@@ -109,7 +109,7 @@ LAST WAR TOOLS - DESERT STORM TRACKER/PLANNER MOBILE WIREFRAME
 +----------------------------------------------+
 | Header: [LWST Logo]          [Language ▼]    |
 +----------------------------------------------+
-| Nav row: [HQ] [Troop ▼] [S1 ▼] [S2 ▼] ...   |
+| Nav row: [HQ] [Alliance ▼] [Troop ▼] [S1 ▼] … |
 +----------------------------------------------+
 | Hero: "Desert Storm Tracker/Planner"         |
 +----------------------------------------------+
@@ -142,5 +142,52 @@ LAST WAR TOOLS - DESERT STORM TRACKER/PLANNER MOBILE WIREFRAME
 | [Team A/B] [Player dropdown]                 |
 | [Clear team] [Export PNG] [Close]            |
 | Tap map to place marker, tap marker remove   |
++----------------------------------------------+
+
+
+LAST WAR TOOLS - VERSUS TRACKER MOBILE WIREFRAME
+================================================
+(Used by: verus-tracker.html)
+
++----------------------------------------------+
+| Top Support + Logo + Language (+ account promo)|
+| Nav: [HQ] [Alliance ▼] [Troop ▼] [S1 ▼] …   |
++----------------------------------------------+
+| Hero: Versus Tracker + subtitle               |
++----------------------------------------------+
+| CARD: Week controls (picker + arrows + DS day)|
+| Actions stack/wrap: Add, Import, Replace, Clear|
+| Export CSV; Match history if shown            |
++----------------------------------------------+
+| CARD: OCR (day, language, match-only, files)  |
+| [Import] + status                              |
++----------------------------------------------+
+| TABLE (horizontal scroll): Player, days, VS…  |
++----------------------------------------------+
+
+
+LAST WAR TOOLS - TRANSFER TRACKER MOBILE WIREFRAME
+==================================================
+(Used by: transfer-tracker.html)
+
++----------------------------------------------+
+| Top Support + Logo + Language (+ account promo)|
+| Nav row (wrap): [HQ] [Alliance ▼] [Troop ▼]… |
++----------------------------------------------+
+| Hero: Transfer Tracker                        |
+| [Firebase config banner if needed]           |
++----------------------------------------------+
+| TOP: Generate-link card (stacked full width) |
+|   H2, desc, [Generate Unique Link]             |
+|   [Leadership Link]                            |
++----------------------------------------------+
+| TOP: Import card (stacked)                     |
+|   H2, desc, [Choose File] [Upload], filename   |
++----------------------------------------------+
+| Generated / leadership link output (full w.)  |
++----------------------------------------------+
+| Filter bar (collapsible; controls full width)  |
++----------------------------------------------+
+| Data table (horizontal scroll)               |
 +----------------------------------------------+
 
