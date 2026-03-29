@@ -381,8 +381,6 @@
       const allianceTechSelect = document.getElementById("allianceTechSelect");
       const languageSelect = document.getElementById("languageSelect");
       const STORAGE_KEY = "lastWarSeason5SquadBaseCalcStateV1";
-      let lastCalcSignature = "";
-      let lockedReadyAtTimestampMs = null;
       let preferredLanguage = "en";
 
       const languageOptions = [
@@ -500,21 +498,6 @@
           minute: "2-digit",
           hour12: true,
         }).format(targetDate);
-      }
-
-      function formatReadyAtFromTimestamp(timestampMs, timeZone) {
-        if (!Number.isFinite(timestampMs)) {
-          return "No output";
-        }
-
-        return new Intl.DateTimeFormat(undefined, {
-          timeZone,
-          month: "short",
-          day: "numeric",
-          hour: "numeric",
-          minute: "2-digit",
-          hour12: true,
-        }).format(new Date(timestampMs));
       }
 
       function formatCurrentTime(timeZone) {
@@ -732,8 +715,6 @@
             allianceTech: Number(allianceTechSelect.value || 0),
             language: languageSelect.value,
             mineLevels,
-            lockedReadyAtTimestampMs,
-            lastCalcSignature,
           };
 
           localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
@@ -815,13 +796,6 @@
             }
           }
 
-          if (Number.isFinite(Number(state.lockedReadyAtTimestampMs))) {
-            lockedReadyAtTimestampMs = Number(state.lockedReadyAtTimestampMs);
-          }
-
-          if (typeof state.lastCalcSignature === "string") {
-            lastCalcSignature = state.lastCalcSignature;
-          }
         } catch {
           // Ignore malformed or inaccessible stored state
         }
@@ -883,25 +857,7 @@
             : Infinity;
         const selectedTimeZone = timeZoneSelect.value;
 
-        const calcSignature = [
-          currentLevel,
-          targetLevel,
-          currentCoffee,
-          allianceTechPct,
-          getMineLevelsSignature(),
-        ].join("|");
-
-        if (calcSignature !== lastCalcSignature) {
-          if (!ready && Number.isFinite(estimatedHours)) {
-            lockedReadyAtTimestampMs =
-              Date.now() + estimatedHours * 3600 * 1000;
-          } else {
-            lockedReadyAtTimestampMs = null;
-          }
-          lastCalcSignature = calcSignature;
-        }
-
-        nextLevelValue.textContent = `Lv ${currentLevel + 1}`;
+        nextLevelValue.textContent = `Lv ${targetLevel}`;
         requiredValue.textContent = formatResource(requiredCoffee);
         ownedValue.textContent = formatResource(currentCoffee);
         deficitValue.textContent = formatResource(remainingCoffee);
@@ -910,12 +866,7 @@
         etaValue.className = `tile-value ${ready ? "ok" : totalOutputPerHour > 0 ? "" : "warn"}`;
         readyAtValue.textContent = ready
           ? "Now"
-          : Number.isFinite(lockedReadyAtTimestampMs)
-            ? formatReadyAtFromTimestamp(
-                lockedReadyAtTimestampMs,
-                selectedTimeZone,
-              )
-            : formatReadyAt(estimatedHours, selectedTimeZone);
+          : formatReadyAt(estimatedHours, selectedTimeZone);
         readyAtValue.className = `tile-value ${ready ? "ok" : totalOutputPerHour > 0 ? "" : "warn"}`;
         pathValue.textContent =
           targetLevel <= currentLevel + 1
