@@ -76,7 +76,11 @@
         width: min(820px, 100%);
         max-height: min(86vh, 820px);
         overflow: hidden;
-        background: linear-gradient(180deg, var(--panel) 0%, var(--panel-2) 100%);
+        background: linear-gradient(
+          180deg,
+          var(--panel) 0%,
+          var(--panel-2) 100%
+        );
         border: 1px solid var(--line-soft);
         border-radius: 16px;
         box-shadow: 0 18px 70px rgba(0, 0, 0, 0.45);
@@ -157,18 +161,173 @@
         white-space: normal;
       }
 
+      /*
+        Top cards: parent grid rows (auto / 1fr / auto) + subgrid on each panel so left & right
+        share identical row heights — intros, middle stretch, and action rows line up exactly.
+        column-gap only (row-gap would separate intro from spacer inside each card).
+      */
+      .transfer-top-cards {
+        --transfer-top-btn-h: 2.65rem;
+        --transfer-top-gap: 10px;
+        --transfer-top-file-line: 1.35em;
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        grid-template-rows: auto 1fr auto auto;
+        column-gap: 24px;
+        row-gap: 0;
+        align-items: stretch;
+        width: 100%;
+        margin-top: 0;
+      }
+
+      .transfer-top-card {
+        min-width: 0;
+        display: grid;
+        grid-template-rows: subgrid;
+        grid-row: 1 / 4;
+        background: linear-gradient(180deg, var(--panel) 0%, var(--panel-2) 100%);
+        border: 1px solid var(--line-soft);
+        border-radius: 16px;
+        box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+        padding: 18px 14px 14px;
+        margin: 0;
+        box-sizing: border-box;
+      }
+
+      #generateLinkForm.transfer-top-card {
+        grid-column: 1;
+      }
+
+      #transferImportTopCard.transfer-top-card {
+        grid-column: 2;
+      }
+
+      .transfer-top-card > .transfer-top-card__intro {
+        grid-row: 1;
+      }
+
+      .transfer-top-card > .transfer-top-card__spacer {
+        grid-row: 2;
+      }
+
+      .transfer-top-card > .transfer-top-card__actions {
+        grid-row: 3;
+      }
+
+      .transfer-top-card__intro {
+        display: flex;
+        flex-direction: column;
+        min-height: 0;
+      }
+
+      .transfer-top-card__spacer {
+        min-height: 0;
+      }
+
+      .transfer-top-card__intro h2 {
+        margin: 0 0 8px;
+        color: var(--accent);
+        font-size: 1.1rem;
+        line-height: 1.25;
+      }
+
+      .transfer-top-card__desc {
+        margin: 0;
+        color: var(--muted);
+        font-size: 0.98rem;
+        line-height: 1.45;
+      }
+
+      .transfer-top-card__actions {
+        display: flex;
+        flex-direction: column;
+        gap: var(--transfer-top-gap);
+        align-items: stretch;
+        width: 100%;
+        min-height: 0;
+        justify-content: flex-start;
+        align-self: stretch;
+      }
+
+      .transfer-top-card__actions .action-button,
+      .transfer-top-card__actions label.action-button {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        box-sizing: border-box;
+        width: 100%;
+        min-height: var(--transfer-top-btn-h);
+        min-width: 0;
+        padding: 0.5rem 14px;
+        font-size: 0.98rem;
+        line-height: 1.2;
+        text-align: center;
+      }
+
+      .transfer-top-card__file-name {
+        display: block;
+        min-height: var(--transfer-top-file-line);
+        margin: 0;
+        font-size: 0.92rem;
+        color: var(--muted);
+        word-break: break-all;
+      }
+
+      .transfer-top-cards__results {
+        grid-column: 1 / -1;
+        grid-row: 4;
+        display: flex;
+        flex-direction: column;
+        gap: 10px;
+        min-width: 0;
+        margin-top: 24px;
+      }
+
+      /* Browsers without subgrid: stack panels with flex (alignment between columns N/A) */
+      @supports not (grid-template-rows: subgrid) {
+        .transfer-top-cards {
+          grid-template-rows: none;
+        }
+        .transfer-top-card {
+          display: flex;
+          flex-direction: column;
+          grid-row: auto;
+        }
+        #generateLinkForm.transfer-top-card {
+          grid-column: 1;
+        }
+        #transferImportTopCard.transfer-top-card {
+          grid-column: 2;
+        }
+        .transfer-top-card__spacer {
+          flex: 1 1 auto;
+        }
+        .transfer-top-cards__results {
+          grid-row: auto;
+          margin-top: 0;
+        }
+      }
+
       /* Top cards responsiveness */
       @media (max-width: 920px) {
-        #transferTopCards {
-          gap: 14px !important;
+        .transfer-top-cards {
+          grid-template-columns: 1fr;
+          grid-template-rows: none;
+          column-gap: 0;
+          row-gap: 14px;
         }
-        #transferTopCards > * {
-          flex: 1 1 100% !important;
+        .transfer-top-card {
+          display: flex;
+          flex-direction: column;
+          grid-column: 1 !important;
+          grid-row: auto !important;
         }
-        #importFileName {
-          display: block;
-          margin-left: 0 !important;
-          margin-top: 8px;
+        .transfer-top-card__spacer {
+          flex: 1 1 auto;
+        }
+        .transfer-top-cards__results {
+          grid-row: auto;
+          margin-top: 0;
         }
       }
 
@@ -253,12 +412,15 @@
       <div class="page-top-stack">
         <aside class="account-promo-strip" aria-label="Optional account">
           <p class="account-promo-strip__text">
-            <strong>No account required.</strong> Every calculator works in your browser without signing up.
-            Create a free account only if you want to sync saved data across devices.
+            <strong>No account required.</strong> Every calculator works in your
+            browser without signing up. Create a free account only if you want
+            to sync saved data across devices.
           </p>
           <div class="account-promo-actions">
             <a href="account.html" class="action-button">Create account</a>
-            <a href="account.html" class="action-button action-button--quiet">Sign in</a>
+            <a href="account.html" class="action-button action-button--quiet"
+              >Sign in</a
+            >
           </div>
         </aside>
         <div class="page-top-controls">
@@ -284,7 +446,9 @@
             <a href="train-conductor-schedule.html" class="page-link"
               >Train Conductor</a
             >
-            <a href="transfer-tracker.html" class="page-link">Transfer Tracker</a>
+            <a href="transfer-tracker.html" class="page-link"
+              >Transfer Tracker</a
+            >
             <a href="server-search.html" class="page-link">Server Search</a>
           </div>
         </details>
@@ -412,165 +576,63 @@
         "
       ></div>
       <section class="layout" style="display: block; padding: 0">
-        <div
-          id="transferTopCards"
-          style="
-            display: flex;
-            flex-wrap: wrap;
-            gap: 24px;
-            margin-top: 0;
-            align-items: stretch;
-            justify-content: flex-start;
-            width: 100%;
-          "
-        >
-          <form
-            id="generateLinkForm"
-            style="
-              flex: 1 1 0;
-              min-width: 0;
-              max-width: none;
-              background: linear-gradient(
-                180deg,
-                var(--panel) 0%,
-                var(--panel-2) 100%
-              );
-              border: 1px solid var(--line-soft);
-              border-radius: 16px;
-              box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
-              padding: 18px 14px 14px 14px;
-              margin-bottom: 0;
-              display: flex;
-              flex-direction: column;
-              justify-content: flex-start;
-            "
-          >
-            <h2 style="margin-top: 0; color: var(--accent); font-size: 1.1rem">
-              Create a Shareable Transfer Form Link
-            </h2>
-            <div
-              style="
-                margin-bottom: 12px;
-                color: var(--muted);
-                font-size: 0.98rem;
-              "
-            >
-              Generate a unique link for someone else to fill out a transfer
-              application. When they submit, their info will appear in the table
-              below.
+        <div id="transferTopCards" class="transfer-top-cards">
+          <form id="generateLinkForm" class="transfer-top-card">
+            <div class="transfer-top-card__intro">
+              <h2>Create a Shareable Transfer Form Link</h2>
+              <p class="transfer-top-card__desc">
+                Generate a unique link for someone else to fill out a transfer application. When they
+                submit, their info will appear in the table below.
+              </p>
             </div>
-            <button
-              type="submit"
-              class="action-button"
-              style="min-width: 140px; padding: 6px 14px; font-size: 0.98rem"
-            >
-              Generate Unique Link
-            </button>
-            <button
-              type="button"
-              id="generateLeadershipLinkBtn"
-              class="action-button"
-              style="
-                min-width: 140px;
-                padding: 6px 14px;
-                font-size: 0.98rem;
-                margin-top: 10px;
-              "
-            >
-              Leadership Link
-            </button>
-            <div
-              id="shareableLinkResult"
-              style="margin-top: 12px; word-break: break-all"
-            ></div>
-            <div
-              id="leadershipLinkResult"
-              style="margin-top: 10px; word-break: break-all"
-            ></div>
+            <div class="transfer-top-card__spacer" aria-hidden="true"></div>
+            <div class="transfer-top-card__actions">
+              <button type="submit" class="action-button">Generate Unique Link</button>
+              <button type="button" id="generateLeadershipLinkBtn" class="action-button">
+                Leadership Link
+              </button>
+            </div>
           </form>
-          <div
-            style="
-              flex: 1 1 0;
-              min-width: 0;
-              max-width: none;
-              background: linear-gradient(
-                180deg,
-                var(--panel) 0%,
-                var(--panel-2) 100%
-              );
-              border: 1px solid var(--line-soft);
-              border-radius: 16px;
-              box-shadow: 0 8px 32px rgba(0, 0, 0, 0.08);
-              padding: 18px 14px 14px 14px;
-              display: flex;
-              flex-direction: column;
-              min-height: 160px;
-              justify-content: flex-start;
-            "
-          >
-            <h2 style="margin-top: 0; color: var(--accent); font-size: 1.1rem">
-              Import Transfers from File
-            </h2>
-            <div
-              style="
-                margin-bottom: 12px;
-                color: var(--muted);
-                font-size: 0.98rem;
-              "
-            >
-              Upload a CSV or Excel file to import multiple transfers at once.
+          <div id="transferImportTopCard" class="transfer-top-card">
+            <div class="transfer-top-card__intro">
+              <h2>Import Transfers from File</h2>
+              <p class="transfer-top-card__desc">
+                Upload a CSV or Excel file to import multiple transfers at once.
+              </p>
             </div>
-            <input
-              type="file"
-              id="importFile"
-              accept=".csv, application/vnd.openxmlformats-officedocument.spreadsheetml.sheet, application/vnd.ms-excel"
-              style="display: none"
-            />
-            <label
-              for="importFile"
-              id="importFileLabel"
-              class="action-button"
-              style="
-                margin-bottom: 10px;
-                text-align: center;
-                cursor: pointer;
-                display: inline-block;
-                font-size: 0.98rem;
-                min-width: 140px;
-                padding: 6px 14px;
-              "
-            >
-              Choose File
-            </label>
-            <span
-              id="importFileName"
-              style="margin-left: 8px; font-size: 0.98rem; color: var(--muted)"
-            ></span>
-            <button
-              type="button"
-              id="importBtn"
-              class="action-button"
-              style="
-                min-width: 140px;
-                padding: 6px 14px;
-                font-size: 0.98rem;
-                margin-top: 10px;
-              "
-            >
-              Upload
-            </button>
-            <script>
-              const importFileInput = document.getElementById("importFile");
-              const importFileName = document.getElementById("importFileName");
-              importFileInput.addEventListener("change", function () {
-                importFileName.textContent =
-                  importFileInput.files.length > 0
-                    ? importFileInput.files[0].name
-                    : "";
-              });
-            </script>
+            <div class="transfer-top-card__spacer" aria-hidden="true"></div>
+            <div class="transfer-top-card__actions">
+              <input
+                type="file"
+                id="importFile"
+                accept=".csv, application/vnd.openxmlformats-officedocument.spreadsheetml.sheet, application/vnd.ms-excel"
+                style="display: none"
+              />
+              <label for="importFile" id="importFileLabel" class="action-button" style="cursor: pointer">
+                Choose File
+              </label>
+              <button type="button" id="importBtn" class="action-button">Upload</button>
+              <span id="importFileName" class="transfer-top-card__file-name" aria-live="polite"></span>
+            </div>
+          </div>
+          <div class="transfer-top-cards__results">
+            <div id="shareableLinkResult" style="word-break: break-all"></div>
+            <div id="leadershipLinkResult" style="word-break: break-all"></div>
           </div>
         </div>
+        <script>
+          (function () {
+            const importFileInput = document.getElementById("importFile");
+            const importFileName = document.getElementById("importFileName");
+            if (!importFileInput || !importFileName) return;
+            importFileInput.addEventListener("change", function () {
+              importFileName.textContent =
+                importFileInput.files.length > 0
+                  ? importFileInput.files[0].name
+                  : "";
+            });
+          })();
+        </script>
         <script type="module">
           import { initializeApp } from "https://www.gstatic.com/firebasejs/9.22.2/firebase-app.js";
           import {
@@ -659,7 +721,9 @@
           function getCurrentListId() {
             try {
               const params = new URLSearchParams(window.location.search);
-              const raw = String(params.get("list") || "").trim().toLowerCase();
+              const raw = String(params.get("list") || "")
+                .trim()
+                .toLowerCase();
               // Keep IDs URL-safe and predictable.
               return raw.replace(/[^a-z0-9_-]/g, "");
             } catch {
@@ -741,10 +805,14 @@
             if (!modal || !titleEl || !bodyEl) return;
 
             const name = row && row.displayName ? String(row.displayName) : "";
-            const server = row && row.serverNumber ? String(row.serverNumber) : "";
-            const title = (name ? name : "Player") + (server ? " (S" + server + ")" : "");
+            const server =
+              row && row.serverNumber ? String(row.serverNumber) : "";
+            const title =
+              (name ? name : "Player") + (server ? " (S" + server + ")" : "");
             titleEl.textContent = title;
-            bodyEl.textContent = String((row && row.additionalInfo) || "").trim();
+            bodyEl.textContent = String(
+              (row && row.additionalInfo) || "",
+            ).trim();
             modal.style.display = "flex";
           }
 
@@ -776,7 +844,8 @@
             list.innerHTML = "";
             safeRows.forEach((r) => {
               const id = String(r._docId);
-              const name = String(r.displayName || "").trim() || "Unnamed player";
+              const name =
+                String(r.displayName || "").trim() || "Unnamed player";
               const server = String(r.serverNumber || "").trim();
               const label = document.createElement("label");
               label.className = "mass-delete-item";
@@ -793,7 +862,8 @@
               `;
               list.appendChild(label);
             });
-            count.textContent = "Selected: " + safeRows.length + " of " + safeRows.length;
+            count.textContent =
+              "Selected: " + safeRows.length + " of " + safeRows.length;
             modal.style.display = "flex";
             return new Promise((resolve) => {
               massDeletePickerResolve = resolve;
@@ -991,14 +1061,19 @@
 
           async function exportTableAsImage() {
             if (!window.html2canvas) {
-              alert("Image export library is not loaded yet. Please try again.");
+              alert(
+                "Image export library is not loaded yet. Please try again.",
+              );
               return;
             }
             const table = document.querySelector(".transfer-table");
             if (!table) return;
             const canvas = await window.html2canvas(table, {
               backgroundColor: null,
-              scale: Math.max(2, Math.floor((window.devicePixelRatio || 1) * 2)),
+              scale: Math.max(
+                2,
+                Math.floor((window.devicePixelRatio || 1) * 2),
+              ),
               useCORS: true,
             });
             const blob = await new Promise((resolve) =>
@@ -1123,16 +1198,23 @@
             const sortEl = document.getElementById("transferSortSelect");
             const exportEl = document.getElementById("transferExportSelect");
             const exportBtn = document.getElementById("transferExportBtn");
-            const bulkDeleteBtn = document.getElementById("transferBulkDeleteBtn");
-            const clearListBtn = document.getElementById("transferClearListBtn");
+            const bulkDeleteBtn = document.getElementById(
+              "transferBulkDeleteBtn",
+            );
+            const clearListBtn = document.getElementById(
+              "transferClearListBtn",
+            );
             const filterBar = document.getElementById("transferFilterBar");
-            const toggleBtn = document.getElementById("transferFilterToggleBtn");
+            const toggleBtn = document.getElementById(
+              "transferFilterToggleBtn",
+            );
 
             const FILTER_COLLAPSE_KEY = "transferFiltersCollapsed";
             function setCollapsed(collapsed) {
               const next = collapsed ? true : false;
               if (filterBar) filterBar.classList.toggle("is-collapsed", next);
-              if (toggleBtn) toggleBtn.textContent = next ? "Expand" : "Collapse";
+              if (toggleBtn)
+                toggleBtn.textContent = next ? "Expand" : "Collapse";
               try {
                 localStorage.setItem(FILTER_COLLAPSE_KEY, next ? "1" : "0");
               } catch {
@@ -1338,7 +1420,9 @@
                 }
               };
 
-              const isConfirmedCb = cb.classList.contains("confirmed-transfer-cb");
+              const isConfirmedCb = cb.classList.contains(
+                "confirmed-transfer-cb",
+              );
               const isDeniedCb = cb.classList.contains("denied-transfer-cb");
               // Immediate UI feedback; snapshot will reconcile afterwards.
               if (isConfirmedCb) applyConfirmedStyle(next);
@@ -1466,7 +1550,11 @@
                 submitUrl.searchParams.set("list", currentListId);
               }
               const url = submitUrl.href;
-              renderCopyableLink("shareableLinkResult", url, "Share this link:");
+              renderCopyableLink(
+                "shareableLinkResult",
+                url,
+                "Share this link:",
+              );
               let pending = JSON.parse(
                 localStorage.getItem("pendingTransferLinks") || "[]",
               );
@@ -1483,73 +1571,77 @@
             "generateLeadershipLinkBtn",
           );
           if (generateLeadershipLinkBtn) {
-            generateLeadershipLinkBtn.addEventListener("click", async function () {
-              // If already inside a shared leadership list, just re-share that live URL.
-              if (currentListId) {
-                const currentUrl = new URL(window.location.href);
-                currentUrl.searchParams.set("list", currentListId);
-                renderCopyableLink(
-                  "leadershipLinkResult",
-                  currentUrl.href,
-                  "Leadership link (live shared list):",
-                );
-                return;
-              }
-
-              if (!db) {
-                alert(
-                  "Firebase is not configured. Configure firebase first to create a live leadership list.",
-                );
-                return;
-              }
-
-              const listId = generateId(14);
-              const trackerUrl = new URL(window.location.href);
-              trackerUrl.searchParams.set("list", listId);
-
-              const rowsToShare = (lastTransferRows || []).filter(
-                (r) => r && r._docId,
-              );
-
-              generateLeadershipLinkBtn.disabled = true;
-              const prevText = generateLeadershipLinkBtn.textContent;
-              generateLeadershipLinkBtn.textContent = "Creating…";
-              try {
-                let ok = 0;
-                let fail = 0;
-                for (let i = 0; i < rowsToShare.length; i++) {
-                  const row = rowsToShare[i];
-                  const id = String(row._docId || "");
-                  if (!id) continue;
-                  try {
-                    await updateDoc(doc(db, "transferSubmissions", id), {
-                      listId: listId,
-                    });
-                    ok++;
-                  } catch {
-                    fail++;
-                  }
-                }
-
-                renderCopyableLink(
-                  "leadershipLinkResult",
-                  trackerUrl.href,
-                  "Leadership link (live shared list):",
-                );
-
-                if (fail > 0) {
-                  alert(
-                    "Leadership link created, but some rows could not be added to the shared list.\n\nShared: " +
-                      ok +
-                      "\nFailed: " +
-                      fail,
+            generateLeadershipLinkBtn.addEventListener(
+              "click",
+              async function () {
+                // If already inside a shared leadership list, just re-share that live URL.
+                if (currentListId) {
+                  const currentUrl = new URL(window.location.href);
+                  currentUrl.searchParams.set("list", currentListId);
+                  renderCopyableLink(
+                    "leadershipLinkResult",
+                    currentUrl.href,
+                    "Leadership link (live shared list):",
                   );
+                  return;
                 }
-              } finally {
-                generateLeadershipLinkBtn.disabled = false;
-                generateLeadershipLinkBtn.textContent = prevText || "Leadership Link";
-              }
-            });
+
+                if (!db) {
+                  alert(
+                    "Firebase is not configured. Configure firebase first to create a live leadership list.",
+                  );
+                  return;
+                }
+
+                const listId = generateId(14);
+                const trackerUrl = new URL(window.location.href);
+                trackerUrl.searchParams.set("list", listId);
+
+                const rowsToShare = (lastTransferRows || []).filter(
+                  (r) => r && r._docId,
+                );
+
+                generateLeadershipLinkBtn.disabled = true;
+                const prevText = generateLeadershipLinkBtn.textContent;
+                generateLeadershipLinkBtn.textContent = "Creating…";
+                try {
+                  let ok = 0;
+                  let fail = 0;
+                  for (let i = 0; i < rowsToShare.length; i++) {
+                    const row = rowsToShare[i];
+                    const id = String(row._docId || "");
+                    if (!id) continue;
+                    try {
+                      await updateDoc(doc(db, "transferSubmissions", id), {
+                        listId: listId,
+                      });
+                      ok++;
+                    } catch {
+                      fail++;
+                    }
+                  }
+
+                  renderCopyableLink(
+                    "leadershipLinkResult",
+                    trackerUrl.href,
+                    "Leadership link (live shared list):",
+                  );
+
+                  if (fail > 0) {
+                    alert(
+                      "Leadership link created, but some rows could not be added to the shared list.\n\nShared: " +
+                        ok +
+                        "\nFailed: " +
+                        fail,
+                    );
+                  }
+                } finally {
+                  generateLeadershipLinkBtn.disabled = false;
+                  generateLeadershipLinkBtn.textContent =
+                    prevText || "Leadership Link";
+                }
+              },
+            );
           }
 
           initTransferFilters();
@@ -1560,10 +1652,18 @@
             const modal = document.getElementById("additionalInfoModal");
             const closeBtn = document.getElementById("additionalInfoCloseBtn");
             const massModal = document.getElementById("massDeleteModal");
-            const massCancelBtn = document.getElementById("massDeleteCancelBtn");
-            const massDeleteBtn = document.getElementById("massDeleteConfirmBtn");
-            const massSelectAllBtn = document.getElementById("massDeleteSelectAllBtn");
-            const massSelectNoneBtn = document.getElementById("massDeleteSelectNoneBtn");
+            const massCancelBtn = document.getElementById(
+              "massDeleteCancelBtn",
+            );
+            const massDeleteBtn = document.getElementById(
+              "massDeleteConfirmBtn",
+            );
+            const massSelectAllBtn = document.getElementById(
+              "massDeleteSelectAllBtn",
+            );
+            const massSelectNoneBtn = document.getElementById(
+              "massDeleteSelectNoneBtn",
+            );
             const massList = document.getElementById("massDeleteList");
             const massCount = document.getElementById("massDeleteCount");
             const massSearch = document.getElementById("massDeleteSearch");
@@ -1606,22 +1706,26 @@
             if (massSelectAllBtn) {
               massSelectAllBtn.addEventListener("click", function () {
                 if (!massList) return;
-                massList.querySelectorAll(".mass-delete-item").forEach((row) => {
-                  if (row.style.display === "none") return;
-                  const el = row.querySelector(".mass-del-cb");
-                  if (el) el.checked = true;
-                });
+                massList
+                  .querySelectorAll(".mass-delete-item")
+                  .forEach((row) => {
+                    if (row.style.display === "none") return;
+                    const el = row.querySelector(".mass-del-cb");
+                    if (el) el.checked = true;
+                  });
                 updateMassCount();
               });
             }
             if (massSelectNoneBtn) {
               massSelectNoneBtn.addEventListener("click", function () {
                 if (!massList) return;
-                massList.querySelectorAll(".mass-delete-item").forEach((row) => {
-                  if (row.style.display === "none") return;
-                  const el = row.querySelector(".mass-del-cb");
-                  if (el) el.checked = false;
-                });
+                massList
+                  .querySelectorAll(".mass-delete-item")
+                  .forEach((row) => {
+                    if (row.style.display === "none") return;
+                    const el = row.querySelector(".mass-del-cb");
+                    if (el) el.checked = false;
+                  });
                 updateMassCount();
               });
             }
@@ -1635,15 +1739,19 @@
             }
             if (massSearch && massList) {
               massSearch.addEventListener("input", function () {
-                const q = String(massSearch.value || "").trim().toLowerCase();
-                massList.querySelectorAll(".mass-delete-item").forEach((row) => {
-                  if (!q) {
-                    row.style.display = "";
-                    return;
-                  }
-                  const s = String(row.getAttribute("data-search") || "");
-                  row.style.display = s.includes(q) ? "" : "none";
-                });
+                const q = String(massSearch.value || "")
+                  .trim()
+                  .toLowerCase();
+                massList
+                  .querySelectorAll(".mass-delete-item")
+                  .forEach((row) => {
+                    if (!q) {
+                      row.style.display = "";
+                      return;
+                    }
+                    const s = String(row.getAttribute("data-search") || "");
+                    row.style.display = s.includes(q) ? "" : "none";
+                  });
                 updateMassCount();
               });
             }
@@ -1696,7 +1804,9 @@
                     if (!(nk in map)) map[nk] = rowObj[k];
                   });
                   for (const cand of candidates) {
-                    const key = String(cand ?? "").trim().toLowerCase();
+                    const key = String(cand ?? "")
+                      .trim()
+                      .toLowerCase();
                     if (!key) continue;
                     if (key in map) return map[key];
                   }
@@ -1801,16 +1911,24 @@
                         ]) || "",
                       ).trim(),
                       importedAt: new Date().toISOString(),
-                      submittedAt: String(
-                        getRowValueCI(row, ["Timestamp", "submittedAt", "Submitted At"]) ||
-                          "",
-                      ).trim() || new Date().toISOString(),
+                      submittedAt:
+                        String(
+                          getRowValueCI(row, [
+                            "Timestamp",
+                            "submittedAt",
+                            "Submitted At",
+                          ]) || "",
+                        ).trim() || new Date().toISOString(),
                       confirmed: false,
                       denied: false,
                     };
                     // Normalize power fields into 0000.00 (millions) before saving.
-                    payload.bestSquadPower = formatMillions0000(payload.bestSquadPower);
-                    payload.totalHeroPower = formatMillions0000(payload.totalHeroPower);
+                    payload.bestSquadPower = formatMillions0000(
+                      payload.bestSquadPower,
+                    );
+                    payload.totalHeroPower = formatMillions0000(
+                      payload.totalHeroPower,
+                    );
                     if (currentListId) {
                       payload.listId = currentListId;
                     }
@@ -1859,7 +1977,9 @@
               margin-bottom: 10px;
             "
           >
-            <div style="font-weight: 700; color: var(--accent); font-size: 1.05rem">
+            <div
+              style="font-weight: 700; color: var(--accent); font-size: 1.05rem"
+            >
               Filter submissions
             </div>
             <button
@@ -2055,15 +2175,26 @@
                 <th title="Best Squad Power with optimized setup (Ex: 23.6m)">
                   Best squad power
                 </th>
-                <th title="Total Hero Power (Ex: 105.6 million)">Total hero power</th>
+                <th title="Total Hero Power (Ex: 105.6 million)">
+                  Total hero power
+                </th>
                 <th title="Which Alliance are you interested in joining?">
                   Interested alliance
                 </th>
-                <th title="If known, what is your transfer status?">Transfer status</th>
+                <th title="If known, what is your transfer status?">
+                  Transfer status
+                </th>
                 <th title="Additional Info you want considered?">Info</th>
                 <th style="text-align: center">
                   Actions
-                  <div style="font-size: 0.85rem; font-weight: 600; color: var(--muted); margin-top: 4px">
+                  <div
+                    style="
+                      font-size: 0.85rem;
+                      font-weight: 600;
+                      color: var(--muted);
+                      margin-top: 4px;
+                    "
+                  >
                     Delete · Confirmed · Denied
                   </div>
                 </th>
@@ -2100,7 +2231,11 @@
               width: min(820px, 100%);
               max-height: min(80vh, 720px);
               overflow: auto;
-              background: linear-gradient(180deg, var(--panel) 0%, var(--panel-2) 100%);
+              background: linear-gradient(
+                180deg,
+                var(--panel) 0%,
+                var(--panel-2) 100%
+              );
               border: 1px solid var(--line-soft);
               border-radius: 16px;
               box-shadow: 0 18px 70px rgba(0, 0, 0, 0.45);
@@ -2118,7 +2253,11 @@
             >
               <div
                 id="additionalInfoTitle"
-                style="font-weight: 800; color: var(--accent); font-size: 1.08rem"
+                style="
+                  font-weight: 800;
+                  color: var(--accent);
+                  font-size: 1.08rem;
+                "
               >
                 Additional Info
               </div>
@@ -2163,7 +2302,14 @@
         >
           <div class="mass-delete-card">
             <div class="mass-delete-header">
-              <div style="display:flex;align-items:flex-start;justify-content:space-between;gap:12px;">
+              <div
+                style="
+                  display: flex;
+                  align-items: flex-start;
+                  justify-content: space-between;
+                  gap: 12px;
+                "
+              >
                 <div>
                   <div id="massDeleteTitle" class="mass-delete-title">
                     Mass delete - choose players
@@ -2172,7 +2318,9 @@
                     Uncheck any players you want to keep.
                   </div>
                 </div>
-                <span id="massDeleteCount" style="font-size: 0.92rem; color: var(--muted)"
+                <span
+                  id="massDeleteCount"
+                  style="font-size: 0.92rem; color: var(--muted)"
                   >Selected: 0 of 0</span
                 >
               </div>
@@ -2202,7 +2350,10 @@
               </div>
             </div>
             <div id="massDeleteList" class="mass-delete-list"></div>
-            <div class="mass-delete-footer" style="display:flex;justify-content:flex-end;gap:10px;">
+            <div
+              class="mass-delete-footer"
+              style="display: flex; justify-content: flex-end; gap: 10px"
+            >
               <button
                 type="button"
                 id="massDeleteCancelBtn"
