@@ -380,17 +380,6 @@
         background: rgba(77, 171, 247, 0.1);
       }
 
-      .schedule-table .week-label-cell {
-        font-weight: 700;
-        color: var(--muted);
-        font-size: 0.74rem;
-        background: rgba(17, 28, 40, 0.86);
-        white-space: nowrap;
-        text-align: left;
-        padding-left: 8px;
-        width: 52px;
-      }
-
       .cell-date {
         font-size: 0.74rem;
         color: var(--muted);
@@ -3543,7 +3532,7 @@
         const startDate = new Date(state.startDateStr + "T00:00:00");
 
         for (let w = 0; w < state.weeks; w++) {
-          const row = [`Week ${w + 1}`];
+          const row = [];
           const weekDays = state.dayAssignmentsByWeek[w] || [
             0, 1, 2, 3, 4, 5, 6,
           ];
@@ -3623,7 +3612,7 @@
 
       function exportScheduleAsExcel() {
         if (!window.XLSX) return;
-        const rows = [["Week", ...DAYS], ...getScheduleExportRows()];
+        const rows = [[...DAYS], ...getScheduleExportRows()];
         const wb = XLSX.utils.book_new();
         const ws = XLSX.utils.aoa_to_sheet(rows);
         XLSX.utils.book_append_sheet(wb, ws, "Schedule");
@@ -3914,7 +3903,7 @@
         const startDate = new Date(state.startDateStr + "T00:00:00");
 
         // Header
-        const headerCells = ["<th></th>"];
+        const headerCells = [];
         for (let d = 0; d < 7; d++) {
           headerCells.push(`<th>${DAYS[d]}</th>`);
         }
@@ -3926,7 +3915,7 @@
         let todayConduectorIdx = -1;
 
         for (let w = 0; w < state.weeks; w++) {
-          const cells = [`<td class="week-label-cell">Week ${w + 1}</td>`];
+          const cells = [];
           const weekDays = state.dayAssignmentsByWeek[w] || [
             0, 1, 2, 3, 4, 5, 6,
           ];
