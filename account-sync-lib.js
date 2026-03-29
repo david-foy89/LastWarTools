@@ -223,8 +223,15 @@ export async function mergeAndSyncToCloud(user, db, options) {
       updatedAt: serverTimestamp(),
       client: "last-war-tools-account",
     });
-    const verify = await getDoc(doc(db, SYNC_COLLECTION, user.uid));
-    const newMs = getCloudDocumentWriteMs(verify);
+    let verify = await getDoc(doc(db, SYNC_COLLECTION, user.uid));
+    let newMs = getCloudDocumentWriteMs(verify);
+    for (let attempt = 0; attempt < 6 && !newMs; attempt++) {
+      if (attempt > 0) {
+        await new Promise((r) => setTimeout(r, 300 + attempt * 200));
+      }
+      verify = await getDoc(doc(db, SYNC_COLLECTION, user.uid));
+      newMs = getCloudDocumentWriteMs(verify);
+    }
     writeLastMergedMeta(user.uid, newMs || Date.now());
     const note = preferCloud
       ? "Cloud data was merged into this device (then saved back)."

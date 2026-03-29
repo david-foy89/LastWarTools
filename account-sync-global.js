@@ -6,7 +6,11 @@
  * Silent — no UI. Retries boot briefly if firebase-config.js loads after this module.
  */
 import { initializeApp, getApp, getApps } from "https://www.gstatic.com/firebasejs/9.22.2/firebase-app.js";
-import { getAuth, onAuthStateChanged, reload } from "https://www.gstatic.com/firebasejs/9.22.2/firebase-auth.js";
+import {
+  getAuth,
+  onAuthStateChanged,
+  reload,
+} from "https://www.gstatic.com/firebasejs/9.22.2/firebase-auth.js";
 import {
   doc,
   getDoc,
@@ -37,6 +41,8 @@ let dbRef = null;
 
 let unsubFirestore = null;
 let mergeInFlight = false;
+/** If true, run at least one more merge after the current one (remote + local edits must not drop each other). */
+let mergeQueued = false;
 let remoteDebounceTimer = null;
 
 /** After localStorage saves, upload is debounced so edits reach Firestore without waiting for the 90s page-load throttle. */
@@ -94,7 +100,13 @@ function scheduleMergeAfterLocalEdit() {
   localEditMergeTimer = setTimeout(async function () {
     localEditMergeTimer = null;
     const u2 = authRef.currentUser;
-    if (!u2 || !u2.emailVerified) return;
+    if (!u2) return;
+    try {
+      await reload(u2);
+    } catch {
+      /* ignore */
+    }
+    if (!u2.emailVerified) return;
     await runMergeIfPossible(u2);
   }, LOCAL_EDIT_MERGE_DEBOUNCE_MS);
 }
@@ -104,15 +116,26 @@ function scheduleMergeAfterLocalEdit() {
  */
 async function runMergeIfPossible(user) {
   if (!user || !user.emailVerified || !dbRef) return;
-  if (mergeInFlight) return;
+  if (mergeInFlight) {
+    mergeQueued = true;
+    return;
+  }
   mergeInFlight = true;
   try {
-    await mergeAndSyncToCloud(user, dbRef, {});
-    markBackgroundSynced();
+    do {
+      mergeQueued = false;
+      await mergeAndSyncToCloud(user, dbRef, {});
+      markBackgroundSynced();
+      if (mergeQueued) {
+        user = authRef.currentUser;
+        if (!user || !user.emailVerified) break;
+      }
+    } while (mergeQueued);
   } catch (e) {
     console.warn("[Last War Tools] Account merge failed:", e);
   } finally {
     mergeInFlight = false;
+    mergeQueued = false;
   }
 }
 
@@ -184,6 +207,31 @@ function bootAccountSync() {
       if (u && u.emailVerified) {
         void runMergeIfPossible(u);
       }
+    });
+
+    document.addEventListener("visibilitychange", function () {
+      if (document.visibilityState !== "visible" || !syncStarted || !authRef || !dbRef) {
+        return;
+      }
+      const u0 = authRef.currentUser;
+      if (!u0) return;
+      void (async function () {
+        try {
+          await reload(u0);
+        } catch {
+          return;
+        }
+        const u = authRef.currentUser;
+        if (!u || !u.emailVerified) return;
+        try {
+          const snap = await getDoc(doc(dbRef, SYNC_COLLECTION, u.uid));
+          if (shouldPullCloudBeforeMerge(snap, u.uid)) {
+            await runMergeIfPossible(u);
+          }
+        } catch (e) {
+          console.warn("[Last War Tools] Visibility sync check failed:", e);
+        }
+      })();
     });
 
     onAuthStateChanged(authRef, async function (user) {
