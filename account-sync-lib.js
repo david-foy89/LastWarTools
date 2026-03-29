@@ -143,16 +143,29 @@ export function shouldPullCloudBeforeMerge(snap, userUid, cloudDataAlreadyParsed
   const lastMergedMs = Number.isFinite(lastMergedRaw) ? lastMergedRaw : 0;
   const hasCloudPayload =
     snap && snap.exists() && Object.keys(cloudData).length > 0;
-  const neverPulledThisAccountHere =
-    lastMergedUid !== userUid ||
-    lastMergedMs <= 0 ||
-    !Number.isFinite(lastMergedRaw);
-  const remoteNewerThanOurMerge =
-    cloudWriteMs > 0 && cloudWriteMs > lastMergedMs;
-  return (
-    remoteNewerThanOurMerge ||
-    (hasCloudPayload && neverPulledThisAccountHere)
-  );
+
+  if (!snap || !snap.exists()) {
+    return false;
+  }
+  if (lastMergedUid && lastMergedUid !== userUid) {
+    return true;
+  }
+  if (!hasCloudPayload || cloudWriteMs <= 0) {
+    return false;
+  }
+  if (!lastMergedUid) {
+    return true;
+  }
+  if (!Number.isFinite(lastMergedRaw)) {
+    return true;
+  }
+  /**
+   * Prefer cloud only when Firestore updatedAt is strictly newer than our last
+   * recorded merge. Do not use "lastMergedMs <= 0" as "never pulled" — that
+   * trapped devices into always preferring cloud so the other device could
+   * never win on overlapping keys (one-way sync).
+   */
+  return cloudWriteMs > lastMergedMs;
 }
 
 /**
@@ -238,9 +251,9 @@ export async function mergeAndSyncToCloud(user, db, options) {
     });
     let verify = await getDoc(doc(db, SYNC_COLLECTION, user.uid));
     let newMs = getCloudDocumentWriteMs(verify);
-    for (let attempt = 0; attempt < 6 && !newMs; attempt++) {
+    for (let attempt = 0; attempt < 12 && !newMs; attempt++) {
       if (attempt > 0) {
-        await new Promise((r) => setTimeout(r, 300 + attempt * 200));
+        await new Promise((r) => setTimeout(r, 250 + attempt * 150));
       }
       verify = await getDoc(doc(db, SYNC_COLLECTION, user.uid));
       newMs = getCloudDocumentWriteMs(verify);

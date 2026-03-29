@@ -452,6 +452,19 @@
         applyGoogleLanguage(preferredLanguage);
         saveState();
       });
+
+      window.addEventListener("lw-localstorage-synced", (ev) => {
+        const keys = ev.detail && ev.detail.keys;
+        if (!keys || !keys.length || !keys.includes(STORAGE_KEY)) return;
+        loadSavedState();
+        if (
+          preferredLanguage &&
+          languageOptions.some((lang) => lang.code === preferredLanguage)
+        ) {
+          languageSelect.value = preferredLanguage;
+          applyGoogleLanguage(preferredLanguage);
+        }
+      });
     </script>
 
     <div class="support-bar">

@@ -4050,6 +4050,29 @@
 
       render();
 
+      function applyTrainConductorFromCloudStorage(syncedKeys) {
+        const keys = Array.isArray(syncedKeys) ? syncedKeys : [];
+        if (!keys.length || !keys.includes(STORAGE_KEY)) return;
+        loadState();
+        if (!state.startDateStr) {
+          state.startDateStr = toDateStr(getMondayOf(getServerTodayDate()));
+        }
+        startDateInput.value = state.startDateStr;
+        vipToggleInput.checked = state.showVip;
+        conductorWeekSelectProgrammatic = true;
+        conductorWeekSelect.value = String(state.nameEditWeek);
+        conductorWeekSelectProgrammatic = false;
+        allianceFillTargetSelect.value = state.allianceFillTarget;
+        syncAllianceFillConductorOptions();
+        render();
+      }
+
+      window.addEventListener("lw-localstorage-synced", (ev) => {
+        applyTrainConductorFromCloudStorage(
+          ev.detail && ev.detail.keys ? ev.detail.keys : [],
+        );
+      });
+
       // Week buttons
       document.querySelectorAll(".week-btn").forEach((btn) => {
         btn.addEventListener("click", () => {
