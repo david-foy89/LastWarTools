@@ -26,8 +26,10 @@ const root = join(dirname(fileURLToPath(import.meta.url)), "..");
 const pngPath = join(root, RASTER_NAME);
 const png = readFileSync(pngPath);
 const { w, h } = readPngDimensions(png);
-if (w > 255 || h > 255) {
-  throw new Error(`${RASTER_NAME} must be at most 255×255 for ICO embedding`);
+if (w < 1 || h < 1 || w > 256 || h > 256) {
+  throw new Error(
+    `${RASTER_NAME} dimensions must be 1×1–256×256 for ICO (256 is stored as 0 in the directory entry)`,
+  );
 }
 
 const header = Buffer.alloc(22);
