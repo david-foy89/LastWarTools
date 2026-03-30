@@ -28,18 +28,42 @@
   }
 
   /** Browsers request /favicon.ico by default; declare an icon so that 404 goes away on deploy. */
-  (function ensureFaviconLink() {
+  (function ensureFaviconLinks() {
     try {
-      if (document.querySelector('link[rel~="icon"]')) return;
-      var href =
-        window.location.protocol === 'https:' || window.location.protocol === 'http:'
-          ? new URL('favicon.svg', window.location.origin + '/').href
-          : lwScriptDirFromPageNavDropdown() + 'favicon.svg';
-      var l = document.createElement('link');
-      l.rel = 'icon';
-      l.type = 'image/svg+xml';
-      l.href = href;
-      document.head.appendChild(l);
+      function absAsset(name) {
+        if (window.location.protocol === 'https:' || window.location.protocol === 'http:') {
+          return new URL(name, window.location.origin + '/').href;
+        }
+        return lwScriptDirFromPageNavDropdown() + name;
+      }
+      function hasIconMatching(fn) {
+        var links = document.querySelectorAll('link[rel~="icon"]');
+        for (var i = 0; i < links.length; i++) {
+          if (fn(links[i])) return true;
+        }
+        return false;
+      }
+      if (
+        !hasIconMatching(function (el) {
+          return (el.href || '').indexOf('favicon.ico') !== -1;
+        })
+      ) {
+        var ico = document.createElement('link');
+        ico.rel = 'icon';
+        ico.href = absAsset('favicon.ico');
+        document.head.appendChild(ico);
+      }
+      if (
+        !hasIconMatching(function (el) {
+          return (el.getAttribute('type') || '') === 'image/svg+xml' && (el.href || '').indexOf('favicon.svg') !== -1;
+        })
+      ) {
+        var svg = document.createElement('link');
+        svg.rel = 'icon';
+        svg.type = 'image/svg+xml';
+        svg.href = absAsset('favicon.svg');
+        document.head.appendChild(svg);
+      }
     } catch (_) {
       /* ignore */
     }
