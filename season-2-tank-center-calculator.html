@@ -203,9 +203,10 @@
         <h1>Squad Base Calculator</h1>
         <div class="sub">
           Choose your current Squad Base level, enter your current coal and
-          titanium alloy, and set your titanium alloy factories. The calculator
-          shows what you still need for the next upgrade and when your titanium
-          alloy will be ready.
+          titanium alloy, and set factory levels. The same hourly output table
+          applies to coal furnaces and titanium alloy factories when leveled the
+          same; estimated time is when <strong>both</strong> resources reach the
+          goal (whichever finishes last).
         </div>
       </section>
 
@@ -223,8 +224,9 @@
                 costs.
               </li>
               <li>
-                Set Titanium Alloy Factory levels and timezone to estimate
-                upgrade readiness.
+                Set factory levels (same curve as coal furnaces and titanium
+                alloy factories) and timezone to estimate when both resources
+                are ready.
               </li>
             </ol>
           </div>
@@ -276,7 +278,7 @@
             <div class="mine-list" id="mineList"></div>
             <div class="mine-total">
               <div class="mine-total-key">
-                Total Titanium Alloy Factory Output Per Hour
+                Total output per hour (coal &amp; titanium, same rate per level)
               </div>
               <div class="mine-total-value" id="totalMineOutput">0/hr</div>
             </div>
@@ -340,7 +342,7 @@
               </div>
             </div>
             <div class="row">
-              <div class="row-key">Titanium Alloy Factory Output Used</div>
+              <div class="row-key">Income used for ETA (coal &amp; titanium)</div>
               <div class="row-value" id="titaniumRateValue">0/hr</div>
             </div>
             <div class="row">
@@ -373,7 +375,7 @@
         { level: 12, coal: 578910, titanium: 570600 },
         { level: 13, coal: 636750, titanium: 684750 },
         { level: 14, coal: 712080, titanium: 835410 },
-        { level: 15, coal: 783280, titanium: 1020000 },
+        { level: 15, coal: 821800, titanium: 1051800 },
         { level: 16, coal: 861580, titanium: 1410000 },
         { level: 17, coal: 947180, titanium: 1150000 },
         { level: 18, coal: 1050000, titanium: 1310000 },
@@ -707,7 +709,7 @@
           return `
             <div class="mine-row">
               <div>
-                <label for="mineLevel${number}">Titanium Alloy Factory ${number}</label>
+                <label for="mineLevel${number}">Factory ${number} (coal / titanium)</label>
                 <select id="mineLevel${number}">
                   <option value="0">Not set</option>
                   ${options}
@@ -898,7 +900,8 @@
           0,
           Number(currentTitaniumInput.value) || 0,
         );
-        const titaniumIncome = getTotalMineOutput();
+        /** Same output table as titanium alloy factories; used for both coal and titanium ETA. */
+        const resourceIncomePerHour = getTotalMineOutput();
         const nextUpgrade = squadBaseCosts.find(
           (row) => row.level === currentLevel + 1,
         );
@@ -917,7 +920,7 @@
           readyAtValue.textContent = "-";
           pathValue.textContent = "Maximum configured level reached";
           statusValue.textContent = "No higher level in this table";
-          titaniumRateValue.textContent = `${formatResource(titaniumIncome)}/hr`;
+          titaniumRateValue.textContent = `${formatResource(resourceIncomePerHour)}/hr`;
           timeZoneValue.textContent = timeZoneSelect.value;
           costLevelSelect.value = String(
             squadBaseCosts[squadBaseCosts.length - 1].level,
@@ -948,17 +951,25 @@
           requiredTitanium - currentTitanium,
         );
         const ready = remainingCoal === 0 && remainingTitanium === 0;
+        const income = resourceIncomePerHour;
+        const coalHours =
+          remainingCoal === 0
+            ? 0
+            : income > 0
+              ? remainingCoal / income
+              : Infinity;
         const titaniumHours =
           remainingTitanium === 0
             ? 0
-            : titaniumIncome > 0
-              ? remainingTitanium / titaniumIncome
+            : income > 0
+              ? remainingTitanium / income
               : Infinity;
-        const estimatedHours = ready ? 0 : titaniumHours;
+        const estimatedHours = ready
+          ? 0
+          : Math.max(coalHours, titaniumHours);
         const selectedTimeZone = timeZoneSelect.value;
-        const hasRate = remainingTitanium === 0 || titaniumIncome > 0;
-        const titaniumReadyButCoalMissing =
-          remainingTitanium === 0 && remainingCoal > 0;
+        const hasRate =
+          ready || (income > 0 && Number.isFinite(estimatedHours));
 
         nextLevelValue.textContent = `Lv ${targetLevel}`;
         requiredCoalValue.textContent = formatResource(requiredCoal);
@@ -969,21 +980,17 @@
         deficitCoalValue.className = `tile-value ${remainingCoal === 0 ? "ok" : "warn"}`;
         deficitTitaniumValue.textContent = formatResource(remainingTitanium);
         deficitTitaniumValue.className = `tile-value ${remainingTitanium === 0 ? "ok" : "warn"}`;
-        etaValue.textContent = titaniumReadyButCoalMissing
-          ? "Coal missing"
-          : formatTimeFromHours(estimatedHours);
+        etaValue.textContent = formatTimeFromHours(estimatedHours);
         etaValue.className = `tile-value ${ready ? "ok" : hasRate ? "" : "warn"}`;
         readyAtValue.textContent = ready
           ? "Now"
-          : titaniumReadyButCoalMissing
-            ? "Need coal"
-            : formatReadyAt(estimatedHours, selectedTimeZone);
+          : formatReadyAt(estimatedHours, selectedTimeZone);
         readyAtValue.className = `tile-value ${ready ? "ok" : hasRate ? "" : "warn"}`;
         pathValue.textContent =
           targetLevel <= currentLevel + 1
             ? `Level ${currentLevel} -> Level ${targetLevel}`
             : `Level ${currentLevel} -> Level ${targetLevel} (${targetLevel - currentLevel} upgrades)`;
-        titaniumRateValue.textContent = `${formatResource(titaniumIncome)}/hr`;
+        titaniumRateValue.textContent = `${formatResource(resourceIncomePerHour)}/hr`;
         timeZoneValue.textContent = selectedTimeZone;
         costLevelSelect.value = String(targetLevel);
         updateCurrentTimeDisplay();
