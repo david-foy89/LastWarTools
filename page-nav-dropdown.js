@@ -55,7 +55,7 @@
       }
       if (
         !hasIconMatching(function (el) {
-          return (el.getAttribute('type') || '') === 'image/svg+xml' && (el.href || '').indexOf('favicon.svg') !== -1;
+          return (el.href || '').indexOf('favicon.svg') !== -1;
         })
       ) {
         var svg = document.createElement('link');
