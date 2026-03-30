@@ -2828,6 +2828,19 @@
       }
 
       function renderAllianceMembers() {
+        // Account sync calls loadState() then render() while the user may still be
+        // typing in search. We intentionally avoid overwriting the input when it is
+        // focused, so pull the live query back into state here — otherwise
+        // getFilteredAllianceMembers() uses stale state and the list stays stuck.
+        if (
+          allianceMemberSearchInput &&
+          document.activeElement === allianceMemberSearchInput
+        ) {
+          state.allianceMemberSearch = String(
+            allianceMemberSearchInput.value || "",
+          ).slice(0, 40);
+        }
+
         state.r4r5Members = normalizeR4R5Members(
           state.r4r5Members,
           state.allianceMembers,
