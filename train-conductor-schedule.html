@@ -1425,6 +1425,9 @@
 
     <script>
       const STORAGE_KEY = "lastWarTrainConductorV1";
+      /** Ephemeral filter; session-only so account sync cannot resurrect old queries (e.g. "ace"). */
+      const ALLIANCE_MEMBER_SEARCH_SESSION_KEY =
+        "lastWarTrainConductorMemberSearchV1";
       const DAYS = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"];
       const MONTHS = [
         "Jan",
@@ -2834,6 +2837,27 @@
         return result;
       }
 
+      function readAllianceMemberSearchSession() {
+        try {
+          return String(
+            sessionStorage.getItem(ALLIANCE_MEMBER_SEARCH_SESSION_KEY) || "",
+          ).slice(0, 40);
+        } catch {
+          return "";
+        }
+      }
+
+      function writeAllianceMemberSearchSession(value) {
+        try {
+          sessionStorage.setItem(
+            ALLIANCE_MEMBER_SEARCH_SESSION_KEY,
+            String(value || "").slice(0, 40),
+          );
+        } catch {
+          /* private mode / storage disabled */
+        }
+      }
+
       function commitAllianceMemberSearchFromInput() {
         if (!allianceMemberSearchInput) return;
         state.allianceMemberSearch = String(
@@ -2845,6 +2869,7 @@
             !state.allianceMemberSearch.trim(),
           );
         }
+        writeAllianceMemberSearchSession(state.allianceMemberSearch);
         saveState();
       }
 
@@ -3520,6 +3545,7 @@
           state.allianceMemberSearch = sanitizeMemberName(
             saved.allianceMemberSearch,
           );
+          writeAllianceMemberSearchSession(state.allianceMemberSearch);
         }
         if (
           saved.allianceFillTarget === "vip" ||
@@ -3691,7 +3717,6 @@
               allianceMembers: state.allianceMembers,
               r4r5Members: state.r4r5Members,
               memberHistory: state.memberHistory,
-              allianceMemberSearch: state.allianceMemberSearch,
               allianceFillTarget: state.allianceFillTarget,
               allianceFillConductorIdx: state.allianceFillConductorIdx,
             }),
@@ -3714,7 +3739,10 @@
       function loadState() {
         try {
           const raw = localStorage.getItem(STORAGE_KEY);
-          if (!raw) return;
+          if (!raw) {
+            state.allianceMemberSearch = readAllianceMemberSearchSession();
+            return;
+          }
           const saved = JSON.parse(raw);
           if (saved.weeks >= 1 && saved.weeks <= 4) {
             state.weeks = Number(saved.weeks);
@@ -3798,11 +3826,6 @@
               saved.memberHistory,
             );
           }
-          if (typeof saved.allianceMemberSearch === "string") {
-            state.allianceMemberSearch = sanitizeMemberName(
-              saved.allianceMemberSearch,
-            );
-          }
           if (
             saved.allianceFillTarget === "vip" ||
             saved.allianceFillTarget === "conductor"
@@ -3813,6 +3836,7 @@
             const idx = Number(saved.allianceFillConductorIdx);
             state.allianceFillConductorIdx = idx >= 0 && idx <= 6 ? idx : 0;
           }
+          state.allianceMemberSearch = readAllianceMemberSearchSession();
         } catch {
           // ignore
         }
@@ -4357,6 +4381,7 @@
         state.allianceMemberSearch = String(
           allianceMemberSearchInput.value || "",
         ).slice(0, 40);
+        writeAllianceMemberSearchSession(state.allianceMemberSearch);
         if (allianceMemberSearchClearButton) {
           allianceMemberSearchClearButton.classList.toggle(
             "is-hidden",
@@ -4389,6 +4414,7 @@
             allianceMemberSearchSaveTimer = null;
           }
           state.allianceMemberSearch = "";
+          writeAllianceMemberSearchSession("");
           allianceMemberSearchInput.value = "";
           allianceMemberSearchInput.focus();
           allianceMemberSearchClearButton.classList.add("is-hidden");
