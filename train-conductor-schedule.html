@@ -2692,7 +2692,13 @@
       }
 
       function getFilteredAllianceMembers() {
-        const q = state.allianceMemberSearch.trim().toLowerCase();
+        // Always filter from the visible search box when it exists. Relying only on
+        // state breaks after cloud sync (loadState) or if activeElement checks miss
+        // focus (mobile / IME), so the list can stick on an old query.
+        const raw = allianceMemberSearchInput
+          ? allianceMemberSearchInput.value
+          : state.allianceMemberSearch;
+        const q = String(raw || "").trim().toLowerCase();
         if (!q) {
           return state.allianceMembers;
         }
@@ -2828,19 +2834,6 @@
       }
 
       function renderAllianceMembers() {
-        // Account sync calls loadState() then render() while the user may still be
-        // typing in search. We intentionally avoid overwriting the input when it is
-        // focused, so pull the live query back into state here — otherwise
-        // getFilteredAllianceMembers() uses stale state and the list stays stuck.
-        if (
-          allianceMemberSearchInput &&
-          document.activeElement === allianceMemberSearchInput
-        ) {
-          state.allianceMemberSearch = String(
-            allianceMemberSearchInput.value || "",
-          ).slice(0, 40);
-        }
-
         state.r4r5Members = normalizeR4R5Members(
           state.r4r5Members,
           state.allianceMembers,
@@ -2851,11 +2844,15 @@
           trainAllianceMembersTotal.innerHTML = `Total alliance members: <strong>${memberTotal}</strong> <span class="train-alliance-total-cap">(max ${MAX_ALLIANCE_MEMBERS})</span>`;
         }
         allianceFillTargetSelect.value = state.allianceFillTarget;
-        if (
-          allianceMemberSearchInput &&
-          document.activeElement !== allianceMemberSearchInput
-        ) {
-          allianceMemberSearchInput.value = state.allianceMemberSearch;
+        // Keep search box and state in sync without clobbering an in-progress edit.
+        if (allianceMemberSearchInput) {
+          if (document.activeElement === allianceMemberSearchInput) {
+            state.allianceMemberSearch = String(
+              allianceMemberSearchInput.value || "",
+            ).slice(0, 40);
+          } else {
+            allianceMemberSearchInput.value = state.allianceMemberSearch;
+          }
         }
         if (allianceMemberSearchClearButton) {
           allianceMemberSearchClearButton.classList.toggle(
