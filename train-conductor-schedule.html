@@ -2837,11 +2837,16 @@
         return result;
       }
 
+      /** Same trimming as former localStorage path (sanitizeMemberName). */
+      function normalizeAllianceMemberSearchValue(value) {
+        return String(value || "").trim().slice(0, 40);
+      }
+
       function readAllianceMemberSearchSession() {
         try {
-          return String(
-            sessionStorage.getItem(ALLIANCE_MEMBER_SEARCH_SESSION_KEY) || "",
-          ).slice(0, 40);
+          return normalizeAllianceMemberSearchValue(
+            sessionStorage.getItem(ALLIANCE_MEMBER_SEARCH_SESSION_KEY),
+          );
         } catch {
           return "";
         }
@@ -2851,7 +2856,7 @@
         try {
           sessionStorage.setItem(
             ALLIANCE_MEMBER_SEARCH_SESSION_KEY,
-            String(value || "").slice(0, 40),
+            normalizeAllianceMemberSearchValue(value),
           );
         } catch {
           /* private mode / storage disabled */
@@ -2860,13 +2865,17 @@
 
       function commitAllianceMemberSearchFromInput() {
         if (!allianceMemberSearchInput) return;
-        state.allianceMemberSearch = String(
-          allianceMemberSearchInput.value || "",
-        ).slice(0, 40);
+        const normalized = normalizeAllianceMemberSearchValue(
+          allianceMemberSearchInput.value,
+        );
+        if (allianceMemberSearchInput.value !== normalized) {
+          allianceMemberSearchInput.value = normalized;
+        }
+        state.allianceMemberSearch = normalized;
         if (allianceMemberSearchClearButton) {
           allianceMemberSearchClearButton.classList.toggle(
             "is-hidden",
-            !state.allianceMemberSearch.trim(),
+            !state.allianceMemberSearch,
           );
         }
         writeAllianceMemberSearchSession(state.allianceMemberSearch);
@@ -2887,9 +2896,13 @@
         // Keep search box and state in sync without clobbering an in-progress edit.
         if (allianceMemberSearchInput) {
           if (document.activeElement === allianceMemberSearchInput) {
-            state.allianceMemberSearch = String(
-              allianceMemberSearchInput.value || "",
-            ).slice(0, 40);
+            const normalized = normalizeAllianceMemberSearchValue(
+              allianceMemberSearchInput.value,
+            );
+            if (allianceMemberSearchInput.value !== normalized) {
+              allianceMemberSearchInput.value = normalized;
+            }
+            state.allianceMemberSearch = normalized;
           } else {
             allianceMemberSearchInput.value = state.allianceMemberSearch;
           }
@@ -2897,7 +2910,7 @@
         if (allianceMemberSearchClearButton) {
           allianceMemberSearchClearButton.classList.toggle(
             "is-hidden",
-            !String(state.allianceMemberSearch || "").trim(),
+            !state.allianceMemberSearch,
           );
         }
         syncAllianceFillConductorOptions();
@@ -3542,7 +3555,7 @@
           );
         }
         if (typeof saved.allianceMemberSearch === "string") {
-          state.allianceMemberSearch = sanitizeMemberName(
+          state.allianceMemberSearch = normalizeAllianceMemberSearchValue(
             saved.allianceMemberSearch,
           );
           writeAllianceMemberSearchSession(state.allianceMemberSearch);
@@ -4378,14 +4391,18 @@
       });
 
       allianceMemberSearchInput.addEventListener("input", () => {
-        state.allianceMemberSearch = String(
-          allianceMemberSearchInput.value || "",
-        ).slice(0, 40);
+        const normalized = normalizeAllianceMemberSearchValue(
+          allianceMemberSearchInput.value,
+        );
+        if (allianceMemberSearchInput.value !== normalized) {
+          allianceMemberSearchInput.value = normalized;
+        }
+        state.allianceMemberSearch = normalized;
         writeAllianceMemberSearchSession(state.allianceMemberSearch);
         if (allianceMemberSearchClearButton) {
           allianceMemberSearchClearButton.classList.toggle(
             "is-hidden",
-            !state.allianceMemberSearch.trim(),
+            !state.allianceMemberSearch,
           );
         }
         if (allianceMemberSearchSaveTimer) {
