@@ -467,7 +467,7 @@
       }
 
       .train-alliance-total {
-        margin: 14px 0 0;
+        margin: 0 0 10px;
         font-size: 0.95rem;
         line-height: 1.45;
         color: var(--muted);
@@ -1041,15 +1041,6 @@
           across up to 4 weeks. Name and color-code up to 7 conductors, then set
           who runs each day. Today's conductor is highlighted automatically.
         </div>
-        <p
-          class="train-alliance-total"
-          id="trainAllianceMembersTotal"
-          aria-live="polite"
-        >
-          Total alliance members:
-          <strong>0</strong>
-          <span class="train-alliance-total-cap"></span>
-        </p>
       </section>
 
       <section class="layout conductor-layout">
@@ -1322,6 +1313,16 @@
                 ×
               </button>
             </div>
+
+            <p
+              class="train-alliance-total"
+              id="trainAllianceMembersTotal"
+              aria-live="polite"
+            >
+              Total alliance members:
+              <strong>0</strong>
+              <span class="train-alliance-total-cap"></span>
+            </p>
 
             <div class="alliance-r4r5-group" id="allianceR4R5Group"></div>
             <div class="alliance-members-list" id="allianceMembersList"></div>
