@@ -1596,6 +1596,7 @@
       let pendingImportR4R5Candidates = [];
       let pendingImportFileName = "";
       let editingAllianceMemberIdx = -1;
+      let allianceMemberSearchSaveTimer = null;
 
       function conductorSlotIsUnset(raw, conductorIdx) {
         if (raw === undefined || raw === null) return true;
@@ -2831,6 +2832,20 @@
           (a, b) => a - b,
         );
         return result;
+      }
+
+      function commitAllianceMemberSearchFromInput() {
+        if (!allianceMemberSearchInput) return;
+        state.allianceMemberSearch = String(
+          allianceMemberSearchInput.value || "",
+        ).slice(0, 40);
+        if (allianceMemberSearchClearButton) {
+          allianceMemberSearchClearButton.classList.toggle(
+            "is-hidden",
+            !state.allianceMemberSearch.trim(),
+          );
+        }
+        saveState();
       }
 
       function renderAllianceMembers() {
@@ -4348,15 +4363,36 @@
             !state.allianceMemberSearch.trim(),
           );
         }
+        if (allianceMemberSearchSaveTimer) {
+          clearTimeout(allianceMemberSearchSaveTimer);
+        }
+        allianceMemberSearchSaveTimer = setTimeout(() => {
+          allianceMemberSearchSaveTimer = null;
+          saveState();
+        }, 300);
+        renderAllianceMembers();
+      });
+
+      allianceMemberSearchInput.addEventListener("blur", () => {
+        if (allianceMemberSearchSaveTimer) {
+          clearTimeout(allianceMemberSearchSaveTimer);
+          allianceMemberSearchSaveTimer = null;
+        }
+        commitAllianceMemberSearchFromInput();
         renderAllianceMembers();
       });
 
       if (allianceMemberSearchClearButton) {
         allianceMemberSearchClearButton.addEventListener("click", () => {
+          if (allianceMemberSearchSaveTimer) {
+            clearTimeout(allianceMemberSearchSaveTimer);
+            allianceMemberSearchSaveTimer = null;
+          }
           state.allianceMemberSearch = "";
           allianceMemberSearchInput.value = "";
           allianceMemberSearchInput.focus();
           allianceMemberSearchClearButton.classList.add("is-hidden");
+          saveState();
           renderAllianceMembers();
         });
       }
