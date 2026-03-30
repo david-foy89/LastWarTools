@@ -45,8 +45,8 @@ header.writeUInt32LE(22, 18);
 writeFileSync(join(root, "favicon.ico"), Buffer.concat([header, png]));
 
 const dataUri = `data:image/png;base64,${png.toString("base64")}`;
-const svg = `<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" viewBox="0 0 32 32">
-  <image width="32" height="32" href="${dataUri}" xlink:href="${dataUri}" preserveAspectRatio="xMidYMid meet"/>
+const svg = `<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" viewBox="0 0 ${w} ${h}">
+  <image width="${w}" height="${h}" href="${dataUri}" xlink:href="${dataUri}" preserveAspectRatio="xMidYMid meet"/>
 </svg>
 `;
 writeFileSync(join(root, "favicon.svg"), svg);
