@@ -1043,7 +1043,7 @@
         </div>
       </section>
 
-      <section class="layout conductor-layout">
+      <section class="layout conductor-layout notranslate" translate="no">
         <!-- Settings panel -->
         <div class="card">
           <div
@@ -1334,7 +1334,8 @@
 
     <div
       id="importPreviewModal"
-      class="import-preview-modal"
+      class="import-preview-modal notranslate"
+      translate="no"
       role="dialog"
       aria-modal="true"
       aria-labelledby="importPreviewTitle"
@@ -1383,7 +1384,8 @@
 
     <div
       id="bulkAddModal"
-      class="import-preview-modal"
+      class="import-preview-modal notranslate"
+      translate="no"
       role="dialog"
       aria-modal="true"
       aria-labelledby="bulkAddTitle"
@@ -2836,11 +2838,16 @@
           trainAllianceMembersTotal.innerHTML = `Total alliance members: <strong>${memberTotal}</strong> <span class="train-alliance-total-cap">(max ${MAX_ALLIANCE_MEMBERS})</span>`;
         }
         allianceFillTargetSelect.value = state.allianceFillTarget;
-        allianceMemberSearchInput.value = state.allianceMemberSearch;
+        if (
+          allianceMemberSearchInput &&
+          document.activeElement !== allianceMemberSearchInput
+        ) {
+          allianceMemberSearchInput.value = state.allianceMemberSearch;
+        }
         if (allianceMemberSearchClearButton) {
           allianceMemberSearchClearButton.classList.toggle(
             "is-hidden",
-            !state.allianceMemberSearch,
+            !String(state.allianceMemberSearch || "").trim(),
           );
         }
         syncAllianceFillConductorOptions();
@@ -4141,7 +4148,10 @@
       });
 
       document.addEventListener("click", (event) => {
-        if (!exportMenuWrap.contains(event.target)) {
+        if (
+          exportMenuWrap &&
+          !exportMenuWrap.contains(event.target)
+        ) {
           closeExportMenu();
         }
       });
@@ -4319,13 +4329,13 @@
       });
 
       allianceMemberSearchInput.addEventListener("input", () => {
-        state.allianceMemberSearch = sanitizeMemberName(
-          allianceMemberSearchInput.value,
-        );
+        state.allianceMemberSearch = String(
+          allianceMemberSearchInput.value || "",
+        ).slice(0, 40);
         if (allianceMemberSearchClearButton) {
           allianceMemberSearchClearButton.classList.toggle(
             "is-hidden",
-            !state.allianceMemberSearch,
+            !state.allianceMemberSearch.trim(),
           );
         }
         renderAllianceMembers();
