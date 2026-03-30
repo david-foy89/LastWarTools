@@ -1,7 +1,7 @@
 /**
  * Build favicon.ico from favicon-16.png (PNG-embedded ICO).
- * Regenerate from SVG (repo root):
- *   npx --yes @resvg/resvg-js-cli --fit-width 16 favicon.svg favicon-16.png
+ * Regenerate from site logo (repo root):
+ *   npx sharp-cli -i media/lwst.png -o favicon-16.png resize 16 16 --fit contain --background "rgba(0,0,0,0)" -f png
  *   node scripts/wrap-png-as-ico.mjs
  */
 import { readFileSync, writeFileSync } from "node:fs";
