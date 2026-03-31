@@ -1901,6 +1901,11 @@
           }
         }
 
+        /** Suppress tesseract.js progress spam; WASM "Parameter not found" may still use worker console. */
+        const VERUS_TESSERACT_WORKER_OPTS = {
+          logger: function () {},
+        };
+
         /**
          * Tesseract.js v5: `Tesseract.recognize(img, langs, opts)` passes `opts` to
          * `createWorker` only — OCR parameters never reach `worker.recognize`, so PSM
@@ -1910,7 +1915,7 @@
           if (typeof Tesseract === "undefined" || !Tesseract.createWorker) {
             throw new Error("OCR library is not loaded.");
           }
-          const worker = await Tesseract.createWorker(langs, 1);
+          const worker = await Tesseract.createWorker(langs, 1, VERUS_TESSERACT_WORKER_OPTS);
           try {
             await worker.setParameters({
               tessedit_pageseg_mode: "6",
@@ -2126,7 +2131,7 @@
             let worker = null;
             const frameArrays = [];
             try {
-              worker = await Tesseract.createWorker(langsPrimary, 1);
+              worker = await Tesseract.createWorker(langsPrimary, 1, VERUS_TESSERACT_WORKER_OPTS);
               await worker.setParameters({
                 tessedit_pageseg_mode: "6",
                 preserve_interword_spaces: "1",

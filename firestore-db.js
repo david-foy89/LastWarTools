@@ -23,6 +23,8 @@ export function getSharedFirestore(app) {
   try {
     db = initializeFirestore(app, {
       experimentalForceLongPolling: true,
+      /** Helps some browsers / networks where WebChannel Listen returns HTTP 400. */
+      experimentalAutoDetectLongPolling: true,
     });
   } catch (e) {
     db = getFirestore(app);
