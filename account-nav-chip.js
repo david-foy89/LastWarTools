@@ -4,7 +4,8 @@
  */
 import { initializeApp, getApp, getApps } from "https://www.gstatic.com/firebasejs/9.22.2/firebase-app.js";
 import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/9.22.2/firebase-auth.js";
-import { getFirestore, doc, getDoc } from "https://www.gstatic.com/firebasejs/9.22.2/firebase-firestore.js";
+import { doc, getDoc } from "https://www.gstatic.com/firebasejs/9.22.2/firebase-firestore.js";
+import { getSharedFirestore } from "./firestore-db.js";
 import { firebaseConfigOk } from "./account-sync-lib.js";
 import { PROFILE_COLLECTION, accountChipInitialDisplay } from "./account-profile-lib.js";
 
@@ -43,7 +44,7 @@ function attachAccountNavChip(attempt) {
   try {
     const app = getApps().length ? getApp() : initializeApp(cfg);
     const auth = getAuth(app);
-    const db = getFirestore(app);
+    const db = getSharedFirestore(app);
 
     onAuthStateChanged(auth, function (user) {
       wrap.innerHTML = "";

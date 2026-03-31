@@ -19,6 +19,12 @@
  *   - 127.0.0.1
  * (Include the port you use if you serve from http://127.0.0.1:8080/ — the host
  * is still 127.0.0.1.)
+ *
+ * Firestore realtime (Listen) HTTP 400 in the Network tab:
+ * Often fixed by this repo’s firestore-db.js (long polling). Also check Firebase Console
+ * → App Check: if Firestore enforcement is on, register this web app or use a debug token
+ * for localhost. Google Cloud → APIs & Services → Credentials: if the browser API key is
+ * restricted, allow “Firestore API” and the correct HTTP referrers (or unrestricted for dev).
  */
 window.__FIREBASE_CONFIG__ = {
   apiKey: "YOUR_WEB_API_KEY",

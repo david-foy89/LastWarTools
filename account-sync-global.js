@@ -14,9 +14,9 @@ import {
 import {
   doc,
   getDoc,
-  getFirestore,
   onSnapshot,
 } from "https://www.gstatic.com/firebasejs/9.22.2/firebase-firestore.js";
+import { getSharedFirestore } from "./firestore-db.js";
 import {
   firebaseConfigOk,
   mergeAndSyncToCloud,
@@ -255,7 +255,7 @@ function bootAccountSync() {
   try {
     const app = getApps().length ? getApp() : initializeApp(cfg);
     authRef = getAuth(app);
-    dbRef = getFirestore(app);
+    dbRef = getSharedFirestore(app);
     installLocalStorageSaveHook();
 
     window.__lwForceAccountMerge = async function () {

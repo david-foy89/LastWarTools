@@ -163,11 +163,8 @@
     </div>
     <script type="module">
       import { initializeApp } from "https://www.gstatic.com/firebasejs/9.22.2/firebase-app.js";
-      import {
-        getFirestore,
-        doc,
-        setDoc,
-      } from "https://www.gstatic.com/firebasejs/9.22.2/firebase-firestore.js";
+      import { doc, setDoc } from "https://www.gstatic.com/firebasejs/9.22.2/firebase-firestore.js";
+      import { getSharedFirestore } from "./firestore-db.js";
 
       function firebaseConfigOk(cfg) {
         if (!cfg || typeof cfg !== "object") return false;
@@ -209,7 +206,7 @@
         const firebaseConfig = window.__FIREBASE_CONFIG__;
         if (firebaseConfigOk(firebaseConfig)) {
           const app = initializeApp(firebaseConfig);
-          const db = getFirestore(app);
+          const db = getSharedFirestore(app);
           window._firebaseDb = db;
           window._firebaseDoc = doc;
           window._firebaseSetDoc = setDoc;

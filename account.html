@@ -576,7 +576,8 @@
         deleteUser,
         reload,
       } from "https://www.gstatic.com/firebasejs/9.22.2/firebase-auth.js";
-      import { getFirestore, doc, getDoc } from "https://www.gstatic.com/firebasejs/9.22.2/firebase-firestore.js";
+      import { doc, getDoc } from "https://www.gstatic.com/firebasejs/9.22.2/firebase-firestore.js";
+      import { getSharedFirestore } from "./firestore-db.js";
       import {
         mergeAndSyncToCloud,
         firebaseConfigOk,
@@ -658,7 +659,7 @@
         try {
           const app = getApps().length ? getApp() : initializeApp(firebaseConfig);
           auth = getAuth(app);
-          db = getFirestore(app);
+          db = getSharedFirestore(app);
         } catch (e) {
           console.error(e);
         }

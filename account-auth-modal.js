@@ -12,7 +12,8 @@ import {
   sendEmailVerification,
   deleteUser,
 } from "https://www.gstatic.com/firebasejs/9.22.2/firebase-auth.js";
-import { getFirestore, doc, getDoc } from "https://www.gstatic.com/firebasejs/9.22.2/firebase-firestore.js";
+import { doc, getDoc } from "https://www.gstatic.com/firebasejs/9.22.2/firebase-firestore.js";
+import { getSharedFirestore } from "./firestore-db.js";
 import { firebaseConfigOk, mergeAndSyncToCloud } from "./account-sync-lib.js";
 import {
   PROFILE_COLLECTION,
@@ -481,7 +482,7 @@ function boot() {
         try {
           var app = getApps().length ? getApp() : initializeApp(cfg);
           auth = getAuth(app);
-          db = getFirestore(app);
+          db = getSharedFirestore(app);
         } catch (e) {
           console.warn("[Last War Tools] account-auth-modal:", e);
         }

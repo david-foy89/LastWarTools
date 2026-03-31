@@ -640,7 +640,6 @@
         <script type="module">
           import { initializeApp } from "https://www.gstatic.com/firebasejs/9.22.2/firebase-app.js";
           import {
-            getFirestore,
             collection,
             query,
             onSnapshot,
@@ -649,6 +648,7 @@
             deleteDoc,
             updateDoc,
           } from "https://www.gstatic.com/firebasejs/9.22.2/firebase-firestore.js";
+          import { getSharedFirestore } from "./firestore-db.js";
 
           function firebaseConfigOk(cfg) {
             if (!cfg || typeof cfg !== "object") return false;
@@ -690,7 +690,7 @@
           let db = null;
           if (firebaseConfigOk(firebaseConfig)) {
             const app = initializeApp(firebaseConfig);
-            db = getFirestore(app);
+            db = getSharedFirestore(app);
             console.info(
               "[Transfer Tracker] Using Firestore project:",
               firebaseConfig.projectId,
