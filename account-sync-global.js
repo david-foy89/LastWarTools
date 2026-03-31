@@ -304,7 +304,10 @@ function bootAccountSync() {
             "Sync did not complete. Check your connection or try again.",
         };
       }
-      return result;
+      return {
+        ok: result.ok === true,
+        message: String(result.message || ""),
+      };
     };
 
     window.__lwScheduleAccountMergeAfterLocalChange = scheduleMergeAfterLocalEdit;

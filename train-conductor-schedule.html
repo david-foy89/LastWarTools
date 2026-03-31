@@ -4393,12 +4393,25 @@
           };
         }
         try {
-          const result = await window.__lwForceAccountMerge();
+          const raw = await window.__lwForceAccountMerge();
           refreshScheduleAfterStorageMerge();
+          if (
+            !raw ||
+            typeof raw !== "object" ||
+            typeof raw.ok !== "boolean"
+          ) {
+            return {
+              notReady: false,
+              ok: false,
+              message:
+                (raw && typeof raw.message === "string" && raw.message) ||
+                "Account sync did not return a status. Hard-refresh the page (Ctrl+F5 or clear cache) so the latest account-sync-global.js loads.",
+            };
+          }
           return {
             notReady: false,
-            ok: result.ok,
-            message: result.message,
+            ok: raw.ok,
+            message: typeof raw.message === "string" ? raw.message : "",
           };
         } catch (err) {
           refreshScheduleAfterStorageMerge();
