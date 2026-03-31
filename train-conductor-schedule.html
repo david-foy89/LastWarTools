@@ -1129,7 +1129,7 @@
               <label for="conductorWeekSelect">Name Assignment Week</label>
               <select
                 id="conductorWeekSelect"
-                aria-label="Conductor naming week"
+                aria-label="Which schedule week row to edit names for (does not move the calendar)"
               >
                 <option value="0">Week 1</option>
                 <option value="1">Week 2</option>
@@ -4423,31 +4423,15 @@
           renderSchedule();
         });
       });
-      // Conductor naming week: moving forward shifts stored weeks up; Week 4 becomes a fresh row.
+      // Name Assignment Week: only switches which stored week row the conductor name inputs edit.
+      // Does not rotate the calendar, start date, or day assignments (use Start date for that).
       conductorWeekSelect.addEventListener("change", () => {
         if (conductorWeekSelectProgrammatic) return;
         const n = Number(conductorWeekSelect.value);
-        const newIdx = n >= 0 && n <= 3 ? n : 0;
-        const prevIdx = state.nameEditWeek;
-        if (newIdx > prevIdx) {
-          const steps = Math.min(newIdx - prevIdx, 4);
-          for (let s = 0; s < steps; s++) {
-            rotateWeekSlotsUp();
-          }
-          advanceStartDateByWeeks(steps);
-          state.nameEditWeek = 3;
-          conductorWeekSelectProgrammatic = true;
-          conductorWeekSelect.value = "3";
-          conductorWeekSelectProgrammatic = false;
-          if (startDateInput) {
-            startDateInput.value = state.startDateStr;
-          }
-        } else {
-          state.nameEditWeek = newIdx;
-        }
+        state.nameEditWeek = n >= 0 && n <= 3 ? n : 0;
         saveState();
         renderConductors();
-        renderSchedule();
+        renderAllianceMembers();
       });
 
       exportPngButton.addEventListener("click", () => {
