@@ -1786,12 +1786,6 @@
         return dayDiff >= 0 && dayDiff < state.weeks * 7;
       }
 
-      function isTodayAfterScheduleWindow() {
-        const dayDiff = scheduleDayDiffFromStart();
-        if (dayDiff === null || state.weeks < 1) return false;
-        return dayDiff >= state.weeks * 7;
-      }
-
       function anchorScheduleWindowToIncludeToday() {
         const w = Math.max(1, Math.min(4, state.weeks));
         state.weeks = w;
@@ -1801,12 +1795,6 @@
         state.startDateStr = toDateStr(anchorMon);
         if (startDateInput) startDateInput.value = state.startDateStr;
         saveState();
-      }
-
-      function ensureStaleScheduleShowsToday() {
-        if (isTodayAfterScheduleWindow()) {
-          anchorScheduleWindowToIncludeToday();
-        }
       }
 
       function escapeHtml(v) {
@@ -3971,6 +3959,67 @@
           .filter(Boolean);
       }
 
+      /**
+       * After loadState(), apply values from any existing conductor inputs so
+       * account sync / storage refresh does not drop in-progress edits (e.g. merge
+       * while the user is typing or after scroll on mobile).
+       */
+      function mergeDomConductorFieldsIntoStateAfterLoad(nameEditWeekBeforeLoad) {
+        if (!conductorsList) return false;
+        if (state.nameEditWeek !== nameEditWeekBeforeLoad) return false;
+        if (
+          nameEditWeekBeforeLoad < 0 ||
+          nameEditWeekBeforeLoad > 3
+        ) {
+          return false;
+        }
+        const weekRow = state.conductorNamesByWeek[nameEditWeekBeforeLoad];
+        if (!Array.isArray(weekRow) || weekRow.length !== 7) return false;
+        let dirty = false;
+        conductorsList.querySelectorAll(".conductor-name-input").forEach((inp) => {
+          const idx = Number(inp.dataset.idx);
+          if (!Number.isFinite(idx) || idx < 0 || idx > 6) return;
+          const v = inp.value.trim().slice(0, 40);
+          if (weekRow[idx] !== v) {
+            weekRow[idx] = v;
+            dirty = true;
+          }
+        });
+        if (state.showVip) {
+          conductorsList.querySelectorAll(".conductor-vip-input").forEach((inp) => {
+            const idx = Number(inp.dataset.idx);
+            if (
+              !Number.isFinite(idx) ||
+              idx < 0 ||
+              idx >= state.conductors.length
+            ) {
+              return;
+            }
+            const v = inp.value.slice(0, 50);
+            if (state.conductors[idx].vipGuardian !== v) {
+              state.conductors[idx].vipGuardian = v;
+              dirty = true;
+            }
+          });
+        }
+        conductorsList.querySelectorAll('input.conductor-swatch[type="color"]').forEach((inp) => {
+          const idx = Number(inp.dataset.idx);
+          if (
+            !Number.isFinite(idx) ||
+            idx < 0 ||
+            idx >= state.conductors.length
+          ) {
+            return;
+          }
+          const v = inp.value;
+          if (/^#[0-9a-fA-F]{6}$/.test(v) && state.conductors[idx].color !== v) {
+            state.conductors[idx].color = v;
+            dirty = true;
+          }
+        });
+        return dirty;
+      }
+
       function renderConductors() {
         conductorsList.innerHTML = state.conductors
           .map((c, i) => {
@@ -4218,13 +4267,10 @@
 
       // Init
       loadState();
-      const loadedFromShareLink = loadSharedStateFromUrl();
+      loadSharedStateFromUrl();
 
       if (!state.startDateStr) {
         state.startDateStr = toDateStr(getMondayOf(getServerTodayDate()));
-      }
-      if (!loadedFromShareLink) {
-        ensureStaleScheduleShowsToday();
       }
       startDateInput.value = state.startDateStr;
       vipToggleInput.checked = state.showVip;
@@ -4266,11 +4312,14 @@
       }
 
       function refreshScheduleAfterStorageMerge() {
+        const nameEditWeekBeforeLoad = state.nameEditWeek;
         loadState();
         if (!state.startDateStr) {
           state.startDateStr = toDateStr(getMondayOf(getServerTodayDate()));
         }
-        ensureStaleScheduleShowsToday();
+        if (mergeDomConductorFieldsIntoStateAfterLoad(nameEditWeekBeforeLoad)) {
+          saveState();
+        }
         startDateInput.value = state.startDateStr;
         vipToggleInput.checked = state.showVip;
         conductorWeekSelectProgrammatic = true;
