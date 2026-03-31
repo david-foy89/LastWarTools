@@ -306,6 +306,12 @@
         font-variant-numeric: tabular-nums;
         min-height: 1.25em;
       }
+      .hive-tile-count {
+        font-size: 0.88rem;
+        color: var(--muted);
+        font-variant-numeric: tabular-nums;
+        white-space: nowrap;
+      }
       .hive-hint {
         margin: 0 0 12px;
         font-size: 0.82rem;
@@ -682,6 +688,13 @@
           >
             CSV
           </button>
+          <span class="hive-planner-bar__sep" aria-hidden="true">|</span>
+          <span
+            id="hiveTileCount"
+            class="hive-tile-count"
+            aria-live="polite"
+            title="Cells with a mark or building, excluding Alliance Exercise and Alliance Furnace tiles"
+          ></span>
           <span id="hiveCoord" class="hive-coord" aria-live="polite"></span>
         </div>
         <p class="hive-hint">
@@ -765,6 +778,7 @@
         var MAJOR = 10;
         var canvas = document.getElementById("hiveCanvas");
         var coordEl = document.getElementById("hiveCoord");
+        var tileCountEl = document.getElementById("hiveTileCount");
         var clearBtn = document.getElementById("hiveClearBtn");
         var exportPngBtn = document.getElementById("hiveExportPngBtn");
         var exportXlsxBtn = document.getElementById("hiveExportXlsxBtn");
@@ -1121,6 +1135,7 @@
           }
           ctx.font = "bold " + fs + 'px system-ui, "Segoe UI", sans-serif';
           if (!suppressDragOverlayForExport) drawDragPreviewOverlay();
+          updateHiveTileCount();
         }
 
         function drawDragPreviewOverlay() {
@@ -1343,6 +1358,27 @@
           }
           coordEl.textContent =
             "Column " + (cell.x + 1) + ", row " + (cell.y + 1) + " (of " + TILES + ")";
+        }
+
+        /** Cells with any mark/building except Alliance Exercise and Alliance Furnace. */
+        function countHiveTilesExcludingAeFurnace() {
+          var n = 0;
+          var i;
+          var v;
+          for (i = 0; i < TOTAL; i++) {
+            v = tiles[i];
+            if (v === STATE_EMPTY) continue;
+            if (v === STATE_AE || v === STATE_FURNACE) continue;
+            n++;
+          }
+          return n;
+        }
+
+        function updateHiveTileCount() {
+          if (!tileCountEl) return;
+          var n = countHiveTilesExcludingAeFurnace();
+          tileCountEl.textContent =
+            "Tiles: " + n + " (excl. AE & Furnace)";
         }
 
         function blockCentersOverlap(cxa, cya, halfA, cxb, cyb, halfB) {
