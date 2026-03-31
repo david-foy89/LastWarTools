@@ -278,6 +278,19 @@
         display: none;
       }
 
+      .schedule-window-hint {
+        border-color: rgba(255, 193, 7, 0.4);
+        background: rgba(255, 193, 7, 0.07);
+        flex-wrap: wrap;
+      }
+
+      #scheduleWindowHintText {
+        flex: 1;
+        min-width: 140px;
+        color: var(--muted);
+        line-height: 1.35;
+      }
+
       .schedule-header {
         display: flex;
         justify-content: space-between;
@@ -1176,6 +1189,21 @@
               <span class="today-banner-label">Today</span>
               <span id="todayBannerContent"></span>
             </div>
+            <div
+              class="today-banner schedule-window-hint is-hidden"
+              id="scheduleWindowHint"
+              role="status"
+            >
+              <span class="today-banner-label">View</span>
+              <span id="scheduleWindowHintText"></span>
+              <button
+                type="button"
+                class="action-button schedule-action-button"
+                id="anchorScheduleToTodayButton"
+              >
+                Show period with today
+              </button>
+            </div>
             <div class="schedule-wrapper">
               <table class="schedule-table" id="scheduleTable">
                 <thead id="scheduleHead"></thead>
@@ -1453,7 +1481,7 @@
       ];
 
       const state = {
-        weeks: 2,
+        weeks: 4,
         nameEditWeek: 0,
         conductorNamesByWeek: Array.from({ length: 4 }, () =>
           Array(7).fill(""),
@@ -1486,6 +1514,13 @@
       const resetButton = document.getElementById("resetButton");
       const todayBanner = document.getElementById("todayBanner");
       const todayBannerContent = document.getElementById("todayBannerContent");
+      const scheduleWindowHint = document.getElementById("scheduleWindowHint");
+      const scheduleWindowHintText = document.getElementById(
+        "scheduleWindowHintText",
+      );
+      const anchorScheduleToTodayButton = document.getElementById(
+        "anchorScheduleToTodayButton",
+      );
       const vipToggleInput = document.getElementById("vipToggleInput");
       const conductorWeekSelect = document.getElementById(
         "conductorWeekSelect",
@@ -1684,6 +1719,43 @@
           date.getMonth() === t.getMonth() &&
           date.getDate() === t.getDate()
         );
+      }
+
+      function scheduleDayDiffFromStart() {
+        if (!state.startDateStr) return null;
+        const start = new Date(state.startDateStr + "T00:00:00");
+        const today = getServerTodayDate();
+        const diffMs = today.getTime() - start.getTime();
+        return Math.floor(diffMs / 86400000);
+      }
+
+      function isTodayVisibleOnSchedule() {
+        const dayDiff = scheduleDayDiffFromStart();
+        if (dayDiff === null || state.weeks < 1) return true;
+        return dayDiff >= 0 && dayDiff < state.weeks * 7;
+      }
+
+      function isTodayAfterScheduleWindow() {
+        const dayDiff = scheduleDayDiffFromStart();
+        if (dayDiff === null || state.weeks < 1) return false;
+        return dayDiff >= state.weeks * 7;
+      }
+
+      function anchorScheduleWindowToIncludeToday() {
+        const w = Math.max(1, Math.min(4, state.weeks));
+        state.weeks = w;
+        const todayMon = getMondayOf(getServerTodayDate());
+        const anchorMon = new Date(todayMon);
+        anchorMon.setDate(todayMon.getDate() - (w - 1) * 7);
+        state.startDateStr = toDateStr(anchorMon);
+        if (startDateInput) startDateInput.value = state.startDateStr;
+        saveState();
+      }
+
+      function ensureStaleScheduleShowsToday() {
+        if (isTodayAfterScheduleWindow()) {
+          anchorScheduleWindowToIncludeToday();
+        }
       }
 
       function escapeHtml(v) {
@@ -4067,6 +4139,20 @@
         } else {
           todayBanner.classList.add("is-hidden");
         }
+
+        if (
+          scheduleWindowHint &&
+          scheduleWindowHintText &&
+          state.weeks >= 1 &&
+          state.startDateStr &&
+          !isTodayVisibleOnSchedule()
+        ) {
+          scheduleWindowHintText.textContent =
+            "Today’s date is not on the schedule grid. Add more weeks, change the start date, or center the window on today.";
+          scheduleWindowHint.classList.remove("is-hidden");
+        } else if (scheduleWindowHint) {
+          scheduleWindowHint.classList.add("is-hidden");
+        }
       }
 
       function render() {
@@ -4080,10 +4166,13 @@
 
       // Init
       loadState();
-      loadSharedStateFromUrl();
+      const loadedFromShareLink = loadSharedStateFromUrl();
 
       if (!state.startDateStr) {
         state.startDateStr = toDateStr(getMondayOf(getServerTodayDate()));
+      }
+      if (!loadedFromShareLink) {
+        ensureStaleScheduleShowsToday();
       }
       startDateInput.value = state.startDateStr;
       vipToggleInput.checked = state.showVip;
@@ -4101,6 +4190,7 @@
         if (!state.startDateStr) {
           state.startDateStr = toDateStr(getMondayOf(getServerTodayDate()));
         }
+        ensureStaleScheduleShowsToday();
         startDateInput.value = state.startDateStr;
         vipToggleInput.checked = state.showVip;
         conductorWeekSelectProgrammatic = true;
@@ -4220,6 +4310,13 @@
         render();
       });
 
+      if (anchorScheduleToTodayButton) {
+        anchorScheduleToTodayButton.addEventListener("click", () => {
+          anchorScheduleWindowToIncludeToday();
+          render();
+        });
+      }
+
       // Reset
       resetButton.addEventListener("click", () => {
         if (!confirm("Reset all conductors and assignments to defaults?"))
@@ -4234,7 +4331,7 @@
         ]);
         state.startDateStr = toDateStr(getMondayOf(getServerTodayDate()));
         startDateInput.value = state.startDateStr;
-        state.weeks = 2;
+        state.weeks = 4;
         state.nameEditWeek = 0;
         conductorWeekSelectProgrammatic = true;
         conductorWeekSelect.value = "0";
