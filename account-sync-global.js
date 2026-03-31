@@ -269,7 +269,31 @@ function bootAccountSync() {
           setTimeout(r, 50);
         });
       }
-      return mergeAndSyncToCloud(u, dbRef, {});
+      var result = { ok: true, message: "" };
+      await mergeAndSyncToCloud(u, dbRef, {
+        onStatus: function (msg, kind) {
+          var m = String(msg || "");
+          if (kind === "error") {
+            result = { ok: false, message: m };
+            try {
+              window.__lwLastAccountSyncError = m;
+            } catch (e1) {
+              /* ignore */
+            }
+          } else if (kind === "ok") {
+            result.ok = true;
+            result.message = m;
+            try {
+              window.__lwLastAccountSyncError = "";
+            } catch (e2) {
+              /* ignore */
+            }
+          } else if (kind === "progress") {
+            result.message = m;
+          }
+        },
+      });
+      return result;
     };
 
     window.__lwScheduleAccountMergeAfterLocalChange = scheduleMergeAfterLocalEdit;

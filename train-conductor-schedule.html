@@ -310,6 +310,26 @@
         gap: 8px;
       }
 
+      .schedule-persist-status {
+        margin: 0 0 12px;
+        font-size: 0.82rem;
+        line-height: 1.35;
+        min-height: 1.35em;
+        color: var(--muted);
+      }
+
+      .schedule-persist-status.is-ok {
+        color: #69db7c;
+      }
+
+      .schedule-persist-status.is-error {
+        color: #ff6b6b;
+      }
+
+      .schedule-persist-status.is-progress {
+        color: var(--accent-2);
+      }
+
       .is-hidden {
         display: none !important;
       }
@@ -1136,7 +1156,26 @@
         <div class="card">
           <div class="schedule-header">
             <h2 class="card-title">Schedule</h2>
-            <div class="schedule-actions" aria-label="Schedule export actions">
+            <div
+              class="schedule-actions"
+              aria-label="Schedule save, sync, and export"
+            >
+              <button
+                type="button"
+                id="saveScheduleButton"
+                class="action-button schedule-action-button"
+                title="Save calendar, conductors, and alliance data in this browser"
+              >
+                Save
+              </button>
+              <button
+                type="button"
+                id="syncScheduleButton"
+                class="action-button schedule-action-button action-button--quiet"
+                title="Requires a signed-in account. Merges the latest data from your account and this device"
+              >
+                Sync
+              </button>
               <div class="export-menu-wrap" id="exportMenuWrap">
                 <button
                   type="button"
@@ -1184,6 +1223,12 @@
               </div>
             </div>
           </div>
+          <p
+            class="schedule-persist-status"
+            id="schedulePersistStatus"
+            role="status"
+            aria-live="polite"
+          ></p>
           <div id="scheduleExportArea">
             <div class="today-banner is-hidden" id="todayBanner">
               <span class="today-banner-label">Today</span>
@@ -1532,6 +1577,12 @@
       const exportMenuWrap = document.getElementById("exportMenuWrap");
       const exportMenuToggle = document.getElementById("exportMenuToggle");
       const exportMenu = document.getElementById("exportMenu");
+      const saveScheduleButton = document.getElementById("saveScheduleButton");
+      const syncScheduleButton = document.getElementById("syncScheduleButton");
+      const schedulePersistStatus = document.getElementById(
+        "schedulePersistStatus",
+      );
+      let schedulePersistStatusClearTimer = null;
       const allianceMembersCount = document.getElementById(
         "allianceMembersCount",
       );
@@ -3790,8 +3841,9 @@
           } catch {
             /* ignore */
           }
+          return true;
         } catch {
-          // ignore
+          return false;
         }
       }
 
@@ -4183,9 +4235,37 @@
 
       render();
 
-      function applyTrainConductorFromCloudStorage(syncedKeys) {
-        const keys = Array.isArray(syncedKeys) ? syncedKeys : [];
-        if (!keys.length || !keys.includes(STORAGE_KEY)) return;
+      function setSchedulePersistStatus(message, kind) {
+        if (!schedulePersistStatus) return;
+        if (schedulePersistStatusClearTimer) {
+          clearTimeout(schedulePersistStatusClearTimer);
+          schedulePersistStatusClearTimer = null;
+        }
+        schedulePersistStatus.textContent = message || "";
+        schedulePersistStatus.classList.remove(
+          "is-ok",
+          "is-error",
+          "is-progress",
+        );
+        if (kind === "ok") schedulePersistStatus.classList.add("is-ok");
+        else if (kind === "error") schedulePersistStatus.classList.add("is-error");
+        else if (kind === "progress") {
+          schedulePersistStatus.classList.add("is-progress");
+        }
+        if (message && kind !== "progress") {
+          schedulePersistStatusClearTimer = setTimeout(() => {
+            schedulePersistStatus.textContent = "";
+            schedulePersistStatus.classList.remove(
+              "is-ok",
+              "is-error",
+              "is-progress",
+            );
+            schedulePersistStatusClearTimer = null;
+          }, 10000);
+        }
+      }
+
+      function refreshScheduleAfterStorageMerge() {
         loadState();
         if (!state.startDateStr) {
           state.startDateStr = toDateStr(getMondayOf(getServerTodayDate()));
@@ -4199,6 +4279,12 @@
         allianceFillTargetSelect.value = state.allianceFillTarget;
         syncAllianceFillConductorOptions();
         render();
+      }
+
+      function applyTrainConductorFromCloudStorage(syncedKeys) {
+        const keys = Array.isArray(syncedKeys) ? syncedKeys : [];
+        if (!keys.length || !keys.includes(STORAGE_KEY)) return;
+        refreshScheduleAfterStorageMerge();
       }
 
       window.addEventListener("lw-localstorage-synced", (ev) => {
@@ -4262,6 +4348,61 @@
         closeExportMenu();
         shareScheduleLink();
       });
+
+      if (saveScheduleButton) {
+        saveScheduleButton.addEventListener("click", () => {
+          if (saveState()) {
+            setSchedulePersistStatus(
+              "Saved on this device. The calendar, conductors, and alliance list are stored in your browser.",
+              "ok",
+            );
+          } else {
+            setSchedulePersistStatus(
+              "Could not save. Storage may be full or blocked (for example in private browsing).",
+              "error",
+            );
+          }
+        });
+      }
+
+      if (syncScheduleButton) {
+        syncScheduleButton.addEventListener("click", async () => {
+          if (typeof window.__lwForceAccountMerge !== "function") {
+            setSchedulePersistStatus(
+              "Account sync is not available here. Use a deployed site with Firebase configured, then sign in on the Account page to sync across devices.",
+              "error",
+            );
+            return;
+          }
+          setSchedulePersistStatus("Syncing with your account…", "progress");
+          syncScheduleButton.disabled = true;
+          try {
+            const result = await window.__lwForceAccountMerge();
+            refreshScheduleAfterStorageMerge();
+            if (result && result.ok === false) {
+              setSchedulePersistStatus(
+                result.message || "Sync could not complete.",
+                "error",
+              );
+            } else {
+              setSchedulePersistStatus(
+                (result && result.message) ||
+                  "Sync complete. This device now matches the latest merged data for your account.",
+                "ok",
+              );
+            }
+          } catch (err) {
+            refreshScheduleAfterStorageMerge();
+            setSchedulePersistStatus(
+              (err && err.message) ||
+                "Sign in with a verified email on the Account page to sync.",
+              "error",
+            );
+          } finally {
+            syncScheduleButton.disabled = false;
+          }
+        });
+      }
 
       exportMenuToggle.addEventListener("click", (event) => {
         event.preventDefault();
