@@ -269,11 +269,14 @@ function bootAccountSync() {
           setTimeout(r, 50);
         });
       }
-      var result = { ok: true, message: "" };
+      /** Only true after onStatus(..., "ok" | "error"). Progress must not imply success. */
+      var mergeFinalized = false;
+      var result = { ok: false, message: "" };
       await mergeAndSyncToCloud(u, dbRef, {
         onStatus: function (msg, kind) {
           var m = String(msg || "");
           if (kind === "error") {
+            mergeFinalized = true;
             result = { ok: false, message: m };
             try {
               window.__lwLastAccountSyncError = m;
@@ -281,8 +284,8 @@ function bootAccountSync() {
               /* ignore */
             }
           } else if (kind === "ok") {
-            result.ok = true;
-            result.message = m;
+            mergeFinalized = true;
+            result = { ok: true, message: m };
             try {
               window.__lwLastAccountSyncError = "";
             } catch (e2) {
@@ -293,6 +296,14 @@ function bootAccountSync() {
           }
         },
       });
+      if (!mergeFinalized) {
+        return {
+          ok: false,
+          message:
+            result.message ||
+            "Sync did not complete. Check your connection or try again.",
+        };
+      }
       return result;
     };
 
