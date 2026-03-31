@@ -1164,7 +1164,7 @@
                 type="button"
                 id="saveScheduleButton"
                 class="action-button schedule-action-button"
-                title="Save calendar, conductors, and alliance data in this browser"
+                title="Saves in this browser, then uploads to your account when signed in so other devices can sync"
               >
                 Save
               </button>
@@ -1172,7 +1172,7 @@
                 type="button"
                 id="syncScheduleButton"
                 class="action-button schedule-action-button action-button--quiet"
-                title="Requires a signed-in account. Merges the latest data from your account and this device"
+                title="When signed in, merges the latest cloud data with this device (use on your other device after saving elsewhere)"
               >
                 Sync
               </button>
@@ -4293,6 +4293,55 @@
         );
       });
 
+      const LW_FORCE_MERGE_WAIT_MS = 12000;
+      const LW_FORCE_MERGE_POLL_MS = 100;
+
+      async function waitForLwForceAccountMerge() {
+        const deadline = Date.now() + LW_FORCE_MERGE_WAIT_MS;
+        while (Date.now() < deadline) {
+          if (typeof window.__lwForceAccountMerge === "function") {
+            return true;
+          }
+          await new Promise((r) => setTimeout(r, LW_FORCE_MERGE_POLL_MS));
+        }
+        return typeof window.__lwForceAccountMerge === "function";
+      }
+
+      /**
+       * Runs account merge (upload/download) and reloads the schedule from localStorage.
+       * account-sync-global.js loads asynchronously after this page script, so we poll first.
+       */
+      async function runTrainConductorAccountMerge() {
+        const ready = await waitForLwForceAccountMerge();
+        if (!ready) {
+          return {
+            notReady: true,
+            message:
+              "Account sync is still loading or Firebase is not configured on this page.",
+          };
+        }
+        try {
+          const result = await window.__lwForceAccountMerge();
+          refreshScheduleAfterStorageMerge();
+          return {
+            notReady: false,
+            ok: result.ok,
+            message: result.message,
+          };
+        } catch (err) {
+          refreshScheduleAfterStorageMerge();
+          const m = (err && err.message) || "";
+          const authRequired =
+            /not signed in|not verified|verify your email/i.test(m);
+          return {
+            notReady: false,
+            ok: false,
+            message: m,
+            authRequired,
+          };
+        }
+      }
+
       // Week buttons
       document.querySelectorAll(".week-btn").forEach((btn) => {
         btn.addEventListener("click", () => {
@@ -4350,54 +4399,90 @@
       });
 
       if (saveScheduleButton) {
-        saveScheduleButton.addEventListener("click", () => {
-          if (saveState()) {
+        saveScheduleButton.addEventListener("click", async () => {
+          setSchedulePersistStatus("Saving…", "progress");
+          saveScheduleButton.disabled = true;
+          try {
+            if (!saveState()) {
+              setSchedulePersistStatus(
+                "Could not save. Storage may be full or blocked (for example in private browsing).",
+                "error",
+              );
+              return;
+            }
             setSchedulePersistStatus(
-              "Saved on this device. The calendar, conductors, and alliance list are stored in your browser.",
+              "Saved locally. Checking account sync…",
+              "progress",
+            );
+            const out = await runTrainConductorAccountMerge();
+            if (out.notReady) {
+              setSchedulePersistStatus(
+                "Saved on this device. " +
+                  out.message +
+                  " Wait a few seconds and tap Save again, or use Sync after sync finishes loading.",
+                "ok",
+              );
+              return;
+            }
+            if (out.authRequired) {
+              setSchedulePersistStatus(
+                "Saved on this device. Sign in on the Account page (verified email) to sync this calendar to your other devices.",
+                "ok",
+              );
+              return;
+            }
+            if (out.ok === false) {
+              setSchedulePersistStatus(
+                `Saved on this device. Account sync failed: ${out.message || "unknown error"}`,
+                "error",
+              );
+              return;
+            }
+            setSchedulePersistStatus(
+              out.message
+                ? `Saved and synced across devices. ${out.message}`
+                : "Saved and synced to your account. Other signed-in devices can use Sync to pull this calendar.",
               "ok",
             );
-          } else {
-            setSchedulePersistStatus(
-              "Could not save. Storage may be full or blocked (for example in private browsing).",
-              "error",
-            );
+          } finally {
+            saveScheduleButton.disabled = false;
           }
         });
       }
 
       if (syncScheduleButton) {
         syncScheduleButton.addEventListener("click", async () => {
-          if (typeof window.__lwForceAccountMerge !== "function") {
-            setSchedulePersistStatus(
-              "Account sync is not available here. Use a deployed site with Firebase configured, then sign in on the Account page to sync across devices.",
-              "error",
-            );
-            return;
-          }
           setSchedulePersistStatus("Syncing with your account…", "progress");
           syncScheduleButton.disabled = true;
           try {
-            const result = await window.__lwForceAccountMerge();
-            refreshScheduleAfterStorageMerge();
-            if (result && result.ok === false) {
+            const out = await runTrainConductorAccountMerge();
+            if (out.notReady) {
               setSchedulePersistStatus(
-                result.message || "Sync could not complete.",
+                out.message +
+                  " Wait a few seconds and try again, or confirm firebase-config.js is deployed.",
+                "error",
+              );
+              return;
+            }
+            if (out.authRequired) {
+              setSchedulePersistStatus(
+                "Sign in with a verified email on the Account page to sync between devices.",
+                "error",
+              );
+              return;
+            }
+            if (out.ok === false) {
+              setSchedulePersistStatus(
+                out.message || "Sync could not complete.",
                 "error",
               );
             } else {
               setSchedulePersistStatus(
-                (result && result.message) ||
-                  "Sync complete. This device now matches the latest merged data for your account.",
+                out.message ||
+                  "Sync complete. This device matches the latest merged data for your account.",
                 "ok",
               );
             }
-          } catch (err) {
-            refreshScheduleAfterStorageMerge();
-            setSchedulePersistStatus(
-              (err && err.message) ||
-                "Sign in with a verified email on the Account page to sync.",
-              "error",
-            );
           } finally {
             syncScheduleButton.disabled = false;
           }
