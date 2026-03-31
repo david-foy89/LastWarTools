@@ -1786,6 +1786,12 @@
         return dayDiff >= 0 && dayDiff < state.weeks * 7;
       }
 
+      function isTodayAfterScheduleWindow() {
+        const dayDiff = scheduleDayDiffFromStart();
+        if (dayDiff === null || state.weeks < 1) return false;
+        return dayDiff >= state.weeks * 7;
+      }
+
       function anchorScheduleWindowToIncludeToday() {
         const w = Math.max(1, Math.min(4, state.weeks));
         state.weeks = w;
@@ -1795,6 +1801,13 @@
         state.startDateStr = toDateStr(anchorMon);
         if (startDateInput) startDateInput.value = state.startDateStr;
         saveState();
+      }
+
+      /** One-time fix when today is past the saved grid; do not call on every cloud merge. */
+      function ensureStaleScheduleShowsToday() {
+        if (isTodayAfterScheduleWindow()) {
+          anchorScheduleWindowToIncludeToday();
+        }
       }
 
       function escapeHtml(v) {
@@ -1809,6 +1822,11 @@
         return String(value || "")
           .trim()
           .slice(0, 40);
+      }
+
+      /** Match loadState / save JSON normalization for VIP field (trim + max length). */
+      function normalizeVipGuardianValue(value) {
+        return String(value || "").trim().slice(0, 50);
       }
 
       function setAllianceImportStatus(message, busy = false) {
@@ -3516,7 +3534,8 @@
         }
 
         if (targetType === "vip") {
-          state.conductors[idx].vipGuardian = memberName.slice(0, 50);
+          state.conductors[idx].vipGuardian =
+            normalizeVipGuardianValue(memberName);
           recordMemberHistory(memberName, "vip", idx);
         } else {
           const n = sanitizeMemberName(memberName).slice(0, 40);
@@ -3615,7 +3634,7 @@
                 : DEFAULT_COLORS[i],
             vipGuardian:
               typeof c.vipGuardian === "string"
-                ? c.vipGuardian.trim().slice(0, 50)
+                ? normalizeVipGuardianValue(c.vipGuardian)
                 : "",
           }));
         }
@@ -3882,7 +3901,7 @@
                   : DEFAULT_COLORS[i],
               vipGuardian:
                 typeof c.vipGuardian === "string"
-                  ? c.vipGuardian.trim().slice(0, 50)
+                  ? normalizeVipGuardianValue(c.vipGuardian)
                   : "",
             }));
 
@@ -3995,7 +4014,7 @@
             ) {
               return;
             }
-            const v = inp.value.slice(0, 50);
+            const v = normalizeVipGuardianValue(inp.value);
             if (state.conductors[idx].vipGuardian !== v) {
               state.conductors[idx].vipGuardian = v;
               dirty = true;
@@ -4108,7 +4127,8 @@
           .forEach((inp) => {
             inp.addEventListener("input", () => {
               const idx = Number(inp.dataset.idx);
-              state.conductors[idx].vipGuardian = inp.value.slice(0, 50);
+              state.conductors[idx].vipGuardian =
+                normalizeVipGuardianValue(inp.value);
               saveState();
               renderSchedule();
               renderAllianceMembers();
@@ -4267,10 +4287,13 @@
 
       // Init
       loadState();
-      loadSharedStateFromUrl();
+      const loadedFromShareLink = loadSharedStateFromUrl();
 
       if (!state.startDateStr) {
         state.startDateStr = toDateStr(getMondayOf(getServerTodayDate()));
+      }
+      if (!loadedFromShareLink) {
+        ensureStaleScheduleShowsToday();
       }
       startDateInput.value = state.startDateStr;
       vipToggleInput.checked = state.showVip;
