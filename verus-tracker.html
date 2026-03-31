@@ -1350,11 +1350,11 @@
         ];
 
         /**
-         * Leaderboard power scores: at least ~5 digits (was 6+, so e.g. 45000 never matched).
-         * Allows optional minus and comma thousands.
+         * Leaderboard power scores: at least 4 digits (e.g. 4500). Allows optional minus
+         * and comma thousands. (Older builds required 5+ and missed many real scores.)
          */
         const VERUS_OCR_SCORE_RE_SRC =
-          "-?\\d[\\d,]{4,}(?:\\.\\d+)?";
+          "-?\\d[\\d,]{3,}(?:\\.\\d+)?";
 
         function generateId(len = 14) {
           const chars = "abcdefghijklmnopqrstuvwxyz0123456789";
@@ -1824,7 +1824,7 @@
             .filter(Boolean);
           const out = [];
           const seen = new Set();
-          const scoreAnchorRe = /\b(\d[\d,]{4,})\b/;
+          const scoreAnchorRe = /\b(-?\d[\d,]{3,}(?:\.\d+)?)\b/;
           for (let i = 0; i < lines.length; i++) {
             const scoreMatch = lines[i].match(scoreAnchorRe);
             if (!scoreMatch) continue;
@@ -2816,6 +2816,10 @@
           if (n === "alliance member" || n === "alliance members") return true;
           if (n.startsWith("alliance member") && n.length <= 40) return true;
           if (n === "username" || n === "user name") return true;
+          if (n === "governor" || n === "governors") return true;
+          if (n === "governor name" || n === "governorname") return true;
+          if (n.startsWith("governor ") && n.length <= 36) return true;
+          if (n === "character" || n === "character name") return true;
           return false;
         }
 

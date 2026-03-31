@@ -1,19 +1,31 @@
 /**
- * Tesseract LSTM WASM logs "Warning: Parameter not found: …" for legacy-only
- * engine variables during Init. Harmless; Tesseract.setLogging does not affect WASM.
- * This filters only that message pattern so the console stays readable.
+ * Tesseract LSTM WASM prints legacy "Parameter not found: …" lines during Init.
+ * They may go through console.warn or console.error; the first argument is not always
+ * a plain string. Filter any log line that looks like this noise.
  */
 (function () {
-  if (typeof console === "undefined" || typeof console.warn !== "function") return;
-  var orig = console.warn;
-  console.warn = function () {
-    var m = arguments[0];
-    if (
-      typeof m === "string" &&
-      /^Warning: Parameter not found:/.test(m)
-    ) {
-      return;
+  if (typeof console === "undefined") return;
+
+  function isTesseractParamNoise(args) {
+    var parts = [];
+    for (var i = 0; i < args.length; i++) {
+      var a = args[i];
+      if (typeof a === "string") parts.push(a);
+      else if (a != null && typeof a !== "object") parts.push(String(a));
     }
-    orig.apply(console, arguments);
-  };
+    var s = parts.join(" ");
+    return /Parameter not found/i.test(s);
+  }
+
+  function wrap(method) {
+    var orig = console[method];
+    if (typeof orig !== "function") return;
+    console[method] = function () {
+      if (isTesseractParamNoise(arguments)) return;
+      orig.apply(console, arguments);
+    };
+  }
+
+  wrap("warn");
+  wrap("error");
 })();

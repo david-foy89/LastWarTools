@@ -2480,7 +2480,7 @@
 
           for (let i = 0; i < lines.length; i++) {
             const line = lines[i];
-            const oneLine = line.match(/^(.*?)(-?\d[\d,]{5,}(?:\.\d+)?)$/);
+            const oneLine = line.match(/^(.*?)(-?\d[\d,]{3,}(?:\.\d+)?)$/);
             if (oneLine && looksLikeName(oneLine[1])) {
               const name = cleanName(oneLine[1]);
               const score = normalizeNum(oneLine[2]);
@@ -2503,7 +2503,7 @@
 
             if (!looksLikeName(line)) continue;
             const next = lines[i + 1] || "";
-            const scoreMatch = next.match(/(-?\d[\d,]{5,}(?:\.\d+)?)/);
+            const scoreMatch = next.match(/(-?\d[\d,]{3,}(?:\.\d+)?)/);
             if (!scoreMatch) continue;
             const name = cleanName(line);
             const score = normalizeNum(scoreMatch[1]);
@@ -2533,7 +2533,7 @@
           const out = [];
           const seen = new Set();
           for (let i = 0; i < lines.length; i++) {
-            const scoreMatch = lines[i].match(/\b(\d[\d,]{5,})\b/);
+            const scoreMatch = lines[i].match(/\b(-?\d[\d,]{3,}(?:\.\d+)?)\b/);
             if (!scoreMatch) continue;
             const score = normalizeNum(scoreMatch[1]);
             if (!score) continue;
@@ -2641,27 +2641,40 @@
           return canvas;
         }
 
+        /**
+         * Tesseract.js v5: `Tesseract.recognize(img, langs, opts)` only passes opts to
+         * createWorker — PSM/spacing never reach recognize. Same pattern as Versus Tracker.
+         */
+        async function dsTesseractRecognizeOnce(source, langs) {
+          if (typeof Tesseract === "undefined" || !Tesseract.createWorker) {
+            throw new Error("OCR library is not loaded.");
+          }
+          const worker = await Tesseract.createWorker(langs, 1);
+          try {
+            await worker.setParameters({
+              tessedit_pageseg_mode: "6",
+              preserve_interword_spaces: "1",
+            });
+            return await worker.recognize(source);
+          } finally {
+            await worker.terminate();
+          }
+        }
+
         async function runOcrOnFile(file) {
           const langsPrimary =
             (langSel && String(langSel.value || "").trim()) ||
             "eng+kor+jpn+chi_sim+chi_tra";
           const langsFallback = "eng+kor+jpn+chi_sim+chi_tra";
           const source = await preprocessImage(file);
-          const out = await Tesseract.recognize(source, langsPrimary, {
-            tessedit_pageseg_mode: "6",
-            preserve_interword_spaces: "1",
-          });
+          let out = await dsTesseractRecognizeOnce(source, langsPrimary);
           const text = (out && out.data && out.data.text) || "";
           let rows = parseOcrRows(text);
           if (!rows.length) rows = parseOcrRowsByScoreAnchor(text);
 
-          // Retry once with a broad language pack when parsing returns nothing.
           if (!rows.length && langsPrimary !== langsFallback) {
-            const retry = await Tesseract.recognize(source, langsFallback, {
-              tessedit_pageseg_mode: "6",
-              preserve_interword_spaces: "1",
-            });
-            const retryText = (retry && retry.data && retry.data.text) || "";
+            out = await dsTesseractRecognizeOnce(source, langsFallback);
+            const retryText = (out && out.data && out.data.text) || "";
             rows = parseOcrRows(retryText);
             if (!rows.length) rows = parseOcrRowsByScoreAnchor(retryText);
           }
