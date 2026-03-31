@@ -34,6 +34,7 @@
       }
     </script>
     <link rel="stylesheet" href="last-war-furnace-upgrade-calculator.css" />
+    <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
     <script src="page-nav-dropdown.js" defer></script>
     <script src="language-translate.js" defer></script>
     <style>
@@ -655,6 +656,32 @@
         </div>
         <div class="hive-toolbar">
           <button type="button" id="hiveClearBtn" class="action-button">Clear all tiles</button>
+          <span class="hive-planner-bar__sep" aria-hidden="true">|</span>
+          <span class="hive-tool-row__label">Export map</span>
+          <button
+            type="button"
+            id="hiveExportPngBtn"
+            class="hive-tool-btn"
+            title="Download the current hive map as a PNG image"
+          >
+            PNG
+          </button>
+          <button
+            type="button"
+            id="hiveExportXlsxBtn"
+            class="hive-tool-btn"
+            title="Download cell labels as an Excel spreadsheet (50×50 grid)"
+          >
+            Excel
+          </button>
+          <button
+            type="button"
+            id="hiveExportCsvBtn"
+            class="hive-tool-btn"
+            title="Download cell labels as CSV (50×50 grid)"
+          >
+            CSV
+          </button>
           <span id="hiveCoord" class="hive-coord" aria-live="polite"></span>
         </div>
         <p class="hive-hint">
@@ -739,6 +766,9 @@
         var canvas = document.getElementById("hiveCanvas");
         var coordEl = document.getElementById("hiveCoord");
         var clearBtn = document.getElementById("hiveClearBtn");
+        var exportPngBtn = document.getElementById("hiveExportPngBtn");
+        var exportXlsxBtn = document.getElementById("hiveExportXlsxBtn");
+        var exportCsvBtn = document.getElementById("hiveExportCsvBtn");
         var zoomEl = document.getElementById("hiveZoom");
         var toolMarkBtn = document.getElementById("hiveToolMark");
         var toolR5Btn = document.getElementById("hiveToolR5");
@@ -806,6 +836,8 @@
         var drag = null;
         var longPressTimer = null;
         var suppressClick = false;
+        /** When true, skip drag preview so PNG export matches the saved map. */
+        var suppressDragOverlayForExport = false;
         var baseLayer = document.createElement("canvas");
         baseLayer.width = PX;
         baseLayer.height = PX;
@@ -1088,7 +1120,7 @@
             ctx.fillText(szStr, pxCu, yCuS);
           }
           ctx.font = "bold " + fs + 'px system-ui, "Segoe UI", sans-serif';
-          drawDragPreviewOverlay();
+          if (!suppressDragOverlayForExport) drawDragPreviewOverlay();
         }
 
         function drawDragPreviewOverlay() {
@@ -2814,6 +2846,181 @@
           }
         }
 
+        function hiveExportFileBase() {
+          var raw = (hiveTabNames[currentHiveTab] || defaultHiveTabName(currentHiveTab)).trim();
+          raw = raw.replace(/[<>:"/\\|?*\x00-\x1f]/g, "_").replace(/\s+/g, " ").trim();
+          if (!raw) raw = "Hive";
+          var d = new Date();
+          function pad(n) {
+            return n < 10 ? "0" + n : "" + n;
+          }
+          var stamp =
+            d.getFullYear() + "-" + pad(d.getMonth() + 1) + "-" + pad(d.getDate());
+          return raw + " " + stamp;
+        }
+
+        function hiveExportSheetName() {
+          var n = (hiveTabNames[currentHiveTab] || defaultHiveTabName(currentHiveTab)).trim();
+          n = n.replace(/[\\\/\?:*\[\]]/g, "_").slice(0, 31);
+          if (!n) n = "Hive";
+          return n;
+        }
+
+        function customBlockNameAtCell(x, y) {
+          var k;
+          var b;
+          for (k = 0; k < customBlocks.length; k++) {
+            b = customBlocks[k];
+            if (x >= b.left && x < b.left + b.w && y >= b.top && y < b.top + b.h) {
+              return b.name;
+            }
+          }
+          return "";
+        }
+
+        function cellExportLabel(x, y) {
+          var idx = y * TILES + x;
+          var v = tiles[idx];
+          if (v === STATE_EMPTY) return "";
+          if (v === STATE_MARK) return "Mark";
+          if (v === STATE_R5) return "R5";
+          if (v === STATE_R4) return "R4";
+          if (v === STATE_R3) return "R3";
+          if (v === STATE_R2) return "R2";
+          if (v === STATE_R1) return "R1";
+          if (v === STATE_AE) return "AE";
+          if (v === STATE_FURNACE) return "Furnace";
+          if (v === STATE_ALLIANCE_CENTER) return "Alliance Center";
+          if (v === STATE_CUSTOM) {
+            var nm = customBlockNameAtCell(x, y);
+            return nm || "Custom";
+          }
+          return "";
+        }
+
+        function buildHiveExportAoA() {
+          var aoa = [];
+          var header = [""];
+          var cx;
+          for (cx = 1; cx <= TILES; cx++) header.push(String(cx));
+          aoa.push(header);
+          var ry;
+          var rx;
+          for (ry = 0; ry < TILES; ry++) {
+            var row = [String(ry + 1)];
+            for (rx = 0; rx < TILES; rx++) {
+              row.push(cellExportLabel(rx, ry));
+            }
+            aoa.push(row);
+          }
+          return aoa;
+        }
+
+        function escapeCsvCell(s) {
+          var t = String(s == null ? "" : s);
+          if (/[",\r\n]/.test(t)) {
+            return '"' + t.replace(/"/g, '""') + '"';
+          }
+          return t;
+        }
+
+        function buildHiveExportCsvText() {
+          var aoa = buildHiveExportAoA();
+          var lines = [];
+          var r;
+          var row;
+          var c;
+          for (r = 0; r < aoa.length; r++) {
+            row = aoa[r];
+            var parts = [];
+            for (c = 0; c < row.length; c++) {
+              parts.push(escapeCsvCell(row[c]));
+            }
+            lines.push(parts.join(","));
+          }
+          return lines.join("\r\n");
+        }
+
+        function triggerBlobDownload(blob, filename) {
+          var url = URL.createObjectURL(blob);
+          var a = document.createElement("a");
+          a.href = url;
+          a.download = filename;
+          a.rel = "noopener";
+          document.body.appendChild(a);
+          a.click();
+          setTimeout(function () {
+            document.body.removeChild(a);
+            URL.revokeObjectURL(url);
+          }, 0);
+        }
+
+        function exportHiveMapPng() {
+          var wasDrag = drag;
+          suppressDragOverlayForExport = true;
+          draw();
+          suppressDragOverlayForExport = false;
+          function finish() {
+            if (wasDrag) drag = wasDrag;
+            draw();
+          }
+          try {
+            if (canvas.toBlob) {
+              canvas.toBlob(
+                function (blob) {
+                  if (blob) {
+                    triggerBlobDownload(blob, hiveExportFileBase() + ".png");
+                  }
+                  finish();
+                },
+                "image/png",
+                1
+              );
+            } else {
+              var a = document.createElement("a");
+              a.href = canvas.toDataURL("image/png");
+              a.download = hiveExportFileBase() + ".png";
+              a.rel = "noopener";
+              document.body.appendChild(a);
+              a.click();
+              document.body.removeChild(a);
+              finish();
+            }
+          } catch (e) {
+            finish();
+            window.alert(
+              "Could not export PNG: " + (e && e.message ? e.message : String(e))
+            );
+          }
+        }
+
+        function exportHiveMapCsv() {
+          if (typeof window.Blob === "undefined") {
+            window.alert("Your browser does not support file downloads.");
+            return;
+          }
+          var text = buildHiveExportCsvText();
+          var blob = new Blob(["\ufeff" + text], {
+            type: "text/csv;charset=utf-8",
+          });
+          triggerBlobDownload(blob, hiveExportFileBase() + ".csv");
+        }
+
+        function exportHiveMapXlsx() {
+          var XLSX = typeof window !== "undefined" ? window.XLSX : null;
+          if (!XLSX || typeof XLSX.utils.book_new !== "function") {
+            window.alert(
+              "Spreadsheet library is not loaded. Check your network or disable blockers, then refresh."
+            );
+            return;
+          }
+          var aoa = buildHiveExportAoA();
+          var wb = XLSX.utils.book_new();
+          var ws = XLSX.utils.aoa_to_sheet(aoa);
+          XLSX.utils.book_append_sheet(wb, ws, hiveExportSheetName());
+          XLSX.writeFile(wb, hiveExportFileBase() + ".xlsx");
+        }
+
         function refreshHiveTabUi() {
           var i;
           for (i = 0; i < HIVE_TAB_COUNT; i++) {
@@ -3262,6 +3469,22 @@
           drag = null;
           setCoordText(null);
         });
+
+        if (exportPngBtn) {
+          exportPngBtn.addEventListener("click", function () {
+            exportHiveMapPng();
+          });
+        }
+        if (exportXlsxBtn) {
+          exportXlsxBtn.addEventListener("click", function () {
+            exportHiveMapXlsx();
+          });
+        }
+        if (exportCsvBtn) {
+          exportCsvBtn.addEventListener("click", function () {
+            exportHiveMapCsv();
+          });
+        }
 
         clearBtn?.addEventListener("click", function () {
           if (

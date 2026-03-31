@@ -977,7 +977,7 @@
 
           <div class="verus-ocr-row">
             <label for="verusOcrDay">Screenshot → day column</label>
-            <select id="verusOcrDay" aria-label="Which day column to fill from the screenshot">
+            <select id="verusOcrDay" aria-label="Which day column OCR fills (saved separately from DS day)">
               <option value="Monday">Monday</option>
               <option value="Tuesday">Tuesday</option>
               <option value="Wednesday">Wednesday</option>
@@ -1328,6 +1328,7 @@
         const LEGACY_ROWS_KEY = "verusTrackerRowsV1";
         const LAST_WEEK_KEY = "verusTrackerLastWeekV1";
         const LAST_DS_DAY_KEY = "verusTrackerLastDsDayV1";
+        const LAST_VERUS_OCR_DAY_KEY = "verusTrackerLastOcrDayV1";
         const EST_UTC_OFFSET_HOURS = -5;
         const SERVER_AHEAD_OF_EST_HOURS = 2;
         const SERVER_UTC_OFFSET_HOURS =
@@ -1341,6 +1342,13 @@
           "Friday",
           "Saturday",
         ];
+
+        /**
+         * Leaderboard power scores: at least ~5 digits (was 6+, so e.g. 45000 never matched).
+         * Allows optional minus and comma thousands.
+         */
+        const VERUS_OCR_SCORE_RE_SRC =
+          "-?\\d[\\d,]{4,}(?:\\.\\d+)?";
 
         function generateId(len = 14) {
           const chars = "abcdefghijklmnopqrstuvwxyz0123456789";
@@ -1758,11 +1766,16 @@
           const out = [];
           const seen = new Set();
 
+          const oneLineRe = new RegExp(
+            "^(.*?)(" + VERUS_OCR_SCORE_RE_SRC + ")$",
+          );
+          const scoreTokenRe = new RegExp("(" + VERUS_OCR_SCORE_RE_SRC + ")");
+
           for (let i = 0; i < lines.length; i++) {
             const line = lines[i];
             if (isHeaderOrTabLine(line)) continue;
 
-            const oneLine = line.match(/^(.*?)(-?\d[\d,]{5,}(?:\.\d+)?)$/);
+            const oneLine = line.match(oneLineRe);
             if (
               oneLine &&
               looksLikeName(oneLine[1]) &&
@@ -1784,7 +1797,7 @@
             let j = i + 1;
             if (j < lines.length && isAllianceLine(lines[j])) j++;
             const scoreLine = lines[j] || "";
-            const scoreMatch = scoreLine.match(/(-?\d[\d,]{5,}(?:\.\d+)?)/);
+            const scoreMatch = scoreLine.match(scoreTokenRe);
             if (!scoreMatch) continue;
             const name = cleanNameForOcr(line);
             const score = normalizeOcrScore(scoreMatch[1]);
@@ -1805,8 +1818,9 @@
             .filter(Boolean);
           const out = [];
           const seen = new Set();
+          const scoreAnchorRe = /\b(\d[\d,]{4,})\b/;
           for (let i = 0; i < lines.length; i++) {
-            const scoreMatch = lines[i].match(/\b(\d[\d,]{5,})\b/);
+            const scoreMatch = lines[i].match(scoreAnchorRe);
             if (!scoreMatch) continue;
             const score = normalizeOcrScore(scoreMatch[1]);
             if (!score) continue;
@@ -1826,7 +1840,9 @@
           return out;
         }
 
-        function preprocessVerusImageSource(source) {
+        function preprocessVerusImageSource(source, options) {
+          const opts = options || {};
+          const videoMode = opts.video === true;
           const w =
             source.naturalWidth ||
             source.videoWidth ||
@@ -1841,10 +1857,10 @@
             throw new Error("Could not read image dimensions.");
           }
           const scale = 2;
-          const sx = Math.floor(w * 0.06);
-          const sy = Math.floor(h * 0.09);
-          const sw = Math.max(1, Math.floor(w * 0.92));
-          const sh = Math.max(1, Math.floor(h * 0.9));
+          const sx = Math.floor(w * (videoMode ? 0.02 : 0.06));
+          const sy = Math.floor(h * (videoMode ? 0.04 : 0.09));
+          const sw = Math.max(1, Math.floor(w * (videoMode ? 0.96 : 0.92)));
+          const sh = Math.max(1, Math.floor(h * (videoMode ? 0.94 : 0.9)));
           const canvas = document.createElement("canvas");
           canvas.width = Math.max(1, Math.floor(sw * scale));
           canvas.height = Math.max(1, Math.floor(sh * scale));
@@ -1987,9 +2003,33 @@
           });
         }
 
+        /**
+         * After seek, wait until a decoded frame is available (video) before OCR.
+         * Without this, many browsers still have an old or blank frame when we grab pixels.
+         */
+        function waitForVideoFrameReady(video) {
+          return new Promise((resolve) => {
+            if (typeof video.requestVideoFrameCallback === "function") {
+              try {
+                video.requestVideoFrameCallback(() => {
+                  setTimeout(resolve, 90);
+                });
+                return;
+              } catch {
+                /* fall through */
+              }
+            }
+            requestAnimationFrame(() => {
+              requestAnimationFrame(() => {
+                setTimeout(resolve, 200);
+              });
+            });
+          });
+        }
+
         async function runVerusOcrOnVideoFile(file, langSel, onProgress) {
           /** Wider spacing + fewer frames reduces conflicting reads across seeks. */
-          const VIDEO_INTERVAL_SEC = 2;
+          const VIDEO_INTERVAL_SEC = 1.5;
           const VIDEO_MAX_FRAMES = 24;
           const VIDEO_MAX_DURATION_SEC = 300;
           /** Skip first ~1s — typical screen captures start dark or show recorder chrome. */
@@ -2034,10 +2074,8 @@
                 onProgress(i + 1, times.length);
               }
               await seekVideo(video, times[i]);
-              await new Promise((r) => requestAnimationFrame(() => r()));
-              await new Promise((r) => requestAnimationFrame(() => r()));
-              await new Promise((r) => setTimeout(r, 120));
-              const canvas = preprocessVerusImageSource(video);
+              await waitForVideoFrameReady(video);
+              const canvas = preprocessVerusImageSource(video, { video: true });
               const rows = await runVerusOcrOnCanvas(canvas, langSel);
               frameArrays.push(rows);
             }
@@ -2166,7 +2204,6 @@
             } catch {
               // ignore
             }
-            syncOcrDayFromDsDay();
             return;
           }
           if (prevKey === nextKey) return;
@@ -2189,9 +2226,9 @@
           } catch {
             // ignore
           }
-          syncOcrDayFromDsDay();
         }
 
+        /** Default OCR column from DS calendar date (Mon–Sat only; Sunday → Monday). */
         function syncOcrDayFromDsDay() {
           const sel = document.getElementById("verusOcrDay");
           const dsPicker = document.getElementById("verusDsDayPicker");
@@ -2203,8 +2240,36 @@
           const dow = d.getDay();
           let name;
           if (dow >= 1 && dow <= 6) name = DAYS[dow - 1];
+          else if (dow === 0) name = "Monday";
           else name = "Saturday";
           if (DAYS.includes(name)) sel.value = name;
+        }
+
+        function persistVerusOcrDay() {
+          const sel = document.getElementById("verusOcrDay");
+          if (!sel || !DAYS.includes(sel.value)) return;
+          try {
+            localStorage.setItem(LAST_VERUS_OCR_DAY_KEY, sel.value);
+          } catch {
+            // ignore
+          }
+        }
+
+        function restoreVerusOcrDayOrSyncFromDs() {
+          const sel = document.getElementById("verusOcrDay");
+          if (!sel) return;
+          try {
+            const v = String(
+              localStorage.getItem(LAST_VERUS_OCR_DAY_KEY) || "",
+            ).trim();
+            if (DAYS.includes(v)) {
+              sel.value = v;
+              return;
+            }
+          } catch {
+            // ignore
+          }
+          syncOcrDayFromDsDay();
         }
 
         /** Human-readable Mon–Sat range (matches table columns). */
@@ -2454,7 +2519,7 @@
           } catch {
             // ignore
           }
-          syncOcrDayFromDsDay();
+          restoreVerusOcrDayOrSyncFromDs();
           updateWeekDateDisplay();
         }
 
@@ -2676,6 +2741,11 @@
           if (n === "name") return true;
           if (n === "nickname" || n === "nick") return true;
           if (n === "tech" || n === "commander tech") return true;
+          if (n === "member" || n === "members") return true;
+          if (n === "member name" || n === "membername") return true;
+          if (n === "alliance member" || n === "alliance members") return true;
+          if (n.startsWith("alliance member") && n.length <= 40) return true;
+          if (n === "username" || n === "user name") return true;
           return false;
         }
 
@@ -2709,15 +2779,61 @@
           );
         }
 
-        async function importFromFile(file) {
-          if (!file) return;
-          if (!window.XLSX) {
-            alert("Excel library is not loaded yet. Please try again.");
-            return;
+        function getXLSXLib() {
+          return typeof window !== "undefined" && window.XLSX
+            ? window.XLSX
+            : null;
+        }
+
+        /**
+         * CSV as UTF-8 text parses more reliably than ArrayBuffer in some browsers.
+         * Binary Excel stays on array buffer.
+         */
+        async function readVerusImportWorkbook(file) {
+          const XLSX = getXLSXLib();
+          if (!XLSX || typeof XLSX.read !== "function") {
+            throw new Error(
+              "Spreadsheet library (SheetJS) is not loaded. Check your network or disable blockers, then refresh.",
+            );
+          }
+          const name = String(file.name || "").toLowerCase();
+          const mime = String(file.type || "").toLowerCase();
+          const useTextRead =
+            !/\.xlsx?$/i.test(name) &&
+            !name.endsWith(".xls") &&
+            (name.endsWith(".csv") ||
+              name.endsWith(".txt") ||
+              mime === "text/csv" ||
+              mime === "text/plain" ||
+              mime === "application/csv");
+
+          if (useTextRead) {
+            const text = await file.text();
+            return XLSX.read(text, { type: "string", raw: false });
           }
 
           const buf = await file.arrayBuffer();
-          const wb = window.XLSX.read(buf, { type: "array" });
+          return XLSX.read(buf, { type: "array", raw: false });
+        }
+
+        async function importFromFile(file) {
+          if (!file) return;
+
+          let wb;
+          try {
+            wb = await readVerusImportWorkbook(file);
+          } catch (e) {
+            alert(
+              "Could not read the file: " +
+                (e && e.message ? e.message : String(e)),
+            );
+            return;
+          }
+          const XLSX = getXLSXLib();
+          if (!XLSX) {
+            alert("Spreadsheet library is not loaded. Refresh the page and try again.");
+            return;
+          }
           const sheetNames = sortSheetNamesForMemberImport(
             wb.SheetNames && wb.SheetNames.length ? wb.SheetNames : [],
           );
@@ -2737,7 +2853,7 @@
           for (let si = 0; si < sheetNames.length; si++) {
             const ws = wb.Sheets[sheetNames[si]];
             if (!ws) continue;
-            const g = window.XLSX.utils.sheet_to_json(ws, {
+            const g = XLSX.utils.sheet_to_json(ws, {
               header: 1,
               raw: false,
               defval: "",
@@ -2754,27 +2870,45 @@
           }
 
           if (!grid) {
-            const ws = wb.Sheets[sheetNames[0]];
-            if (!ws) {
-              alert("Could not read the spreadsheet.");
+            let picked = null;
+            for (let si = 0; si < sheetNames.length; si++) {
+              const ws = wb.Sheets[sheetNames[si]];
+              if (!ws) continue;
+              const g = XLSX.utils.sheet_to_json(ws, {
+                header: 1,
+                raw: false,
+                defval: "",
+              });
+              if (Array.isArray(g) && g.length > 0) {
+                picked = g;
+                break;
+              }
+            }
+            if (!picked) {
+              alert("No data found in the spreadsheet.");
               return;
             }
-            grid = window.XLSX.utils.sheet_to_json(ws, {
-              header: 1,
-              raw: false,
-              defval: "",
-            });
-            if (!Array.isArray(grid) || grid.length === 0) {
-              alert("No data found in the sheet.");
-              return;
-            }
-            const r0 = grid[0] || [];
-            if (firstCellLooksLikeNameHeader(r0[0])) {
-              headerRowIndex = 0;
-              colPlayer = 0;
+            grid = picked;
+            const hri = grid.findIndex((row) => rowLooksLikePlayerHeader(row));
+            if (hri !== -1) {
+              headerRowIndex = hri;
+              colPlayer = (grid[hri] || []).findIndex(headerCellIsPlayerColumn);
+              if (colPlayer === -1) colPlayer = 0;
             } else {
-              headerRowIndex = -1;
-              colPlayer = 0;
+              const r0 = grid[0] || [];
+              const colFromRow0 = r0.findIndex((cell) =>
+                headerCellIsPlayerColumn(cell),
+              );
+              if (colFromRow0 !== -1) {
+                headerRowIndex = 0;
+                colPlayer = colFromRow0;
+              } else if (firstCellLooksLikeNameHeader(r0[0])) {
+                headerRowIndex = 0;
+                colPlayer = 0;
+              } else {
+                headerRowIndex = -1;
+                colPlayer = 0;
+              }
             }
           }
 
@@ -2903,6 +3037,7 @@
             STORAGE_ROOT,
             LAST_WEEK_KEY,
             LAST_DS_DAY_KEY,
+            LAST_VERUS_OCR_DAY_KEY,
           ]);
           if (
             keys &&
@@ -2948,7 +3083,6 @@
             } catch {
               // ignore
             }
-            syncOcrDayFromDsDay();
           });
         }
         const weekPrev = document.getElementById("verusWeekPrevBtn");
@@ -2995,6 +3129,9 @@
         const verusOcrFiles = document.getElementById("verusOcrFiles");
         const verusOcrLang = document.getElementById("verusOcrLang");
         const verusOcrDaySel = document.getElementById("verusOcrDay");
+        if (verusOcrDaySel) {
+          verusOcrDaySel.addEventListener("change", persistVerusOcrDay);
+        }
         if (verusOcrBtn && verusOcrFiles) {
           verusOcrBtn.addEventListener("click", async function () {
             const files = Array.from(verusOcrFiles.files || []);
