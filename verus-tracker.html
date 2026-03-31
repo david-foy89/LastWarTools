@@ -1324,6 +1324,11 @@
 
     <script>
       (function () {
+        try {
+          if (typeof Tesseract !== "undefined" && typeof Tesseract.setLogging === "function") {
+            Tesseract.setLogging(false);
+          }
+        } catch (_) {}
         const STORAGE_ROOT = "verusTrackerByWeekV1";
         const LEGACY_ROWS_KEY = "verusTrackerRowsV1";
         const LAST_WEEK_KEY = "verusTrackerLastWeekV1";
@@ -1916,23 +1921,24 @@
           }
         }
 
+        function verusRowsFromOcrOutput(out) {
+          const text = (out && out.data && out.data.text) || "";
+          let rows = parseVerusOcrRows(text);
+          if (!rows.length) rows = parseVerusOcrRowsByScoreAnchor(text);
+          return collapseRowsByExactNormalizedName(rows);
+        }
+
         async function runVerusOcrOnCanvas(source, langSel) {
           const langsPrimary =
             (langSel && String(langSel.value || "").trim()) ||
             "eng+kor+jpn+chi_sim+chi_tra";
           const langsFallback = "eng+kor+jpn+chi_sim+chi_tra";
-          const out = await verusTesseractRecognizeOnce(source, langsPrimary);
-          const text = (out && out.data && out.data.text) || "";
-          let rows = parseVerusOcrRows(text);
-          if (!rows.length) rows = parseVerusOcrRowsByScoreAnchor(text);
-          rows = collapseRowsByExactNormalizedName(rows);
+          let out = await verusTesseractRecognizeOnce(source, langsPrimary);
+          let rows = verusRowsFromOcrOutput(out);
 
           if (!rows.length && langsPrimary !== langsFallback) {
-            const retry = await verusTesseractRecognizeOnce(source, langsFallback);
-            const retryText = (retry && retry.data && retry.data.text) || "";
-            rows = parseVerusOcrRows(retryText);
-            if (!rows.length) rows = parseVerusOcrRowsByScoreAnchor(retryText);
-            rows = collapseRowsByExactNormalizedName(rows);
+            out = await verusTesseractRecognizeOnce(source, langsFallback);
+            rows = verusRowsFromOcrOutput(out);
           }
           return rows;
         }
@@ -2039,6 +2045,27 @@
           });
         }
 
+        /**
+         * Some browsers leave videoWidth/videoHeight at 0 until playback starts once.
+         * Without a real frame, preprocessVerusImageSource throws and OCR sees nothing.
+         */
+        async function ensureVideoFrameDecodable(video) {
+          await waitForVideoFrameReady(video);
+          if (video.videoWidth > 0 && video.videoHeight > 0) return;
+          try {
+            video.muted = true;
+            await video.play();
+          } catch {
+            /* ignore autoplay / decode errors */
+          }
+          try {
+            video.pause();
+          } catch {
+            /* ignore */
+          }
+          await waitForVideoFrameReady(video);
+        }
+
         async function runVerusOcrOnVideoFile(file, langSel, onProgress) {
           /** Wider spacing + fewer frames reduces conflicting reads across seeks. */
           const VIDEO_INTERVAL_SEC = 1.5;
@@ -2063,9 +2090,16 @@
             url = URL.createObjectURL(file);
             video.src = url;
             await new Promise((resolve, reject) => {
-              video.onloadedmetadata = () => resolve();
-              video.onerror = () =>
+              if (video.readyState >= 1) {
+                resolve();
+                return;
+              }
+              const onErr = () =>
                 reject(new Error("Could not read this video file."));
+              video.addEventListener("loadedmetadata", () => resolve(), {
+                once: true,
+              });
+              video.addEventListener("error", onErr, { once: true });
             });
 
             const duration = video.duration;
@@ -2080,16 +2114,39 @@
               VIDEO_MAX_DURATION_SEC,
               VIDEO_SKIP_START_SEC,
             );
+            const langsPrimary =
+              (langSel && String(langSel.value || "").trim()) ||
+              "eng+kor+jpn+chi_sim+chi_tra";
+            const langsFallback = "eng+kor+jpn+chi_sim+chi_tra";
+            if (typeof Tesseract === "undefined" || !Tesseract.createWorker) {
+              throw new Error("OCR library is not loaded.");
+            }
+            /** One worker for all frames — creating a worker per frame often fails or times out. */
+            let worker = null;
             const frameArrays = [];
-            for (let i = 0; i < times.length; i++) {
-              if (typeof onProgress === "function") {
-                onProgress(i + 1, times.length);
+            try {
+              worker = await Tesseract.createWorker(langsPrimary, 1);
+              await worker.setParameters({
+                tessedit_pageseg_mode: "6",
+                preserve_interword_spaces: "1",
+              });
+              for (let i = 0; i < times.length; i++) {
+                if (typeof onProgress === "function") {
+                  onProgress(i + 1, times.length);
+                }
+                await seekVideo(video, times[i]);
+                await ensureVideoFrameDecodable(video);
+                const canvas = preprocessVerusImageSource(video, { video: true });
+                let out = await worker.recognize(canvas);
+                let rows = verusRowsFromOcrOutput(out);
+                if (!rows.length && langsPrimary !== langsFallback) {
+                  out = await verusTesseractRecognizeOnce(canvas, langsFallback);
+                  rows = verusRowsFromOcrOutput(out);
+                }
+                frameArrays.push(rows);
               }
-              await seekVideo(video, times[i]);
-              await waitForVideoFrameReady(video);
-              const canvas = preprocessVerusImageSource(video, { video: true });
-              const rows = await runVerusOcrOnCanvas(canvas, langSel);
-              frameArrays.push(rows);
+            } finally {
+              if (worker) await worker.terminate();
             }
             return mergeVerusOcrRowArrays(frameArrays);
           } finally {
