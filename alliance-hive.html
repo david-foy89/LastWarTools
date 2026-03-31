@@ -693,7 +693,7 @@
             id="hiveTileCount"
             class="hive-tile-count"
             aria-live="polite"
-            title="Cells with a mark or building, excluding Alliance Exercise and Alliance Furnace tiles"
+            title="Each placement counts once (marks: one per cell; blocks: one per R1–R5, Alliance Center, or custom). Excludes Alliance Exercise and Alliance Furnace."
           ></span>
           <span id="hiveCoord" class="hive-coord" aria-live="polite"></span>
         </div>
@@ -1360,25 +1360,34 @@
             "Column " + (cell.x + 1) + ", row " + (cell.y + 1) + " (of " + TILES + ")";
         }
 
-        /** Cells with any mark/building except Alliance Exercise and Alliance Furnace. */
-        function countHiveTilesExcludingAeFurnace() {
-          var n = 0;
+        /**
+         * One count per icon/placement: each mark cell, each R1–R5 block, Alliance Center,
+         * and each custom block. Multi-cell tools count once, not per tile.
+         * Alliance Exercise and Alliance Furnace are excluded.
+         */
+        function countHiveIconsExcludingAeFurnace() {
+          var markCells = 0;
           var i;
-          var v;
           for (i = 0; i < TOTAL; i++) {
-            v = tiles[i];
-            if (v === STATE_EMPTY) continue;
-            if (v === STATE_AE || v === STATE_FURNACE) continue;
-            n++;
+            if (tiles[i] === STATE_MARK) markCells++;
           }
-          return n;
+          return (
+            markCells +
+            r5Centers.length +
+            r4Centers.length +
+            r3Centers.length +
+            r2Centers.length +
+            r1Centers.length +
+            allianceCenterCenters.length +
+            customBlocks.length
+          );
         }
 
         function updateHiveTileCount() {
           if (!tileCountEl) return;
-          var n = countHiveTilesExcludingAeFurnace();
+          var n = countHiveIconsExcludingAeFurnace();
           tileCountEl.textContent =
-            "Tiles: " + n + " (excl. AE & Furnace)";
+            "Icons: " + n + " (excl. AE & Furnace)";
         }
 
         function blockCentersOverlap(cxa, cya, halfA, cxb, cyb, halfB) {
