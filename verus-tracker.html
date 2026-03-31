@@ -1895,28 +1895,40 @@
           }
         }
 
+        /**
+         * Tesseract.js v5: `Tesseract.recognize(img, langs, opts)` passes `opts` to
+         * `createWorker` only — OCR parameters never reach `worker.recognize`, so PSM
+         * and spacing were ignored. Use createWorker + setParameters + recognize.
+         */
+        async function verusTesseractRecognizeOnce(source, langs) {
+          if (typeof Tesseract === "undefined" || !Tesseract.createWorker) {
+            throw new Error("OCR library is not loaded.");
+          }
+          const worker = await Tesseract.createWorker(langs, 1);
+          try {
+            await worker.setParameters({
+              tessedit_pageseg_mode: "6",
+              preserve_interword_spaces: "1",
+            });
+            return await worker.recognize(source);
+          } finally {
+            await worker.terminate();
+          }
+        }
+
         async function runVerusOcrOnCanvas(source, langSel) {
           const langsPrimary =
             (langSel && String(langSel.value || "").trim()) ||
             "eng+kor+jpn+chi_sim+chi_tra";
           const langsFallback = "eng+kor+jpn+chi_sim+chi_tra";
-          if (typeof Tesseract === "undefined" || !Tesseract.recognize) {
-            throw new Error("OCR library is not loaded.");
-          }
-          const out = await Tesseract.recognize(source, langsPrimary, {
-            tessedit_pageseg_mode: "6",
-            preserve_interword_spaces: "1",
-          });
+          const out = await verusTesseractRecognizeOnce(source, langsPrimary);
           const text = (out && out.data && out.data.text) || "";
           let rows = parseVerusOcrRows(text);
           if (!rows.length) rows = parseVerusOcrRowsByScoreAnchor(text);
           rows = collapseRowsByExactNormalizedName(rows);
 
           if (!rows.length && langsPrimary !== langsFallback) {
-            const retry = await Tesseract.recognize(source, langsFallback, {
-              tessedit_pageseg_mode: "6",
-              preserve_interword_spaces: "1",
-            });
+            const retry = await verusTesseractRecognizeOnce(source, langsFallback);
             const retryText = (retry && retry.data && retry.data.text) || "";
             rows = parseVerusOcrRows(retryText);
             if (!rows.length) rows = parseVerusOcrRowsByScoreAnchor(retryText);
