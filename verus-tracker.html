@@ -1422,10 +1422,74 @@
           return s.trim();
         }
 
+        /** Non-name tokens often glued into the same OCR line as the commander name. */
+        const VERUS_OCR_NAME_NOISE_WORDS =
+          /\b(?:commander|commanders|points|ranking|rank|power|alliance|alliances|vs\.?|total|score|scores?|defeat|victory|member|members|leaderboard|today|yesterday|tomorrow|match|matches|round|stage|level|levels|tech|hero|heroes|online|offline|damage|kills|deaths|battle|battles|event|events|arena|arenas|kingdom|state|guild|legion|sun|mon|tue|wed|thu|fri|sat)\b/gi;
+
+        function stripVerusOcrBracketTags(s) {
+          let t = String(s || "");
+          t = t.replace(/\[[^\]]*\]/g, " ");
+          return t.replace(/\s+/g, " ").trim();
+        }
+
+        /** Leaderboard rows OCR as "Rank | Name | Power" — keep the segment that looks most like a name. */
+        function pickVerusOcrNameFromPipeSegments(s) {
+          const raw = String(s || "").trim();
+          if (!raw.includes("|")) return raw;
+          const parts = raw.split("|").map((p) => p.trim()).filter(Boolean);
+          let best = "";
+          let bestW = -1;
+          for (let pi = 0; pi < parts.length; pi++) {
+            const p = parts[pi];
+            if (/^\d[\d,\s]*$/.test(p)) continue;
+            const nLet = (p.match(/\p{L}/gu) || []).length;
+            const nCjk = (
+              p.match(/[\p{Script=Hangul}\p{Script=Han}]/gu) || []
+            ).length;
+            const w = nLet + nCjk * 2;
+            if (w > bestW) {
+              bestW = w;
+              best = p;
+            }
+          }
+          return bestW > 0 ? best : parts[0];
+        }
+
+        /** Extra 4+ digit columns (power, etc.) often sit between name and VS score on one line. */
+        function stripVerusOcrInteriorScoreTokens(name) {
+          return String(name || "")
+            .replace(/\b-?\d[\d,]{3,}(?:\.\d+)?\b/g, " ")
+            .replace(/\s+/g, " ")
+            .trim();
+        }
+
         function cleanNameForOcr(raw) {
           let s = cleanName(raw);
-          s = s.replace(/\b(commander|points|ranking)\b/gi, "").trim();
+          s = stripVerusOcrBracketTags(s);
+          s = pickVerusOcrNameFromPipeSegments(s);
+          s = s.replace(VERUS_OCR_NAME_NOISE_WORDS, " ");
+          s = s.replace(
+            /\b(monday|tuesday|wednesday|thursday|friday|saturday|sunday)\b/gi,
+            " ",
+          );
+          s = s.replace(/\s+/g, " ").trim();
+          s = stripVerusOcrInteriorScoreTokens(s);
+          s = s.replace(VERUS_OCR_NAME_NOISE_WORDS, " ");
+          s = s.replace(/\s+/g, " ").trim();
           return s;
+        }
+
+        /** Whole line is only a UI label (no commander name). */
+        function isVerusOcrUiLabelOnlyLine(line) {
+          const t = String(line || "")
+            .toLowerCase()
+            .replace(/[^\p{L}\s]/gu, " ")
+            .replace(/\s+/g, " ")
+            .trim();
+          if (!t) return true;
+          return /^(ranking|commander|commanders|points|rank|player|players|name|names|score|scores|power|alliance|alliances|total|leaderboard|member|members|vs|guild|legion|kingdom|event|round|match|stage|level|tech|hero|online|offline|damage|kills|deaths|battle|arena)$/i.test(
+            t,
+          );
         }
 
         function looksLikeName(line) {
@@ -1433,6 +1497,8 @@
           if (!s) return false;
           if (!/\p{L}/u.test(s)) return false;
           if (/^\d{4}[-/]\d{1,2}[-/]\d{1,2}/.test(s)) return false;
+          if (isVerusOcrUiLabelOnlyLine(s)) return false;
+          if (/^[\d\s|.,\-:;_/\\]+$/.test(s)) return false;
           return true;
         }
 
@@ -1442,7 +1508,13 @@
 
         function isHeaderOrTabLine(line) {
           const s = String(line || "").trim().toLowerCase();
-          if (/^(ranking|commander|points)\b/.test(s)) return true;
+          if (
+            /^(ranking|commander|commanders|points|rank|player|players|name|names|score|scores|power|alliance|alliances|vs\.?\s*total|leaderboard|member|members|guild|legion|kingdom)\b/.test(
+              s,
+            )
+          )
+            return true;
+          if (/^(vs|total|power|score|rank|name)\s*$/i.test(s)) return true;
           if (/^(mon\.?|tue\.?|tues\.?|wed\.?|thur\.?|thu\.?|fri\.?|sat\.?)\b/.test(s))
             return true;
           return false;
@@ -1780,6 +1852,7 @@
           for (let i = 0; i < lines.length; i++) {
             const line = lines[i];
             if (isHeaderOrTabLine(line)) continue;
+            if (isVerusOcrUiLabelOnlyLine(line)) continue;
 
             const oneLine = line.match(oneLineRe);
             if (
@@ -1817,6 +1890,14 @@
           return out;
         }
 
+        function verusLastScoreMatchOnLine(line) {
+          const re = /\b(-?\d[\d,]{3,}(?:\.\d+)?)\b/g;
+          let m;
+          let last = null;
+          while ((m = re.exec(line)) !== null) last = m;
+          return last;
+        }
+
         function parseVerusOcrRowsByScoreAnchor(text) {
           const lines = String(text || "")
             .split(/\r?\n/)
@@ -1824,14 +1905,18 @@
             .filter(Boolean);
           const out = [];
           const seen = new Set();
-          const scoreAnchorRe = /\b(-?\d[\d,]{3,}(?:\.\d+)?)\b/;
           for (let i = 0; i < lines.length; i++) {
-            const scoreMatch = lines[i].match(scoreAnchorRe);
+            const line = lines[i];
+            if (isHeaderOrTabLine(line) || isVerusOcrUiLabelOnlyLine(line))
+              continue;
+            const scoreMatch = verusLastScoreMatchOnLine(line);
             if (!scoreMatch) continue;
             const score = normalizeOcrScore(scoreMatch[1]);
             if (!score) continue;
             let name = "";
             for (let j = i - 1; j >= Math.max(0, i - 2); j--) {
+              if (isHeaderOrTabLine(lines[j]) || isVerusOcrUiLabelOnlyLine(lines[j]))
+                continue;
               if (looksLikeName(lines[j]) && !isAllianceLine(lines[j])) {
                 name = cleanNameForOcr(lines[j]);
                 break;
