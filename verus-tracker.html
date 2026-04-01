@@ -1113,7 +1113,8 @@
             <code>Name</code> column on an “Alliance Members” sheet). Check <strong>Replace table</strong>
             to wipe this week’s rows and load only that list. Without it, names are <strong>appended</strong>
             and duplicates are skipped.
-            <strong>Screenshot / video OCR</strong> reads the leaderboard and fills the selected day.
+            <strong>Screenshot / video OCR</strong> reads the leaderboard and fills the selected day
+            (sharper, higher-resolution captures improve accuracy; pick the narrowest OCR language if you can).
             Keep <strong>Match roster only</strong> checked (default) so OCR only updates players already
             in the table—garbled OCR text won’t create extra rows. Uncheck to allow OCR to add new rows.
             When the leaderboard shows a <strong>rank number</strong> (e.g. <code>1.</code> <code>12)</code>),
@@ -1977,6 +1978,97 @@
           return out;
         }
 
+        /** ~300 DPI equivalent for small UI text; cap to avoid worker OOM. */
+        const VERUS_OCR_MAX_CANVAS_EDGE = 3000;
+        const VERUS_OCR_MIN_SCALE = 2;
+        const VERUS_OCR_TARGET_SCALE = 3;
+
+        function verusRgbToGray(r, g, b) {
+          return r * 0.299 + g * 0.587 + b * 0.114;
+        }
+
+        /** Dark game UIs: invert so text is dark on light for Tesseract. */
+        function verusMaybeInvertDarkUiGray(gray) {
+          let sum = 0;
+          for (let i = 0; i < gray.length; i++) sum += gray[i];
+          const mean = sum / gray.length;
+          if (mean >= 118) return;
+          for (let i = 0; i < gray.length; i++) gray[i] = 255 - gray[i];
+        }
+
+        /** Stretch 2nd–98th percentile luminance to full range (helps flat screenshots). */
+        function verusHistogramStretchGray(gray) {
+          const hist = new Uint32Array(256);
+          for (let i = 0; i < gray.length; i++) hist[gray[i]]++;
+          const n = gray.length;
+          let c = 0;
+          let lo = 0;
+          for (; lo < 256; lo++) {
+            c += hist[lo];
+            if (c / n >= 0.02) break;
+          }
+          c = 0;
+          let hi = 0;
+          for (; hi < 256; hi++) {
+            c += hist[hi];
+            if (c / n >= 0.98) break;
+          }
+          if (hi <= lo + 8) return;
+          const scale = 255 / (hi - lo);
+          for (let i = 0; i < gray.length; i++) {
+            const v = Math.round((gray[i] - lo) * scale);
+            gray[i] = v < 0 ? 0 : v > 255 ? 255 : v;
+          }
+        }
+
+        function verusOtsuThresholdAndStrength(gray) {
+          const hist = new Uint32Array(256);
+          for (let i = 0; i < gray.length; i++) hist[gray[i]]++;
+          const total = gray.length;
+          let sum = 0;
+          for (let i = 0; i < 256; i++) sum += i * hist[i];
+          let sumB = 0;
+          let wB = 0;
+          let maxBetween = 0;
+          let threshold = 127;
+          for (let t = 0; t < 256; t++) {
+            wB += hist[t];
+            if (wB === 0) continue;
+            const wF = total - wB;
+            if (wF === 0) break;
+            sumB += t * hist[t];
+            const mB = sumB / wB;
+            const mF = (sum - sumB) / wF;
+            const between = wB * wF * (mB - mF) * (mB - mF);
+            if (between > maxBetween) {
+              maxBetween = between;
+              threshold = t;
+            }
+          }
+          const norm = maxBetween / (total * total);
+          return { threshold, norm };
+        }
+
+        function verusApplyGrayPipelineToImageData(imageData) {
+          const d = imageData.data;
+          const n = (d.length / 4) | 0;
+          const gray = new Uint8Array(n);
+          for (let i = 0, p = 0; i < n; i++, p += 4) {
+            gray[i] = Math.round(verusRgbToGray(d[p], d[p + 1], d[p + 2]));
+          }
+          verusMaybeInvertDarkUiGray(gray);
+          verusHistogramStretchGray(gray);
+          const { threshold, norm } = verusOtsuThresholdAndStrength(gray);
+          const useBinary = norm > 0.00012;
+          for (let i = 0, p = 0; i < n; i++, p += 4) {
+            const v = useBinary ? (gray[i] <= threshold ? 0 : 255) : gray[i];
+            d[p] = v;
+            d[p + 1] = v;
+            d[p + 2] = v;
+            d[p + 3] = 255;
+          }
+        }
+
         function preprocessVerusImageSource(source, options) {
           const opts = options || {};
           const videoMode = opts.video === true;
@@ -1993,26 +2085,25 @@
           if (!w || !h) {
             throw new Error("Could not read image dimensions.");
           }
-          const scale = 2;
           const sx = Math.floor(w * (videoMode ? 0.02 : 0.06));
           const sy = Math.floor(h * (videoMode ? 0.04 : 0.09));
           const sw = Math.max(1, Math.floor(w * (videoMode ? 0.96 : 0.92)));
           const sh = Math.max(1, Math.floor(h * (videoMode ? 0.94 : 0.9)));
+          let scale = VERUS_OCR_TARGET_SCALE;
+          const cap = VERUS_OCR_MAX_CANVAS_EDGE;
+          if (sw * scale > cap) scale = cap / sw;
+          if (sh * scale > cap) scale = Math.min(scale, cap / sh);
+          scale = Math.max(VERUS_OCR_MIN_SCALE, scale);
           const canvas = document.createElement("canvas");
           canvas.width = Math.max(1, Math.floor(sw * scale));
           canvas.height = Math.max(1, Math.floor(sh * scale));
           const ctx = canvas.getContext("2d");
           if (!ctx) throw new Error("Canvas 2D context unavailable");
+          ctx.imageSmoothingEnabled = true;
+          ctx.imageSmoothingQuality = "high";
           ctx.drawImage(source, sx, sy, sw, sh, 0, 0, canvas.width, canvas.height);
           const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
-          const d = imageData.data;
-          for (let i = 0; i < d.length; i += 4) {
-            const gray = d[i] * 0.299 + d[i + 1] * 0.587 + d[i + 2] * 0.114;
-            const boosted = Math.max(0, Math.min(255, (gray - 128) * 1.35 + 128));
-            d[i] = boosted;
-            d[i + 1] = boosted;
-            d[i + 2] = boosted;
-          }
+          verusApplyGrayPipelineToImageData(imageData);
           ctx.putImageData(imageData, 0, 0);
           return canvas;
         }
@@ -2038,20 +2129,26 @@
         };
 
         /**
-         * Tesseract.js v5: `Tesseract.recognize(img, langs, opts)` passes `opts` to
-         * `createWorker` only — OCR parameters never reach `worker.recognize`, so PSM
-         * and spacing were ignored. Use createWorker + setParameters + recognize.
+         * PSM 4 = single column (typical leaderboard list). DPI hint matches upscale pipeline.
+         * Tesseract.js v5: use createWorker + setParameters + recognize (not Tesseract.recognize opts).
          */
-        async function verusTesseractRecognizeOnce(source, langs) {
+        async function verusApplyTesseractParams(worker, psm) {
+          const mode =
+            psm != null && String(psm).trim() !== "" ? String(psm).trim() : "4";
+          await worker.setParameters({
+            tessedit_pageseg_mode: mode,
+            preserve_interword_spaces: "1",
+            user_defined_dpi: "320",
+          });
+        }
+
+        async function verusTesseractRecognizeOnce(source, langs, psm) {
           if (typeof Tesseract === "undefined" || !Tesseract.createWorker) {
             throw new Error("OCR library is not loaded.");
           }
           const worker = await Tesseract.createWorker(langs, 1, VERUS_TESSERACT_WORKER_OPTS);
           try {
-            await worker.setParameters({
-              tessedit_pageseg_mode: "6",
-              preserve_interword_spaces: "1",
-            });
+            await verusApplyTesseractParams(worker, psm);
             return await worker.recognize(source);
           } finally {
             await worker.terminate();
@@ -2072,10 +2169,17 @@
           const langsFallback = "eng+kor+jpn+chi_sim+chi_tra";
           let out = await verusTesseractRecognizeOnce(source, langsPrimary);
           let rows = verusRowsFromOcrOutput(out);
-
+          if (!rows.length) {
+            out = await verusTesseractRecognizeOnce(source, langsPrimary, "6");
+            rows = verusRowsFromOcrOutput(out);
+          }
           if (!rows.length && langsPrimary !== langsFallback) {
             out = await verusTesseractRecognizeOnce(source, langsFallback);
             rows = verusRowsFromOcrOutput(out);
+            if (!rows.length) {
+              out = await verusTesseractRecognizeOnce(source, langsFallback, "6");
+              rows = verusRowsFromOcrOutput(out);
+            }
           }
           return rows;
         }
@@ -2317,10 +2421,7 @@
             const frameArrays = [];
             try {
               worker = await Tesseract.createWorker(langsPrimary, 1, VERUS_TESSERACT_WORKER_OPTS);
-              await worker.setParameters({
-                tessedit_pageseg_mode: "6",
-                preserve_interword_spaces: "1",
-              });
+              await verusApplyTesseractParams(worker);
               for (let i = 0; i < times.length; i++) {
                 if (typeof onProgress === "function") {
                   onProgress(i + 1, times.length);
