@@ -1116,6 +1116,9 @@
             <strong>Screenshot / video OCR</strong> reads the leaderboard and fills the selected day.
             Keep <strong>Match roster only</strong> checked (default) so OCR only updates players already
             in the table—garbled OCR text won’t create extra rows. Uncheck to allow OCR to add new rows.
+            When the leaderboard shows a <strong>rank number</strong> (e.g. <code>1.</code> <code>12)</code>),
+            scores map by that rank to your roster: <strong>VS Total</strong> order when any week scores
+            exist, otherwise <strong>import / table order</strong> (sort the table like the game if needed).
             <code>VS Total</code> is the sum of Mon–Sat (or the imported total when day cells are blank).
           </div>
         </div>
@@ -1688,15 +1691,41 @@
             const k = normalizeMatchName(r.name);
             if (!k) return;
             const num = parseNumber(String(r.score).replace(/,/g, ""));
+            const rk = r.rank != null && Number.isFinite(Number(r.rank)) ? Number(r.rank) : null;
             const ex = map.get(k);
             if (!ex || num > ex.num) {
-              map.set(k, { name: r.name, score: r.score, num });
+              map.set(k, { name: r.name, score: r.score, num, rank: rk });
+            } else if (ex && num === ex.num && rk != null) {
+              const prev = ex.rank;
+              if (prev == null || rk < prev)
+                map.set(k, { ...ex, rank: rk });
             }
           });
-          return Array.from(map.values()).map(({ name, score }) => ({
+          return Array.from(map.values()).map(({ name, score, rank }) => ({
             name: cleanNameForOcr(name),
             score: normalizeOcrScore(score),
+            ...(rank != null && rank >= 1 ? { rank } : {}),
           }));
+        }
+
+        /**
+         * Leaderboard lines often start with rank: "1.", "12)", "#3", "42 Name …".
+         * Used with roster import: map rank → table row order (same as export / VS sort).
+         */
+        function extractLeadingRankFromVerusOcrLine(line) {
+          const s = String(line || "").trim();
+          if (!s) return null;
+          let m = s.match(/^#?(\d{1,3})\s*[.)]\s+/);
+          if (m) {
+            const n = parseInt(m[1], 10);
+            return n >= 1 && n <= 999 ? n : null;
+          }
+          m = s.match(/^#?(\d{1,3})\s+(?=[\p{L}\[])/u);
+          if (m) {
+            const n = parseInt(m[1], 10);
+            if (n >= 1 && n <= 999) return n;
+          }
+          return null;
         }
 
         function pickMostFrequentOcrScore(scoreStrs) {
@@ -1802,10 +1831,18 @@
 
             const nameStrs = idxs.map((ii) => String(collapsed[ii].name || "").trim());
             const chosenName = pickMostFrequentDisplayName(nameStrs);
+            const ranks = idxs
+              .map((ii) => collapsed[ii].rank)
+              .filter((r) => r != null && Number.isFinite(Number(r)));
+            const chosenRank =
+              ranks.length > 0 ? Math.min(...ranks.map(Number)) : null;
 
             out.push({
               name: cleanNameForOcr(chosenName),
               score: chosenScore,
+              ...(chosenRank != null && chosenRank >= 1
+                ? { rank: chosenRank }
+                : {}),
             });
           });
           return out;
@@ -1862,10 +1899,13 @@
             ) {
               const name = cleanNameForOcr(oneLine[1]);
               const score = normalizeOcrScore(oneLine[2]);
+              const rank = extractLeadingRankFromVerusOcrLine(line);
               const key = `${name}|${score}`;
               if (name && score && !seen.has(key)) {
                 seen.add(key);
-                out.push({ name, score });
+                out.push(
+                  rank != null ? { name, score, rank } : { name, score },
+                );
               }
               continue;
             }
@@ -1880,10 +1920,13 @@
             if (!scoreMatch) continue;
             const name = cleanNameForOcr(line);
             const score = normalizeOcrScore(scoreMatch[1]);
+            const rank = extractLeadingRankFromVerusOcrLine(line);
             const key = `${name}|${score}`;
             if (name && score && !seen.has(key)) {
               seen.add(key);
-              out.push({ name, score });
+              out.push(
+                rank != null ? { name, score, rank } : { name, score },
+              );
               i = j;
             }
           }
@@ -1923,10 +1966,13 @@
               }
             }
             if (!name) continue;
+            const rank = extractLeadingRankFromVerusOcrLine(line);
             const key = `${name}|${score}`;
             if (seen.has(key)) continue;
             seen.add(key);
-            out.push({ name, score });
+            out.push(
+              rank != null ? { name, score, rank } : { name, score },
+            );
           }
           return out;
         }
@@ -2850,6 +2896,20 @@
           renderTable();
         }
 
+        /**
+         * Row order for rank-based OCR: VS sort when any week score exists; otherwise
+         * table order (e.g. Excel import order) — not alphabetical, which would break rank.
+         */
+        function verusRankOrderRowsForOcr() {
+          const named = verusRows.filter((r) => String(r.player || "").trim());
+          const hasAnyVs = named.some((r) => {
+            const w = getWeeklySum(r);
+            return w.hasAny && Number.isFinite(w.sum);
+          });
+          if (hasAnyVs) return sortForRender(verusRows).filter((r) => String(r.player || "").trim());
+          return named;
+        }
+
         function applyVerusOcrRowsToTable(ocrRows, dayKey, options) {
           if (!DAYS.includes(dayKey))
             return { matched: 0, added: 0, skipped: 0 };
@@ -2860,10 +2920,30 @@
           let added = 0;
           let skipped = 0;
           let namedRows = getNamedRowsForMatch();
+          /** Rank 1 = first row in this order (matches export when VS data exists). */
+          const rankOrderRows = verusRankOrderRowsForOcr();
           rowsIn.forEach((or) => {
             const name = or.name || "";
             const score = or.score || "";
-            if (!name || !score) return;
+            if (!score) return;
+            const rank =
+              or.rank != null && Number.isFinite(Number(or.rank))
+                ? Number(or.rank)
+                : null;
+            if (
+              matchOnly &&
+              rank != null &&
+              rank >= 1 &&
+              rank <= rankOrderRows.length
+            ) {
+              const row = rankOrderRows[rank - 1];
+              if (!row.days || typeof row.days !== "object") row.days = {};
+              row.days[dayKey] = score;
+              matched++;
+              namedRows = getNamedRowsForMatch();
+              return;
+            }
+            if (!name) return;
             const best = findBestRowForOcrName(name, namedRows);
             if (best) {
               if (!best.days || typeof best.days !== "object") best.days = {};
