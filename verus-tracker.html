@@ -987,10 +987,11 @@
               <option value="Saturday">Saturday</option>
             </select>
             <label for="verusOcrLang">OCR language</label>
-            <select id="verusOcrLang" title="More languages are slower but help non‑English names">
-              <option value="eng+kor+jpn+chi_sim+chi_tra" selected>
-                Auto (English + Asian)
+            <select id="verusOcrLang" title="Korean-first Auto improves 한글 in mixed names; binarization is softened when Korean is enabled">
+              <option value="kor+eng+jpn+chi_sim+chi_tra" selected>
+                Auto (English + Asian, Korean‑first)
               </option>
+              <option value="kor+eng">Korean + English (best 한글 usernames)</option>
               <option value="eng">English (fast)</option>
               <option value="kor+jpn+chi_sim+chi_tra">Korean / Japanese / Chinese</option>
               <option value="eng+spa+fra+deu+por+ita+rus+tur+pol+ukr+vie+tha+ara+hin">
@@ -2021,6 +2022,11 @@
           }
         }
 
+        /** Harsh Otsu binarization often breaks Hangul strokes; keep grayscale when Korean pack is used. */
+        function verusOcrLangsSkipBinarize(langs) {
+          return /\bkor\b/i.test(String(langs || ""));
+        }
+
         function verusOtsuThresholdAndStrength(gray) {
           const hist = new Uint32Array(256);
           for (let i = 0; i < gray.length; i++) hist[gray[i]]++;
@@ -2049,7 +2055,9 @@
           return { threshold, norm };
         }
 
-        function verusApplyGrayPipelineToImageData(imageData) {
+        function verusApplyGrayPipelineToImageData(imageData, pipelineOpts) {
+          const po = pipelineOpts || {};
+          const skipBinarize = po.skipBinarize === true;
           const d = imageData.data;
           const n = (d.length / 4) | 0;
           const gray = new Uint8Array(n);
@@ -2059,7 +2067,8 @@
           verusMaybeInvertDarkUiGray(gray);
           verusHistogramStretchGray(gray);
           const { threshold, norm } = verusOtsuThresholdAndStrength(gray);
-          const useBinary = norm > 0.00012;
+          const useBinary =
+            !skipBinarize && norm > 0.00012;
           for (let i = 0, p = 0; i < n; i++, p += 4) {
             const v = useBinary ? (gray[i] <= threshold ? 0 : 255) : gray[i];
             d[p] = v;
@@ -2072,6 +2081,8 @@
         function preprocessVerusImageSource(source, options) {
           const opts = options || {};
           const videoMode = opts.video === true;
+          const langsHint = opts.langsHint || "";
+          const skipBinarize = verusOcrLangsSkipBinarize(langsHint);
           const w =
             source.naturalWidth ||
             source.videoWidth ||
@@ -2103,12 +2114,20 @@
           ctx.imageSmoothingQuality = "high";
           ctx.drawImage(source, sx, sy, sw, sh, 0, 0, canvas.width, canvas.height);
           const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
-          verusApplyGrayPipelineToImageData(imageData);
+          verusApplyGrayPipelineToImageData(imageData, { skipBinarize });
           ctx.putImageData(imageData, 0, 0);
           return canvas;
         }
 
-        async function preprocessVerusImage(file) {
+        function verusOcrLangsFromSel(langSel) {
+          return (
+            (langSel && String(langSel.value || "").trim()) ||
+            "kor+eng+jpn+chi_sim+chi_tra"
+          );
+        }
+
+        async function preprocessVerusImage(file, langSel) {
+          const langsHint = verusOcrLangsFromSel(langSel);
           const img = new Image();
           const url = URL.createObjectURL(file);
           await new Promise((resolve, reject) => {
@@ -2117,7 +2136,7 @@
             img.src = url;
           });
           try {
-            return preprocessVerusImageSource(img);
+            return preprocessVerusImageSource(img, { langsHint });
           } finally {
             URL.revokeObjectURL(url);
           }
@@ -2163,10 +2182,8 @@
         }
 
         async function runVerusOcrOnCanvas(source, langSel) {
-          const langsPrimary =
-            (langSel && String(langSel.value || "").trim()) ||
-            "eng+kor+jpn+chi_sim+chi_tra";
-          const langsFallback = "eng+kor+jpn+chi_sim+chi_tra";
+          const langsPrimary = verusOcrLangsFromSel(langSel);
+          const langsFallback = "kor+eng+jpn+chi_sim+chi_tra";
           let out = await verusTesseractRecognizeOnce(source, langsPrimary);
           let rows = verusRowsFromOcrOutput(out);
           if (!rows.length) {
@@ -2185,7 +2202,7 @@
         }
 
         async function runVerusOcrOnFile(file, langSel) {
-          const canvas = await preprocessVerusImage(file);
+          const canvas = await preprocessVerusImage(file, langSel);
           return runVerusOcrOnCanvas(canvas, langSel);
         }
 
@@ -2406,10 +2423,8 @@
               VIDEO_MAX_DURATION_SEC,
               VIDEO_SKIP_START_SEC,
             );
-            const langsPrimary =
-              (langSel && String(langSel.value || "").trim()) ||
-              "eng+kor+jpn+chi_sim+chi_tra";
-            const langsFallback = "eng+kor+jpn+chi_sim+chi_tra";
+            const langsPrimary = verusOcrLangsFromSel(langSel);
+            const langsFallback = "kor+eng+jpn+chi_sim+chi_tra";
             if (typeof Tesseract === "undefined" || !Tesseract.createWorker) {
               throw new Error("OCR library is not loaded.");
             }
@@ -2428,7 +2443,10 @@
                 }
                 await seekVideo(video, times[i]);
                 await ensureVideoFrameDecodable(video);
-                const canvas = preprocessVerusImageSource(video, { video: true });
+                const canvas = preprocessVerusImageSource(video, {
+                  video: true,
+                  langsHint: langsPrimary,
+                });
                 let out = await worker.recognize(canvas);
                 let rows = verusRowsFromOcrOutput(out);
                 if (!rows.length && langsPrimary !== langsFallback) {
