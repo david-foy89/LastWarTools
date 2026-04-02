@@ -1924,20 +1924,44 @@
           const coordinates = Array.isArray(group.coordinates)
             ? group.coordinates
             : [];
-          return coordinates.map((coordinate, index) => {
+          const seen = new Set();
+          const unique = [];
+          for (const coordinate of coordinates) {
+            const x = Number(coordinate.x);
+            const y = Number(coordinate.y);
+            if (!Number.isFinite(x) || !Number.isFinite(y)) continue;
+            const key = `${x},${y}`;
+            if (seen.has(key)) continue;
+            seen.add(key);
+            unique.push({ x, y });
+          }
+          return unique.map((coordinate, index) => {
             const code = `L${group.level}-${String(index + 1).padStart(3, "0")}`;
+            const id = `${group.level}-${coordinate.x}-${coordinate.y}`;
             return {
-              id: `${group.level}:${index + 1}`,
+              id,
               code,
               level: Number(group.level),
               color: group.color || "#ffffff",
-              x: Number(coordinate.x),
-              y: Number(coordinate.y),
+              x: coordinate.x,
+              y: coordinate.y,
               searchable:
                 `${code} level ${group.level} ${coordinate.x} ${coordinate.y} ${coordinate.x},${coordinate.y} ${coordinate.x}, ${coordinate.y}`.toLowerCase(),
             };
           });
         });
+      }
+
+      /** Drop completion entries that no longer match a supply (e.g. after dedupe or id format change). */
+      function pruneCompletedToValidIds() {
+        const valid = new Set(state.supplies.map((s) => s.id));
+        const next = new Set(
+          [...state.completed].filter((id) => valid.has(String(id))),
+        );
+        if (next.size !== state.completed.size) {
+          state.completed = next;
+          saveState();
+        }
       }
 
       async function loadSupplies() {
@@ -1950,6 +1974,7 @@
 
           const data = await response.json();
           state.supplies = normalizeSupplies(data);
+          pruneCompletedToValidIds();
           if (
             state.selectedLevel !== "all" &&
             !getAllLevels().includes(state.selectedLevel)

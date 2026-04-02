@@ -987,7 +987,7 @@
               <option value="Saturday">Saturday</option>
             </select>
             <label for="verusOcrLang">OCR language</label>
-            <select id="verusOcrLang" title="Korean-first Auto improves 한글 in mixed names; binarization is softened when Korean is enabled">
+            <select id="verusOcrLang" title="Korean modes use sharper upscale, no binarization, and dual page-segmentation (slower, more accurate 한글)">
               <option value="kor+eng+jpn+chi_sim+chi_tra" selected>
                 Auto (English + Asian, Korean‑first)
               </option>
@@ -1983,6 +1983,8 @@
         const VERUS_OCR_MAX_CANVAS_EDGE = 3000;
         const VERUS_OCR_MIN_SCALE = 2;
         const VERUS_OCR_TARGET_SCALE = 3;
+        /** Hangul needs more pixels; blur from smoothing hurts stroke detail. */
+        const VERUS_OCR_TARGET_SCALE_KOR = 3.75;
 
         function verusRgbToGray(r, g, b) {
           return r * 0.299 + g * 0.587 + b * 0.114;
@@ -1997,8 +1999,13 @@
           for (let i = 0; i < gray.length; i++) gray[i] = 255 - gray[i];
         }
 
-        /** Stretch 2nd–98th percentile luminance to full range (helps flat screenshots). */
-        function verusHistogramStretchGray(gray) {
+        /**
+         * Stretch luminance percentiles to full range (helps flat screenshots).
+         * Wider tails (1%–99%) preserve Hangul mid-tones better than 2%–98%.
+         */
+        function verusHistogramStretchGray(gray, loFrac, hiFrac) {
+          const loCut = loFrac != null ? loFrac : 0.02;
+          const hiCut = hiFrac != null ? hiFrac : 0.98;
           const hist = new Uint32Array(256);
           for (let i = 0; i < gray.length; i++) hist[gray[i]]++;
           const n = gray.length;
@@ -2006,13 +2013,13 @@
           let lo = 0;
           for (; lo < 256; lo++) {
             c += hist[lo];
-            if (c / n >= 0.02) break;
+            if (c / n >= loCut) break;
           }
           c = 0;
           let hi = 0;
           for (; hi < 256; hi++) {
             c += hist[hi];
-            if (c / n >= 0.98) break;
+            if (c / n >= hiCut) break;
           }
           if (hi <= lo + 8) return;
           const scale = 255 / (hi - lo);
@@ -2065,7 +2072,8 @@
             gray[i] = Math.round(verusRgbToGray(d[p], d[p + 1], d[p + 2]));
           }
           verusMaybeInvertDarkUiGray(gray);
-          verusHistogramStretchGray(gray);
+          if (skipBinarize) verusHistogramStretchGray(gray, 0.01, 0.99);
+          else verusHistogramStretchGray(gray);
           const { threshold, norm } = verusOtsuThresholdAndStrength(gray);
           const useBinary =
             !skipBinarize && norm > 0.00012;
@@ -2100,7 +2108,9 @@
           const sy = Math.floor(h * (videoMode ? 0.04 : 0.09));
           const sw = Math.max(1, Math.floor(w * (videoMode ? 0.96 : 0.92)));
           const sh = Math.max(1, Math.floor(h * (videoMode ? 0.94 : 0.9)));
-          let scale = VERUS_OCR_TARGET_SCALE;
+          let scale = skipBinarize
+            ? Math.max(VERUS_OCR_TARGET_SCALE, VERUS_OCR_TARGET_SCALE_KOR)
+            : VERUS_OCR_TARGET_SCALE;
           const cap = VERUS_OCR_MAX_CANVAS_EDGE;
           if (sw * scale > cap) scale = cap / sw;
           if (sh * scale > cap) scale = Math.min(scale, cap / sh);
@@ -2110,8 +2120,8 @@
           canvas.height = Math.max(1, Math.floor(sh * scale));
           const ctx = canvas.getContext("2d");
           if (!ctx) throw new Error("Canvas 2D context unavailable");
-          ctx.imageSmoothingEnabled = true;
-          ctx.imageSmoothingQuality = "high";
+          ctx.imageSmoothingEnabled = !skipBinarize;
+          if (!skipBinarize) ctx.imageSmoothingQuality = "high";
           ctx.drawImage(source, sx, sy, sw, sh, 0, 0, canvas.width, canvas.height);
           const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
           verusApplyGrayPipelineToImageData(imageData, { skipBinarize });
@@ -2174,6 +2184,20 @@
           }
         }
 
+        /**
+         * Korean LSTM often splits lines differently under PSM 6 vs 4; merge raw text
+         * so the parser sees more complete syllables and rows.
+         */
+        async function verusMergedOcrTextForKorean(source, langs) {
+          const out6 = await verusTesseractRecognizeOnce(source, langs, "6");
+          const out4 = await verusTesseractRecognizeOnce(source, langs, "4");
+          const t6 = ((out6 && out6.data && out6.data.text) || "").trim();
+          const t4 = ((out4 && out4.data && out4.data.text) || "").trim();
+          if (!t6) return t4;
+          if (!t4) return t6;
+          return t6 + "\n" + t4;
+        }
+
         function verusRowsFromOcrOutput(out) {
           const text = (out && out.data && out.data.text) || "";
           let rows = parseVerusOcrRows(text);
@@ -2184,18 +2208,39 @@
         async function runVerusOcrOnCanvas(source, langSel) {
           const langsPrimary = verusOcrLangsFromSel(langSel);
           const langsFallback = "kor+eng+jpn+chi_sim+chi_tra";
-          let out = await verusTesseractRecognizeOnce(source, langsPrimary);
-          let rows = verusRowsFromOcrOutput(out);
-          if (!rows.length) {
-            out = await verusTesseractRecognizeOnce(source, langsPrimary, "6");
-            rows = verusRowsFromOcrOutput(out);
-          }
-          if (!rows.length && langsPrimary !== langsFallback) {
-            out = await verusTesseractRecognizeOnce(source, langsFallback);
+          const korean = verusOcrLangsSkipBinarize(langsPrimary);
+          let rows = [];
+          if (korean) {
+            const merged = await verusMergedOcrTextForKorean(
+              source,
+              langsPrimary,
+            );
+            rows = verusRowsFromOcrOutput({ data: { text: merged } });
+            if (!rows.length && langsPrimary !== langsFallback) {
+              const mergedFb = await verusMergedOcrTextForKorean(
+                source,
+                langsFallback,
+              );
+              rows = verusRowsFromOcrOutput({ data: { text: mergedFb } });
+            }
+          } else {
+            let out = await verusTesseractRecognizeOnce(source, langsPrimary);
             rows = verusRowsFromOcrOutput(out);
             if (!rows.length) {
-              out = await verusTesseractRecognizeOnce(source, langsFallback, "6");
+              out = await verusTesseractRecognizeOnce(source, langsPrimary, "6");
               rows = verusRowsFromOcrOutput(out);
+            }
+            if (!rows.length && langsPrimary !== langsFallback) {
+              out = await verusTesseractRecognizeOnce(source, langsFallback);
+              rows = verusRowsFromOcrOutput(out);
+              if (!rows.length) {
+                out = await verusTesseractRecognizeOnce(
+                  source,
+                  langsFallback,
+                  "6",
+                );
+                rows = verusRowsFromOcrOutput(out);
+              }
             }
           }
           return rows;
@@ -2425,6 +2470,7 @@
             );
             const langsPrimary = verusOcrLangsFromSel(langSel);
             const langsFallback = "kor+eng+jpn+chi_sim+chi_tra";
+            const koreanPack = verusOcrLangsSkipBinarize(langsPrimary);
             if (typeof Tesseract === "undefined" || !Tesseract.createWorker) {
               throw new Error("OCR library is not loaded.");
             }
@@ -2436,7 +2482,10 @@
             const frameArrays = [];
             try {
               worker = await Tesseract.createWorker(langsPrimary, 1, VERUS_TESSERACT_WORKER_OPTS);
-              await verusApplyTesseractParams(worker);
+              await verusApplyTesseractParams(
+                worker,
+                koreanPack ? "6" : undefined,
+              );
               for (let i = 0; i < times.length; i++) {
                 if (typeof onProgress === "function") {
                   onProgress(i + 1, times.length);
@@ -2449,8 +2498,18 @@
                 });
                 let out = await worker.recognize(canvas);
                 let rows = verusRowsFromOcrOutput(out);
+                if (!rows.length && koreanPack) {
+                  await verusApplyTesseractParams(worker, "4");
+                  out = await worker.recognize(canvas);
+                  rows = verusRowsFromOcrOutput(out);
+                  await verusApplyTesseractParams(worker, "6");
+                }
                 if (!rows.length && langsPrimary !== langsFallback) {
-                  out = await verusTesseractRecognizeOnce(canvas, langsFallback);
+                  out = await verusTesseractRecognizeOnce(
+                    canvas,
+                    langsFallback,
+                    koreanPack ? "6" : undefined,
+                  );
                   rows = verusRowsFromOcrOutput(out);
                 }
                 frameArrays.push(rows);
