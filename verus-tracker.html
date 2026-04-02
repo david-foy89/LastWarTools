@@ -2508,7 +2508,7 @@
                   out = await verusTesseractRecognizeOnce(
                     canvas,
                     langsFallback,
-                    koreanPack ? "6" : undefined,
+                    verusOcrLangsSkipBinarize(langsFallback) ? "6" : undefined,
                   );
                   rows = verusRowsFromOcrOutput(out);
                 }

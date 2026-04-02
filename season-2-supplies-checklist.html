@@ -1820,18 +1820,11 @@
       }
 
       function encodeShareState(completed, selectedLevel) {
-        const grouped = {};
-        for (const id of completed) {
-          const sep = id.indexOf(":");
-          const level = id.slice(0, sep);
-          const index = Number(id.slice(sep + 1));
-          if (!grouped[level]) grouped[level] = [];
-          grouped[level].push(index);
-        }
-        for (const level of Object.keys(grouped)) {
-          grouped[level].sort((a, b) => a - b);
-        }
-        const b64 = btoa(JSON.stringify({ c: grouped, l: selectedLevel }));
+        const ids = [...completed]
+          .map((id) => String(id).trim())
+          .filter(Boolean);
+        ids.sort();
+        const b64 = btoa(JSON.stringify({ i: ids, l: selectedLevel }));
         return b64.replace(/\+/g, "-").replace(/\//g, "_").replace(/=/g, "");
       }
 
@@ -1840,13 +1833,21 @@
           const b64 = encoded.replace(/-/g, "+").replace(/_/g, "/");
           const padded = b64 + "=".repeat((4 - (b64.length % 4)) % 4);
           const obj = JSON.parse(atob(padded));
-          if (!obj || typeof obj.c !== "object") return null;
+          if (!obj || typeof obj !== "object") return null;
           const completed = new Set();
-          for (const [level, indices] of Object.entries(obj.c)) {
-            if (!Array.isArray(indices)) continue;
-            for (const index of indices) {
-              if (Number.isFinite(index)) completed.add(`${level}:${index}`);
+          if (Array.isArray(obj.i)) {
+            for (const id of obj.i) {
+              if (typeof id === "string" && id.trim()) completed.add(id.trim());
             }
+          } else if (obj.c && typeof obj.c === "object") {
+            for (const [level, indices] of Object.entries(obj.c)) {
+              if (!Array.isArray(indices)) continue;
+              for (const index of indices) {
+                if (Number.isFinite(index)) completed.add(`${level}:${index}`);
+              }
+            }
+          } else {
+            return null;
           }
           const selectedLevel = Number.isFinite(Number(obj.l))
             ? Number(obj.l)
