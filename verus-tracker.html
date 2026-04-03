@@ -1455,8 +1455,8 @@
         const VERUS_OCR_SCORE_RE_SRC =
           "-?\\d[\\d,]{3,}(?:\\.\\d+)?";
 
-        /** Max leaderboard position OCR / rank-based fill (alliance list size cap). */
-        const VERUS_OCR_MAX_RANK = 100;
+        /** Max leaderboard position OCR / rank-based fill (matches `\d{1,3}` leading rank capture). */
+        const VERUS_OCR_MAX_RANK = 999;
 
         function generateId(len = 14) {
           const chars = "abcdefghijklmnopqrstuvwxyz0123456789";
@@ -1826,8 +1826,8 @@
         }
 
         /**
-         * Leaderboard lines often start with rank: "1.", "12)", "#3", "100 Name …".
-         * Ranks are capped at VERUS_OCR_MAX_RANK. Map rank → verusRows list order for OCR apply.
+         * Leaderboard lines often start with rank: "1.", "12)", "#3", "250 Name …".
+         * Ranks are capped at VERUS_OCR_MAX_RANK (three-digit OCR). Map rank → verusRows list order for OCR apply.
          */
         function extractLeadingRankFromVerusOcrLine(line) {
           const s = String(line || "").trim();
