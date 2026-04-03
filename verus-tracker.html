@@ -220,6 +220,48 @@
         margin: 0;
         cursor: pointer;
       }
+      #verusPasteOcrDialog {
+        border: 1px solid var(--line-soft);
+        border-radius: 12px;
+        background: var(--panel);
+        color: var(--text);
+        padding: 0;
+        max-width: min(96vw, 540px);
+        width: 100%;
+      }
+      #verusPasteOcrDialog::backdrop {
+        background: rgba(0, 0, 0, 0.6);
+      }
+      .verus-paste-dialog-inner {
+        padding: 14px 16px;
+        display: flex;
+        flex-direction: column;
+        gap: 10px;
+      }
+      .verus-paste-dialog-inner p {
+        margin: 0;
+        font-size: 0.9rem;
+        color: var(--muted);
+        line-height: 1.45;
+      }
+      .verus-paste-dialog-inner textarea {
+        width: 100%;
+        min-height: 220px;
+        font-family: ui-monospace, monospace;
+        font-size: 0.85rem;
+        padding: 8px;
+        border-radius: 8px;
+        border: 1px solid var(--line-soft);
+        background: var(--panel-2);
+        color: var(--text);
+        box-sizing: border-box;
+      }
+      .verus-paste-dialog-actions {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 8px;
+        justify-content: flex-end;
+      }
       .ds-map-modal-close {
         position: absolute;
         top: 8px;
@@ -987,11 +1029,16 @@
               <option value="Saturday">Saturday</option>
             </select>
             <label for="verusOcrLang">OCR language</label>
-            <select id="verusOcrLang" title="Korean modes use sharper upscale, no binarization, and dual page-segmentation (slower, more accurate 한글)">
-              <option value="kor+eng+jpn+chi_sim+chi_tra" selected>
+            <select
+              id="verusOcrLang"
+              title="Fewer scripts = fewer misreads. Korean + English is the default; use Auto if names use Japanese or Chinese characters. Slower than single-pass OCR."
+            >
+              <option value="kor+eng+jpn+chi_sim+chi_tra">
                 Auto (English + Asian, Korean‑first)
               </option>
-              <option value="kor+eng">Korean + English (best 한글 usernames)</option>
+              <option value="kor+eng" selected>
+                Korean + English (recommended)
+              </option>
               <option value="eng">English (fast)</option>
               <option value="kor+jpn+chi_sim+chi_tra">Korean / Japanese / Chinese</option>
               <option value="eng+spa+fra+deu+por+ita+rus+tur+pol+ukr+vie+tha+ara+hin">
@@ -1018,8 +1065,42 @@
             <button type="button" id="verusOcrBtn" class="action-button">
               Import from screenshot / recording
             </button>
+            <button
+              type="button"
+              id="verusPasteTextBtn"
+              class="action-button"
+              title="Paste plain text (e.g. from a spreadsheet or phone OCR)—uses the same parsing as screenshot OCR, often more accurate than in-browser OCR"
+            >
+              Paste leaderboard text
+            </button>
             <span id="verusOcrStatus" aria-live="polite"></span>
           </div>
+          <dialog id="verusPasteOcrDialog" aria-labelledby="verusPasteOcrTitle">
+            <div class="verus-paste-dialog-inner">
+              <h2 id="verusPasteOcrTitle" style="margin:0;font-size:1.05rem">
+                Paste leaderboard text
+              </h2>
+              <p>
+                Paste lines that look like the in-game list (rank, name, score). One row per line is
+                fine; tab- or comma-separated also works. This skips image OCR—use it when screenshots
+                read poorly.
+              </p>
+              <textarea
+                id="verusPasteOcrTextarea"
+                autocomplete="off"
+                spellcheck="false"
+                placeholder="Example:&#10;1. PlayerOne 12,345,678&#10;2) PlayerTwo 11,000,000"
+              ></textarea>
+              <div class="verus-paste-dialog-actions">
+                <button type="button" class="action-button" id="verusPasteOcrCancel">
+                  Cancel
+                </button>
+                <button type="button" class="action-button" id="verusPasteOcrApply">
+                  Apply to selected day
+                </button>
+              </div>
+            </div>
+          </dialog>
 
           <div class="verus-table-wrap">
             <table class="verus-table">
@@ -1117,12 +1198,21 @@
             to wipe this week’s rows and load only that list. Without it, names are <strong>appended</strong>
             and duplicates are skipped.
             <strong>Screenshot / video OCR</strong> reads the leaderboard and fills the selected day
-            (sharper, higher-resolution captures improve accuracy; pick the narrowest OCR language if you can).
+            (full-screen PNG captures at native resolution work best; in-game OCR is approximate—verify scores).
+            Recordings are sampled every second (up to five minutes); tall portrait and wide landscape clips also
+            OCR a bottom crop where leaderboards often sit. Blurry or low-read frames are down-weighted when merging.
+            Pick the <strong>narrowest</strong> language set that covers your roster (default is Korean + English).
+            <strong>Paste leaderboard text</strong> skips image OCR entirely—paste from a spreadsheet or
+            phone OCR when screenshots read badly.
             Keep <strong>Match roster only</strong> checked (default) so OCR only updates players already
             in the table—garbled OCR text won’t create extra rows. Uncheck to allow OCR to add new rows.
             When the leaderboard shows a <strong>rank number</strong> (e.g. <code>1.</code> <code>12)</code>),
-            scores map by that rank to your roster: <strong>VS Total</strong> order when any week scores
-            exist, otherwise <strong>import / table order</strong> (sort the table like the game if needed).
+            scores map by that rank to your roster in <strong>row list order</strong> (the order rows are stored—
+            same as import / “Add player” order, top to bottom on the screenshot). Reorder rows in the table UI
+            if your list order should match the game before using rank OCR.
+            When OCR also reads a <strong>commander name</strong>, the score is applied to the roster row
+            that matches that name if rank and name disagree (so wrong rank or row order does not move scores
+            onto the wrong player when the name is recognizable).
             <code>VS Total</code> is the sum of Mon–Sat (or the imported total when day cells are blank).
             <strong>Player</strong> cells are normal text fields—edit anytime. OCR also writes a detected name
             into a row when that row’s name is still empty (e.g. rank-only fill).
@@ -1449,6 +1539,7 @@
           const raw = String(s || "").trim();
           if (!raw.includes("|")) return raw;
           const parts = raw.split("|").map((p) => p.trim()).filter(Boolean);
+          if (!parts.length) return raw;
           let best = "";
           let bestW = -1;
           for (let pi = 0; pi < parts.length; pi++) {
@@ -1478,7 +1569,7 @@
         function cleanNameForOcr(raw) {
           let s = cleanName(raw);
           s = stripVerusOcrBracketTags(s);
-          s = pickVerusOcrNameFromPipeSegments(s);
+          s = String(pickVerusOcrNameFromPipeSegments(s) ?? "");
           s = s.replace(VERUS_OCR_NAME_NOISE_WORDS, " ");
           s = s.replace(
             /\b(monday|tuesday|wednesday|thursday|friday|saturday|sunday)\b/gi,
@@ -1736,7 +1827,7 @@
 
         /**
          * Leaderboard lines often start with rank: "1.", "12)", "#3", "100 Name …".
-         * Ranks are capped at VERUS_OCR_MAX_RANK. Map rank → table row order (export / VS sort).
+         * Ranks are capped at VERUS_OCR_MAX_RANK. Map rank → verusRows list order for OCR apply.
          */
         function extractLeadingRankFromVerusOcrLine(line) {
           const s = String(line || "").trim();
@@ -1796,6 +1887,39 @@
             }
           });
           return { bestKey, bestC };
+        }
+
+        /**
+         * Heuristic: parsed rows with plausible name+score pairs (not just row count—raw count rewards
+         * OCR junk that happens to parse). Used for video frame ranking and for picking PSM text.
+         */
+        function verusVideoFrameOcrQualityScore(rows) {
+          let q = 0;
+          (rows || []).forEach((r) => {
+            if (!r || !r.score) return;
+            const nm = normalizeMatchName(String(r.name || ""));
+            const num = parseNumber(String(r.score).replace(/,/g, ""));
+            if (!Number.isFinite(num)) return;
+            if (nm.length >= 2 && num >= 100) q += 2;
+            else if (nm.length >= 1 && num >= 1000) q += 1;
+            else if (r.rank != null && num >= 100) q += 0.5;
+          });
+          return q;
+        }
+
+        /** Robust score when many video samples disagree (outlier frames). */
+        function pickMedianOcrNumericScore(scoreStrs) {
+          const nums = (scoreStrs || [])
+            .map((s) => parseNumber(String(s || "").replace(/,/g, "")))
+            .filter((n) => Number.isFinite(n) && n > 0);
+          if (!nums.length) return null;
+          nums.sort((a, b) => a - b);
+          const mid = Math.floor(nums.length / 2);
+          const v =
+            nums.length % 2 === 1
+              ? nums[mid]
+              : (nums[mid - 1] + nums[mid]) / 2;
+          return Math.round(v);
         }
 
         function pickMostFrequentDisplayName(nameStrs) {
@@ -1864,6 +1988,24 @@
             );
             const scorePick = pickMostFrequentOcrScore(scoreStrs);
             let chosenScore = scorePick.bestKey || "";
+            if (
+              opts.video &&
+              idxs.length >= 5 &&
+              scoreStrs.length >= 5
+            ) {
+              const med = pickMedianOcrNumericScore(scoreStrs);
+              if (med != null && med > 0) {
+                const modeNum = parseNumber(
+                  String(scorePick.bestKey || "").replace(/,/g, ""),
+                );
+                if (
+                  !Number.isFinite(modeNum) ||
+                  Math.abs(modeNum - med) / Math.max(med, 1) > 0.35
+                ) {
+                  chosenScore = normalizeOcrScore(String(med));
+                }
+              }
+            }
             if (!chosenScore) {
               let bestNum = -Infinity;
               idxs.forEach((ii) => {
@@ -1895,6 +2037,34 @@
           return out;
         }
 
+        /**
+         * Merge OCR parse candidates into a Map keyed by rank or name|score (same rules as parsers).
+         */
+        function verusOcrUpsertParsedIntoMap(merged, name, scoreRaw, rankHint) {
+          if (!merged) return;
+          const score = normalizeOcrScore(scoreRaw);
+          if (!score) return;
+          const num = parseNumber(String(scoreRaw).replace(/,/g, ""));
+          const nm = String(name || "").trim();
+          const rnk =
+            rankHint != null &&
+            Number.isFinite(Number(rankHint)) &&
+            rankHint >= 1 &&
+            rankHint <= VERUS_OCR_MAX_RANK
+              ? Number(rankHint)
+              : null;
+          if (!nm && rnk == null) return;
+          const key = rnk != null ? `r:${rnk}` : `n:${nm}|${score}`;
+          const prev = merged.get(key);
+          if (
+            !prev ||
+            num > prev.num ||
+            (num === prev.num && nm.length > (prev.name || "").length)
+          ) {
+            merged.set(key, { name: nm, score, num, rank: rnk });
+          }
+        }
+
         function findBestRowForOcrName(ocrName, namedRows) {
           const rows = Array.isArray(namedRows) ? namedRows : [];
           const ocrKey = normalizeMatchName(ocrName);
@@ -1920,35 +2090,52 @@
           return candidates[0].row;
         }
 
+        function verusOcrRankRowMatchesOcrName(rankRow, ocrName) {
+          if (!rankRow || !String(ocrName || "").trim()) return false;
+          const ocrKey = normalizeMatchName(ocrName);
+          if (!ocrKey) return false;
+          const rk = normalizeMatchName(String(rankRow.player || ""));
+          if (!rk) return false;
+          return ocrKeysMatchForOcrToTable(ocrKey, rk);
+        }
+
+        /**
+         * When both rank and name exist, rank-only placement is wrong if roster order ≠ screenshot
+         * or OCR garbles rank. Prefer the name-matched row unless that row is already consistent
+         * with rank (same player).
+         */
+        function verusResolveOcrTargetRow(or, rankOrderRows, namedRows) {
+          const name = String(or && or.name ? or.name : "").trim();
+          const rank =
+            or &&
+            or.rank != null &&
+            Number.isFinite(Number(or.rank))
+              ? Number(or.rank)
+              : null;
+          const rankInRange =
+            rank != null &&
+            rank >= 1 &&
+            rank <= VERUS_OCR_MAX_RANK &&
+            rank <= rankOrderRows.length;
+          const rowByRank = rankInRange ? rankOrderRows[rank - 1] : null;
+          const rowByName = name ? findBestRowForOcrName(name, namedRows) : null;
+
+          if (rowByRank && rowByName) {
+            if (rowByRank === rowByName) return rowByRank;
+            if (verusOcrRankRowMatchesOcrName(rowByRank, name)) return rowByRank;
+            return rowByName;
+          }
+          if (rowByName) return rowByName;
+          if (rowByRank) return rowByRank;
+          return null;
+        }
+
         function parseVerusOcrRows(text) {
           const lines = String(text || "")
             .split(/\r?\n/)
             .map((x) => String(x || "").replace(/\s+/g, " ").trim())
             .filter(Boolean);
           const merged = new Map();
-
-          function upsertParsedRow(key, name, scoreRaw, rank) {
-            const score = normalizeOcrScore(scoreRaw);
-            if (!score) return;
-            const num = parseNumber(String(scoreRaw).replace(/,/g, ""));
-            const nm = String(name || "").trim();
-            const rnk =
-              rank != null &&
-              Number.isFinite(Number(rank)) &&
-              rank >= 1 &&
-              rank <= VERUS_OCR_MAX_RANK
-                ? Number(rank)
-                : null;
-            if (!nm && rnk == null) return;
-            const prev = merged.get(key);
-            if (
-              !prev ||
-              num > prev.num ||
-              (num === prev.num && nm.length > (prev.name || "").trim().length)
-            ) {
-              merged.set(key, { name: nm, score, num, rank: rnk });
-            }
-          }
 
           const oneLineRe = new RegExp(
             "^(.*?)(" + VERUS_OCR_SCORE_RE_SRC + ")$",
@@ -1977,8 +2164,7 @@
                   (nameKey.length >= 2 &&
                     !isVerusOcrUiLabelOnlyLine(nameRaw));
                 if (acceptRow && (name || rankOk)) {
-                  const key = rankOk ? `r:${rank}` : `n:${name}|${score}`;
-                  upsertParsedRow(key, name, scoreRaw, rank);
+                  verusOcrUpsertParsedIntoMap(merged, name, scoreRaw, rank);
                 }
               }
               continue;
@@ -2010,8 +2196,7 @@
             const rankOk =
               rank != null && rank >= 1 && rank <= VERUS_OCR_MAX_RANK;
             if (!name && !rankOk) continue;
-            const key = rankOk ? `r:${rank}` : `n:${name}|${score}`;
-            upsertParsedRow(key, name, scoreRaw, rank);
+            verusOcrUpsertParsedIntoMap(merged, name, scoreRaw, rank);
             i = j;
           }
 
@@ -2022,12 +2207,37 @@
           }));
         }
 
+        /**
+         * All 4+ digit tokens on a line. When several exist (rank-adjacent noise, power + VS),
+         * drop plain 1–100 integers if a much larger value exists, then take the rightmost —
+         * VS total is usually the last big number.
+         */
         function verusLastScoreMatchOnLine(line) {
           const re = /\b(-?\d[\d,]{3,}(?:\.\d+)?)\b/g;
+          const matches = [];
           let m;
-          let last = null;
-          while ((m = re.exec(line)) !== null) last = m;
-          return last;
+          while ((m = re.exec(line)) !== null) {
+            const raw = m[1];
+            const num = parseNumber(String(raw).replace(/,/g, ""));
+            matches.push({ raw, index: m.index, num });
+          }
+          if (!matches.length) return null;
+          let pool = matches;
+          if (matches.length > 1) {
+            const maxAbs = Math.max(
+              ...matches.map((x) => Math.abs(x.num)),
+            );
+            if (maxAbs >= 500) {
+              const filtered = matches.filter((x) => {
+                const n = Math.abs(x.num);
+                if (n >= 1 && n <= 100 && Number.isInteger(n)) return false;
+                return true;
+              });
+              if (filtered.length) pool = filtered;
+            }
+          }
+          const pick = pool[pool.length - 1];
+          return { 1: pick.raw, index: pick.index };
         }
 
         function parseVerusOcrRowsByScoreAnchor(text) {
@@ -2068,24 +2278,50 @@
             const rank =
               extractLeadingRankFromVerusOcrLine(line) ??
               extractLeadingRankFromVerusOcrLine(nameLine);
-            const num = parseNumber(String(scoreRaw).replace(/,/g, ""));
             const rankOk =
               rank != null && rank >= 1 && rank <= VERUS_OCR_MAX_RANK;
             if (!name && !rankOk) continue;
-            const key = rankOk ? `r:${rank}` : `n:${name}|${score}`;
-            const prev = merged.get(key);
-            if (
-              !prev ||
-              num > prev.num ||
-              (num === prev.num && name.length > (prev.name || "").length)
-            ) {
-              merged.set(key, {
-                name,
-                score,
-                num,
-                rank: rankOk ? rank : null,
-              });
-            }
+            verusOcrUpsertParsedIntoMap(merged, name, scoreRaw, rank);
+          }
+          return Array.from(merged.values()).map(({ name, score, rank }) => ({
+            name: cleanNameForOcr(name),
+            score,
+            ...(rank != null ? { rank } : {}),
+          }));
+        }
+
+        /**
+         * Lines where the score is the last number but trailing OCR noise breaks the strict
+         * end-anchored one-line regexp (still catches rank + name + score on one line).
+         */
+        function parseVerusOcrRowsByTrailingScore(text) {
+          const lines = String(text || "")
+            .split(/\r?\n/)
+            .map((x) => String(x || "").replace(/\s+/g, " ").trim())
+            .filter(Boolean);
+          const merged = new Map();
+          for (let i = 0; i < lines.length; i++) {
+            const line = lines[i];
+            if (isHeaderOrTabLine(line) || isVerusOcrUiLabelOnlyLine(line))
+              continue;
+            if (isAllianceLine(line)) continue;
+            const scoreMatch = verusLastScoreMatchOnLine(line);
+            if (!scoreMatch) continue;
+            const scoreRaw = scoreMatch[1];
+            const idx =
+              scoreMatch.index != null ? scoreMatch.index : line.lastIndexOf(scoreRaw);
+            const prefix = (idx >= 0 ? line.slice(0, idx) : line).trim();
+            const rank = extractLeadingRankFromVerusOcrLine(prefix || line);
+            const rankOk =
+              rank != null && rank >= 1 && rank <= VERUS_OCR_MAX_RANK;
+            const name = cleanNameForOcr(prefix);
+            const nameKey = normalizeMatchName(name);
+            const weakNameOk =
+              nameKey.length >= 2 && !isVerusOcrUiLabelOnlyLine(prefix);
+            if (!prefix && !rankOk) continue;
+            if (!rankOk && !looksLikeName(prefix) && !weakNameOk) continue;
+            if (!name && !rankOk) continue;
+            verusOcrUpsertParsedIntoMap(merged, name, scoreRaw, rank);
           }
           return Array.from(merged.values()).map(({ name, score, rank }) => ({
             name: cleanNameForOcr(name),
@@ -2095,11 +2331,16 @@
         }
 
         /** ~300 DPI equivalent for small UI text; cap to avoid worker OOM. */
-        const VERUS_OCR_MAX_CANVAS_EDGE = 3000;
+        const VERUS_OCR_MAX_CANVAS_EDGE = 4096;
+        /**
+         * Tesseract WASM logs "Image too small to scale" when line boxes go under ~3px.
+         * Keep scaled output edges comfortably above that (also avoids 2×36 style failures).
+         */
+        const VERUS_OCR_MIN_OUTPUT_EDGE = 64;
         const VERUS_OCR_MIN_SCALE = 2;
         const VERUS_OCR_TARGET_SCALE = 3;
         /** Hangul needs more pixels; blur from smoothing hurts stroke detail. */
-        const VERUS_OCR_TARGET_SCALE_KOR = 3.75;
+        const VERUS_OCR_TARGET_SCALE_KOR = 4.25;
 
         function verusRgbToGray(r, g, b) {
           return r * 0.299 + g * 0.587 + b * 0.114;
@@ -2177,10 +2418,48 @@
           return { threshold, norm };
         }
 
+        /** 3×3 box blur (grayscale row-major). */
+        function verusBoxBlur3Gray(src, w, h, out) {
+          for (let y = 0; y < h; y++) {
+            for (let x = 0; x < w; x++) {
+              let sum = 0;
+              let c = 0;
+              for (let dy = -1; dy <= 1; dy++) {
+                const yy = y + dy;
+                if (yy < 0 || yy >= h) continue;
+                for (let dx = -1; dx <= 1; dx++) {
+                  const xx = x + dx;
+                  if (xx >= 0 && xx < w) {
+                    sum += src[yy * w + xx];
+                    c++;
+                  }
+                }
+              }
+              out[y * w + x] = Math.round(sum / c);
+            }
+          }
+        }
+
+        /**
+         * Mild unsharp mask on grayscale (CJK path only): improves thin strokes after upscale.
+         */
+        function verusUnsharpMaskGrayInPlace(gray, w, h, amount) {
+          if (w < 3 || h < 3 || !amount) return;
+          const n = gray.length;
+          const blur = new Uint8Array(n);
+          verusBoxBlur3Gray(gray, w, h, blur);
+          for (let i = 0; i < n; i++) {
+            const v = gray[i] + amount * (gray[i] - blur[i]);
+            gray[i] = v < 0 ? 0 : v > 255 ? 255 : Math.round(v);
+          }
+        }
+
         function verusApplyGrayPipelineToImageData(imageData, pipelineOpts) {
           const po = pipelineOpts || {};
           const skipBinarize = po.skipBinarize === true;
           const d = imageData.data;
+          const w = imageData.width;
+          const h = imageData.height;
           const n = (d.length / 4) | 0;
           const gray = new Uint8Array(n);
           for (let i = 0, p = 0; i < n; i++, p += 4) {
@@ -2189,6 +2468,9 @@
           verusMaybeInvertDarkUiGray(gray);
           if (skipBinarize) verusHistogramStretchGray(gray, 0.01, 0.99);
           else verusHistogramStretchGray(gray);
+          if (skipBinarize && w >= 3 && h >= 3) {
+            verusUnsharpMaskGrayInPlace(gray, w, h, 0.45);
+          }
           const { threshold, norm } = verusOtsuThresholdAndStrength(gray);
           const useBinary =
             !skipBinarize && norm > 0.00012;
@@ -2219,10 +2501,31 @@
           if (!w || !h) {
             throw new Error("Could not read image dimensions.");
           }
-          const sx = Math.floor(w * (videoMode ? 0.02 : 0.06));
-          const sy = Math.floor(h * (videoMode ? 0.04 : 0.09));
-          const sw = Math.max(1, Math.floor(w * (videoMode ? 0.96 : 0.92)));
-          const sh = Math.max(1, Math.floor(h * (videoMode ? 0.94 : 0.9)));
+          const focusBottom = opts.verusOcrFocusBottom === true;
+          let sx;
+          let sy;
+          let sw;
+          let sh;
+          if (focusBottom) {
+            sx = Math.floor(w * 0.04);
+            sy = Math.floor(h * 0.2);
+            sw = Math.max(1, Math.floor(w * 0.92));
+            sh = Math.max(1, Math.floor(h * 0.8));
+          } else {
+            sx = Math.floor(w * (videoMode ? 0.02 : 0.06));
+            sy = Math.floor(h * (videoMode ? 0.04 : 0.07));
+            sw = Math.max(1, Math.floor(w * (videoMode ? 0.96 : 0.92)));
+            sh = Math.max(1, Math.floor(h * (videoMode ? 0.94 : 0.9)));
+          }
+          const minCrop = VERUS_OCR_MIN_OUTPUT_EDGE;
+          if (sw < minCrop && w >= minCrop) {
+            sx = 0;
+            sw = w;
+          }
+          if (sh < minCrop && h >= minCrop) {
+            sy = 0;
+            sh = h;
+          }
           let scale = skipBinarize
             ? Math.max(VERUS_OCR_TARGET_SCALE, VERUS_OCR_TARGET_SCALE_KOR)
             : VERUS_OCR_TARGET_SCALE;
@@ -2230,9 +2533,37 @@
           if (sw * scale > cap) scale = cap / sw;
           if (sh * scale > cap) scale = Math.min(scale, cap / sh);
           scale = Math.max(VERUS_OCR_MIN_SCALE, scale);
+          scale = Math.max(
+            scale,
+            VERUS_OCR_MIN_OUTPUT_EDGE / sw,
+            VERUS_OCR_MIN_OUTPUT_EDGE / sh,
+          );
+          if (sw * scale > cap) scale = cap / sw;
+          if (sh * scale > cap) scale = Math.min(scale, cap / sh);
+          /** Recordings are softer than stills; modest extra upscale before hitting canvas cap. */
+          if (videoMode && !focusBottom) {
+            const boosted = scale * 1.1;
+            const capS = Math.min(cap / sw, cap / sh);
+            scale = Math.min(boosted, capS);
+            if (sw * scale > cap) scale = cap / sw;
+            if (sh * scale > cap) scale = Math.min(scale, cap / sh);
+          }
+          let cw = Math.max(1, Math.floor(sw * scale));
+          let ch = Math.max(1, Math.floor(sh * scale));
+          if (cw < VERUS_OCR_MIN_OUTPUT_EDGE || ch < VERUS_OCR_MIN_OUTPUT_EDGE) {
+            scale = Math.max(
+              scale,
+              VERUS_OCR_MIN_OUTPUT_EDGE / sw,
+              VERUS_OCR_MIN_OUTPUT_EDGE / sh,
+            );
+            if (sw * scale > cap) scale = cap / sw;
+            if (sh * scale > cap) scale = Math.min(scale, cap / sh);
+            cw = Math.max(1, Math.floor(sw * scale));
+            ch = Math.max(1, Math.floor(sh * scale));
+          }
           const canvas = document.createElement("canvas");
-          canvas.width = Math.max(1, Math.floor(sw * scale));
-          canvas.height = Math.max(1, Math.floor(sh * scale));
+          canvas.width = cw;
+          canvas.height = ch;
           const ctx = canvas.getContext("2d");
           if (!ctx) throw new Error("Canvas 2D context unavailable");
           ctx.imageSmoothingEnabled = !skipBinarize;
@@ -2246,8 +2577,7 @@
 
         function verusOcrLangsFromSel(langSel) {
           return (
-            (langSel && String(langSel.value || "").trim()) ||
-            "kor+eng+jpn+chi_sim+chi_tra"
+            (langSel && String(langSel.value || "").trim()) || "kor+eng"
           );
         }
 
@@ -2282,7 +2612,7 @@
           await worker.setParameters({
             tessedit_pageseg_mode: mode,
             preserve_interword_spaces: "1",
-            user_defined_dpi: "320",
+            user_defined_dpi: "400",
           });
         }
 
@@ -2299,26 +2629,96 @@
           }
         }
 
-        /**
-         * Korean LSTM often splits lines differently under PSM 6 vs 4; merge raw text
-         * so the parser sees more complete syllables and rows.
-         */
-        async function verusMergedOcrTextForKorean(source, langs) {
-          const out6 = await verusTesseractRecognizeOnce(source, langs, "6");
-          const out4 = await verusTesseractRecognizeOnce(source, langs, "4");
-          const t6 = ((out6 && out6.data && out6.data.text) || "").trim();
-          const t4 = ((out4 && out4.data && out4.data.text) || "").trim();
-          if (!t6) return t4;
-          if (!t4) return t6;
-          return t6 + "\n" + t4;
-        }
-
         function verusRowsFromOcrOutput(out) {
           const text = (out && out.data && out.data.text) || "";
           const primary = parseVerusOcrRows(text);
           const anchor = parseVerusOcrRowsByScoreAnchor(text);
-          const combined = primary.concat(anchor);
+          const trailing = parseVerusOcrRowsByTrailingScore(text);
+          const combined = primary.concat(anchor).concat(trailing);
           return collapseRowsByExactNormalizedName(combined);
+        }
+
+        /**
+         * Running PSM 4, 6, and 11 then concatenating can merge contradictory reads for the same
+         * rank (collapse keeps max score → wrong). Prefer the pass with the best *plausible* parse
+         * (not raw row count—noisy text often parses as more junk rows). Concatenate only when
+         * that strictly improves plausibility score.
+         */
+        function verusPickBestMergedOcrText(textChunks) {
+          const arr = (textChunks || [])
+            .map((s) => String(s || "").trim())
+            .filter(Boolean);
+          if (!arr.length) return "";
+          if (arr.length === 1) return arr[0];
+          function parseScore(text) {
+            const rows = verusRowsFromOcrOutput({ data: { text } });
+            return {
+              q: verusVideoFrameOcrQualityScore(rows),
+              n: rows.length,
+            };
+          }
+          let bestText = arr[0];
+          let best = parseScore(bestText);
+          for (let i = 1; i < arr.length; i++) {
+            const cand = parseScore(arr[i]);
+            if (
+              cand.q > best.q ||
+              (cand.q === best.q && cand.n > best.n)
+            ) {
+              best = cand;
+              bestText = arr[i];
+            }
+          }
+          const merged = arr.join("\n");
+          const mergedS = parseScore(merged);
+          if (
+            mergedS.q > best.q ||
+            (mergedS.q === best.q && mergedS.n > best.n)
+          ) {
+            return merged;
+          }
+          return bestText;
+        }
+
+        /**
+         * PSM 11 (sparse text) fragments tiny inputs into 2px-wide line boxes and spams WASM errors.
+         */
+        function verusOcrPsmListForSource(source) {
+          const el = source || {};
+          const w =
+            el.width != null
+              ? el.width
+              : el.naturalWidth != null
+                ? el.naturalWidth
+                : el.videoWidth != null
+                  ? el.videoWidth
+                  : 0;
+          const h =
+            el.height != null
+              ? el.height
+              : el.naturalHeight != null
+                ? el.naturalHeight
+                : el.videoHeight != null
+                  ? el.videoHeight
+                  : 0;
+          if (w >= 96 && h >= 96) return ["4", "6", "11"];
+          return ["4", "6"];
+        }
+
+        /**
+         * Korean LSTM: run PSM passes, then pick the cleanest combined text (see
+         * verusPickBestMergedOcrText).
+         */
+        async function verusMergedOcrTextForKorean(source, langs) {
+          const chunks = [];
+          for (const psm of verusOcrPsmListForSource(source)) {
+            try {
+              const out = await verusTesseractRecognizeOnce(source, langs, psm);
+              const t = ((out && out.data && out.data.text) || "").trim();
+              if (t) chunks.push(t);
+            } catch (_) {}
+          }
+          return verusPickBestMergedOcrText(chunks);
         }
 
         async function runVerusOcrOnCanvas(source, langSel) {
@@ -2326,52 +2726,211 @@
           const langsFallback = "kor+eng+jpn+chi_sim+chi_tra";
           const korean = verusOcrLangsSkipBinarize(langsPrimary);
           let rows = [];
+
+          async function koreanPass(langs) {
+            const merged = await verusMergedOcrTextForKorean(source, langs);
+            return verusRowsFromOcrOutput({ data: { text: merged } });
+          }
+
           if (korean) {
-            const merged = await verusMergedOcrTextForKorean(
-              source,
-              langsPrimary,
-            );
-            rows = verusRowsFromOcrOutput({ data: { text: merged } });
+            rows = await koreanPass(langsPrimary);
+            if (
+              rows.length < 8 &&
+              langsPrimary !== "kor+eng" &&
+              /\bkor\b/i.test(langsPrimary) &&
+              langsPrimary.includes("+")
+            ) {
+              try {
+                const narrow = await koreanPass("kor+eng");
+                if (narrow.length > rows.length) rows = narrow;
+              } catch (_) {}
+            }
             if (!rows.length && langsPrimary !== langsFallback) {
-              const mergedFb = await verusMergedOcrTextForKorean(
-                source,
-                langsFallback,
-              );
-              rows = verusRowsFromOcrOutput({ data: { text: mergedFb } });
+              rows = await koreanPass(langsFallback);
             }
           } else {
-            let out = await verusTesseractRecognizeOnce(source, langsPrimary);
-            rows = verusRowsFromOcrOutput(out);
-            if (!rows.length) {
-              out = await verusTesseractRecognizeOnce(source, langsPrimary, "6");
-              rows = verusRowsFromOcrOutput(out);
-            }
-            if (!rows.length && langsPrimary !== langsFallback) {
-              out = await verusTesseractRecognizeOnce(source, langsFallback);
-              rows = verusRowsFromOcrOutput(out);
-              if (!rows.length) {
-                out = await verusTesseractRecognizeOnce(
-                  source,
-                  langsFallback,
-                  "6",
-                );
-                rows = verusRowsFromOcrOutput(out);
+            const mergeEng = async (langs) => {
+              const chunks = [];
+              for (const psm of verusOcrPsmListForSource(source)) {
+                try {
+                  const out = await verusTesseractRecognizeOnce(
+                    source,
+                    langs,
+                    psm,
+                  );
+                  const t = ((out && out.data && out.data.text) || "").trim();
+                  if (t) chunks.push(t);
+                } catch (_) {}
               }
+              return verusPickBestMergedOcrText(chunks);
+            };
+            let text = await mergeEng(langsPrimary);
+            rows = verusRowsFromOcrOutput({ data: { text } });
+            if (!rows.length && langsPrimary !== langsFallback) {
+              text = await mergeEng(langsFallback);
+              rows = verusRowsFromOcrOutput({ data: { text } });
             }
           }
           return rows;
         }
 
+        /**
+         * Same recognition strategy as runVerusOcrOnCanvas, but reuses one worker (for video frames).
+         * Narrow Korean / fallback langs may spawn extra short-lived workers where the main worker
+         * cannot switch language packs.
+         */
+        async function verusRunOcrOnCanvasWithWorker(worker, canvas, langSel) {
+          const langsPrimary = verusOcrLangsFromSel(langSel);
+          const langsFallback = "kor+eng+jpn+chi_sim+chi_tra";
+          const korean = verusOcrLangsSkipBinarize(langsPrimary);
+
+          async function koreanPassWithWorker(w) {
+            const chunks = [];
+            for (const psm of verusOcrPsmListForSource(canvas)) {
+              try {
+                await verusApplyTesseractParams(w, psm);
+                const out = await w.recognize(canvas);
+                const t = ((out && out.data && out.data.text) || "").trim();
+                if (t) chunks.push(t);
+              } catch (_) {}
+            }
+            const merged = verusPickBestMergedOcrText(chunks);
+            return verusRowsFromOcrOutput({ data: { text: merged } });
+          }
+
+          if (korean) {
+            let rows = await koreanPassWithWorker(worker);
+            if (
+              rows.length < 8 &&
+              langsPrimary !== "kor+eng" &&
+              /\bkor\b/i.test(langsPrimary) &&
+              langsPrimary.includes("+")
+            ) {
+              try {
+                const narrow = await verusMergedOcrTextForKorean(
+                  canvas,
+                  "kor+eng",
+                );
+                const narrowRows = verusRowsFromOcrOutput({
+                  data: { text: narrow },
+                });
+                if (narrowRows.length > rows.length) rows = narrowRows;
+              } catch (_) {}
+            }
+            if (!rows.length && langsPrimary !== langsFallback) {
+              try {
+                const fb = await verusMergedOcrTextForKorean(
+                  canvas,
+                  langsFallback,
+                );
+                rows = verusRowsFromOcrOutput({ data: { text: fb } });
+              } catch (_) {}
+            }
+            return rows;
+          }
+
+          async function mergeEngWithWorker(w) {
+            const chunks = [];
+            for (const psm of verusOcrPsmListForSource(canvas)) {
+              try {
+                await verusApplyTesseractParams(w, psm);
+                const out = await w.recognize(canvas);
+                const t = ((out && out.data && out.data.text) || "").trim();
+                if (t) chunks.push(t);
+              } catch (_) {}
+            }
+            return verusPickBestMergedOcrText(chunks);
+          }
+
+          let text = await mergeEngWithWorker(worker);
+          let rows = verusRowsFromOcrOutput({ data: { text } });
+          if (!rows.length && langsPrimary !== langsFallback) {
+            const chunks = [];
+            for (const psm of verusOcrPsmListForSource(canvas)) {
+              try {
+                const out = await verusTesseractRecognizeOnce(
+                  canvas,
+                  langsFallback,
+                  psm,
+                );
+                const t = ((out && out.data && out.data.text) || "").trim();
+                if (t) chunks.push(t);
+              } catch (_) {}
+            }
+            text = verusPickBestMergedOcrText(chunks);
+            rows = verusRowsFromOcrOutput({ data: { text } });
+          }
+          return rows;
+        }
+
         async function runVerusOcrOnFile(file, langSel) {
-          const canvas = await preprocessVerusImage(file, langSel);
-          return runVerusOcrOnCanvas(canvas, langSel);
+          const langsHint = verusOcrLangsFromSel(langSel);
+          const img = new Image();
+          const url = URL.createObjectURL(file);
+          await new Promise((resolve, reject) => {
+            img.onload = resolve;
+            img.onerror = reject;
+            img.src = url;
+          });
+          try {
+            const w = img.naturalWidth || img.width || 0;
+            const h = img.naturalHeight || img.height || 0;
+            const tallPortrait = h > 0 && w > 0 && h >= w * 1.35;
+            const wideLandscape =
+              w > 0 && h > 0 && w >= h * 1.25 && !tallPortrait;
+            const mainCanvas = preprocessVerusImageSource(img, { langsHint });
+            let rows = await runVerusOcrOnCanvas(mainCanvas, langSel);
+            if (tallPortrait || wideLandscape) {
+              const bottomCanvas = preprocessVerusImageSource(img, {
+                langsHint,
+                verusOcrFocusBottom: true,
+              });
+              const rowsBottom = await runVerusOcrOnCanvas(bottomCanvas, langSel);
+              rows = collapseRowsByExactNormalizedName(
+                (rows || []).concat(rowsBottom || []),
+              );
+            }
+            return rows;
+          } finally {
+            URL.revokeObjectURL(url);
+          }
         }
 
         function mergeVerusOcrRowArrays(arrays) {
-          const flat = [];
-          (arrays || []).forEach((arr) => {
-            (arr || []).forEach((row) => flat.push(row));
+          const arrs = arrays || [];
+          const scored = arrs.map((arr) => ({
+            rows: arr || [],
+            q: verusVideoFrameOcrQualityScore(arr),
+          }));
+          let bestQ = 0;
+          scored.forEach((s) => {
+            if (s.q > bestQ) bestQ = s.q;
           });
+          const sortedAll = scored.slice().sort((a, b) => b.q - a.q);
+          if (
+            sortedAll.length >= 2 &&
+            sortedAll[0].q >= 6 &&
+            sortedAll[0].q >= sortedAll[1].q * 1.85
+          ) {
+            return dedupeVerusOcrRowsBySimilarName(sortedAll[0].rows, {
+              video: true,
+            });
+          }
+          const flat = [];
+          if (bestQ <= 0) {
+            scored.forEach((s) => {
+              s.rows.forEach((row) => flat.push(row));
+            });
+          } else {
+            const threshold = Math.max(1, bestQ * 0.5);
+            const keep = scored.filter((s) => s.q >= threshold);
+            const sorted = keep.slice().sort((a, b) => b.q - a.q);
+            const cap = 18;
+            const use = sorted.slice(0, Math.min(cap, sorted.length));
+            use.forEach((s) => {
+              s.rows.forEach((row) => flat.push(row));
+            });
+          }
           return dedupeVerusOcrRowsBySimilarName(flat, { video: true });
         }
 
@@ -2454,7 +3013,7 @@
               settled = true;
               resolve();
             }
-            const failSafe = setTimeout(finish, 900);
+            const failSafe = setTimeout(finish, 1500);
             function done() {
               clearTimeout(failSafe);
               finish();
@@ -2462,7 +3021,7 @@
             if (typeof video.requestVideoFrameCallback === "function") {
               try {
                 video.requestVideoFrameCallback(() => {
-                  setTimeout(done, 80);
+                  setTimeout(done, 130);
                 });
                 return;
               } catch {
@@ -2471,7 +3030,7 @@
             }
             requestAnimationFrame(() => {
               requestAnimationFrame(() => {
-                setTimeout(done, 200);
+                setTimeout(done, 280);
               });
             });
           });
@@ -2499,9 +3058,9 @@
         }
 
         async function runVerusOcrOnVideoFile(file, langSel, onProgress) {
-          /** Wider spacing + fewer frames reduces conflicting reads across seeks. */
-          const VIDEO_INTERVAL_SEC = 1.5;
-          const VIDEO_MAX_FRAMES = 24;
+          /** Slightly denser sampling helps when the leaderboard is only clear briefly. */
+          const VIDEO_INTERVAL_SEC = 1;
+          const VIDEO_MAX_FRAMES = 32;
           const VIDEO_MAX_DURATION_SEC = 300;
           /** Skip first ~1s — typical screen captures start dark or show recorder chrome. */
           const VIDEO_SKIP_START_SEC = 1;
@@ -2608,20 +3167,38 @@
                 }
                 await seekVideo(video, times[i]);
                 await ensureVideoFrameDecodable(video);
-                const canvas = preprocessVerusImageSource(video, {
+                const vw = video.videoWidth || 0;
+                const vh = video.videoHeight || 0;
+                const tallPortrait =
+                  vw > 0 && vh > 0 && vh >= vw * 1.35;
+                const wideLandscape =
+                  vw > 0 && vh > 0 && vw >= vh * 1.25 && !tallPortrait;
+                const baseOpts = {
                   video: true,
                   langsHint: langsPrimary,
-                });
-                let out = await worker.recognize(canvas);
-                let rows = verusRowsFromOcrOutput(out);
-                if (!rows.length && koreanPack) {
-                  await verusApplyTesseractParams(worker, "4");
-                  out = await worker.recognize(canvas);
-                  rows = verusRowsFromOcrOutput(out);
-                  await verusApplyTesseractParams(worker, "6");
+                };
+                const canvas = preprocessVerusImageSource(video, baseOpts);
+                let rows = await verusRunOcrOnCanvasWithWorker(
+                  worker,
+                  canvas,
+                  langSel,
+                );
+                if (tallPortrait || wideLandscape) {
+                  const bottomCanvas = preprocessVerusImageSource(video, {
+                    ...baseOpts,
+                    verusOcrFocusBottom: true,
+                  });
+                  const rowsBottom = await verusRunOcrOnCanvasWithWorker(
+                    worker,
+                    bottomCanvas,
+                    langSel,
+                  );
+                  rows = collapseRowsByExactNormalizedName(
+                    (rows || []).concat(rowsBottom || []),
+                  );
                 }
                 if (!rows.length && langsPrimary !== langsFallback) {
-                  out = await verusTesseractRecognizeOnce(
+                  const out = await verusTesseractRecognizeOnce(
                     canvas,
                     langsFallback,
                     verusOcrLangsSkipBinarize(langsFallback) ? "6" : undefined,
@@ -3221,17 +3798,12 @@
         }
 
         /**
-         * Row order for rank-based OCR: VS sort when any week score exists; otherwise
-         * table order (e.g. Excel import order) — not alphabetical, which would break rank.
+         * Row order for rank-based OCR: always the same order as `verusRows` (import / add order).
+         * Using VS-sorted order broke partial fills: rank 60+ from the screenshot mapped to the wrong
+         * rows once any day had scores, leaving the tail of the roster with empty cells.
          */
         function verusRankOrderRowsForOcr() {
-          const named = verusRows.filter((r) => String(r.player || "").trim());
-          const hasAnyVs = named.some((r) => {
-            const w = getWeeklySum(r);
-            return w.hasAny && Number.isFinite(w.sum);
-          });
-          if (hasAnyVs) return sortForRender(verusRows).filter((r) => String(r.player || "").trim());
-          return named;
+          return verusRows.filter((r) => String(r.player || "").trim());
         }
 
         function applyVerusOcrRowsToTable(ocrRows, dayKey, options) {
@@ -3260,24 +3832,15 @@
           let added = 0;
           let skipped = 0;
           let namedRows = getNamedRowsForMatch();
-          /** Rank 1 = first row in this order (matches export when VS data exists). */
+          /** Rank 1 = first named row in verusRows list order (matches screenshot top-to-bottom). */
           const rankOrderRows = verusRankOrderRowsForOcr();
           rowsIn.forEach((or) => {
             const name = or.name || "";
             const score = or.score || "";
             if (!score) return;
-            const rank =
-              or.rank != null && Number.isFinite(Number(or.rank))
-                ? Number(or.rank)
-                : null;
-            if (
-              matchOnly &&
-              rank != null &&
-              rank >= 1 &&
-              rank <= VERUS_OCR_MAX_RANK &&
-              rank <= rankOrderRows.length
-            ) {
-              const row = rankOrderRows[rank - 1];
+
+            const row = verusResolveOcrTargetRow(or, rankOrderRows, namedRows);
+            if (row) {
               if (!row.days || typeof row.days !== "object") row.days = {};
               row.days[dayKey] = score;
               const ocrName = String(name || "").trim();
@@ -3288,17 +3851,12 @@
               namedRows = getNamedRowsForMatch();
               return;
             }
-            if (!name) return;
-            const best = findBestRowForOcrName(name, namedRows);
-            if (best) {
-              if (!best.days || typeof best.days !== "object") best.days = {};
-              best.days[dayKey] = score;
-              const ocrName = String(name || "").trim();
-              if (ocrName && !String(best.player || "").trim()) {
-                best.player = ocrName;
-              }
-              matched++;
-            } else if (matchOnly) {
+
+            if (!String(name || "").trim()) {
+              skipped++;
+              return;
+            }
+            if (matchOnly) {
               skipped++;
             } else {
               const nr = defaultRow();
@@ -3855,6 +4413,85 @@
               );
             } finally {
               verusOcrBtn.disabled = false;
+            }
+          });
+        }
+
+        const verusPasteTextBtn = document.getElementById("verusPasteTextBtn");
+        const verusPasteOcrDialog = document.getElementById("verusPasteOcrDialog");
+        const verusPasteOcrTextarea = document.getElementById(
+          "verusPasteOcrTextarea",
+        );
+        const verusPasteOcrApply = document.getElementById("verusPasteOcrApply");
+        const verusPasteOcrCancel = document.getElementById(
+          "verusPasteOcrCancel",
+        );
+
+        if (verusPasteTextBtn && verusPasteOcrDialog) {
+          verusPasteTextBtn.addEventListener("click", function () {
+            if (verusPasteOcrTextarea) verusPasteOcrTextarea.value = "";
+            if (typeof verusPasteOcrDialog.showModal !== "function") {
+              alert(
+                "This browser cannot show the paste dialog. Try another browser or paste into a file and use screenshot import.",
+              );
+              return;
+            }
+            verusPasteOcrDialog.showModal();
+            setTimeout(function () {
+              if (verusPasteOcrTextarea) verusPasteOcrTextarea.focus();
+            }, 0);
+          });
+        }
+        if (verusPasteOcrCancel && verusPasteOcrDialog) {
+          verusPasteOcrCancel.addEventListener("click", function () {
+            verusPasteOcrDialog.close();
+          });
+        }
+        if (verusPasteOcrApply && verusPasteOcrDialog) {
+          verusPasteOcrApply.addEventListener("click", function () {
+            const dayKey =
+              verusOcrDaySel && verusOcrDaySel.value
+                ? verusOcrDaySel.value
+                : "Monday";
+            const matchOnlyEl = document.getElementById("verusOcrMatchOnly");
+            const matchOnly = matchOnlyEl ? matchOnlyEl.checked : true;
+            if (matchOnly) {
+              const hasRoster = verusRows.some((r) =>
+                String(r.player || "").trim(),
+              );
+              if (!hasRoster) {
+                alert(
+                  "Import names or add players to the table first. With “Match roster only” on, pasted text only fills scores for names already in the list.",
+                );
+                return;
+              }
+            }
+            const raw = verusPasteOcrTextarea
+              ? String(verusPasteOcrTextarea.value || "")
+              : "";
+            if (!String(raw).trim()) {
+              alert("Paste some leaderboard text first.");
+              return;
+            }
+            const rows = verusRowsFromOcrOutput({ data: { text: raw } });
+            const { matched, added, skipped } = applyVerusOcrRowsToTable(
+              rows,
+              dayKey,
+              { matchOnly },
+            );
+            saveState();
+            renderTable();
+            verusPasteOcrDialog.close();
+            if (matched === 0 && added === 0 && skipped === 0) {
+              setVerusOcrStatus(
+                "No scores parsed from pasted text—include large numbers (scores) and names or ranks.",
+              );
+            } else {
+              let msg = `Pasted text: ${matched} matched for ${dayKey}.`;
+              if (added) msg += ` ${added} new row(s).`;
+              if (matchOnly && skipped)
+                msg += ` ${skipped} line(s) skipped (no roster match).`;
+              setVerusOcrStatus(msg);
             }
           });
         }
