@@ -3825,6 +3825,9 @@
           writeAllianceMemberSearchSession(state.allianceMemberSearch);
         } else if (allianceSearchSource === "backupFile") {
           state.allianceMemberSearch = readAllianceMemberSearchSession();
+        } else if (allianceSearchSource === "shareUrl") {
+          state.allianceMemberSearch = normalizeAllianceMemberSearchValue("");
+          writeAllianceMemberSearchSession(state.allianceMemberSearch);
         }
         if (
           saved.allianceFillTarget === "vip" ||
