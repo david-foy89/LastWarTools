@@ -1213,6 +1213,21 @@
                   />
                   <button
                     type="button"
+                    id="importScheduleImageButton"
+                    class="export-menu-item"
+                    role="menuitem"
+                  >
+                    Import schedule (screenshot)…
+                  </button>
+                  <input
+                    type="file"
+                    id="scheduleImageFileInput"
+                    accept="image/*,.png,.jpg,.jpeg,.webp,.gif,.bmp,.heic,.heif"
+                    style="display: none"
+                    aria-hidden="true"
+                  />
+                  <button
+                    type="button"
                     id="exportJsonButton"
                     class="export-menu-item"
                     role="menuitem"
@@ -1613,6 +1628,12 @@
       );
       const scheduleBackupFileInput = document.getElementById(
         "scheduleBackupFileInput",
+      );
+      const importScheduleImageButton = document.getElementById(
+        "importScheduleImageButton",
+      );
+      const scheduleImageFileInput = document.getElementById(
+        "scheduleImageFileInput",
       );
       const shareLinkButton = document.getElementById("shareLinkButton");
       const exportMenuWrap = document.getElementById("exportMenuWrap");
@@ -3330,145 +3351,146 @@
         }
 
         if (isImage) {
-          if (!window.Tesseract) {
-            throw new Error("OCR importer is not available.");
-          }
-
-          const performOcr = async (imageSource, lang, psm) => {
-            let lastError = null;
-            for (const langPath of OCR_LANG_PATHS) {
-              let worker = null;
-              try {
-                worker = await window.Tesseract.createWorker(lang, 1, {
-                  langPath,
-                });
-                await worker.setParameters({
-                  tessedit_pageseg_mode: psm,
-                  preserve_interword_spaces: "1",
-                });
-                const result = await worker.recognize(imageSource);
-                await worker.terminate();
-                return {
-                  text: result?.data?.text || "",
-                  words: Array.isArray(result?.data?.words)
-                    ? result.data.words
-                    : [],
-                  langPath,
-                };
-              } catch (error) {
-                lastError = error;
-                if (worker) {
-                  try {
-                    await worker.terminate();
-                  } catch (_) {}
-                }
-              }
-            }
-
-            throw lastError || new Error("OCR pass failed");
-          };
-
-          const createEnhancedImageCanvas = async (imageFile) => {
-            const bitmap = await createImageBitmap(imageFile);
-            const scale = 2;
-            const canvas = document.createElement("canvas");
-            canvas.width = Math.max(1, Math.floor(bitmap.width * scale));
-            canvas.height = Math.max(1, Math.floor(bitmap.height * scale));
-
-            const context = canvas.getContext("2d", {
-              willReadFrequently: true,
-            });
-            context.imageSmoothingEnabled = false;
-            context.drawImage(bitmap, 0, 0, canvas.width, canvas.height);
-
-            const imageData = context.getImageData(
-              0,
-              0,
-              canvas.width,
-              canvas.height,
-            );
-            const data = imageData.data;
-            for (let i = 0; i < data.length; i += 4) {
-              const luminance =
-                0.299 * data[i] + 0.587 * data[i + 1] + 0.114 * data[i + 2];
-              const contrast = (luminance - 128) * 1.8 + 128;
-              // Invert: produce dark text on white background (OCR-friendly).
-              // Bright pixels (text on dark UI) become black; dark background becomes white.
-              // Threshold 128: gold text (~lum 183) and teal Korean (~lum 138) both
-              // become black; dark background (~lum 30) becomes white. OCR-friendly.
-              const threshold = contrast > 128 ? 0 : 255;
-              data[i] = threshold;
-              data[i + 1] = threshold;
-              data[i + 2] = threshold;
-            }
-            context.putImageData(imageData, 0, 0);
-            bitmap.close();
-            return canvas;
-          };
-
-          const texts = [];
-          const wordSets = [];
-          const passErrors = [];
-          let koreanPassSucceeded = false;
-
-          for (const pass of OCR_PASS_CONFIGS) {
-            try {
-              setAllianceImportStatus(
-                `Running OCR (${pass.lang.toUpperCase()}, PSM ${pass.psm}) on ${file.name}...`,
-                true,
-              );
-              const directResult = await performOcr(file, pass.lang, pass.psm);
-              if (directResult.text.trim()) {
-                texts.push(directResult.text);
-                // Direct OCR has no reliable image dimensions for column filtering;
-                // its text goes to the fallback pipeline instead.
-              }
-
-              const enhancedCanvas = await createEnhancedImageCanvas(file);
-              const enhancedResult = await performOcr(
-                enhancedCanvas,
-                pass.lang,
-                pass.psm,
-              );
-              if (enhancedResult.text.trim()) {
-                texts.push(enhancedResult.text);
-                wordSets.push({
-                  words: enhancedResult.words,
-                  imageWidth: enhancedCanvas.width,
-                  imageHeight: enhancedCanvas.height,
-                });
-              }
-              if (pass.lang.includes("kor")) {
-                koreanPassSucceeded = true;
-              }
-            } catch {
-              passErrors.push(`${pass.lang}:${pass.psm}`);
-              // Keep going so fallback passes can still return candidates.
-            }
-          }
-
-          const mergedText = texts.join("\n");
-          if (
-            !mergedText.trim() &&
-            passErrors.length === OCR_PASS_CONFIGS.length
-          ) {
-            throw new Error(
-              "OCR could not run for this image. Please try a clearer screenshot or file import.",
-            );
-          }
-
-          return {
-            text: mergedText,
-            texts,
-            source: "ocr",
-            wordSets,
-            koreanPassSucceeded,
-            passErrors,
-            hasHangul: /[가-힣]/.test(mergedText),
-          };
+          return runTrainConductorImageOcrPasses(file, setAllianceImportStatus);
         }
 
         throw new Error("Unsupported file type.");
+      }
+
+      /**
+       * Shared Tesseract pipeline for alliance member OCR and schedule screenshot OCR.
+       * @param {(msg: string, busy?: boolean) => void} setStatus
+       */
+      async function runTrainConductorImageOcrPasses(file, setStatus) {
+        if (!window.Tesseract) {
+          throw new Error("OCR importer is not available.");
+        }
+
+        const performOcr = async (imageSource, lang, psm) => {
+          let lastError = null;
+          for (const langPath of OCR_LANG_PATHS) {
+            let worker = null;
+            try {
+              worker = await window.Tesseract.createWorker(lang, 1, {
+                langPath,
+              });
+              await worker.setParameters({
+                tessedit_pageseg_mode: psm,
+                preserve_interword_spaces: "1",
+              });
+              const result = await worker.recognize(imageSource);
+              await worker.terminate();
+              return {
+                text: result?.data?.text || "",
+                words: Array.isArray(result?.data?.words)
+                  ? result.data.words
+                  : [],
+                langPath,
+              };
+            } catch (error) {
+              lastError = error;
+              if (worker) {
+                try {
+                  await worker.terminate();
+                } catch (_) {}
+              }
+            }
+          }
+
+          throw lastError || new Error("OCR pass failed");
+        };
+
+        const createEnhancedImageCanvas = async (imageFile) => {
+          const bitmap = await createImageBitmap(imageFile);
+          const scale = 2;
+          const canvas = document.createElement("canvas");
+          canvas.width = Math.max(1, Math.floor(bitmap.width * scale));
+          canvas.height = Math.max(1, Math.floor(bitmap.height * scale));
+
+          const context = canvas.getContext("2d", {
+            willReadFrequently: true,
+          });
+          context.imageSmoothingEnabled = false;
+          context.drawImage(bitmap, 0, 0, canvas.width, canvas.height);
+
+          const imageData = context.getImageData(
+            0,
+            0,
+            canvas.width,
+            canvas.height,
+          );
+          const data = imageData.data;
+          for (let i = 0; i < data.length; i += 4) {
+            const luminance =
+              0.299 * data[i] + 0.587 * data[i + 1] + 0.114 * data[i + 2];
+            const contrast = (luminance - 128) * 1.8 + 128;
+            const threshold = contrast > 128 ? 0 : 255;
+            data[i] = threshold;
+            data[i + 1] = threshold;
+            data[i + 2] = threshold;
+          }
+          context.putImageData(imageData, 0, 0);
+          bitmap.close();
+          return canvas;
+        };
+
+        const texts = [];
+        const wordSets = [];
+        const passErrors = [];
+        let koreanPassSucceeded = false;
+
+        for (const pass of OCR_PASS_CONFIGS) {
+          try {
+            setStatus(
+              `Running OCR (${pass.lang.toUpperCase()}, PSM ${pass.psm}) on ${file.name}...`,
+              true,
+            );
+            const directResult = await performOcr(file, pass.lang, pass.psm);
+            if (directResult.text.trim()) {
+              texts.push(directResult.text);
+            }
+
+            const enhancedCanvas = await createEnhancedImageCanvas(file);
+            const enhancedResult = await performOcr(
+              enhancedCanvas,
+              pass.lang,
+              pass.psm,
+            );
+            if (enhancedResult.text.trim()) {
+              texts.push(enhancedResult.text);
+              wordSets.push({
+                words: enhancedResult.words,
+                imageWidth: enhancedCanvas.width,
+                imageHeight: enhancedCanvas.height,
+              });
+            }
+            if (pass.lang.includes("kor")) {
+              koreanPassSucceeded = true;
+            }
+          } catch {
+            passErrors.push(`${pass.lang}:${pass.psm}`);
+          }
+        }
+
+        const mergedText = texts.join("\n");
+        if (
+          !mergedText.trim() &&
+          passErrors.length === OCR_PASS_CONFIGS.length
+        ) {
+          throw new Error(
+            "OCR could not run for this image. Please try a clearer screenshot or file import.",
+          );
+        }
+
+        return {
+          text: mergedText,
+          texts,
+          source: "ocr",
+          wordSets,
+          koreanPassSucceeded,
+          passErrors,
+          hasHangul: /[가-힣]/.test(mergedText),
+        };
       }
 
       async function importAllianceMembersFromFile(file) {
@@ -3998,6 +4020,251 @@
         render();
         closeExportMenu();
         setSchedulePersistStatus("Imported schedule from backup file.", "ok");
+      }
+
+      function pickClosestYearForMonthDay(monthIdx, day) {
+        const now = new Date();
+        const candidates = [0, -1, 1, -2, 2].map((dy) => now.getFullYear() + dy);
+        let bestY = candidates[0];
+        let bestDelta = Infinity;
+        for (const y of candidates) {
+          const d = new Date(y, monthIdx, day);
+          if (Number.isNaN(d.getTime())) continue;
+          const delta = Math.abs(d.getTime() - now.getTime());
+          if (delta < bestDelta) {
+            bestDelta = delta;
+            bestY = y;
+          }
+        }
+        return bestY;
+      }
+
+      function findScheduleOcrMatchSkip(matches) {
+        for (let s = 0; s <= Math.min(21, matches.length - 7); s += 1) {
+          const m0 = matches[s];
+          const i0 = MONTHS.indexOf(m0.monthAbbr);
+          if (i0 < 0) continue;
+          const y = pickClosestYearForMonthDay(i0, m0.day);
+          let prev = new Date(y, i0, m0.day);
+          if (Number.isNaN(prev.getTime())) continue;
+          let ok = true;
+          for (let k = 1; k < 7; k += 1) {
+            const exp = new Date(prev);
+            exp.setDate(exp.getDate() + 1);
+            const mx = matches[s + k];
+            const ix = MONTHS.indexOf(mx.monthAbbr);
+            if (ix < 0) {
+              ok = false;
+              break;
+            }
+            const cand = new Date(exp.getFullYear(), ix, mx.day);
+            if (
+              cand.getFullYear() !== exp.getFullYear() ||
+              cand.getMonth() !== exp.getMonth() ||
+              cand.getDate() !== exp.getDate()
+            ) {
+              ok = false;
+              break;
+            }
+            prev = cand;
+          }
+          if (ok) return s;
+        }
+        return 0;
+      }
+
+      function extractScheduleDateMatchesFromOcrText(text) {
+        const clean = String(text || "").replace(/\u00a0/g, " ");
+        const re = /\b(Jan|Feb|Mar|Apr|May|Jun|Jul|Aug|Sep|Oct|Nov|Dec)\s+(\d{1,2})\b/gi;
+        const matches = [];
+        let m;
+        while ((m = re.exec(clean)) !== null) {
+          const abbr =
+            m[1].charAt(0).toUpperCase() + m[1].slice(1).toLowerCase();
+          if (!MONTHS.includes(abbr)) continue;
+          matches.push({
+            monthAbbr: abbr,
+            day: parseInt(m[2], 10),
+            index: m.index,
+            len: m[0].length,
+          });
+        }
+        return { clean, matches };
+      }
+
+      function parseCellChunkFromOcrSchedule(chunk) {
+        const lines = String(chunk || "")
+          .replace(/\u200b/g, "")
+          .split(/\r?\n/)
+          .map((l) => l.trim())
+          .filter(Boolean);
+        const filtered = [];
+        for (const line of lines) {
+          if (
+            /^(Jan|Feb|Mar|Apr|May|Jun|Jul|Aug|Sep|Oct|Nov|Dec)\s+\d{1,2}$/i.test(
+              line,
+            )
+          ) {
+            continue;
+          }
+          filtered.push(line);
+        }
+        let conductor = "";
+        let vip = "";
+        if (filtered[0]) {
+          conductor = sanitizeMemberName(
+            filtered[0]
+              .replace(/👑/g, "")
+              .replace(/^\u{1F451}\s*/u, "")
+              .trim(),
+          );
+        }
+        if (filtered[1]) {
+          vip = normalizeVipGuardianValue(filtered[1]);
+        }
+        if (!vip && filtered[0] && /^vip/i.test(filtered[0]) && !conductor) {
+          vip = normalizeVipGuardianValue(filtered[0]);
+        }
+        return { conductor, vip };
+      }
+
+      function buildScheduleGridFromOcrMatches(clean, matches) {
+        if (matches.length < 7) {
+          throw new Error(
+            "Not enough dates in the image. Crop to the schedule table or use Export PNG from this page.",
+          );
+        }
+        const skip = findScheduleOcrMatchSkip(matches);
+        const tail = matches.length - skip;
+        const cellCount = Math.min(28, tail - (tail % 7));
+        const grid = matches.slice(skip, skip + cellCount);
+        const chunks = [];
+        for (let i = 0; i < grid.length; i += 1) {
+          const start = grid[i].index + grid[i].len;
+          const end = i + 1 < grid.length ? grid[i + 1].index : clean.length;
+          chunks.push(clean.slice(start, end).trim());
+        }
+        return { grid, chunks };
+      }
+
+      function applyOcrScheduleGridToState(grid, chunks) {
+        const weeks = Math.min(4, Math.max(1, Math.ceil(grid.length / 7)));
+        const first = grid[0];
+        const mi0 = MONTHS.indexOf(first.monthAbbr);
+        if (mi0 < 0 || first.day < 1 || first.day > 31) {
+          throw new Error("Could not read the first date in the schedule.");
+        }
+        const y0 = pickClosestYearForMonthDay(mi0, first.day);
+        const firstDate = new Date(y0, mi0, first.day);
+        if (Number.isNaN(firstDate.getTime())) {
+          throw new Error("Invalid date from image.");
+        }
+        const monday = getMondayOf(firstDate);
+        state.startDateStr = toDateStr(monday);
+        state.weeks = weeks;
+
+        for (let w = 0; w < 4; w += 1) {
+          state.dayAssignmentsByWeek[w] = normalizeDayAssignmentsWeekRow(
+            freshDayAssignmentsWeek(),
+          );
+          for (let d = 0; d < 7; d += 1) {
+            state.conductorNamesByWeek[w][d] = "";
+          }
+        }
+
+        for (let d = 0; d < 7; d += 1) {
+          state.conductors[d].vipGuardian = "";
+        }
+
+        for (let wi = 0; wi < grid.length; wi += 1) {
+          const w = Math.floor(wi / 7);
+          const d = wi % 7;
+          const { conductor, vip } = parseCellChunkFromOcrSchedule(chunks[wi]);
+          state.conductorNamesByWeek[w][d] = conductor || "";
+          if (vip) {
+            state.conductors[d].vipGuardian = normalizeVipGuardianValue(vip);
+          }
+        }
+
+        for (let d = 0; d < 7; d += 1) {
+          let name = "";
+          for (let w = 0; w < weeks; w += 1) {
+            const raw = state.conductorNamesByWeek[w][d];
+            if (raw && !conductorSlotIsUnset(raw, d)) {
+              name = raw;
+              break;
+            }
+          }
+          state.conductors[d].name = name
+            ? name.slice(0, 40)
+            : DEFAULT_NAMES[d];
+          state.conductors[d].color = DEFAULT_COLORS[d];
+        }
+
+        state.showVip = state.conductors.some((c) =>
+          String(c.vipGuardian || "").trim(),
+        );
+      }
+
+      async function importScheduleFromImageFile(file) {
+        if (!file) return;
+        if (!fileLooksLikeImage(file)) {
+          alert("Choose an image file (PNG, JPG, WebP, …).");
+          return;
+        }
+        if (
+          !confirm(
+            "Read the schedule from this screenshot with OCR? This replaces the calendar and conductor names in this browser. Alliance members and history are not changed. OCR is approximate—verify against the image.",
+          )
+        ) {
+          return;
+        }
+        setSchedulePersistStatus("Running OCR on schedule image…", "progress");
+        try {
+          const ocr = await runTrainConductorImageOcrPasses(file, (msg) => {
+            setSchedulePersistStatus(msg || "Running OCR…", "progress");
+          });
+          const { clean, matches } = extractScheduleDateMatchesFromOcrText(
+            ocr.text,
+          );
+          if (matches.length < 7) {
+            setSchedulePersistStatus(
+              "Could not find dates in the image.",
+              "error",
+            );
+            alert(
+              "Could not find enough dates (like Jan 15) in the image. Use a sharp screenshot of the schedule table, or Export PNG from this page.",
+            );
+            return;
+          }
+          const { grid, chunks } = buildScheduleGridFromOcrMatches(
+            clean,
+            matches,
+          );
+          applyOcrScheduleGridToState(grid, chunks);
+          ensureStaleScheduleShowsToday();
+          saveState();
+          startDateInput.value = state.startDateStr;
+          vipToggleInput.checked = state.showVip;
+          conductorWeekSelectProgrammatic = true;
+          conductorWeekSelect.value = String(state.nameEditWeek);
+          conductorWeekSelectProgrammatic = false;
+          allianceFillTargetSelect.value = state.allianceFillTarget;
+          syncAllianceFillConductorOptions();
+          render();
+          closeExportMenu();
+          setSchedulePersistStatus(
+            "Imported schedule from image—verify names and dates.",
+            "ok",
+          );
+        } catch (e) {
+          const msg =
+            e && typeof e.message === "string"
+              ? e.message
+              : "Could not import from image.";
+          setSchedulePersistStatus(msg, "error");
+          alert(msg);
+        }
       }
 
       async function shareScheduleLink() {
@@ -4596,6 +4863,17 @@
         scheduleBackupFileInput.addEventListener("change", () => {
           const file = scheduleBackupFileInput.files?.[0] || null;
           if (file) importScheduleFromBackupFile(file);
+        });
+      }
+
+      if (importScheduleImageButton && scheduleImageFileInput) {
+        importScheduleImageButton.addEventListener("click", () => {
+          scheduleImageFileInput.value = "";
+          scheduleImageFileInput.click();
+        });
+        scheduleImageFileInput.addEventListener("change", () => {
+          const file = scheduleImageFileInput.files?.[0] || null;
+          if (file) importScheduleFromImageFile(file);
         });
       }
 
