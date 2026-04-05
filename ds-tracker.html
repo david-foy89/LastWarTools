@@ -2562,10 +2562,11 @@
           return out;
         }
 
+        /** NFC/NFKC keeps Hangul syllables whole; NFKD splits Hangul and breaks OCR↔table matching. */
         function normalizeMatchName(raw) {
           return cleanName(raw)
             .toLowerCase()
-            .normalize("NFKD")
+            .normalize("NFKC")
             .replace(/[\u0300-\u036f]/g, "")
             .replace(/[^\p{L}\p{N}]/gu, "");
         }
@@ -2612,12 +2613,18 @@
             img.onerror = reject;
             img.src = url;
           });
+          const iw = img.naturalWidth || img.width || 0;
+          const ih = img.naturalHeight || img.height || 0;
+          if (!iw || !ih) {
+            URL.revokeObjectURL(url);
+            throw new Error("Could not read image dimensions.");
+          }
           const scale = 2;
           // Crop to the text-heavy area (ignore most rank/avatar artifacts).
-          const sx = Math.floor(img.width * 0.34);
-          const sy = Math.floor(img.height * 0.02);
-          const sw = Math.max(1, Math.floor(img.width * 0.62));
-          const sh = Math.max(1, Math.floor(img.height * 0.90));
+          const sx = Math.floor(iw * 0.34);
+          const sy = Math.floor(ih * 0.02);
+          const sw = Math.max(1, Math.floor(iw * 0.62));
+          const sh = Math.max(1, Math.floor(ih * 0.90));
           const canvas = document.createElement("canvas");
           canvas.width = Math.max(1, Math.floor(sw * scale));
           canvas.height = Math.max(1, Math.floor(sh * scale));
@@ -2641,19 +2648,28 @@
           return canvas;
         }
 
+        const DS_TESSERACT_WORKER_OPTS = { logger: function () {} };
+
         /**
-         * Tesseract.js v5: `Tesseract.recognize(img, langs, opts)` only passes opts to
-         * createWorker — PSM/spacing never reach recognize. Same pattern as Versus Tracker.
+         * Tesseract.js v5: use createWorker + setParameters + recognize (same as Versus Tracker).
+         * PSM 4 = single block of text (typical leaderboard column); retry PSM 6 if the first pass is empty.
          */
-        async function dsTesseractRecognizeOnce(source, langs) {
+        async function dsTesseractRecognizeOnce(source, langs, psm) {
           if (typeof Tesseract === "undefined" || !Tesseract.createWorker) {
             throw new Error("OCR library is not loaded.");
           }
-          const worker = await Tesseract.createWorker(langs, 1);
+          const mode =
+            psm != null && String(psm).trim() !== "" ? String(psm).trim() : "4";
+          const worker = await Tesseract.createWorker(
+            langs,
+            1,
+            DS_TESSERACT_WORKER_OPTS,
+          );
           try {
             await worker.setParameters({
-              tessedit_pageseg_mode: "6",
+              tessedit_pageseg_mode: mode,
               preserve_interword_spaces: "1",
+              user_defined_dpi: "400",
             });
             return await worker.recognize(source);
           } finally {
@@ -2661,22 +2677,37 @@
           }
         }
 
-        async function runOcrOnFile(file) {
-          const langsPrimary =
-            (langSel && String(langSel.value || "").trim()) ||
-            "eng+kor+jpn+chi_sim+chi_tra";
-          const langsFallback = "eng+kor+jpn+chi_sim+chi_tra";
-          const source = await preprocessImage(file);
-          let out = await dsTesseractRecognizeOnce(source, langsPrimary);
-          const text = (out && out.data && out.data.text) || "";
+        async function dsOcrTextFromSource(source, langs) {
+          let out = await dsTesseractRecognizeOnce(source, langs, "4");
+          let text = (out && out.data && out.data.text) || "";
           let rows = parseOcrRows(text);
           if (!rows.length) rows = parseOcrRowsByScoreAnchor(text);
+          if (!rows.length) {
+            out = await dsTesseractRecognizeOnce(source, langs, "6");
+            text = (out && out.data && out.data.text) || "";
+            rows = parseOcrRows(text);
+            if (!rows.length) rows = parseOcrRowsByScoreAnchor(text);
+          }
+          return { text, rows };
+        }
+
+        async function runOcrOnFile(file) {
+          const langsAsian =
+            "eng+kor+jpn+chi_sim+chi_tra";
+          const langsBroad =
+            "eng+spa+fra+deu+por+ita+rus+tur+pol+ukr+vie+tha+ara+hin";
+          let langsPrimary =
+            (langSel && String(langSel.value || "").trim()) || langsAsian;
+          let langsFallback = langsBroad;
+          if (langsPrimary === langsBroad) langsFallback = langsAsian;
+          else if (langsPrimary === "eng") langsFallback = langsAsian;
+
+          const source = await preprocessImage(file);
+          let { rows } = await dsOcrTextFromSource(source, langsPrimary);
 
           if (!rows.length && langsPrimary !== langsFallback) {
-            out = await dsTesseractRecognizeOnce(source, langsFallback);
-            const retryText = (out && out.data && out.data.text) || "";
-            rows = parseOcrRows(retryText);
-            if (!rows.length) rows = parseOcrRowsByScoreAnchor(retryText);
+            const second = await dsOcrTextFromSource(source, langsFallback);
+            rows = second.rows;
           }
           return rows;
         }

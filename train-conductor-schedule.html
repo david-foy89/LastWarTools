@@ -1308,12 +1308,12 @@
                 id="importAllianceMembersButton"
                 style="grid-column: 1 / -1"
               >
-                Import File
+                Import file or image
               </button>
               <input
                 type="file"
                 id="allianceMembersFileInput"
-                accept=".xlsx,.xls,.csv,.txt,.doc,.docx,.rtf,image/*"
+                accept=".xlsx,.xls,.csv,.txt,.doc,.docx,.rtf,image/*,.png,.jpg,.jpeg,.webp,.gif,.bmp,.heic,.heif,.avif,.tif,.tiff"
                 style="display: none"
               />
               <button
@@ -1324,6 +1324,18 @@
               >
                 Export File
               </button>
+              <p
+                class="alliance-import-hint"
+                style="
+                  grid-column: 1 / -1;
+                  margin: 4px 0 0;
+                  font-size: 12px;
+                  line-height: 1.35;
+                  opacity: 0.88;
+                "
+              >
+                Spreadsheets, text, Word, or a screenshot of member names (OCR).
+              </p>
             </div>
 
             <div class="alliance-members-target">
@@ -3242,9 +3254,18 @@
         return values.join("\n");
       }
 
+      /** Some exports omit MIME type; match common image extensions so OCR still runs. */
+      function fileLooksLikeImage(file) {
+        if (!file) return false;
+        const t = String(file.type || "").toLowerCase();
+        if (t.startsWith("image/")) return true;
+        const n = String(file.name || "").toLowerCase();
+        return /\.(png|jpe?g|gif|webp|bmp|heic|heif|avif|tif|tiff)$/i.test(n);
+      }
+
       async function readMembersFromFile(file) {
         const fileName = (file?.name || "").toLowerCase();
-        const isImage = file?.type?.startsWith("image/");
+        const isImage = fileLooksLikeImage(file);
 
         if (
           fileName.endsWith(".xlsx") ||
@@ -3873,6 +3894,8 @@
               memberHistory: state.memberHistory,
               allianceFillTarget: state.allianceFillTarget,
               allianceFillConductorIdx: state.allianceFillConductorIdx,
+              /** Lets account sync pick this device vs cloud without older cloud wiping the schedule. */
+              savedAt: Date.now(),
             }),
           );
           try {

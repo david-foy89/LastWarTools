@@ -1200,7 +1200,7 @@
             <strong>Screenshot / video OCR</strong> reads the leaderboard and fills the selected day
             (full-screen PNG captures at native resolution work best; in-game OCR is approximate—verify scores).
             Recordings are sampled every second (up to five minutes); tall portrait and wide landscape clips also
-            OCR a bottom crop where leaderboards often sit. Blurry or low-read frames are down-weighted when merging.
+            OCR a bottom crop where leaderboards often sit. All sampled frames are merged so partial reads can combine.
             Pick the <strong>narrowest</strong> language set that covers your roster (default is Korean + English).
             <strong>Paste leaderboard text</strong> skips image OCR entirely—paste from a spreadsheet or
             phone OCR when screenshots read badly.
@@ -2640,9 +2640,10 @@
 
         /**
          * Running PSM 4, 6, and 11 then concatenating can merge contradictory reads for the same
-         * rank (collapse keeps max score → wrong). Prefer the pass with the best *plausible* parse
-         * (not raw row count—noisy text often parses as more junk rows). Concatenate only when
-         * that strictly improves plausibility score.
+         * rank (collapse keeps max score → wrong). Prefer the single pass with the most parsed rows;
+         * only concatenate when that yields strictly more rows than the best single pass.
+         * (Row count beats a “plausibility” score here: screen recordings often need whichever pass
+         * returns the longest parse, then cross-frame merge fills gaps.)
          */
         function verusPickBestMergedOcrText(textChunks) {
           const arr = (textChunks || [])
@@ -2650,33 +2651,18 @@
             .filter(Boolean);
           if (!arr.length) return "";
           if (arr.length === 1) return arr[0];
-          function parseScore(text) {
-            const rows = verusRowsFromOcrOutput({ data: { text } });
-            return {
-              q: verusVideoFrameOcrQualityScore(rows),
-              n: rows.length,
-            };
-          }
           let bestText = arr[0];
-          let best = parseScore(bestText);
+          let bestN = verusRowsFromOcrOutput({ data: { text: bestText } }).length;
           for (let i = 1; i < arr.length; i++) {
-            const cand = parseScore(arr[i]);
-            if (
-              cand.q > best.q ||
-              (cand.q === best.q && cand.n > best.n)
-            ) {
-              best = cand;
+            const n = verusRowsFromOcrOutput({ data: { text: arr[i] } }).length;
+            if (n > bestN) {
+              bestN = n;
               bestText = arr[i];
             }
           }
           const merged = arr.join("\n");
-          const mergedS = parseScore(merged);
-          if (
-            mergedS.q > best.q ||
-            (mergedS.q === best.q && mergedS.n > best.n)
-          ) {
-            return merged;
-          }
+          const mergedN = verusRowsFromOcrOutput({ data: { text: merged } }).length;
+          if (mergedN > bestN) return merged;
           return bestText;
         }
 
@@ -2896,41 +2882,16 @@
           }
         }
 
+        /**
+         * Merge every sampled frame, then dedupe by similar name. Recordings need partial reads
+         * from many seeks; filtering “weak” frames dropped coverage. `verusVideoFrameOcrQualityScore`
+         * remains for diagnostics / future use, not for dropping frames here.
+         */
         function mergeVerusOcrRowArrays(arrays) {
-          const arrs = arrays || [];
-          const scored = arrs.map((arr) => ({
-            rows: arr || [],
-            q: verusVideoFrameOcrQualityScore(arr),
-          }));
-          let bestQ = 0;
-          scored.forEach((s) => {
-            if (s.q > bestQ) bestQ = s.q;
-          });
-          const sortedAll = scored.slice().sort((a, b) => b.q - a.q);
-          if (
-            sortedAll.length >= 2 &&
-            sortedAll[0].q >= 6 &&
-            sortedAll[0].q >= sortedAll[1].q * 1.85
-          ) {
-            return dedupeVerusOcrRowsBySimilarName(sortedAll[0].rows, {
-              video: true,
-            });
-          }
           const flat = [];
-          if (bestQ <= 0) {
-            scored.forEach((s) => {
-              s.rows.forEach((row) => flat.push(row));
-            });
-          } else {
-            const threshold = Math.max(1, bestQ * 0.5);
-            const keep = scored.filter((s) => s.q >= threshold);
-            const sorted = keep.slice().sort((a, b) => b.q - a.q);
-            const cap = 18;
-            const use = sorted.slice(0, Math.min(cap, sorted.length));
-            use.forEach((s) => {
-              s.rows.forEach((row) => flat.push(row));
-            });
-          }
+          (arrays || []).forEach((arr) => {
+            (arr || []).forEach((row) => flat.push(row));
+          });
           return dedupeVerusOcrRowsBySimilarName(flat, { video: true });
         }
 

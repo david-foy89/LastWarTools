@@ -156,13 +156,21 @@ LAST WAR TOOLS - VERSUS TRACKER MOBILE WIREFRAME
 | Hero: Versus Tracker + subtitle               |
 +----------------------------------------------+
 | CARD: Week controls (picker + arrows + DS day)|
-| Actions stack/wrap: Add, Import, Replace, Clear|
-| Export CSV; Match history if shown            |
+| Actions stack/wrap: Add, Import names, Replace,|
+| Clear, Export CSV; Match history if shown     |
 +----------------------------------------------+
-| CARD: OCR (day, language, match-only, files)  |
-| [Import] + status                              |
+| CARD: OCR / paste                              |
+| Screenshot→day [▼]  OCR language [▼]          |
+| [ ] Match roster only                         |
+| [Choose screenshot(s) or recording(s)]       |
+| [Import from screenshot / recording]          |
+| [Paste leaderboard text] → modal (textarea,   |
+|   Apply to selected day / Cancel)              |
+| Status line                                    |
+| Short help text below table (tips)             |
 +----------------------------------------------+
-| TABLE (horizontal scroll): Player, days, VS…  |
+| TABLE (horizontal scroll): #, Player, Mon–Sat |
+| sort buttons, VS Total, Del                    |
 +----------------------------------------------+
 
 

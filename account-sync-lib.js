@@ -13,6 +13,35 @@ import {
 export const SYNC_COLLECTION = "userLocalStorageSync";
 export const MAX_PAYLOAD_CHARS = 900000;
 
+/** Train Conductor schedule (`train-conductor-schedule.html`) — merge by `savedAt`, not raw assign order. */
+export const TRAIN_CONDUCTOR_STORAGE_KEY = "lastWarTrainConductorV1";
+
+/**
+ * When both devices have schedule data, prefer the payload with the newer `savedAt` (ms).
+ * Legacy payloads without `savedAt` use length as a weak tie-break (richer schedule wins).
+ * @param {string} localVal
+ * @param {string} cloudVal
+ */
+export function pickNewerTrainConductorPayload(localVal, cloudVal) {
+  const parse = (s) => {
+    try {
+      const o = JSON.parse(s);
+      const t = Number(o.savedAt);
+      return {
+        raw: s,
+        t: Number.isFinite(t) && t > 0 ? t : 0,
+        len: String(s || "").length,
+      };
+    } catch {
+      return { raw: s, t: 0, len: String(s || "").length };
+    }
+  };
+  const a = parse(localVal);
+  const b = parse(cloudVal);
+  if (a.t !== b.t) return a.t > b.t ? a.raw : b.raw;
+  return a.len >= b.len ? a.raw : b.raw;
+}
+
 /** Fired on `window` after cloud merge writes localStorage (same-tab; `storage` event does not run in the writer). */
 export const LOCALSTORAGE_SYNCED_EVENT = "lw-localstorage-synced";
 
@@ -258,6 +287,13 @@ export async function mergeAndSyncToCloud(user, db, options) {
     merged = Object.assign({}, local, cloudData);
   } else {
     merged = Object.assign({}, cloudData, local);
+  }
+
+  if (local[TRAIN_CONDUCTOR_STORAGE_KEY] && cloudData[TRAIN_CONDUCTOR_STORAGE_KEY]) {
+    merged[TRAIN_CONDUCTOR_STORAGE_KEY] = pickNewerTrainConductorPayload(
+      local[TRAIN_CONDUCTOR_STORAGE_KEY],
+      cloudData[TRAIN_CONDUCTOR_STORAGE_KEY],
+    );
   }
 
   applyLocalStoragePayload(merged);

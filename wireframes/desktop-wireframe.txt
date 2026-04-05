@@ -152,13 +152,21 @@ LAST WAR TOOLS - VERSUS TRACKER DESKTOP WIREFRAME
 | Week row: [Week type=week] [◀][▶]  DS day [date]  Mon–Sat range (live text)       |
 | Actions: [Add player] [Import names] [ ] Replace table  [Clear]  [Export CSV]   |
 |          [Match history] (when enabled)                                          |
-| OCR row: Screenshot→day [select]  OCR language [select]  [ ] Match roster only  |
-|          [Choose screenshot(s) or recording(s)]  [Import from screenshot/rec]    |
-|          Status line                                                                |
+| OCR / import row (wraps on narrow widths):                                       |
+|   Screenshot→day [Mon–Sat ▼]   OCR language [Auto / Korean+English / … ▼]        |
+|   [ ] Match roster only                                                          |
+|   [Choose screenshot(s) or recording(s)]  [Import from screenshot / recording] |
+|   [Paste leaderboard text]  → opens modal dialog: textarea + Cancel / Apply to   |
+|     selected day (same parsers as OCR; skips Tesseract)                          |
+|   Status line (aria-live)                                                        |
+| Help paragraph below table (import tips, rank/name mapping, paste vs OCR)       |
 |----------------------------------------------------------------------------------|
 | Table (horizontal scroll if needed)                                              |
-| # | Player | Mon Tue Wed Thu Fri Sat (sort buttons) | VS Total | Tech | …        |
-| - Editable cells; VS Total computed from week                                    |
+| # | Player | Mon | Tue | Wed | Thu | Fri | Sat (each column sortable) | VS Total | Del |
+| - Player and day cells are editable inputs; VS Total computed from Mon–Sat      |
++----------------------------------------------------------------------------------+
+| Match history modal (when [Match history] visible): saved weeks, opponent info, |
+| compare panels — see live page for full control set                              |
 +----------------------------------------------------------------------------------+
 
 

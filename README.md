@@ -31,7 +31,7 @@ Hosted on GitHub Pages via `index.html`.
 | `t10-troops-calculator.html`               | T10 troop research planner                            |
 | `t11-troops-calculator.html`               | T11 troop research planner                            |
 | `ds-tracker.html`                          | Desert Storm tracker/planner with OCR + map planning  |
-| `verus-tracker.html`                       | Versus tracker: weekly Mon–Sat scores, VS total, OCR  |
+| `verus-tracker.html`                       | Versus tracker: weekly Mon–Sat scores, VS total, OCR + paste-text import |
 | `ds-tracker-match-history.js`              | Module: Desert Storm match history UI (loaded by DS)  |
 | `ds-tracker-fight-plan.js`                 | Module: fight-plan helpers for DS tracker             |
 | `verus-tracker-match-history.js`           | Module: Versus match history (loaded by tracker page) |
@@ -86,7 +86,7 @@ Hosted on GitHub Pages via `index.html`.
   - Shared navigation, styling, and layout with calculator pages
 - **Alliance Tools** (dropdown in the top nav; `page-nav-dropdown.js` ensures Transfer, Versus, Desert Storm, and Hive Builder links are present alongside any links authored in HTML):
   - Desert Storm Tracker/Planner: day history, score-date navigation, roster import (CSV/TXT/Excel), screenshot/video OCR, filter/sort, no-show checkboxes, team map + PNG export
-  - Versus Tracker: weekly Mon–Sat scores and VS total (Desert Storm server-day timing), CSV/Excel import/export, screenshot/recording OCR, optional match history when wired to DS
+  - Versus Tracker: weekly Mon–Sat scores and VS total (Desert Storm server-day timing), CSV/Excel import/export, in-browser screenshot/recording OCR (Tesseract), **Paste leaderboard text** (same parsers, no image OCR), optional match history when wired to DS (`verus-tracker-match-history.js`)
   - Transfer Tracker: generate shareable applicant links (and leadership link), Excel/CSV import, Firestore-backed table when `firebase-config.js` is set
   - Hive Builder, Train Conductor, Server Search (as linked from the dropdown)
 - Optional **account** strip on many pages: local tools work without sign-in; `account.html` + Firebase enable profile and cross-device sync where implemented
@@ -114,13 +114,14 @@ Hosted on GitHub Pages via `index.html`.
 
 ASCII wireframes live in:
 
-- `wireframes/desktop-wireframe.txt` — shared two-column calculator layout, Season 2 supplies checklist, Desert Storm tracker, **Versus Tracker**, **Transfer Tracker**.
+- `wireframes/desktop-wireframe.txt` — shared two-column calculator layout, Season 2 supplies checklist, Desert Storm tracker, **Versus Tracker** (OCR + paste-text dialog), **Transfer Tracker**.
 - `wireframes/mobile-wireframe.txt` — stacked-card layouts for the same page types.
 
-Interactive maps use a unified sidebar and map area across seasons; tracker pages follow the shared header, nav, and hero pattern from the main stylesheet.
+Interactive maps use a unified sidebar and map area across seasons; tracker pages follow the shared header, nav, and hero pattern from the main stylesheet. Versus wireframes reflect the Mon–Sat + VS Total + Delete column table (no separate Tech column).
 
 ## Data Notes
 
+- **Versus / OCR:** Rank-based fill uses leading rank tokens parsed from OCR or pasted text; ranks are accepted up to **999** (three-digit capture). Reorder table rows to match in-game list order when using rank mapping; name matches override when both rank and name are present.
 - Pages that use Firebase (for example `transfer-tracker.html`, `account.html`) expect `firebase-config.js` beside the HTML; copy from `firebase-config.example.js` and supply real project values where documented in-repo.
 - Calculator cost data and hourly output tables are stored as JavaScript arrays inside each page's `<script>` block.
 - Examples include `titaniumCosts`, `squadBaseCosts`, `quartzCosts`, `protectorsFieldS4Costs`, and `lighthouseS4Costs`.
