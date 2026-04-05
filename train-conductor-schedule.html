@@ -1198,6 +1198,29 @@
                   </button>
                   <button
                     type="button"
+                    id="importScheduleButton"
+                    class="export-menu-item"
+                    role="menuitem"
+                  >
+                    Import schedule (JSON)…
+                  </button>
+                  <input
+                    type="file"
+                    id="scheduleBackupFileInput"
+                    accept=".json,application/json"
+                    style="display: none"
+                    aria-hidden="true"
+                  />
+                  <button
+                    type="button"
+                    id="exportJsonButton"
+                    class="export-menu-item"
+                    role="menuitem"
+                  >
+                    Export backup (JSON)
+                  </button>
+                  <button
+                    type="button"
                     id="exportExcelButton"
                     class="export-menu-item"
                     role="menuitem"
@@ -1584,6 +1607,13 @@
       const exportPngButton = document.getElementById("exportPngButton");
       const exportPdfButton = document.getElementById("exportPdfButton");
       const exportExcelButton = document.getElementById("exportExcelButton");
+      const exportJsonButton = document.getElementById("exportJsonButton");
+      const importScheduleButton = document.getElementById(
+        "importScheduleButton",
+      );
+      const scheduleBackupFileInput = document.getElementById(
+        "scheduleBackupFileInput",
+      );
       const shareLinkButton = document.getElementById("shareLinkButton");
       const exportMenuWrap = document.getElementById("exportMenuWrap");
       const exportMenuToggle = document.getElementById("exportMenuToggle");
@@ -3654,8 +3684,35 @@
         return JSON.parse(decodeURIComponent(escape(atob(encoded))));
       }
 
-      function applySharedState(saved) {
+      function isPlausibleScheduleBackupJson(saved) {
         if (!saved || typeof saved !== "object") return false;
+        if (
+          Array.isArray(saved.conductors) &&
+          saved.conductors.length === 7
+        ) {
+          return true;
+        }
+        if (
+          Array.isArray(saved.conductorNamesByWeek) &&
+          saved.conductorNamesByWeek.length === 4
+        ) {
+          return true;
+        }
+        if (
+          Array.isArray(saved.dayAssignmentsByWeek) &&
+          saved.dayAssignmentsByWeek.length === 4
+        ) {
+          return true;
+        }
+        return false;
+      }
+
+      /**
+       * Applies persisted schedule JSON (localStorage, share URL, or imported backup).
+       * @param {{ allianceSearchSource?: 'storage' | 'shareUrl' | 'backupFile' }} [opts]
+       */
+      function applyTrainScheduleFromSaved(saved, opts) {
+        const allianceSearchSource = opts?.allianceSearchSource || "storage";
 
         if (saved.weeks >= 1 && saved.weeks <= 4) {
           state.weeks = Number(saved.weeks);
@@ -3680,7 +3737,10 @@
         if (typeof saved.startDateStr === "string") {
           state.startDateStr = saved.startDateStr;
         }
-        if (Array.isArray(saved.conductors) && saved.conductors.length === 7) {
+        if (
+          Array.isArray(saved.conductors) &&
+          saved.conductors.length === 7
+        ) {
           state.conductors = saved.conductors.map((c, i) => ({
             name:
               typeof c.name === "string" && c.name.trim()
@@ -3695,6 +3755,20 @@
                 ? normalizeVipGuardianValue(c.vipGuardian)
                 : "",
           }));
+
+          if (
+            !Array.isArray(saved.conductorNamesByWeek) ||
+            saved.conductorNamesByWeek.length !== 4
+          ) {
+            const legacyNames = state.conductors.map((c, i) =>
+              typeof c.name === "string" && c.name.trim()
+                ? c.name.trim().slice(0, 40)
+                : DEFAULT_NAMES[i],
+            );
+            state.conductorNamesByWeek = Array.from({ length: 4 }, () => [
+              ...legacyNames,
+            ]);
+          }
         }
         state.dayAssignmentsByWeek = normalizeDayAssignmentsByWeek(saved);
         if (typeof saved.showVip === "boolean") {
@@ -3711,16 +3785,24 @@
               a.localeCompare(b, undefined, { sensitivity: "base" }),
             );
         }
+        state.r4r5Members = normalizeR4R5Members(
+          saved.r4r5Members,
+          state.allianceMembers,
+        );
         if (Array.isArray(saved.memberHistory)) {
           state.memberHistory = normalizeMemberHistoryEntries(
             saved.memberHistory,
           );
         }
-        if (typeof saved.allianceMemberSearch === "string") {
+        if (allianceSearchSource === "storage") {
+          state.allianceMemberSearch = readAllianceMemberSearchSession();
+        } else if (typeof saved.allianceMemberSearch === "string") {
           state.allianceMemberSearch = normalizeAllianceMemberSearchValue(
             saved.allianceMemberSearch,
           );
           writeAllianceMemberSearchSession(state.allianceMemberSearch);
+        } else if (allianceSearchSource === "backupFile") {
+          state.allianceMemberSearch = readAllianceMemberSearchSession();
         }
         if (
           saved.allianceFillTarget === "vip" ||
@@ -3732,6 +3814,13 @@
           const idx = Number(saved.allianceFillConductorIdx);
           state.allianceFillConductorIdx = idx >= 0 && idx <= 6 ? idx : 0;
         }
+      }
+
+      function applySharedState(saved) {
+        if (!saved || typeof saved !== "object") return false;
+        applyTrainScheduleFromSaved(saved, {
+          allianceSearchSource: "shareUrl",
+        });
         return true;
       }
 
@@ -3855,6 +3944,62 @@
         XLSX.writeFile(wb, `${getExportFileBaseName()}.xlsx`);
       }
 
+      function exportScheduleAsBackupJson() {
+        const payload = getScheduleSnapshotForPersistence();
+        const text = JSON.stringify(payload, null, 2);
+        const blob = new Blob([text], { type: "application/json;charset=utf-8" });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement("a");
+        a.href = url;
+        a.download = `${getExportFileBaseName()}.json`;
+        a.click();
+        URL.revokeObjectURL(url);
+      }
+
+      async function importScheduleFromBackupFile(file) {
+        if (!file) return;
+        let saved;
+        try {
+          saved = JSON.parse(await file.text());
+        } catch {
+          alert(
+            "Could not read that file as JSON. Use a backup exported from this page, or fix the file.",
+          );
+          return;
+        }
+        if (!isPlausibleScheduleBackupJson(saved)) {
+          alert(
+            "That file does not look like a train schedule backup (need conductors, week grid, or day assignments).",
+          );
+          return;
+        }
+        if (
+          !confirm(
+            "Replace the current schedule with this backup? This overwrites the calendar, conductors, alliance list, and history stored in this browser.",
+          )
+        ) {
+          return;
+        }
+        applyTrainScheduleFromSaved(saved, {
+          allianceSearchSource: "backupFile",
+        });
+        if (!state.startDateStr) {
+          state.startDateStr = toDateStr(getMondayOf(getServerTodayDate()));
+        }
+        ensureStaleScheduleShowsToday();
+        saveState();
+        startDateInput.value = state.startDateStr;
+        vipToggleInput.checked = state.showVip;
+        conductorWeekSelectProgrammatic = true;
+        conductorWeekSelect.value = String(state.nameEditWeek);
+        conductorWeekSelectProgrammatic = false;
+        allianceFillTargetSelect.value = state.allianceFillTarget;
+        syncAllianceFillConductorOptions();
+        render();
+        closeExportMenu();
+        setSchedulePersistStatus("Imported schedule from backup file.", "ok");
+      }
+
       async function shareScheduleLink() {
         const url = getShareUrl();
         try {
@@ -3873,30 +4018,34 @@
         exportMenuToggle.setAttribute("aria-expanded", "false");
       }
 
+      function getScheduleSnapshotForPersistence() {
+        state.r4r5Members = normalizeR4R5Members(
+          state.r4r5Members,
+          state.allianceMembers,
+        );
+        return {
+          weeks: state.weeks,
+          nameEditWeek: state.nameEditWeek,
+          conductorNamesByWeek: state.conductorNamesByWeek,
+          startDateStr: state.startDateStr,
+          conductors: state.conductors,
+          dayAssignmentsByWeek: state.dayAssignmentsByWeek,
+          showVip: state.showVip,
+          allianceMembers: state.allianceMembers,
+          r4r5Members: state.r4r5Members,
+          memberHistory: state.memberHistory,
+          allianceFillTarget: state.allianceFillTarget,
+          allianceFillConductorIdx: state.allianceFillConductorIdx,
+          /** Lets account sync pick this device vs cloud without older cloud wiping the schedule. */
+          savedAt: Date.now(),
+        };
+      }
+
       function saveState() {
         try {
-          state.r4r5Members = normalizeR4R5Members(
-            state.r4r5Members,
-            state.allianceMembers,
-          );
           localStorage.setItem(
             STORAGE_KEY,
-            JSON.stringify({
-              weeks: state.weeks,
-              nameEditWeek: state.nameEditWeek,
-              conductorNamesByWeek: state.conductorNamesByWeek,
-              startDateStr: state.startDateStr,
-              conductors: state.conductors,
-              dayAssignmentsByWeek: state.dayAssignmentsByWeek,
-              showVip: state.showVip,
-              allianceMembers: state.allianceMembers,
-              r4r5Members: state.r4r5Members,
-              memberHistory: state.memberHistory,
-              allianceFillTarget: state.allianceFillTarget,
-              allianceFillConductorIdx: state.allianceFillConductorIdx,
-              /** Lets account sync pick this device vs cloud without older cloud wiping the schedule. */
-              savedAt: Date.now(),
-            }),
+            JSON.stringify(getScheduleSnapshotForPersistence()),
           );
           try {
             if (
@@ -3922,99 +4071,9 @@
             return;
           }
           const saved = JSON.parse(raw);
-          if (saved.weeks >= 1 && saved.weeks <= 4) {
-            state.weeks = Number(saved.weeks);
-          }
-          if (Number.isFinite(Number(saved.nameEditWeek))) {
-            const n = Number(saved.nameEditWeek);
-            state.nameEditWeek = n >= 0 && n <= 3 ? n : 0;
-          }
-          if (
-            Array.isArray(saved.conductorNamesByWeek) &&
-            saved.conductorNamesByWeek.length === 4 &&
-            saved.conductorNamesByWeek.every(
-              (week) => Array.isArray(week) && week.length === 7,
-            )
-          ) {
-            state.conductorNamesByWeek = saved.conductorNamesByWeek.map(
-              (week) =>
-                week.map((name) =>
-                  typeof name === "string" ? name.trim().slice(0, 40) : "",
-                ),
-            );
-          }
-          if (typeof saved.startDateStr === "string") {
-            state.startDateStr = saved.startDateStr;
-          }
-          if (
-            Array.isArray(saved.conductors) &&
-            saved.conductors.length === 7
-          ) {
-            state.conductors = saved.conductors.map((c, i) => ({
-              name:
-                typeof c.name === "string" && c.name.trim()
-                  ? c.name.trim().slice(0, 40)
-                  : DEFAULT_NAMES[i],
-              color:
-                typeof c.color === "string" && /^#[0-9a-fA-F]{6}$/.test(c.color)
-                  ? c.color
-                  : DEFAULT_COLORS[i],
-              vipGuardian:
-                typeof c.vipGuardian === "string"
-                  ? normalizeVipGuardianValue(c.vipGuardian)
-                  : "",
-            }));
-
-            // Backward compatibility: seed per-week names from old single name if needed.
-            if (
-              !Array.isArray(saved.conductorNamesByWeek) ||
-              saved.conductorNamesByWeek.length !== 4
-            ) {
-              const legacyNames = state.conductors.map((c, i) =>
-                typeof c.name === "string" && c.name.trim()
-                  ? c.name.trim().slice(0, 40)
-                  : DEFAULT_NAMES[i],
-              );
-              state.conductorNamesByWeek = Array.from({ length: 4 }, () => [
-                ...legacyNames,
-              ]);
-            }
-          }
-          state.dayAssignmentsByWeek = normalizeDayAssignmentsByWeek(saved);
-          if (typeof saved.showVip === "boolean") {
-            state.showVip = saved.showVip;
-          }
-          if (Array.isArray(saved.allianceMembers)) {
-            state.allianceMembers = dedupeNames(
-              saved.allianceMembers
-                .map((name) => sanitizeMemberName(name))
-                .filter(Boolean),
-            )
-              .slice(0, MAX_ALLIANCE_MEMBERS)
-              .sort((a, b) =>
-                a.localeCompare(b, undefined, { sensitivity: "base" }),
-              );
-          }
-          state.r4r5Members = normalizeR4R5Members(
-            saved.r4r5Members,
-            state.allianceMembers,
-          );
-          if (Array.isArray(saved.memberHistory)) {
-            state.memberHistory = normalizeMemberHistoryEntries(
-              saved.memberHistory,
-            );
-          }
-          if (
-            saved.allianceFillTarget === "vip" ||
-            saved.allianceFillTarget === "conductor"
-          ) {
-            state.allianceFillTarget = saved.allianceFillTarget;
-          }
-          if (Number.isFinite(Number(saved.allianceFillConductorIdx))) {
-            const idx = Number(saved.allianceFillConductorIdx);
-            state.allianceFillConductorIdx = idx >= 0 && idx <= 6 ? idx : 0;
-          }
-          state.allianceMemberSearch = readAllianceMemberSearchSession();
+          applyTrainScheduleFromSaved(saved, {
+            allianceSearchSource: "storage",
+          });
         } catch {
           // ignore
         }
@@ -4521,6 +4580,24 @@
         closeExportMenu();
         exportScheduleAsExcel();
       });
+
+      if (exportJsonButton) {
+        exportJsonButton.addEventListener("click", () => {
+          closeExportMenu();
+          exportScheduleAsBackupJson();
+        });
+      }
+
+      if (importScheduleButton && scheduleBackupFileInput) {
+        importScheduleButton.addEventListener("click", () => {
+          scheduleBackupFileInput.value = "";
+          scheduleBackupFileInput.click();
+        });
+        scheduleBackupFileInput.addEventListener("change", () => {
+          const file = scheduleBackupFileInput.files?.[0] || null;
+          if (file) importScheduleFromBackupFile(file);
+        });
+      }
 
       shareLinkButton.addEventListener("click", () => {
         closeExportMenu();
