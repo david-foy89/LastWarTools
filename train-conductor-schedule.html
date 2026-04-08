@@ -1366,7 +1366,7 @@
                 </select>
                 <select
                   id="allianceFillConductorSelect"
-                  aria-label="Fallback conductor"
+                  aria-label="Conductor slot filled when you pick a name from the list"
                 ></select>
               </div>
             </div>
@@ -1575,7 +1575,6 @@
         allianceMemberSearch: "",
         allianceFillTarget: "conductor",
         allianceFillConductorIdx: 0,
-        lastFocusedFill: { type: "conductor", idx: 0 },
       };
 
       const startDateInput = document.getElementById("startDateInput");
@@ -3566,12 +3565,6 @@
         } else if (active?.classList?.contains("conductor-vip-input")) {
           targetType = "vip";
           idx = Number(active.dataset.idx);
-        } else if (
-          state.lastFocusedFill &&
-          Number.isFinite(state.lastFocusedFill.idx)
-        ) {
-          targetType = state.lastFocusedFill.type;
-          idx = state.lastFocusedFill.idx;
         }
 
         if (!Number.isFinite(idx) || idx < 0 || idx > 6) {
@@ -4678,18 +4671,30 @@
       conductorsList.addEventListener("focusin", (event) => {
         const target = event.target;
         if (target?.classList?.contains("conductor-name-input")) {
-          state.lastFocusedFill = {
-            type: "conductor",
-            idx: Number(target.dataset.idx) || 0,
-          };
+          const idx = Number(target.dataset.idx);
+          state.allianceFillTarget = "conductor";
+          state.allianceFillConductorIdx = Number.isFinite(idx)
+            ? Math.max(0, Math.min(6, idx))
+            : 0;
+          if (allianceFillTargetSelect) {
+            allianceFillTargetSelect.value = "conductor";
+          }
+          syncAllianceFillConductorOptions();
+          saveState();
           return;
         }
 
         if (target?.classList?.contains("conductor-vip-input")) {
-          state.lastFocusedFill = {
-            type: "vip",
-            idx: Number(target.dataset.idx) || 0,
-          };
+          const idx = Number(target.dataset.idx);
+          state.allianceFillTarget = "vip";
+          state.allianceFillConductorIdx = Number.isFinite(idx)
+            ? Math.max(0, Math.min(6, idx))
+            : 0;
+          if (allianceFillTargetSelect) {
+            allianceFillTargetSelect.value = "vip";
+          }
+          syncAllianceFillConductorOptions();
+          saveState();
         }
       });
 
