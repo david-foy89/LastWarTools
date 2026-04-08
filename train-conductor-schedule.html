@@ -1569,6 +1569,12 @@
         { lang: "eng+kor", psm: "6" },
         { lang: "eng", psm: "6" },
       ];
+      /** Prepended when OCR targets the Mon–Sun date grid (English month labels). */
+      const SCHEDULE_TABLE_OCR_EXTRA_PASSES = [
+        { lang: "eng", psm: "4" },
+        { lang: "eng", psm: "6" },
+      ];
+      const SCHEDULE_OCR_MONTH_NAMES_RE = MONTHS.join("|");
       const OCR_LANG_PATHS = [
         "https://tessdata.projectnaptha.com/4.0.0",
         "https://tessdata.projectnaptha.com/4.0.0_best",
@@ -3360,11 +3366,17 @@
       /**
        * Shared Tesseract pipeline for alliance member OCR and schedule screenshot OCR.
        * @param {(msg: string, busy?: boolean) => void} setStatus
+       * @param {{ scheduleTable?: boolean }} [opts] scheduleTable — add eng PSM 4/6 first for date grid text
        */
-      async function runTrainConductorImageOcrPasses(file, setStatus) {
+      async function runTrainConductorImageOcrPasses(file, setStatus, opts) {
         if (!window.Tesseract) {
           throw new Error("OCR importer is not available.");
         }
+
+        const passList =
+          opts && opts.scheduleTable
+            ? [...SCHEDULE_TABLE_OCR_EXTRA_PASSES, ...OCR_PASS_CONFIGS]
+            : OCR_PASS_CONFIGS;
 
         const performOcr = async (imageSource, lang, psm) => {
           let lastError = null;
@@ -3373,10 +3385,12 @@
             try {
               worker = await window.Tesseract.createWorker(lang, 1, {
                 langPath,
+                logger: function () {},
               });
               await worker.setParameters({
                 tessedit_pageseg_mode: psm,
                 preserve_interword_spaces: "1",
+                user_defined_dpi: "400",
               });
               const result = await worker.recognize(imageSource);
               await worker.terminate();
@@ -3439,7 +3453,7 @@
         const passErrors = [];
         let koreanPassSucceeded = false;
 
-        for (const pass of OCR_PASS_CONFIGS) {
+        for (const pass of passList) {
           try {
             setStatus(
               `Running OCR (${pass.lang.toUpperCase()}, PSM ${pass.psm}) on ${file.name}...`,
@@ -3475,7 +3489,7 @@
         const mergedText = texts.join("\n");
         if (
           !mergedText.trim() &&
-          passErrors.length === OCR_PASS_CONFIGS.length
+          passErrors.length === passList.length
         ) {
           throw new Error(
             "OCR could not run for this image. Please try a clearer screenshot or file import.",
@@ -4077,17 +4091,24 @@
       }
 
       function extractScheduleDateMatchesFromOcrText(text) {
-        const clean = String(text || "").replace(/\u00a0/g, " ");
-        const re = /\b(Jan|Feb|Mar|Apr|May|Jun|Jul|Aug|Sep|Oct|Nov|Dec)\s+(\d{1,2})\b/gi;
+        let clean = String(text || "")
+          .replace(/\u00a0/g, " ")
+          .replace(/\bSept\b/gi, "Sep");
+        const re = new RegExp(
+          `\\b(${SCHEDULE_OCR_MONTH_NAMES_RE})\\b[\\s.:;\\-]*(?:\\r?\\n)?\\s*(\\d{1,2})\\b`,
+          "gi",
+        );
         const matches = [];
         let m;
         while ((m = re.exec(clean)) !== null) {
           const abbr =
             m[1].charAt(0).toUpperCase() + m[1].slice(1).toLowerCase();
           if (!MONTHS.includes(abbr)) continue;
+          const day = parseInt(m[2], 10);
+          if (!Number.isFinite(day) || day < 1 || day > 31) continue;
           matches.push({
             monthAbbr: abbr,
-            day: parseInt(m[2], 10),
+            day,
             index: m.index,
             len: m[0].length,
           });
@@ -4095,22 +4116,67 @@
         return { clean, matches };
       }
 
+      /**
+       * Merged multi-pass OCR scrambles character indices; schedule import must use one pass.
+       */
+      function pickBestOcrTextForScheduleTable(ocr) {
+        const candidates = [];
+        if (ocr && typeof ocr.text === "string" && ocr.text.trim()) {
+          candidates.push(ocr.text);
+        }
+        if (Array.isArray(ocr.texts)) {
+          ocr.texts.forEach((t) => {
+            if (typeof t === "string" && t.trim()) candidates.push(t);
+          });
+        }
+        if (!candidates.length) return "";
+        let best = candidates[0];
+        let bestN = extractScheduleDateMatchesFromOcrText(best).matches.length;
+        for (let i = 1; i < candidates.length; i += 1) {
+          const t = candidates[i];
+          const n = extractScheduleDateMatchesFromOcrText(t).matches.length;
+          if (n > bestN || (n === bestN && t.length > best.length)) {
+            bestN = n;
+            best = t;
+          }
+        }
+        return best;
+      }
+
       function parseCellChunkFromOcrSchedule(chunk) {
-        const lines = String(chunk || "")
-          .replace(/\u200b/g, "")
+        let raw = String(chunk || "").replace(/\u200b/g, "").trim();
+        raw = raw.replace(
+          new RegExp(
+            `^\\s*(?:${SCHEDULE_OCR_MONTH_NAMES_RE})\\b[\\s.:;\\-\\n\\r]*\\d{1,2}\\s*`,
+            "i",
+          ),
+          "",
+        ).trim();
+        const lines = raw
           .split(/\r?\n/)
           .map((l) => l.trim())
           .filter(Boolean);
         const filtered = [];
         for (const line of lines) {
           if (
-            /^(Jan|Feb|Mar|Apr|May|Jun|Jul|Aug|Sep|Oct|Nov|Dec)\s+\d{1,2}$/i.test(
-              line,
-            )
+            new RegExp(
+              `^(?:${SCHEDULE_OCR_MONTH_NAMES_RE})\\s+\\d{1,2}$`,
+              "i",
+            ).test(line)
           ) {
             continue;
           }
           filtered.push(line);
+        }
+        if (!filtered.length && raw) {
+          const one = raw.replace(/\s+/g, " ").trim();
+          const vipSep = /\s+(?:VIP|VIP\/)/i.exec(one);
+          if (vipSep && vipSep.index > 0) {
+            filtered.push(one.slice(0, vipSep.index).trim());
+            filtered.push(one.slice(vipSep.index).trim());
+          } else {
+            filtered.push(one);
+          }
         }
         let conductor = "";
         let vip = "";
@@ -4224,12 +4290,16 @@
         }
         setSchedulePersistStatus("Running OCR on schedule image…", "progress");
         try {
-          const ocr = await runTrainConductorImageOcrPasses(file, (msg) => {
-            setSchedulePersistStatus(msg || "Running OCR…", "progress");
-          });
-          const { clean, matches } = extractScheduleDateMatchesFromOcrText(
-            ocr.text,
+          const ocr = await runTrainConductorImageOcrPasses(
+            file,
+            (msg) => {
+              setSchedulePersistStatus(msg || "Running OCR…", "progress");
+            },
+            { scheduleTable: true },
           );
+          const parseText = pickBestOcrTextForScheduleTable(ocr);
+          const { clean, matches } =
+            extractScheduleDateMatchesFromOcrText(parseText);
           if (matches.length < 7) {
             setSchedulePersistStatus(
               "Could not find dates in the image.",
