@@ -1575,6 +1575,8 @@
         { lang: "eng", psm: "6" },
       ];
       const SCHEDULE_OCR_MONTH_NAMES_RE = MONTHS.join("|");
+      const SCHEDULE_OCR_FULL_MONTH_RE =
+        "January|February|March|April|May|June|July|August|September|October|November|December";
       const OCR_LANG_PATHS = [
         "https://tessdata.projectnaptha.com/4.0.0",
         "https://tessdata.projectnaptha.com/4.0.0_best",
@@ -4090,20 +4092,59 @@
         return 0;
       }
 
+      function scheduleOcrNormalizeMonthToken(raw) {
+        const lower = String(raw || "")
+          .trim()
+          .replace(/\./g, "")
+          .toLowerCase();
+        const sraw = String(raw || "");
+        const long = {
+          january: "Jan",
+          jan: "Jan",
+          february: "Feb",
+          feb: "Feb",
+          march: "Mar",
+          mar: "Mar",
+          april: "Apr",
+          apr: "Apr",
+          may: "May",
+          june: "Jun",
+          jun: "Jun",
+          july: "Jul",
+          jul: "Jul",
+          august: "Aug",
+          aug: "Aug",
+          september: "Sep",
+          sept: "Sep",
+          sep: "Sep",
+          october: "Oct",
+          oct: "Oct",
+          november: "Nov",
+          nov: "Nov",
+          december: "Dec",
+          dec: "Dec",
+        };
+        if (long[lower]) return long[lower];
+        const cap =
+          sraw.charAt(0).toUpperCase() + sraw.slice(1).toLowerCase();
+        if (MONTHS.includes(cap)) return cap;
+        return null;
+      }
+
       function extractScheduleDateMatchesFromOcrText(text) {
         let clean = String(text || "")
           .replace(/\u00a0/g, " ")
-          .replace(/\bSept\b/gi, "Sep");
+          .replace(/\bSept\b/gi, "Sep")
+          .replace(/\bSept\.\b/gi, "Sep");
         const re = new RegExp(
-          `\\b(${SCHEDULE_OCR_MONTH_NAMES_RE})\\b[\\s.:;\\-]*(?:\\r?\\n)?\\s*(\\d{1,2})\\b`,
+          `\\b(${SCHEDULE_OCR_FULL_MONTH_RE}|${SCHEDULE_OCR_MONTH_NAMES_RE})\\b[\\s.:;\\-]*(?:\\r?\\n)?\\s*(\\d{1,2})\\b`,
           "gi",
         );
         const matches = [];
         let m;
         while ((m = re.exec(clean)) !== null) {
-          const abbr =
-            m[1].charAt(0).toUpperCase() + m[1].slice(1).toLowerCase();
-          if (!MONTHS.includes(abbr)) continue;
+          const abbr = scheduleOcrNormalizeMonthToken(m[1]);
+          if (!abbr) continue;
           const day = parseInt(m[2], 10);
           if (!Number.isFinite(day) || day < 1 || day > 31) continue;
           matches.push({
@@ -4147,7 +4188,7 @@
         let raw = String(chunk || "").replace(/\u200b/g, "").trim();
         raw = raw.replace(
           new RegExp(
-            `^\\s*(?:${SCHEDULE_OCR_MONTH_NAMES_RE})\\b[\\s.:;\\-\\n\\r]*\\d{1,2}\\s*`,
+            `^\\s*(?:${SCHEDULE_OCR_FULL_MONTH_RE}|${SCHEDULE_OCR_MONTH_NAMES_RE})\\b[\\s.:;\\-\\n\\r]*\\d{1,2}\\s*`,
             "i",
           ),
           "",
@@ -4160,7 +4201,7 @@
         for (const line of lines) {
           if (
             new RegExp(
-              `^(?:${SCHEDULE_OCR_MONTH_NAMES_RE})\\s+\\d{1,2}$`,
+              `^(?:${SCHEDULE_OCR_FULL_MONTH_RE}|${SCHEDULE_OCR_MONTH_NAMES_RE})\\s+\\d{1,2}$`,
               "i",
             ).test(line)
           ) {
@@ -4183,6 +4224,7 @@
         if (filtered[0]) {
           conductor = sanitizeMemberName(
             filtered[0]
+              .replace(/\*/g, "")
               .replace(/👑/g, "")
               .replace(/^\u{1F451}\s*/u, "")
               .trim(),
@@ -4197,11 +4239,141 @@
         return { conductor, vip };
       }
 
+      const SCHEDULE_OCR_LOCATE_FULL_MONTH = {
+        Jan: "January",
+        Feb: "February",
+        Mar: "March",
+        Apr: "April",
+        May: "May",
+        Jun: "June",
+        Jul: "July",
+        Aug: "August",
+        Sep: "September",
+        Oct: "October",
+        Nov: "November",
+        Dec: "December",
+      };
+
+      function scheduleOcrDayPattern(dn) {
+        if (!Number.isFinite(dn) || dn < 1 || dn > 31) return String(dn);
+        if (dn < 10) {
+          return `(?:0${dn}|${dn})(?!\\d)`;
+        }
+        return `${dn}(?!\\d)`;
+      }
+
+      function findNextScheduleDateOccurrence(clean, monthAbbr, day, fromIndex) {
+        const sep = `[\\s.:;\\-]*(?:\\r?\\n)?\\s*`;
+        const dn = Number(day);
+        const dayPart = scheduleOcrDayPattern(dn);
+        const sub = clean.slice(fromIndex);
+        let best = null;
+        const tryRe = (re) => {
+          re.lastIndex = 0;
+          const mm = re.exec(sub);
+          if (mm && (best === null || mm.index < best.index)) {
+            best = { index: mm.index, len: mm[0].length };
+          }
+        };
+        tryRe(
+          new RegExp(`\\b${monthAbbr}\\b${sep}${dayPart}`, "gi"),
+        );
+        const full = SCHEDULE_OCR_LOCATE_FULL_MONTH[monthAbbr];
+        if (full) {
+          tryRe(new RegExp(`\\b${full}\\b${sep}${dayPart}`, "gi"));
+        }
+        if (!best) return null;
+        return {
+          start: fromIndex + best.index,
+          end: fromIndex + best.index + best.len,
+        };
+      }
+
+      /**
+       * OCR often reads the table column-down or out of row order. Build Mon→Sun weeks by
+       * calendar date, then walk the string left-to-right to slice cell text.
+       */
+      function tryBuildScheduleGridChronological(clean, rawMatches) {
+        const keyed = [];
+        for (const m of rawMatches) {
+          const mi = MONTHS.indexOf(m.monthAbbr);
+          if (mi < 0) continue;
+          const y = pickClosestYearForMonthDay(mi, m.day);
+          const t = new Date(y, mi, m.day);
+          if (Number.isNaN(t.getTime())) continue;
+          keyed.push({ ...m, t });
+        }
+        const byKey = new Map();
+        for (const e of keyed) {
+          const key = `${e.t.getFullYear()}-${e.t.getMonth()}-${e.t.getDate()}`;
+          const prev = byKey.get(key);
+          if (!prev || e.index < prev.index) {
+            byKey.set(key, e);
+          }
+        }
+        const unique = Array.from(byKey.values()).sort((a, b) => {
+          const dt = a.t.getTime() - b.t.getTime();
+          if (dt !== 0) return dt;
+          return a.index - b.index;
+        });
+        if (unique.length < 7) return null;
+
+        let bestI = 0;
+        let bestLen = 0;
+        for (let i = 0; i < unique.length; i += 1) {
+          let len = 1;
+          for (let j = i + 1; j < unique.length; j += 1) {
+            const diff = Math.round(
+              (unique[j].t - unique[j - 1].t) / 864e5,
+            );
+            if (diff !== 1) break;
+            len += 1;
+          }
+          if (len > bestLen) {
+            bestLen = len;
+            bestI = i;
+          }
+        }
+        if (bestLen < 7) return null;
+        const cellCount = Math.min(28, Math.floor(bestLen / 7) * 7);
+        const grid = unique.slice(bestI, bestI + cellCount).map((e) => ({
+          monthAbbr: e.monthAbbr,
+          day: e.day,
+        }));
+
+        const positions = [];
+        let scanFrom = 0;
+        for (let i = 0; i < grid.length; i += 1) {
+          const pos = findNextScheduleDateOccurrence(
+            clean,
+            grid[i].monthAbbr,
+            grid[i].day,
+            scanFrom,
+          );
+          if (!pos) return null;
+          positions.push(pos);
+          scanFrom = pos.end;
+        }
+
+        const chunks = [];
+        for (let i = 0; i < grid.length; i += 1) {
+          const endDate = positions[i].end;
+          const startNext =
+            i + 1 < grid.length ? positions[i + 1].start : clean.length;
+          chunks.push(clean.slice(endDate, startNext).trim());
+        }
+        return { grid, chunks };
+      }
+
       function buildScheduleGridFromOcrMatches(clean, matches) {
         if (matches.length < 7) {
           throw new Error(
             "Not enough dates in the image. Crop to the schedule table or use Export PNG from this page.",
           );
+        }
+        const chrono = tryBuildScheduleGridChronological(clean, matches);
+        if (chrono) {
+          return chrono;
         }
         const skip = findScheduleOcrMatchSkip(matches);
         const tail = matches.length - skip;
