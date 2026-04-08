@@ -4184,6 +4184,33 @@
         return best;
       }
 
+      /** Only treat as VIP when OCR clearly read a VIP label — not a second player name. */
+      function scheduleOcrLineLooksLikeVipLabel(s) {
+        const t = String(s || "").trim();
+        if (!t) return false;
+        if (t.length > 48) return false;
+        if (/vip\s*[\/\\]\s*guardian/i.test(t)) return true;
+        if (/^vip\s*[\/\\]/i.test(t)) return true;
+        if (/^vip\s*$/i.test(t)) return true;
+        if (/^guardian\s*$/i.test(t)) return true;
+        if (/^vip\s*guardian\s*$/i.test(t)) return true;
+        return false;
+      }
+
+      function truncateScheduleOcrChunkBeforeNextDate(chunk) {
+        const s = String(chunk || "");
+        const re = new RegExp(
+          `\\b(?:${SCHEDULE_OCR_FULL_MONTH_RE}|${SCHEDULE_OCR_MONTH_NAMES_RE})\\b[\\s.:;\\-]*(?:\\r?\\n)?\\s*\\d{1,2}\\b`,
+          "gi",
+        );
+        re.lastIndex = 0;
+        const m = re.exec(s);
+        if (m && m.index > 0) {
+          return s.slice(0, m.index).trim();
+        }
+        return s.trim();
+      }
+
       function parseCellChunkFromOcrSchedule(chunk) {
         let raw = String(chunk || "").replace(/\u200b/g, "").trim();
         raw = raw.replace(
@@ -4193,6 +4220,7 @@
           ),
           "",
         ).trim();
+        raw = truncateScheduleOcrChunkBeforeNextDate(raw);
         const lines = raw
           .split(/\r?\n/)
           .map((l) => l.trim())
@@ -4211,31 +4239,46 @@
         }
         if (!filtered.length && raw) {
           const one = raw.replace(/\s+/g, " ").trim();
-          const vipSep = /\s+(?:VIP|VIP\/)/i.exec(one);
+          const vipSep = /\s+(?:VIP\s*[\/\\]|VIP\s+Guardian)/i.exec(one);
           if (vipSep && vipSep.index > 0) {
-            filtered.push(one.slice(0, vipSep.index).trim());
-            filtered.push(one.slice(vipSep.index).trim());
+            const a = one.slice(0, vipSep.index).trim();
+            const b = one.slice(vipSep.index).trim();
+            if (a) filtered.push(a);
+            if (b && scheduleOcrLineLooksLikeVipLabel(b)) filtered.push(b);
           } else {
             filtered.push(one);
           }
         }
+
         let conductor = "";
         let vip = "";
-        if (filtered[0]) {
-          conductor = sanitizeMemberName(
-            filtered[0]
-              .replace(/\*/g, "")
-              .replace(/👑/g, "")
-              .replace(/^\u{1F451}\s*/u, "")
-              .trim(),
-          );
+        let i = 0;
+        while (i < filtered.length && scheduleOcrLineLooksLikeVipLabel(filtered[i])) {
+          i += 1;
         }
-        if (filtered[1]) {
-          vip = normalizeVipGuardianValue(filtered[1]);
+        if (i < filtered.length) {
+          const line = filtered[i]
+            .replace(/\*/g, "")
+            .replace(/👑/g, "")
+            .replace(/^\u{1F451}\s*/u, "")
+            .trim();
+          const pipe = /^(.+?)\s+[|\/]\s+(.+)$/.exec(line);
+          if (pipe && scheduleOcrLineLooksLikeVipLabel(pipe[2])) {
+            conductor = sanitizeMemberName(pipe[1]);
+            vip = normalizeVipGuardianValue(pipe[2]);
+          } else {
+            conductor = sanitizeMemberName(line);
+          }
+          i += 1;
         }
-        if (!vip && filtered[0] && /^vip/i.test(filtered[0]) && !conductor) {
-          vip = normalizeVipGuardianValue(filtered[0]);
+        while (i < filtered.length) {
+          if (scheduleOcrLineLooksLikeVipLabel(filtered[i])) {
+            vip = normalizeVipGuardianValue(filtered[i]);
+            break;
+          }
+          i += 1;
         }
+
         return { conductor, vip };
       }
 
