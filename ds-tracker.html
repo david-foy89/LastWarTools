@@ -6,7 +6,7 @@
     <title>Desert Storm Tracker/Planner</title>
     <meta
       name="description"
-      content="Track Desert Storm (DS) player scores and import screenshot data with OCR."
+      content="Track Desert Storm (DS) player scores, import leaderboard screenshots or video frames with OCR, and export data."
     />
     <link rel="stylesheet" href="last-war-furnace-upgrade-calculator.css" />
     <script src="page-nav-dropdown.js" defer></script>
@@ -217,7 +217,7 @@
         color: #ff6b6b;
         font-weight: 700;
       }
-      #ocrStatus {
+      #dsTrackerStatus {
         font-size: 0.92rem;
         color: var(--muted);
       }
@@ -1110,14 +1110,15 @@
       <section class="hero">
         <h1>Desert Storm Tracker/Planner</h1>
         <div class="sub">
-          Track DS players and import screenshots to auto-fill rows with OCR.
+          Track DS players, save scores by day, import a player list, OCR leaderboard screenshots or
+          videos, and export CSV.
         </div>
       </section>
 
       <section class="layout ds-wrap" style="display: block; padding: 0">
         <div class="ds-card">
           <div style="font-weight: 800; color: var(--accent); margin-bottom: 10px">
-            Import screenshots
+            Day &amp; table
           </div>
           <div class="ds-actions">
             <label
@@ -1147,14 +1148,27 @@
               Delete day
             </button>
             <div class="ds-actions-break"></div>
-            <label for="dsImageInput" class="action-button">Choose screenshot(s)</label>
-            <button type="button" id="dsRunOcrBtn" class="action-button">
-              Import with OCR
-            </button>
+            <div
+              style="
+                flex-basis: 100%;
+                font-size: 0.82rem;
+                color: var(--muted);
+                line-height: 1.35;
+                margin: 2px 0 4px;
+              "
+            >
+              <strong style="color: var(--text)">Leaderboard OCR</strong> — in-game ranking UI: name on
+              one line, score below. Crops the text column. For videos, one frame (~15% into the clip) is
+              used; prefer a short screen recording or screenshot. Names are fuzzy-matched to your table
+              (OCR typos); any remaining leaderboard line with a valid name and score is added as a new
+              row.
+            </div>
+            <label for="dsImageInput" class="action-button">Choose image or video</label>
+            <button type="button" id="dsRunOcrBtn" class="action-button">Import scores (OCR)</button>
             <input
               type="file"
               id="dsImageInput"
-              accept="image/*"
+              accept="image/*,video/*"
               multiple
               style="display: none"
             />
@@ -1199,7 +1213,7 @@
             <button type="button" id="dsExportBtn" class="action-button">
               Export CSV
             </button>
-            <span id="ocrStatus"></span>
+            <span id="dsTrackerStatus" aria-live="polite"></span>
           </div>
         </div>
 
@@ -1252,7 +1266,14 @@
               <option value="asc">A-Z / Low-High</option>
               <option value="desc">Z-A / High-Low</option>
             </select>
-            <button type="button" id="dsFilterClearBtn" class="action-button">Clear</button>
+            <button
+              type="button"
+              id="dsFilterClearBtn"
+              class="action-button"
+              title="Clear all rows for this day (same as Clear all above)"
+            >
+              Clear all
+            </button>
             <button type="button" id="dsClearPlayerListBtn" class="action-button">
               Clear player list
             </button>
@@ -1648,7 +1669,7 @@
         const sortDirEl = document.getElementById("dsSortDir");
         const filterClearBtn = document.getElementById("dsFilterClearBtn");
         const clearPlayerListBtn = document.getElementById("dsClearPlayerListBtn");
-        const statusEl = document.getElementById("ocrStatus");
+        const statusEl = document.getElementById("dsTrackerStatus");
         const scoreHead1 = document.getElementById("dsScoreHead1");
         const scoreHead2 = document.getElementById("dsScoreHead2");
         const scoreHead3 = document.getElementById("dsScoreHead3");
@@ -1668,7 +1689,7 @@
         const MAP_PLAN_KEY = "dsMapPlanV1";
 
         function setStatus(msg) {
-          statusEl.textContent = msg || "";
+          if (statusEl) statusEl.textContent = msg || "";
         }
 
         function addRow(values) {
@@ -2462,12 +2483,188 @@
           return s.trim();
         }
 
-        function looksLikeName(line) {
+        /** NFC/NFKC keeps Hangul syllables whole; NFKD splits Hangul and breaks OCR↔table matching. */
+        function normalizeMatchName(raw) {
+          return cleanName(raw)
+            .toLowerCase()
+            .normalize("NFKC")
+            .replace(/[\u0300-\u036f]/g, "")
+            .replace(/[^\p{L}\p{N}]/gu, "");
+        }
+
+        function isMixedScriptKey(s) {
+          if (!s) return false;
+          const hasLatin = /[\p{Script=Latin}]/u.test(s);
+          const hasCjk =
+            /[\p{Script=Hangul}\p{Script=Han}]/u.test(s);
+          return hasLatin && hasCjk;
+        }
+
+        function splitScriptBuckets(s) {
+          const latin = (s.match(/[\p{Script=Latin}\p{N}]+/gu) || []).join("");
+          const hangul = (s.match(/[\p{Script=Hangul}]+/gu) || []).join("");
+          const han = (s.match(/[\p{Script=Han}]+/gu) || []).join("");
+          return {
+            latin: latin.toLowerCase(),
+            cjk: hangul + han,
+          };
+        }
+
+        function levenshtein(a, b) {
+          if (a === b) return 0;
+          if (!a || !b) return Math.max(a.length, b.length);
+          const m = a.length;
+          const n = b.length;
+          const v0 = new Uint16Array(n + 1);
+          const v1 = new Uint16Array(n + 1);
+          for (let j = 0; j <= n; j++) v0[j] = j;
+          for (let i = 0; i < m; i++) {
+            v1[0] = i + 1;
+            const ca = a.charCodeAt(i);
+            for (let j = 0; j < n; j++) {
+              const cost = ca === b.charCodeAt(j) ? 0 : 1;
+              v1[j + 1] = Math.min(
+                v1[j] + 1,
+                v0[j + 1] + 1,
+                v0[j] + cost,
+              );
+            }
+            for (let j = 0; j <= n; j++) v0[j] = v1[j];
+          }
+          return v0[n];
+        }
+
+        function bucketSimilarOcr(a, b) {
+          if (a === b) return true;
+          if (!a || !b) return false;
+          const shorter = a.length <= b.length ? a : b;
+          const longer = a.length <= b.length ? b : a;
+          if (shorter.length >= 2 && longer.includes(shorter)) return true;
+          const maxLen = Math.max(a.length, b.length);
+          const dist = levenshtein(a, b);
+          if (maxLen <= 8) return dist <= 3;
+          if (maxLen <= 20) return dist <= 5;
+          return dist <= Math.max(4, Math.floor(maxLen * 0.2));
+        }
+
+        function mixedScriptKeysLikelySame(ka, kb) {
+          if (!isMixedScriptKey(ka) || !isMixedScriptKey(kb)) return false;
+          const A = splitScriptBuckets(ka);
+          const B = splitScriptBuckets(kb);
+          if (!A.cjk || !B.cjk) return false;
+          if (!bucketSimilarOcr(A.cjk, B.cjk)) return false;
+          if (A.latin && B.latin) return bucketSimilarOcr(A.latin, B.latin);
+          return true;
+        }
+
+        function isCjkOnlyKey(s) {
+          if (!s) return false;
+          if (/[\p{Script=Latin}]/u.test(s)) return false;
+          return /[\p{Script=Hangul}\p{Script=Han}]/u.test(s);
+        }
+
+        function ocrKeysLikelySame(ka, kb) {
+          if (!ka || !kb) return false;
+          if (ka === kb) return true;
+          if (mixedScriptKeysLikelySame(ka, kb)) return true;
+          if (ka.length < 3 || kb.length < 3) return false;
+          const shorter = ka.length <= kb.length ? ka : kb;
+          const longer = ka.length <= kb.length ? kb : ka;
+          if (shorter.length >= 4 && longer.includes(shorter)) return true;
+          const maxLen = Math.max(ka.length, kb.length);
+          const dist = levenshtein(ka, kb);
+          const mixed = isMixedScriptKey(ka) || isMixedScriptKey(kb);
+          const cjkOnly = isCjkOnlyKey(ka) && isCjkOnlyKey(kb);
+          if (mixed || cjkOnly) {
+            if (maxLen <= 10) return dist <= 4;
+            if (maxLen <= 22) return dist <= 5;
+            return dist <= Math.max(4, Math.floor(maxLen * 0.2));
+          }
+          if (maxLen <= 7) return dist <= 2;
+          if (maxLen <= 14) return dist <= 3;
+          return dist <= Math.max(3, Math.floor(maxLen * 0.14));
+        }
+
+        /** Match OCR text to a roster row (fuzzy; same idea as Versus tracker). */
+        function ocrKeysMatchForOcrToTable(ocrKey, rosterKey) {
+          if (!ocrKey || !rosterKey) return false;
+          if (ocrKey === rosterKey) return true;
+          if (mixedScriptKeysLikelySame(ocrKey, rosterKey)) return true;
+          if (ocrKey.length < 3 || rosterKey.length < 3) {
+            const mx = Math.max(ocrKey.length, rosterKey.length);
+            if (mx > 4) return false;
+            return levenshtein(ocrKey, rosterKey) <= 1;
+          }
+          return ocrKeysLikelySame(ocrKey, rosterKey);
+        }
+
+        function isFooterTimestampLine(line) {
           const s = String(line || "").trim();
           if (!s) return false;
+          if (/\d{1,2}:\d{2}/.test(s) && /\d{4}\s*[-/.]\s*\d{1,2}\s*[-/.]\s*\d{1,2}/.test(s)) {
+            return true;
+          }
+          return false;
+        }
+
+        function isLikelyDsScoreOnlyLine(line) {
+          const t = String(line || "")
+            .trim()
+            .replace(/\s+/g, "")
+            .replace(/,/g, "");
+          return /^\d{3,12}$/.test(t);
+        }
+
+        function looksLikeName(line) {
+          const s = String(line || "").trim();
+          if (!s || isFooterTimestampLine(s)) return false;
+          if (isLikelyDsScoreOnlyLine(s)) return false;
           if (!/\p{L}/u.test(s)) return false;
           if (/^\d{4}[-/]\d{1,2}[-/]\d{1,2}/.test(s)) return false;
           return true;
+        }
+
+        function ocrRowDedupeKey(name, score) {
+          return `${normalizeMatchName(name)}|${normalizeNum(score)}`;
+        }
+
+        function pushUniqueOcrRow(out, seen, row) {
+          const name = cleanName(row.name || "");
+          const score = normalizeNum(row.s1 || "");
+          if (!name || !score) return;
+          const key = ocrRowDedupeKey(row.name || name, score);
+          if (seen.has(key)) return;
+          seen.add(key);
+          out.push({
+            name,
+            s1: score,
+            s2: "",
+            s3: "",
+            s4: "",
+            power: "",
+            r2b: "",
+            assignment: "",
+          });
+        }
+
+        /** Stacked layout: username line, score line below (typical mobile leaderboard). */
+        function parseDsStackedLeaderboardRows(text) {
+          const lines = String(text || "")
+            .split(/\r?\n/)
+            .map((x) => String(x || "").replace(/\s+/g, " ").trim())
+            .filter(Boolean);
+          const out = [];
+          const seen = new Set();
+          for (let i = 0; i < lines.length - 1; i++) {
+            const nameLine = lines[i];
+            const scoreLine = lines[i + 1];
+            if (!looksLikeName(nameLine)) continue;
+            if (!isLikelyDsScoreOnlyLine(scoreLine)) continue;
+            const score = normalizeNum(scoreLine);
+            if (!score) continue;
+            pushUniqueOcrRow(out, seen, { name: nameLine, s1: score });
+          }
+          return out;
         }
 
         function parseOcrRows(text) {
@@ -2480,11 +2677,11 @@
 
           for (let i = 0; i < lines.length; i++) {
             const line = lines[i];
-            const oneLine = line.match(/^(.*?)(-?\d[\d,]{3,}(?:\.\d+)?)$/);
+            const oneLine = line.match(/^(.*?)(-?\d[\d,]{2,}(?:\.\d+)?)$/);
             if (oneLine && looksLikeName(oneLine[1])) {
               const name = cleanName(oneLine[1]);
               const score = normalizeNum(oneLine[2]);
-              const key = `${name}|${score}`;
+              const key = ocrRowDedupeKey(oneLine[1], score);
               if (name && score && !seen.has(key)) {
                 seen.add(key);
                 out.push({
@@ -2503,11 +2700,11 @@
 
             if (!looksLikeName(line)) continue;
             const next = lines[i + 1] || "";
-            const scoreMatch = next.match(/(-?\d[\d,]{3,}(?:\.\d+)?)/);
+            const scoreMatch = next.match(/(-?\d[\d,]{2,}(?:\.\d+)?)/);
             if (!scoreMatch) continue;
             const name = cleanName(line);
             const score = normalizeNum(scoreMatch[1]);
-            const key = `${name}|${score}`;
+            const key = ocrRowDedupeKey(line, score);
             if (name && score && !seen.has(key)) {
               seen.add(key);
               out.push({
@@ -2533,7 +2730,7 @@
           const out = [];
           const seen = new Set();
           for (let i = 0; i < lines.length; i++) {
-            const scoreMatch = lines[i].match(/\b(-?\d[\d,]{3,}(?:\.\d+)?)\b/);
+            const scoreMatch = lines[i].match(/\b(-?\d[\d,]{2,}(?:\.\d+)?)\b/);
             if (!scoreMatch) continue;
             const score = normalizeNum(scoreMatch[1]);
             if (!score) continue;
@@ -2545,7 +2742,7 @@
               }
             }
             if (!name) continue;
-            const key = `${name}|${score}`;
+            const key = ocrRowDedupeKey(name, score);
             if (seen.has(key)) continue;
             seen.add(key);
             out.push({
@@ -2562,16 +2759,23 @@
           return out;
         }
 
-        /** NFC/NFKC keeps Hangul syllables whole; NFKD splits Hangul and breaks OCR↔table matching. */
-        function normalizeMatchName(raw) {
-          return cleanName(raw)
-            .toLowerCase()
-            .normalize("NFKC")
-            .replace(/[\u0300-\u036f]/g, "")
-            .replace(/[^\p{L}\p{N}]/gu, "");
+        function mergeOcrParseResults(text) {
+          const merged = [];
+          const seen = new Set();
+          const parsers = [
+            parseDsStackedLeaderboardRows,
+            parseOcrRows,
+            parseOcrRowsByScoreAnchor,
+          ];
+          parsers.forEach((fn) => {
+            const rows = fn(text) || [];
+            rows.forEach((r) => pushUniqueOcrRow(merged, seen, r));
+          });
+          return merged;
         }
 
-        function getNamedTableRows() {
+        /** All score rows; includes blank name cells (OCR can fill name + score into empty slots). */
+        function getOcrTableRows() {
           return Array.from(tbody.querySelectorAll("tr"))
             .map((tr) => {
               const nameInput = tr.querySelector('input[data-k="name"]');
@@ -2580,11 +2784,12 @@
               return {
                 tr,
                 s1Input,
+                nameInput,
                 name,
                 key: normalizeMatchName(name),
               };
             })
-            .filter((x) => x.name && x.key && x.s1Input);
+            .filter((x) => x.s1Input);
         }
 
         function findBestRowForOcrName(ocrName, namedRows) {
@@ -2592,45 +2797,49 @@
           const ocrKey = normalizeMatchName(ocrName);
           if (!ocrKey) return null;
 
-          // 1) Exact normalized match
           const exact = rows.find((r) => r.key === ocrKey);
           if (exact) return exact;
 
-          // 2) Substring match (helps common OCR truncation/extra chars)
           const partial = rows
             .filter((r) => r.key.includes(ocrKey) || ocrKey.includes(r.key))
-            .sort((a, b) => Math.abs(a.key.length - ocrKey.length) - Math.abs(b.key.length - ocrKey.length));
+            .sort(
+              (a, b) =>
+                Math.abs(a.key.length - ocrKey.length) -
+                Math.abs(b.key.length - ocrKey.length),
+            );
           if (partial.length) return partial[0];
 
-          return null;
+          let best = null;
+          let bestDist = Infinity;
+          rows.forEach((r) => {
+            if (!r.key) return;
+            if (!ocrKeysMatchForOcrToTable(ocrKey, r.key)) return;
+            const d = levenshtein(ocrKey, r.key);
+            const lenDiff = Math.abs(r.key.length - ocrKey.length);
+            if (
+              d < bestDist ||
+              (d === bestDist &&
+                best &&
+                lenDiff < Math.abs(best.key.length - ocrKey.length))
+            ) {
+              bestDist = d;
+              best = r;
+            }
+          });
+          return best;
         }
 
-        async function preprocessImage(file) {
-          const img = new Image();
-          const url = URL.createObjectURL(file);
-          await new Promise((resolve, reject) => {
-            img.onload = resolve;
-            img.onerror = reject;
-            img.src = url;
-          });
-          const iw = img.naturalWidth || img.width || 0;
-          const ih = img.naturalHeight || img.height || 0;
-          if (!iw || !ih) {
-            URL.revokeObjectURL(url);
-            throw new Error("Could not read image dimensions.");
-          }
+        function dsCropEnhanceCanvasFromBitmap(img, iw, ih) {
           const scale = 2;
-          // Crop to the text-heavy area (ignore most rank/avatar artifacts).
           const sx = Math.floor(iw * 0.34);
           const sy = Math.floor(ih * 0.02);
           const sw = Math.max(1, Math.floor(iw * 0.62));
-          const sh = Math.max(1, Math.floor(ih * 0.90));
+          const sh = Math.max(1, Math.floor(ih * 0.9));
           const canvas = document.createElement("canvas");
           canvas.width = Math.max(1, Math.floor(sw * scale));
           canvas.height = Math.max(1, Math.floor(sh * scale));
           const ctx = canvas.getContext("2d");
           if (!ctx) {
-            URL.revokeObjectURL(url);
             throw new Error("Canvas 2D context unavailable");
           }
           ctx.drawImage(img, sx, sy, sw, sh, 0, 0, canvas.width, canvas.height);
@@ -2644,16 +2853,90 @@
             d[i + 2] = boosted;
           }
           ctx.putImageData(imageData, 0, 0);
-          URL.revokeObjectURL(url);
           return canvas;
+        }
+
+        async function preprocessImageFile(file) {
+          const img = new Image();
+          const url = URL.createObjectURL(file);
+          try {
+            await new Promise((resolve, reject) => {
+              img.onload = resolve;
+              img.onerror = reject;
+              img.src = url;
+            });
+            const iw = img.naturalWidth || img.width || 0;
+            const ih = img.naturalHeight || img.height || 0;
+            if (!iw || !ih) {
+              throw new Error("Could not read image dimensions.");
+            }
+            return dsCropEnhanceCanvasFromBitmap(img, iw, ih);
+          } finally {
+            URL.revokeObjectURL(url);
+          }
+        }
+
+        function fileLooksLikeVideo(file) {
+          if (!file) return false;
+          const t = String(file.type || "").toLowerCase();
+          if (t.startsWith("video/")) return true;
+          return /\.(mp4|webm|mov|m4v|mkv|avi)(\s|$)/i.test(String(file.name || ""));
+        }
+
+        async function preprocessVideoFileFrame(file) {
+          const url = URL.createObjectURL(file);
+          const video = document.createElement("video");
+          video.muted = true;
+          video.playsInline = true;
+          video.setAttribute("playsinline", "");
+          video.preload = "auto";
+          video.src = url;
+          try {
+            await new Promise((resolve, reject) => {
+              const to = setTimeout(() => reject(new Error("Video load timeout.")), 90000);
+              video.onloadeddata = () => {
+                clearTimeout(to);
+                resolve();
+              };
+              video.onerror = () => {
+                clearTimeout(to);
+                reject(new Error("Could not load video."));
+              };
+            });
+            const dur = Number(video.duration);
+            const tSeek =
+              Number.isFinite(dur) && dur > 0
+                ? Math.min(Math.max(0.05, dur * 0.15), dur - 0.05)
+                : 0.1;
+            video.currentTime = tSeek;
+            await new Promise((resolve, reject) => {
+              video.onseeked = () => resolve();
+              video.onerror = () => reject(new Error("Could not seek video."));
+            });
+            await new Promise((r) => requestAnimationFrame(() => requestAnimationFrame(r)));
+            const iw = video.videoWidth || 0;
+            const ih = video.videoHeight || 0;
+            if (!iw || !ih) {
+              throw new Error("Could not read video frame size.");
+            }
+            return dsCropEnhanceCanvasFromBitmap(video, iw, ih);
+          } finally {
+            URL.revokeObjectURL(url);
+            video.removeAttribute("src");
+            video.load();
+            video.remove();
+          }
+        }
+
+        async function preprocessDsCaptureFile(file) {
+          if (fileLooksLikeVideo(file)) {
+            return preprocessVideoFileFrame(file);
+          }
+          return preprocessImageFile(file);
         }
 
         const DS_TESSERACT_WORKER_OPTS = { logger: function () {} };
 
-        /**
-         * Tesseract.js v5: use createWorker + setParameters + recognize (same as Versus Tracker).
-         * PSM 4 = single block of text (typical leaderboard column); retry PSM 6 if the first pass is empty.
-         */
         async function dsTesseractRecognizeOnce(source, langs, psm) {
           if (typeof Tesseract === "undefined" || !Tesseract.createWorker) {
             throw new Error("OCR library is not loaded.");
@@ -2680,20 +2963,17 @@
         async function dsOcrTextFromSource(source, langs) {
           let out = await dsTesseractRecognizeOnce(source, langs, "4");
           let text = (out && out.data && out.data.text) || "";
-          let rows = parseOcrRows(text);
-          if (!rows.length) rows = parseOcrRowsByScoreAnchor(text);
+          let rows = mergeOcrParseResults(text);
           if (!rows.length) {
             out = await dsTesseractRecognizeOnce(source, langs, "6");
             text = (out && out.data && out.data.text) || "";
-            rows = parseOcrRows(text);
-            if (!rows.length) rows = parseOcrRowsByScoreAnchor(text);
+            rows = mergeOcrParseResults(text);
           }
           return { text, rows };
         }
 
         async function runOcrOnFile(file) {
-          const langsAsian =
-            "eng+kor+jpn+chi_sim+chi_tra";
+          const langsAsian = "eng+kor+jpn+chi_sim+chi_tra";
           const langsBroad =
             "eng+spa+fra+deu+por+ita+rus+tur+pol+ukr+vie+tha+ara+hin";
           let langsPrimary =
@@ -2702,7 +2982,7 @@
           if (langsPrimary === langsBroad) langsFallback = langsAsian;
           else if (langsPrimary === "eng") langsFallback = langsAsian;
 
-          const source = await preprocessImage(file);
+          const source = await preprocessDsCaptureFile(file);
           let { rows } = await dsOcrTextFromSource(source, langsPrimary);
 
           if (!rows.length && langsPrimary !== langsFallback) {
@@ -2712,18 +2992,33 @@
           return rows;
         }
 
+        function clearAllRowsForCurrentDay() {
+          const yes = confirm(
+            "Clear all rows for this day? The imported player list is not removed (use Clear player list to drop it).",
+          );
+          if (!yes) return;
+          if (filterFieldEl) filterFieldEl.value = "name";
+          if (filterValueEl) filterValueEl.value = "";
+          if (sortFieldEl) sortFieldEl.value = "";
+          if (sortDirEl) sortDirEl.value = "asc";
+          tbody.innerHTML = "";
+          addRow();
+          const day = getSelectedDay();
+          const map = loadHistoryMap();
+          map[day] = mergePlayersIntoRows(collectRows(), []);
+          saveHistoryMap(map);
+          applyTableFiltersAndSort();
+          setStatus("Cleared this day’s table.");
+        }
+
         addBtn.addEventListener("click", function () {
           addRow();
           applyTableFiltersAndSort();
         });
 
-        clearBtn.addEventListener("click", function () {
-          const yes = confirm("Clear all rows?");
-          if (!yes) return;
-          tbody.innerHTML = "";
-          addRow();
-          saveCurrentDay(true);
-        });
+        if (clearBtn) {
+          clearBtn.addEventListener("click", clearAllRowsForCurrentDay);
+        }
 
         tbody.addEventListener("click", function (e) {
           const cb = e.target && e.target.closest('input[type="checkbox"][data-k]');
@@ -2775,72 +3070,128 @@
           setTimeout(() => URL.revokeObjectURL(a.href), 30000);
         });
 
-        runBtn.addEventListener("click", async function () {
-          const files = Array.from((imageInput && imageInput.files) || []);
-          if (!files.length) {
-            alert("Choose at least one screenshot first.");
-            return;
-          }
-          runBtn.disabled = true;
-          try {
-            let totalMatched = 0;
-            let totalAdded = 0;
-            let totalUnmatched = 0;
-            const unmatchedNames = [];
-            for (let i = 0; i < files.length; i++) {
-              setStatus(`OCR ${i + 1}/${files.length}: ${files[i].name} ...`);
-              const rows = await runOcrOnFile(files[i]);
-              let namedRows = getNamedTableRows();
-              rows.forEach((r) => {
-                const best = findBestRowForOcrName(r.name || "", namedRows);
-                if (best) {
-                  best.s1Input.value = r.s1 || "";
-                  totalMatched += 1;
-                  return;
-                }
-
-                // Fallback: if no player list/table names exist yet, keep old behavior.
-                if (!namedRows.length) {
-                  addRow({
-                    name: r.name || "",
-                    s1: r.s1 || "",
-                    s2: "",
-                    s3: "",
-                    s4: "",
-                    power: "",
-                    r2b: "",
-                    assignment: "",
+        if (runBtn && imageInput) {
+          runBtn.addEventListener("click", async function () {
+            const files = Array.from((imageInput && imageInput.files) || []);
+            if (!files.length) {
+              alert("Choose at least one image or video first.");
+              return;
+            }
+            runBtn.disabled = true;
+            try {
+              let totalMatched = 0;
+              let totalAdded = 0;
+              let totalUnmatched = 0;
+              const unmatchedNames = [];
+              for (let i = 0; i < files.length; i++) {
+                setStatus(`OCR ${i + 1}/${files.length}: ${files[i].name} ...`);
+                const tableHadNamedRows = getOcrTableRows().some((x) => x.key);
+                const rows = await runOcrOnFile(files[i]);
+                if (!tableHadNamedRows && rows.length) {
+                  Array.from(tbody.querySelectorAll("tr")).forEach((tr) => {
+                    const ni = tr.querySelector('input[data-k="name"]');
+                    if (!cleanName(ni ? ni.value : "")) {
+                      tr.remove();
+                    }
                   });
-                  totalAdded += 1;
-                  namedRows = getNamedTableRows();
-                  applyTableFiltersAndSort();
-                  return;
                 }
+                let emptyNameSlotQueue = getOcrTableRows().filter((x) => !x.key);
+                rows.forEach((r) => {
+                  const namedRows = getOcrTableRows().filter((x) => x.key);
+                  const best = findBestRowForOcrName(r.name || "", namedRows);
+                  const importName = cleanName(r.name || "");
+                  const importScore = normalizeNum(r.s1 || "");
+                  if (best) {
+                    best.s1Input.value = r.s1 || "";
+                    if (!cleanName(best.nameInput ? best.nameInput.value : "") && importName) {
+                      best.nameInput.value = importName;
+                    }
+                    totalMatched += 1;
+                    return;
+                  }
 
-                totalUnmatched += 1;
-                if (r && r.name && unmatchedNames.length < 5) unmatchedNames.push(r.name);
-              });
-            }
-            if (totalMatched === 0 && totalAdded === 0) {
-              setStatus("No rows detected. Try Broad multilingual and a clearer screenshot.");
-            } else {
-              saveCurrentDay(true);
-              let msg = `Done. Matched ${totalMatched} OCR row(s).`;
-              if (totalAdded > 0) msg += ` Added ${totalAdded} new row(s).`;
-              if (totalUnmatched > 0) {
-                msg += ` Unmatched ${totalUnmatched}.`;
-                if (unmatchedNames.length) msg += ` Check: ${unmatchedNames.join(", ")}.`;
+                  if (!tableHadNamedRows) {
+                    if (importName && importScore) {
+                      addRow({
+                        name: importName,
+                        s1: r.s1 || "",
+                        s2: "",
+                        s3: "",
+                        s4: "",
+                        power: "",
+                        r2b: "",
+                        assignment: "",
+                      });
+                      totalAdded += 1;
+                      applyTableFiltersAndSort();
+                    }
+                    return;
+                  }
+
+                  if (
+                    importName &&
+                    importScore &&
+                    emptyNameSlotQueue.length
+                  ) {
+                    const slot = emptyNameSlotQueue.shift();
+                    if (slot && slot.nameInput && slot.s1Input) {
+                      slot.nameInput.value = importName;
+                      slot.s1Input.value = r.s1 || "";
+                      totalMatched += 1;
+                      applyTableFiltersAndSort();
+                    }
+                    return;
+                  }
+
+                  if (importName && importScore) {
+                    addRow({
+                      name: importName,
+                      s1: r.s1 || "",
+                      s2: "",
+                      s3: "",
+                      s4: "",
+                      power: "",
+                      r2b: "",
+                      assignment: "",
+                    });
+                    totalAdded += 1;
+                    applyTableFiltersAndSort();
+                    return;
+                  }
+
+                  totalUnmatched += 1;
+                  if (r && r.name && unmatchedNames.length < 5) {
+                    unmatchedNames.push(r.name);
+                  }
+                });
               }
-              setStatus(msg);
-              applyTableFiltersAndSort();
+              if (totalMatched === 0 && totalAdded === 0) {
+                setStatus(
+                  "No rows detected. Try Broad multilingual, a clearer capture, or a screenshot instead of video.",
+                );
+              } else {
+                saveCurrentDay(true);
+                let msg = `Done. Matched ${totalMatched} OCR row(s).`;
+                if (totalAdded > 0) msg += ` Added ${totalAdded} new row(s).`;
+                if (totalUnmatched > 0) {
+                  msg += ` Unmatched ${totalUnmatched}.`;
+                  if (unmatchedNames.length) {
+                    msg += ` Check: ${unmatchedNames.join(", ")}.`;
+                  }
+                }
+                setStatus(msg);
+                applyTableFiltersAndSort();
+              }
+            } catch (err) {
+              setStatus("");
+              alert(
+                "OCR failed: " + (err && err.message ? err.message : String(err)),
+              );
+            } finally {
+              runBtn.disabled = false;
             }
-          } catch (err) {
-            setStatus("");
-            alert("OCR failed: " + (err && err.message ? err.message : String(err)));
-          } finally {
-            runBtn.disabled = false;
-          }
-        });
+          });
+        }
 
         if (playerListInput) {
           playerListInput.addEventListener("change", async function () {
@@ -2913,20 +3264,16 @@
         if (sortFieldEl) sortFieldEl.addEventListener("change", applyTableFiltersAndSort);
         if (sortDirEl) sortDirEl.addEventListener("change", applyTableFiltersAndSort);
         if (filterClearBtn) {
-          filterClearBtn.addEventListener("click", function () {
-            if (filterFieldEl) filterFieldEl.value = "name";
-            if (filterValueEl) filterValueEl.value = "";
-            if (sortFieldEl) sortFieldEl.value = "";
-            if (sortDirEl) sortDirEl.value = "asc";
-            applyTableFiltersAndSort();
-          });
+          filterClearBtn.addEventListener("click", clearAllRowsForCurrentDay);
         }
         if (clearPlayerListBtn) {
           clearPlayerListBtn.addEventListener("click", function () {
-            const yes = confirm("Clear saved player list?");
+            const yes = confirm(
+              "Clear the saved player list? Name-only rows (no scores) are removed from all saved days; rows with scores stay.",
+            );
             if (!yes) return;
             try {
-              localStorage.removeItem(PLAYER_LIST_KEY);
+              savePlayerList([]);
             } catch {
               // ignore
             }
