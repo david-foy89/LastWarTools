@@ -757,6 +757,13 @@
           /** Monotonic watermark — same pattern as season-2-supplies / interactive maps live sync. */
           lastSeenUpdatedAt: 0,
           applyingRemote: false,
+          /**
+           * False only when opening `?shareId=` until the first RTDB `value` event — avoids
+           * pushing an empty local grid over the host's data before the first snapshot arrives.
+           */
+          livePushUnlocked: true,
+          /** Cleared after first RTDB `value` when opening `?shareId=` (welcome status text). */
+          pendingShareWelcomeMsg: false,
         };
 
         function sanitizeShareId(raw) {
@@ -884,6 +891,8 @@
           rsLiveState.valueHandler = null;
           rsLiveState.active = false;
           rsLiveState.lastSeenUpdatedAt = 0;
+          rsLiveState.livePushUnlocked = true;
+          rsLiveState.pendingShareWelcomeMsg = false;
         }
 
         /**
@@ -984,7 +993,8 @@
           if (
             !rsLiveState.active ||
             !rsLiveState.shareId ||
-            rsLiveState.applyingRemote
+            rsLiveState.applyingRemote ||
+            !rsLiveState.livePushUnlocked
           ) {
             return;
           }
@@ -1021,19 +1031,33 @@
           }, 700);
         }
 
-        function startRsLiveSync(shareId) {
+        function startRsLiveSync(shareId, deferFirstLivePush) {
           stopRsLiveSync();
           rsLiveState.shareId = shareId;
           rsLiveState.active = true;
+          rsLiveState.livePushUnlocked = !deferFirstLivePush;
+          rsLiveState.pendingShareWelcomeMsg = !!deferFirstLivePush;
           history.replaceState(null, "", buildRsLiveShareUrl(shareId));
           if (!rsEnsureFirebaseReady()) {
             rsLiveState.active = false;
+            rsLiveState.livePushUnlocked = true;
+            rsLiveState.pendingShareWelcomeMsg = false;
+            if (rsLiveStatus) {
+              rsLiveStatus.textContent =
+                "Live link: could not connect to Firebase. Check db URL / network.";
+            }
             return;
           }
           rsLiveState.firebaseRef = rsLiveState.firebaseDb.ref(
             "rare-soil-war/" + shareId,
           );
           rsLiveState.valueHandler = function (snapshot) {
+            rsLiveState.livePushUnlocked = true;
+            if (rsLiveStatus && rsLiveState.pendingShareWelcomeMsg) {
+              rsLiveState.pendingShareWelcomeMsg = false;
+              rsLiveStatus.textContent =
+                "Live session — edits sync to this link.";
+            }
             const payload = snapshot.val();
             if (!payload || payload.updatedAt == null) return;
             const updatedAt = Number(payload.updatedAt);
@@ -1519,6 +1543,8 @@
         function refreshAfterAccountStorageMerge(syncedKeys) {
           const keys = Array.isArray(syncedKeys) ? syncedKeys : [];
           if (!keys.length || !keys.includes(STORAGE_KEY)) return;
+          /* RTDB session is authoritative — merged localStorage would overwrite live state. */
+          if (rsLiveState.active && rsLiveState.shareId) return;
 
           function runRefreshFromMerge() {
             accountMergeRefreshTimer = null;
@@ -1685,26 +1711,43 @@
           });
         }
 
-        loadState();
+        rsResolveLiveDbUrl();
+        var incomingShareId = null;
+        try {
+          incomingShareId = sanitizeShareId(
+            new URLSearchParams(window.location.search || "").get("shareId"),
+          );
+        } catch (_) {}
+
+        if (incomingShareId) {
+          /*
+           * Opening a shared live URL: do not load localStorage first — it shows the wrong
+           * rows briefly and the next save can overwrite cloud data with stale local state.
+           * RTDB (or an empty grid until the host writes) is the source of truth.
+           */
+          state.days = Array.from({ length: NUM_DAYS }, function () {
+            return { date: "", role: "attacker" };
+          });
+          state.rows = [
+            emptyRow(),
+            emptyRow(),
+            emptyRow(),
+            emptyRow(),
+            emptyRow(),
+          ];
+          if (rsLiveEnabled) rsLiveEnabled.checked = true;
+          rsLiveState.shareId = incomingShareId;
+          startRsLiveSync(incomingShareId, true);
+          if (rsLiveStatus) {
+            rsLiveStatus.textContent =
+              "Live session — loading shared data…";
+          }
+        } else {
+          loadState();
+        }
+
         renderDayControls();
         renderBody();
-
-        rsResolveLiveDbUrl();
-        try {
-          const qs = new URLSearchParams(window.location.search);
-          const sid = sanitizeShareId(qs.get("shareId"));
-          if (sid && rsLiveEnabled) {
-            rsLiveEnabled.checked = true;
-            rsLiveState.shareId = sid;
-            startRsLiveSync(sid);
-            if (rsLiveStatus) {
-              rsLiveStatus.textContent =
-                "Live session — edits sync to this link.";
-            }
-          }
-        } catch {
-          /* ignore */
-        }
       })();
     </script>
   </body>
