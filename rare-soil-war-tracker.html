@@ -690,6 +690,25 @@
 
     <script>
       (function () {
+        try {
+          var qsApc = new URLSearchParams(window.location.search || "");
+          if (qsApc.get("apcDebug") === "1" && typeof globalThis !== "undefined") {
+            globalThis.FIREBASE_APPCHECK_DEBUG_TOKEN = true;
+          }
+        } catch (_) {}
+        try {
+          var dTok = window.__FIREBASE_APPCHECK_DEBUG_TOKEN__;
+          if (
+            typeof dTok === "string" &&
+            dTok.trim().length > 0 &&
+            typeof globalThis !== "undefined"
+          ) {
+            var dv = dTok.trim();
+            globalThis.FIREBASE_APPCHECK_DEBUG_TOKEN =
+              dv === "true" || dv === "1" ? true : dv;
+          }
+        } catch (_) {}
+
         const STORAGE_KEY = "lastwar-rare-soil-war-tracker-v1";
         const NUM_DAYS = 8;
 
@@ -817,7 +836,11 @@
           const Provider = window.firebase.appCheck.ReCaptchaEnterpriseProvider;
           if (typeof Provider !== "function") return;
           try {
-            window.firebase.appCheck(app).activate(new Provider(siteKey), true);
+            const ac = window.firebase.appCheck(app);
+            ac.activate(new Provider(siteKey), true);
+            if (typeof ac.getToken === "function") {
+              ac.getToken(true).catch(function () {});
+            }
           } catch (err) {
             console.warn("[Rare Soil] App Check activation failed:", err);
           }

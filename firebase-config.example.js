@@ -32,14 +32,15 @@
  * not apply to RTDB.
  *
  * Realtime Database + App Check (rare-soil-war-tracker live link):
- * If the console shows “Missing appcheck token” for RTDB, Firebase has App Check *enforcement*
- * on for that database. Either:
- *   • Firebase Console → Build → App Check → Realtime Database → set enforcement to *Off* or
- *     *Monitor* (no client token required), or
- *   • Register your web app in App Check with a *reCAPTCHA Enterprise* site key, then set
- *     `__FIREBASE_APPCHECK_SITE_KEY__` below and deploy a real `firebase-config.js` with the
- *     full web `firebaseConfig` (apiKey, projectId, appId, …). The Rare Soil page merges that
- *     config with the `?db=` URL so App Check can mint tokens.
+ * Console warning “Missing appcheck token” means RTDB expects an App Check token. Fix one of:
+ *   • Firebase Console → Build → App Check → **Realtime Database** (not only Firestore) →
+ *     set enforcement to **Off** or **Monitor** — simplest for a public static site; or
+ *   • Register this web app under App Check with a **reCAPTCHA Enterprise** key, set
+ *     `__FIREBASE_APPCHECK_SITE_KEY__` below, deploy real `firebase-config.js` (full
+ *     `firebaseConfig`, not placeholders). Rare Soil merges that with `?db=` for RTDB.
+ * Local dev: add `?apcDebug=1` to the page URL *once*, copy the debug token from the browser
+ * console into App Check → Manage debug tokens, or set `__FIREBASE_APPCHECK_DEBUG_TOKEN__` in
+ * `firebase-config.js` (see below).
  */
 window.__FIREBASE_CONFIG__ = {
   apiKey: "YOUR_WEB_API_KEY",
@@ -60,3 +61,9 @@ window.__RECAPTCHA_SITE_KEY__ = "";
  * Leave "" if you use Monitor/Off for RTDB instead.
  */
 window.__FIREBASE_APPCHECK_SITE_KEY__ = "";
+
+/**
+ * Optional App Check **debug** token (string from Firebase console after using `?apcDebug=1`), or
+ * `"true"` / `"1"` to use the interactive debug flow. Only for localhost / testing.
+ */
+window.__FIREBASE_APPCHECK_DEBUG_TOKEN__ = "";
