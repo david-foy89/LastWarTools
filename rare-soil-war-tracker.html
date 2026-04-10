@@ -754,10 +754,9 @@
           firebaseRef: null,
           valueHandler: null,
           active: false,
-          lastSeenAt: 0,
+          /** Monotonic watermark — same pattern as season-2-supplies / interactive maps live sync. */
+          lastSeenUpdatedAt: 0,
           applyingRemote: false,
-          /** Fingerprint of last successful `.set` — detects own echo if `updatedBy` is stripped. */
-          lastPushedContentJson: "",
         };
 
         function sanitizeShareId(raw) {
@@ -782,8 +781,14 @@
           } catch {
             fromStorage = "";
           }
+          var fromGlobal = "";
+          try {
+            fromGlobal = String(window.LWST_LIVE_SYNC_DB_URL || "").trim();
+          } catch {
+            fromGlobal = "";
+          }
           const resolved = String(
-            fromUrl || fromStorage || RS_LIVE_DEFAULT_DB || "",
+            fromUrl || fromStorage || fromGlobal || RS_LIVE_DEFAULT_DB || "",
           ).trim();
           rsLiveState.dbUrl = resolved;
           if (resolved) {
@@ -796,81 +801,6 @@
           return resolved;
         }
 
-        /**
-         * Full web app config (from firebase-config.js) + RTDB URL lets App Check mint tokens.
-         * Fallback: `{ databaseURL }` only — works when RTDB App Check enforcement is off.
-         */
-        function buildRsFirebaseAppOptions(dbUrlNoSlash) {
-          const u = String(dbUrlNoSlash || "").replace(/\/$/, "");
-          const base =
-            typeof window.__FIREBASE_CONFIG__ === "object" &&
-            window.__FIREBASE_CONFIG__ !== null
-              ? window.__FIREBASE_CONFIG__
-              : null;
-          const keyOk =
-            base &&
-            typeof base.apiKey === "string" &&
-            base.apiKey.length > 8 &&
-            !/^YOUR_/i.test(base.apiKey) &&
-            typeof base.projectId === "string" &&
-            base.projectId.length > 0 &&
-            !/^YOUR_/i.test(base.projectId) &&
-            typeof base.appId === "string" &&
-            base.appId.length > 0;
-          if (keyOk) {
-            return Object.assign({}, base, { databaseURL: u });
-          }
-          return { databaseURL: u };
-        }
-
-        function maybeActivateRsAppCheck(app, options) {
-          if (!window.firebase || !window.firebase.appCheck) return;
-          const siteKey =
-            typeof window.__FIREBASE_APPCHECK_SITE_KEY__ === "string"
-              ? window.__FIREBASE_APPCHECK_SITE_KEY__.trim()
-              : "";
-          if (!siteKey) return;
-          if (!options || typeof options.apiKey !== "string" || !options.apiKey) {
-            return;
-          }
-          const Provider = window.firebase.appCheck.ReCaptchaEnterpriseProvider;
-          if (typeof Provider !== "function") return;
-          try {
-            const ac = window.firebase.appCheck(app);
-            ac.activate(new Provider(siteKey), true);
-            if (typeof ac.getToken === "function") {
-              ac.getToken(true).catch(function () {});
-            }
-          } catch (err) {
-            console.warn("[Rare Soil] App Check activation failed:", err);
-          }
-        }
-
-        /** RTDB snapshot `updatedAt`: number, numeric string, or rare unresolved sentinel. */
-        function parseRtdbUpdatedAtMs(raw) {
-          if (raw == null) return NaN;
-          if (typeof raw === "number" && Number.isFinite(raw)) return raw;
-          if (typeof raw === "string") {
-            const n = Number(raw);
-            if (Number.isFinite(n)) return n;
-          }
-          if (
-            typeof raw === "object" &&
-            raw !== null &&
-            raw[".sv"] === "timestamp"
-          ) {
-            return NaN;
-          }
-          return NaN;
-        }
-
-        function rsEnsureFirebaseDatabaseInstance() {
-          if (rsLiveState.firebaseDb || !rsLiveState.firebaseApp) return;
-          rsLiveState.firebaseDb = window.firebase.database(
-            rsLiveState.firebaseApp,
-          );
-        }
-
         function buildRsLiveShareUrl(shareId) {
           const url = new URL(window.location.href);
           url.search = "";
@@ -881,6 +811,11 @@
           return url.toString();
         }
 
+        /**
+         * Same strategy as season-2-supplies / maps: `{ databaseURL }` only (compat SDK).
+         * Avoids merging __FIREBASE_CONFIG__ + App Check here so RTDB matches open rules
+         * when App Check is not registered for this page.
+         */
         function rsEnsureFirebaseReady() {
           if (!rsLiveState.dbUrl) return false;
           if (!window.firebase || !window.firebase.apps) {
@@ -905,36 +840,38 @@
             return false;
           }
           if (!rsLiveState.firebaseApp) {
-            let appName;
+            var appName;
             try {
               appName =
-                "lwst-rs-" +
+                "lwst-" +
                 btoa(currentDb)
                   .replace(/[^a-zA-Z0-9]/g, "")
-                  .slice(0, 20);
+                  .slice(0, 24);
             } catch {
               var h = 0;
               for (var ci = 0; ci < currentDb.length; ci++) {
                 h = ((h << 5) - h + currentDb.charCodeAt(ci)) | 0;
               }
-              appName = "lwst-rs-" + String(h >>> 0);
+              appName = "lwst-" + String(h >>> 0);
             }
             const existing = window.firebase.apps.find(function (app) {
               return app.name === appName;
             });
-            const appOpts = buildRsFirebaseAppOptions(currentDb);
             rsLiveState.firebaseApp =
-              existing || window.firebase.initializeApp(appOpts, appName);
-            if (!existing) {
-              maybeActivateRsAppCheck(rsLiveState.firebaseApp, appOpts);
-              setTimeout(function () {
-                rsEnsureFirebaseDatabaseInstance();
-              }, 0);
-            } else {
-              rsEnsureFirebaseDatabaseInstance();
-            }
+              existing ||
+              window.firebase.initializeApp(
+                {
+                  databaseURL: currentDb,
+                },
+                appName,
+              );
+            rsLiveState.firebaseDb = window.firebase.database(
+              rsLiveState.firebaseApp,
+            );
           } else if (!rsLiveState.firebaseDb) {
-            rsEnsureFirebaseDatabaseInstance();
+            rsLiveState.firebaseDb = window.firebase.database(
+              rsLiveState.firebaseApp,
+            );
           }
           return true;
         }
@@ -946,8 +883,7 @@
           rsLiveState.firebaseRef = null;
           rsLiveState.valueHandler = null;
           rsLiveState.active = false;
-          rsLiveState.lastPushedContentJson = "";
-          rsLiveState.lastSeenAt = 0;
+          rsLiveState.lastSeenUpdatedAt = 0;
         }
 
         /**
@@ -1011,20 +947,6 @@
           return { days: days, rows: rows };
         }
 
-        function liveTrackerStateEqual(a, b) {
-          if (!a || !b || !a.days || !b.days || !a.rows || !b.rows) {
-            return false;
-          }
-          try {
-            return (
-              JSON.stringify(a.days) === JSON.stringify(b.days) &&
-              JSON.stringify(a.rows) === JSON.stringify(b.rows)
-            );
-          } catch {
-            return false;
-          }
-        }
-
         function applyRsLivePayload(payload) {
           const normalized = normalizeIncomingLiveState(payload);
           if (!normalized) return;
@@ -1053,9 +975,7 @@
             v: 1,
             days: state.days,
             rows: state.rows,
-            /* Server clock so all clients agree — Date.now() per device breaks multi-user sync. */
-            updatedAt:
-              window.firebase.database.ServerValue.TIMESTAMP,
+            updatedAt: Date.now(),
             updatedBy: rsLiveState.clientId,
           };
         }
@@ -1069,23 +989,6 @@
             return;
           }
           if (!rsEnsureFirebaseReady()) return;
-          if (!rsLiveState.firebaseDb) {
-            setTimeout(function () {
-              if (
-                rsLiveState.active &&
-                rsLiveState.shareId &&
-                !rsLiveState.applyingRemote &&
-                rsLiveState.firebaseDb
-              ) {
-                pushRsLivePayload();
-              }
-            }, 120);
-            if (rsLiveStatus) {
-              rsLiveStatus.textContent =
-                "Live link: Firebase is still initializing…";
-            }
-            return;
-          }
           const ref = rsLiveState.firebaseDb.ref(
             "rare-soil-war/" + rsLiveState.shareId,
           );
@@ -1093,14 +996,7 @@
           ref
             .set(payload)
             .then(function () {
-              try {
-                rsLiveState.lastPushedContentJson = JSON.stringify({
-                  days: payload.days,
-                  rows: payload.rows,
-                });
-              } catch {
-                rsLiveState.lastPushedContentJson = "";
-              }
+              rsLiveState.lastSeenUpdatedAt = Number(payload.updatedAt);
               if (rsLiveStatus) rsLiveStatus.textContent = "";
             })
             .catch(function (err) {
@@ -1129,97 +1025,35 @@
           stopRsLiveSync();
           rsLiveState.shareId = shareId;
           rsLiveState.active = true;
-          rsLiveState.lastSeenAt = 0;
+          history.replaceState(null, "", buildRsLiveShareUrl(shareId));
           if (!rsEnsureFirebaseReady()) {
             rsLiveState.active = false;
             return;
           }
-
-          var attachAttempts = 0;
-          function attachRsLiveListener() {
-            if (!rsLiveState.firebaseDb) {
-              attachAttempts += 1;
-              if (attachAttempts > 120) {
-                if (rsLiveStatus) {
-                  rsLiveStatus.textContent =
-                    "Live link: Firebase database did not initialize. Refresh the page.";
-                }
-                return;
+          rsLiveState.firebaseRef = rsLiveState.firebaseDb.ref(
+            "rare-soil-war/" + shareId,
+          );
+          rsLiveState.valueHandler = function (snapshot) {
+            const payload = snapshot.val();
+            if (!payload || payload.updatedAt == null) return;
+            const updatedAt = Number(payload.updatedAt);
+            if (!Number.isFinite(updatedAt)) return;
+            if (updatedAt <= rsLiveState.lastSeenUpdatedAt) return;
+            rsLiveState.lastSeenUpdatedAt = updatedAt;
+            if (payload.updatedBy === rsLiveState.clientId) return;
+            applyRsLivePayload(payload);
+          };
+          rsLiveState.firebaseRef.on(
+            "value",
+            rsLiveState.valueHandler,
+            function (err) {
+              if (rsLiveStatus) {
+                rsLiveStatus.textContent =
+                  "Live read failed: " +
+                  (err && err.code ? err.code : "unknown");
               }
-              setTimeout(attachRsLiveListener, 30);
-              return;
-            }
-            rsLiveState.firebaseRef = rsLiveState.firebaseDb.ref(
-              "rare-soil-war/" + shareId,
-            );
-            rsLiveState.valueHandler = function (snapshot) {
-              const val = snapshot.val();
-              if (!val) return;
-              const t = parseRtdbUpdatedAtMs(val.updatedAt);
-              if (!Number.isFinite(t)) return;
-
-              const remoteBy = String(
-                val.updatedBy != null ? val.updatedBy : "",
-              );
-
-              if (remoteBy === rsLiveState.clientId) {
-                rsLiveState.lastSeenAt = Math.max(rsLiveState.lastSeenAt, t);
-                return;
-              }
-
-              const normalized = normalizeIncomingLiveState(val);
-              if (!normalized) {
-                rsLiveState.lastSeenAt = Math.max(rsLiveState.lastSeenAt, t);
-                return;
-              }
-
-              const incomingJson = JSON.stringify({
-                days: normalized.days,
-                rows: normalized.rows,
-              });
-
-              if (
-                !remoteBy &&
-                rsLiveState.lastPushedContentJson &&
-                incomingJson === rsLiveState.lastPushedContentJson
-              ) {
-                rsLiveState.lastSeenAt = Math.max(rsLiveState.lastSeenAt, t);
-                return;
-              }
-
-              if (
-                liveTrackerStateEqual(
-                  { days: state.days, rows: state.rows },
-                  normalized,
-              )
-              ) {
-                rsLiveState.lastSeenAt = Math.max(rsLiveState.lastSeenAt, t);
-                return;
-              }
-
-              /*
-               * Apply remote edits from other users. Do not gate on t <= lastSeenAt — that
-               * compared each client's Date.now() and dropped other tabs when clocks skewed.
-               * Deduping is handled above (same content) and by server timestamps on new writes.
-               */
-              rsLiveState.lastSeenAt = Math.max(rsLiveState.lastSeenAt, t);
-              applyRsLivePayload(val);
-            };
-            rsLiveState.firebaseRef.on(
-              "value",
-              rsLiveState.valueHandler,
-              function (err) {
-                if (rsLiveStatus) {
-                  rsLiveStatus.textContent =
-                    "Live read failed: " +
-                    (err && err.code ? err.code : "unknown");
-                }
-              },
-            );
-          }
-
-          attachRsLiveListener();
-          history.replaceState(null, "", buildRsLiveShareUrl(shareId));
+            },
+          );
         }
 
         function downloadBlob(blob, filename) {
