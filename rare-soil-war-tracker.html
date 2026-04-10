@@ -888,38 +888,62 @@
           rsLiveState.lastPushedContentJson = "";
         }
 
+        /**
+         * RTDB often returns "arrays" as objects with numeric keys after round-trip.
+         * Array.isArray fails and sync was dropped — coerce before reading days/rows/notes.
+         */
+        function coerceRtdbArray(raw) {
+          if (raw == null) return [];
+          if (Array.isArray(raw)) return raw.slice();
+          if (typeof raw === "object") {
+            const keys = Object.keys(raw).filter(function (k) {
+              return /^\d+$/.test(k);
+            });
+            keys.sort(function (a, b) {
+              return Number(a) - Number(b);
+            });
+            return keys.map(function (k) {
+              return raw[k];
+            });
+          }
+          return [];
+        }
+
         function normalizeRowsFromLive(rows) {
-          if (!Array.isArray(rows)) return [emptyRow()];
-          return rows.map(function (r) {
+          const rowArr = coerceRtdbArray(rows);
+          if (rowArr.length === 0) return [emptyRow()];
+          return rowArr.map(function (r) {
+            const row = r && typeof r === "object" ? r : {};
+            const notes = coerceRtdbArray(row.notes);
+            const outcomes = coerceRtdbArray(row.outcomes);
             return {
-              server: String(r.server ?? ""),
-              alliance: String(r.alliance ?? ""),
-              notes: Array.from({ length: NUM_DAYS }, (_, i) =>
-                String((r.notes && r.notes[i]) ?? ""),
-              ),
-              outcomes: Array.from({ length: NUM_DAYS }, (_, i) =>
-                normalizeOutcome(r.outcomes && r.outcomes[i]),
-              ),
+              server: String(row.server ?? ""),
+              alliance: String(row.alliance ?? ""),
+              notes: Array.from({ length: NUM_DAYS }, function (_, i) {
+                return String(notes[i] ?? "");
+              }),
+              outcomes: Array.from({ length: NUM_DAYS }, function (_, i) {
+                return normalizeOutcome(outcomes[i]);
+              }),
             };
           });
         }
 
         function normalizeIncomingLiveState(payload) {
-          if (
-            !payload ||
-            !Array.isArray(payload.days) ||
-            !Array.isArray(payload.rows)
-          ) {
-            return null;
-          }
-          const days = payload.days.slice(0, NUM_DAYS);
+          if (!payload) return null;
+          const days = coerceRtdbArray(payload.days).slice(0, NUM_DAYS);
           while (days.length < NUM_DAYS) {
             days.push({ date: "", role: "attacker" });
           }
-          days.forEach(function (day) {
+          for (let di = 0; di < days.length; di++) {
+            let day = days[di];
+            if (!day || typeof day !== "object") {
+              day = { date: "", role: "attacker" };
+              days[di] = day;
+            }
             day.date = normalizeCalendarDate(day.date);
             day.role = day.role === "defender" ? "defender" : "attacker";
-          });
+          }
           let rows = normalizeRowsFromLive(payload.rows);
           if (rows.length === 0) rows = [emptyRow()];
           return { days: days, rows: rows };
