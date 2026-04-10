@@ -850,6 +850,25 @@
           );
         }
 
+        /** Shown when Firestore returns permission-denied — rules in repo are not yet published. */
+        function rsFirestoreRulesDeniedHint() {
+          try {
+            var pid =
+              window.__FIREBASE_CONFIG__ &&
+              window.__FIREBASE_CONFIG__.projectId;
+            pid = String(pid || "").trim();
+            if (pid && !/^YOUR_/i.test(pid)) {
+              return (
+                "Firestore: open Rules → paste repo firestore.rules → Publish — " +
+                "https://console.firebase.google.com/project/" +
+                encodeURIComponent(pid) +
+                "/firestore/rules"
+              );
+            }
+          } catch (_) {}
+          return "Firestore: publish firestore.rules from this repo (rareSoilWarLive match).";
+        }
+
         /**
          * Same strategy as season-2-supplies / maps: `{ databaseURL }` only (compat SDK).
          * Avoids merging __FIREBASE_CONFIG__ + App Check here so RTDB matches open rules
@@ -1058,7 +1077,7 @@
                   var code = err && err.code ? String(err.code) : "";
                   rsLiveStatus.textContent =
                     code === "permission-denied"
-                      ? "Live save denied — publish Firestore rules for rareSoilWarLive."
+                      ? rsFirestoreRulesDeniedHint()
                       : "Live save failed" +
                           (code ? " (" + code + ")" : "") +
                           ". Check rules / network.";
@@ -1205,7 +1224,7 @@
                     var code = err && err.code ? String(err.code) : "";
                     rsLiveStatus.textContent =
                       code === "permission-denied"
-                        ? "Live read denied — publish Firestore rules for rareSoilWarLive."
+                        ? rsFirestoreRulesDeniedHint()
                         : "Live read failed: " + (code || "unknown");
                   }
                 }
