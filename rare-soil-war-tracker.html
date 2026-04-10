@@ -58,6 +58,14 @@
         pointer-events: none !important;
       }
 
+      /* Ensure table controls stay clickable above any odd stacking / overlay quirks. */
+      .rs-tracker-layout input,
+      .rs-tracker-layout select,
+      .rs-tracker-layout textarea {
+        pointer-events: auto;
+        touch-action: manipulation;
+      }
+
       .rs-tracker-layout {
         grid-template-columns: 1fr;
         width: 100%;
@@ -725,6 +733,8 @@
           active: false,
           lastSeenAt: 0,
           applyingRemote: false,
+          /** Fingerprint of last successful `.set` — detects own echo if `updatedBy` is stripped. */
+          lastPushedContentJson: "",
         };
 
         function sanitizeShareId(raw) {
@@ -825,6 +835,7 @@
           rsLiveState.firebaseRef = null;
           rsLiveState.valueHandler = null;
           rsLiveState.active = false;
+          rsLiveState.lastPushedContentJson = "";
         }
 
         function normalizeRowsFromLive(rows) {
@@ -843,21 +854,43 @@
           });
         }
 
-        function applyRsLivePayload(payload) {
+        function normalizeIncomingLiveState(payload) {
           if (!payload || !Array.isArray(payload.days) || !payload.rows) {
-            return;
+            return null;
           }
-          rsLiveState.applyingRemote = true;
-          state.days = payload.days.slice(0, NUM_DAYS);
-          while (state.days.length < NUM_DAYS) {
-            state.days.push({ date: "", role: "attacker" });
+          const days = payload.days.slice(0, NUM_DAYS);
+          while (days.length < NUM_DAYS) {
+            days.push({ date: "", role: "attacker" });
           }
-          state.days.forEach(function (day) {
+          days.forEach(function (day) {
             day.date = normalizeCalendarDate(day.date);
             day.role = day.role === "defender" ? "defender" : "attacker";
           });
-          state.rows = normalizeRowsFromLive(payload.rows);
-          if (state.rows.length === 0) state.rows = [emptyRow()];
+          let rows = normalizeRowsFromLive(payload.rows);
+          if (rows.length === 0) rows = [emptyRow()];
+          return { days: days, rows: rows };
+        }
+
+        function liveTrackerStateEqual(a, b) {
+          if (!a || !b || !a.days || !b.days || !a.rows || !b.rows) {
+            return false;
+          }
+          try {
+            return (
+              JSON.stringify(a.days) === JSON.stringify(b.days) &&
+              JSON.stringify(a.rows) === JSON.stringify(b.rows)
+            );
+          } catch {
+            return false;
+          }
+        }
+
+        function applyRsLivePayload(payload) {
+          const normalized = normalizeIncomingLiveState(payload);
+          if (!normalized) return;
+          rsLiveState.applyingRemote = true;
+          state.days = normalized.days;
+          state.rows = normalized.rows;
           renderDayControls();
           renderBody();
           try {
@@ -902,6 +935,14 @@
             .set(payload)
             .then(function () {
               rsLiveState.lastSeenAt = Number(payload.updatedAt);
+              try {
+                rsLiveState.lastPushedContentJson = JSON.stringify({
+                  days: payload.days,
+                  rows: payload.rows,
+                });
+              } catch {
+                rsLiveState.lastPushedContentJson = "";
+              }
               if (rsLiveStatus) rsLiveStatus.textContent = "";
             })
             .catch(function () {
@@ -938,10 +979,42 @@
             const t = Number(val.updatedAt);
             if (!Number.isFinite(t)) return;
             if (t <= rsLiveState.lastSeenAt) return;
-            if (val.updatedBy === rsLiveState.clientId) {
+
+            const remoteBy = String(
+              val.updatedBy != null ? val.updatedBy : "",
+            );
+            if (remoteBy === rsLiveState.clientId) {
               rsLiveState.lastSeenAt = t;
               return;
             }
+
+            const normalized = normalizeIncomingLiveState(val);
+            if (!normalized) return;
+
+            const incomingJson = JSON.stringify({
+              days: normalized.days,
+              rows: normalized.rows,
+            });
+
+            if (
+              !remoteBy &&
+              rsLiveState.lastPushedContentJson &&
+              incomingJson === rsLiveState.lastPushedContentJson
+            ) {
+              rsLiveState.lastSeenAt = t;
+              return;
+            }
+
+            if (
+              liveTrackerStateEqual(
+                { days: state.days, rows: state.rows },
+                normalized,
+              )
+            ) {
+              rsLiveState.lastSeenAt = t;
+              return;
+            }
+
             rsLiveState.lastSeenAt = t;
             applyRsLivePayload(val);
           };

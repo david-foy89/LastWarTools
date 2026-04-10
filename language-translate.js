@@ -148,8 +148,10 @@
    */
   function isGoogleTranslateDisabledForThisPage() {
     try {
-      return /rare-soil-war-tracker\.html$/i.test(
-        window.location.pathname || "",
+      const p = window.location.pathname || "";
+      return (
+        /rare-soil-war-tracker\.html$/i.test(p) ||
+        p.toLowerCase().includes("rare-soil-war-tracker.html")
       );
     } catch {
       return false;
