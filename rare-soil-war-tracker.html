@@ -1040,8 +1040,10 @@
           history.replaceState(null, "", buildRsLiveShareUrl(shareId));
           if (!rsEnsureFirebaseReady()) {
             rsLiveState.active = false;
+            rsLiveState.shareId = null;
             rsLiveState.livePushUnlocked = true;
             rsLiveState.pendingShareWelcomeMsg = false;
+            if (rsLiveEnabled) rsLiveEnabled.checked = false;
             if (rsLiveStatus) {
               rsLiveStatus.textContent =
                 "Live link: could not connect to Firebase. Check db URL / network.";
@@ -1637,7 +1639,7 @@
             const sid = rsLiveState.shareId || createShareId();
             startRsLiveSync(sid);
             pushRsLivePayload();
-            if (rsLiveStatus) {
+            if (rsLiveStatus && rsLiveState.active) {
               rsLiveStatus.textContent =
                 "Live on — use Copy live link to share.";
             }
@@ -1659,6 +1661,9 @@
               if (rsLiveEnabled) rsLiveEnabled.checked = true;
               startRsLiveSync(sid);
               pushRsLivePayload();
+            }
+            if (!rsLiveState.active || !rsLiveState.shareId) {
+              return;
             }
             const url = buildRsLiveShareUrl(rsLiveState.shareId);
             try {
@@ -1738,9 +1743,12 @@
           if (rsLiveEnabled) rsLiveEnabled.checked = true;
           rsLiveState.shareId = incomingShareId;
           startRsLiveSync(incomingShareId, true);
-          if (rsLiveStatus) {
+          if (rsLiveStatus && rsLiveState.active) {
             rsLiveStatus.textContent =
               "Live session — loading shared data…";
+          }
+          if (!rsLiveState.active) {
+            loadState();
           }
         } else {
           loadState();
