@@ -56,7 +56,7 @@
     var existing = document.getElementById("lwstCalPopover");
     if (existing) {
       popoverEl = existing;
-      existing.classList.add("notranslate");
+      existing.classList.add("lwst-cal-popover", "notranslate");
       existing.setAttribute("translate", "no");
       wirePopoverControls();
       return popoverEl;
