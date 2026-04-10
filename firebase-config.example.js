@@ -25,6 +25,16 @@
  * → App Check: if Firestore enforcement is on, register this web app or use a debug token
  * for localhost. Google Cloud → APIs & Services → Credentials: if the browser API key is
  * restricted, allow “Firestore API” and the correct HTTP referrers (or unrestricted for dev).
+ *
+ * Realtime Database + App Check (rare-soil-war-tracker live link):
+ * If the console shows “Missing appcheck token” for RTDB, Firebase has App Check *enforcement*
+ * on for that database. Either:
+ *   • Firebase Console → Build → App Check → Realtime Database → set enforcement to *Off* or
+ *     *Monitor* (no client token required), or
+ *   • Register your web app in App Check with a *reCAPTCHA Enterprise* site key, then set
+ *     `__FIREBASE_APPCHECK_SITE_KEY__` below and deploy a real `firebase-config.js` with the
+ *     full web `firebaseConfig` (apiKey, projectId, appId, …). The Rare Soil page merges that
+ *     config with the `?db=` URL so App Check can mint tokens.
  */
 window.__FIREBASE_CONFIG__ = {
   apiKey: "YOUR_WEB_API_KEY",
@@ -38,3 +48,10 @@ window.__FIREBASE_CONFIG__ = {
 
 /** Google reCAPTCHA v2 site key (Sign up on account.html). Create at https://www.google.com/recaptcha/admin */
 window.__RECAPTCHA_SITE_KEY__ = "";
+
+/**
+ * reCAPTCHA *Enterprise* site key for Firebase App Check (web). Used by rare-soil-war-tracker
+ * when RTDB App Check enforcement is on. Register the app + key in Firebase Console → App Check.
+ * Leave "" if you use Monitor/Off for RTDB instead.
+ */
+window.__FIREBASE_APPCHECK_SITE_KEY__ = "";

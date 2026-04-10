@@ -47,6 +47,8 @@
     </script>
     <link rel="stylesheet" href="last-war-furnace-upgrade-calculator.css" />
     <link rel="stylesheet" href="last-war-calendar.css" />
+    <script src="firebase-config.example.js"></script>
+    <script src="firebase-config.js"></script>
     <script src="last-war-calendar.js"></script>
     <script src="page-nav-dropdown.js" defer></script>
     <script src="language-translate.js" defer></script>
@@ -683,6 +685,7 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.12.5/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.12.5/firebase-app-check-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.12.5/firebase-database-compat.js"></script>
 
     <script>
@@ -773,6 +776,52 @@
           return resolved;
         }
 
+        /**
+         * Full web app config (from firebase-config.js) + RTDB URL lets App Check mint tokens.
+         * Fallback: `{ databaseURL }` only — works when RTDB App Check enforcement is off.
+         */
+        function buildRsFirebaseAppOptions(dbUrlNoSlash) {
+          const u = String(dbUrlNoSlash || "").replace(/\/$/, "");
+          const base =
+            typeof window.__FIREBASE_CONFIG__ === "object" &&
+            window.__FIREBASE_CONFIG__ !== null
+              ? window.__FIREBASE_CONFIG__
+              : null;
+          const keyOk =
+            base &&
+            typeof base.apiKey === "string" &&
+            base.apiKey.length > 8 &&
+            !/^YOUR_/i.test(base.apiKey) &&
+            typeof base.projectId === "string" &&
+            base.projectId.length > 0 &&
+            !/^YOUR_/i.test(base.projectId) &&
+            typeof base.appId === "string" &&
+            base.appId.length > 0;
+          if (keyOk) {
+            return Object.assign({}, base, { databaseURL: u });
+          }
+          return { databaseURL: u };
+        }
+
+        function maybeActivateRsAppCheck(app, options) {
+          if (!window.firebase || !window.firebase.appCheck) return;
+          const siteKey =
+            typeof window.__FIREBASE_APPCHECK_SITE_KEY__ === "string"
+              ? window.__FIREBASE_APPCHECK_SITE_KEY__.trim()
+              : "";
+          if (!siteKey) return;
+          if (!options || typeof options.apiKey !== "string" || !options.apiKey) {
+            return;
+          }
+          const Provider = window.firebase.appCheck.ReCaptchaEnterpriseProvider;
+          if (typeof Provider !== "function") return;
+          try {
+            window.firebase.appCheck(app).activate(new Provider(siteKey), true);
+          } catch (err) {
+            console.warn("[Rare Soil] App Check activation failed:", err);
+          }
+        }
+
         function buildRsLiveShareUrl(shareId) {
           const url = new URL(window.location.href);
           url.search = "";
@@ -815,12 +864,12 @@
             const existing = window.firebase.apps.find(function (app) {
               return app.name === appName;
             });
+            const appOpts = buildRsFirebaseAppOptions(currentDb);
             rsLiveState.firebaseApp =
-              existing ||
-              window.firebase.initializeApp(
-                { databaseURL: currentDb },
-                appName,
-              );
+              existing || window.firebase.initializeApp(appOpts, appName);
+            if (!existing) {
+              maybeActivateRsAppCheck(rsLiveState.firebaseApp, appOpts);
+            }
             rsLiveState.firebaseDb = window.firebase.database(
               rsLiveState.firebaseApp,
             );
