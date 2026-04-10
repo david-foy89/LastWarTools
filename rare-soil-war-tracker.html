@@ -2,7 +2,10 @@
 <html lang="en">
   <head>
     <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta
+      name="viewport"
+      content="width=device-width, initial-scale=1.0, viewport-fit=cover"
+    />
     <title>Rare Soil War Tracker | Last War Tools</title>
     <meta
       name="description"
@@ -66,6 +69,24 @@
       .rs-tracker-layout textarea {
         pointer-events: auto;
         touch-action: manipulation;
+      }
+
+      /* Page shell: avoid horizontal page scroll; table uses its own scroller */
+      body.rs-war-tracker-page {
+        overflow-x: hidden;
+      }
+
+      body.rs-war-tracker-page .page {
+        max-width: min(980px, 100%);
+        padding-left: max(16px, env(safe-area-inset-left, 0px));
+        padding-right: max(16px, env(safe-area-inset-right, 0px));
+        padding-bottom: calc(44px + env(safe-area-inset-bottom, 0px));
+      }
+
+      body.rs-war-tracker-page .support-bar {
+        padding-left: max(16px, env(safe-area-inset-left, 0px));
+        padding-right: max(16px, env(safe-area-inset-right, 0px));
+        box-sizing: border-box;
       }
 
       .rs-tracker-layout {
@@ -158,9 +179,11 @@
         max-width: 100%;
         min-width: 0;
         overflow-x: auto;
+        overscroll-behavior-x: contain;
         margin: 0;
         padding: 0 0 8px;
         -webkit-overflow-scrolling: touch;
+        scrollbar-gutter: stable;
       }
 
       .rs-table {
@@ -502,6 +525,112 @@
         font-weight: 700;
       }
 
+      @media (max-width: 720px) {
+        body.rs-war-tracker-page .hero {
+          padding: 18px 16px;
+        }
+
+        body.rs-war-tracker-page .hero .sub {
+          font-size: 0.92rem;
+          line-height: 1.45;
+        }
+      }
+
+      @media (max-width: 640px) {
+        .rs-export-toolbar {
+          flex-direction: row;
+          flex-wrap: wrap;
+          align-items: stretch;
+        }
+
+        .rs-export-toolbar > .rs-export-label {
+          flex: 1 0 100%;
+          margin-right: 0;
+          margin-bottom: 2px;
+        }
+
+        .rs-export-toolbar > #rsExportCsv,
+        .rs-export-toolbar > #rsExportXlsx,
+        .rs-export-toolbar > #rsExportPng {
+          flex: 1 1 calc(33.333% - 6px);
+          min-width: 0;
+          text-align: center;
+          padding-inline: 8px;
+        }
+
+        .rs-export-toolbar > .rs-export-divider {
+          display: none;
+        }
+
+        .rs-export-toolbar > .rs-live-label {
+          flex: 1 0 100%;
+          min-height: 2.5rem;
+          align-items: center;
+        }
+
+        .rs-export-toolbar > #rsCopyLiveLink {
+          flex: 1 1 100%;
+          min-width: 0;
+        }
+
+        .rs-export-toolbar > .rs-live-status {
+          flex: 1 0 100%;
+          min-width: 0;
+          word-break: break-word;
+          line-height: 1.35;
+        }
+      }
+
+      @media (max-width: 480px) {
+        body.rs-war-tracker-page .page {
+          padding-left: max(8px, env(safe-area-inset-left, 0px));
+          padding-right: max(8px, env(safe-area-inset-right, 0px));
+          padding-top: max(18px, env(safe-area-inset-top, 0px));
+          padding-bottom: calc(36px + env(safe-area-inset-bottom, 0px));
+        }
+
+        .rs-toolbar:not(.rs-export-toolbar) {
+          flex-direction: column;
+          align-items: stretch;
+        }
+
+        .rs-toolbar:not(.rs-export-toolbar) .action-button {
+          width: 100%;
+          min-height: 44px;
+          box-sizing: border-box;
+        }
+
+        .rs-toolbar:not(.rs-export-toolbar) .rs-hint {
+          text-align: center;
+          width: 100%;
+        }
+
+        .rs-export-toolbar > #rsExportCsv,
+        .rs-export-toolbar > #rsExportXlsx,
+        .rs-export-toolbar > #rsExportPng {
+          min-height: 44px;
+        }
+
+        .rs-export-toolbar > #rsCopyLiveLink {
+          min-height: 44px;
+          width: 100%;
+        }
+
+        .rs-export-toolbar > .rs-live-label {
+          width: 100%;
+          justify-content: flex-start;
+        }
+
+        /* Slightly wider horizontal scroll strip on small phones */
+        .rs-table-wrap {
+          margin-left: -4px;
+          margin-right: -4px;
+          padding-left: 4px;
+          padding-right: 4px;
+          width: calc(100% + 8px);
+        }
+      }
+
       @media (max-width: 520px) {
         .rs-table .rs-day-title {
           font-size: 0.62rem;
@@ -509,7 +638,7 @@
       }
     </style>
   </head>
-  <body>
+  <body class="rs-war-tracker-page">
     <div class="page">
       <div class="page-top-stack">
         <aside class="account-promo-strip" aria-label="Optional account">
@@ -850,25 +979,6 @@
           );
         }
 
-        /** Shown when Firestore returns permission-denied — rules in repo are not yet published. */
-        function rsFirestoreRulesDeniedHint() {
-          try {
-            var pid =
-              window.__FIREBASE_CONFIG__ &&
-              window.__FIREBASE_CONFIG__.projectId;
-            pid = String(pid || "").trim();
-            if (pid && !/^YOUR_/i.test(pid)) {
-              return (
-                "Firestore: open Rules → paste repo firestore.rules → Publish — " +
-                "https://console.firebase.google.com/project/" +
-                encodeURIComponent(pid) +
-                "/firestore/rules"
-              );
-            }
-          } catch (_) {}
-          return "Firestore: publish firestore.rules from this repo (rareSoilWarLive match).";
-        }
-
         /**
          * Same strategy as season-2-supplies / maps: `{ databaseURL }` only (compat SDK).
          * Avoids merging __FIREBASE_CONFIG__ + App Check here so RTDB matches open rules
@@ -1077,7 +1187,7 @@
                   var code = err && err.code ? String(err.code) : "";
                   rsLiveStatus.textContent =
                     code === "permission-denied"
-                      ? rsFirestoreRulesDeniedHint()
+                      ? "Live sync unavailable."
                       : "Live save failed" +
                           (code ? " (" + code + ")" : "") +
                           ". Check rules / network.";
@@ -1224,7 +1334,7 @@
                     var code = err && err.code ? String(err.code) : "";
                     rsLiveStatus.textContent =
                       code === "permission-denied"
-                        ? rsFirestoreRulesDeniedHint()
+                        ? "Live sync unavailable."
                         : "Live read failed: " + (code || "unknown");
                   }
                 }
