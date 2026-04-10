@@ -967,7 +967,9 @@
             v: 1,
             days: state.days,
             rows: state.rows,
-            updatedAt: Date.now(),
+            /* Server clock so all clients agree — Date.now() per device breaks multi-user sync. */
+            updatedAt:
+              window.firebase.database.ServerValue.TIMESTAMP,
             updatedBy: rsLiveState.clientId,
           };
         }
@@ -988,7 +990,6 @@
           ref
             .set(payload)
             .then(function () {
-              rsLiveState.lastSeenAt = Number(payload.updatedAt);
               try {
                 rsLiveState.lastPushedContentJson = JSON.stringify({
                   days: payload.days,
@@ -1032,19 +1033,19 @@
             if (!val || val.updatedAt == null) return;
             const t = Number(val.updatedAt);
             if (!Number.isFinite(t)) return;
-            if (t <= rsLiveState.lastSeenAt) return;
 
             const remoteBy = String(
               val.updatedBy != null ? val.updatedBy : "",
             );
+
             if (remoteBy === rsLiveState.clientId) {
-              rsLiveState.lastSeenAt = t;
+              rsLiveState.lastSeenAt = Math.max(rsLiveState.lastSeenAt, t);
               return;
             }
 
             const normalized = normalizeIncomingLiveState(val);
             if (!normalized) {
-              rsLiveState.lastSeenAt = t;
+              rsLiveState.lastSeenAt = Math.max(rsLiveState.lastSeenAt, t);
               return;
             }
 
@@ -1058,7 +1059,7 @@
               rsLiveState.lastPushedContentJson &&
               incomingJson === rsLiveState.lastPushedContentJson
             ) {
-              rsLiveState.lastSeenAt = t;
+              rsLiveState.lastSeenAt = Math.max(rsLiveState.lastSeenAt, t);
               return;
             }
 
@@ -1068,11 +1069,16 @@
                 normalized,
               )
             ) {
-              rsLiveState.lastSeenAt = t;
+              rsLiveState.lastSeenAt = Math.max(rsLiveState.lastSeenAt, t);
               return;
             }
 
-            rsLiveState.lastSeenAt = t;
+            /*
+             * Apply remote edits from other users. Do not gate on t <= lastSeenAt — that
+             * compared each client's Date.now() and dropped other tabs when clocks skewed.
+             * Deduping is handled above (same content) and by server timestamps on new writes.
+             */
+            rsLiveState.lastSeenAt = Math.max(rsLiveState.lastSeenAt, t);
             applyRsLivePayload(val);
           };
           rsLiveState.firebaseRef.on(
