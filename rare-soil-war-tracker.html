@@ -771,6 +771,17 @@
           return /^[a-zA-Z0-9_-]{6,64}$/.test(value) ? value : null;
         }
 
+        /** Valid `?shareId=` on the current URL (state may be null after toggling live off). */
+        function resolveShareIdFromUrl() {
+          try {
+            return sanitizeShareId(
+              new URLSearchParams(window.location.search || "").get("shareId"),
+            );
+          } catch (_) {
+            return null;
+          }
+        }
+
         function createShareId() {
           return (
             Date.now().toString(36) + Math.random().toString(36).slice(2, 8)
@@ -1636,7 +1647,10 @@
               rsLiveEnabled.checked = false;
               return;
             }
-            const sid = rsLiveState.shareId || createShareId();
+            const sid =
+              rsLiveState.shareId ||
+              resolveShareIdFromUrl() ||
+              createShareId();
             startRsLiveSync(sid);
             pushRsLivePayload();
             if (rsLiveStatus && rsLiveState.active) {
@@ -1656,7 +1670,7 @@
               return;
             }
             if (!rsLiveState.shareId) {
-              const sid = createShareId();
+              const sid = resolveShareIdFromUrl() || createShareId();
               rsLiveState.shareId = sid;
               if (rsLiveEnabled) rsLiveEnabled.checked = true;
               startRsLiveSync(sid);
