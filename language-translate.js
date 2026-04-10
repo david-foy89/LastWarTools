@@ -141,6 +141,21 @@
     document.body.appendChild(script);
   }
 
+  /**
+   * Google’s website translator rewrites the DOM in ways that break spreadsheet-style
+   * inputs (even inside `notranslate` in some browsers). Skip loading/applying it on
+   * those pages; language preference still saves for the rest of the site.
+   */
+  function isGoogleTranslateDisabledForThisPage() {
+    try {
+      return /rare-soil-war-tracker\.html$/i.test(
+        window.location.pathname || "",
+      );
+    } catch {
+      return false;
+    }
+  }
+
   function setupLanguageTranslate() {
     const languageSelect = document.getElementById("languageSelect");
     const translateHost = document.getElementById("google_translate_element");
@@ -150,6 +165,16 @@
 
     const preferredLanguage = loadPreferredLanguage();
     buildLanguageOptions(languageSelect, preferredLanguage);
+
+    if (isGoogleTranslateDisabledForThisPage()) {
+      languageSelect.addEventListener("change", function () {
+        savePreferredLanguage(languageSelect.value);
+      });
+      languageSelect.title =
+        "Translation is turned off on this page so the table stays editable. It applies when you open other tools.";
+      return;
+    }
+
     initTranslate(languageSelect, preferredLanguage);
   }
 
