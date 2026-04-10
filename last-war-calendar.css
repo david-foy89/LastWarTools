@@ -1,0 +1,159 @@
+/**
+ * Last War Tools — shared month/day calendar (popover + MM/DD trigger).
+ * Load after last-war-furnace-upgrade-calculator.css (uses --panel-2, --line, etc.).
+ */
+
+/* —— Hidden native date input when using LWST trigger —— */
+input[type="date"].lwst-cal-input-hidden {
+  position: absolute !important;
+  opacity: 0 !important;
+  width: 1px !important;
+  height: 1px !important;
+  padding: 0 !important;
+  margin: 0 !important;
+  overflow: hidden !important;
+  clip: rect(0, 0, 0, 0) !important;
+  border: 0 !important;
+  pointer-events: none !important;
+}
+
+/* —— Trigger button (MM/DD label) —— */
+.lwst-cal-trigger {
+  display: inline-block;
+  min-width: 5.5rem;
+  max-width: 100%;
+  box-sizing: border-box;
+  padding: 5px 10px;
+  border-radius: 8px;
+  border: 1px solid var(--line-soft);
+  background: var(--panel-2);
+  color: var(--text);
+  font: inherit;
+  font-size: 0.88rem;
+  font-weight: 600;
+  cursor: pointer;
+  text-align: center;
+  vertical-align: middle;
+}
+
+.lwst-cal-trigger:hover,
+.lwst-cal-trigger:focus-visible {
+  border-color: var(--accent-2);
+  outline: none;
+}
+
+/* —— Popover —— */
+.lwst-cal-popover {
+  position: fixed;
+  z-index: 5000;
+  min-width: 200px;
+  max-width: min(260px, calc(100vw - 24px));
+  padding: 10px;
+  border-radius: 12px;
+  border: 1px solid var(--line);
+  background: rgba(12, 24, 37, 0.98);
+  box-shadow: 0 12px 40px rgba(0, 0, 0, 0.55);
+}
+
+.lwst-cal-pop-nav {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  margin-bottom: 8px;
+}
+
+.lwst-cal-nav-btn {
+  cursor: pointer;
+  border: 1px solid var(--line-soft);
+  border-radius: 8px;
+  background: rgba(8, 16, 25, 0.9);
+  color: var(--text);
+  font: inherit;
+  font-size: 0.85rem;
+  font-weight: 700;
+  padding: 4px 10px;
+  line-height: 1;
+}
+
+.lwst-cal-nav-btn:hover,
+.lwst-cal-nav-btn:focus-visible {
+  border-color: var(--accent-2);
+  outline: none;
+}
+
+.lwst-cal-month-title {
+  font-size: 0.88rem;
+  font-weight: 800;
+  color: var(--accent-2);
+  flex: 1;
+  text-align: center;
+}
+
+.lwst-cal-week-row {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  gap: 2px;
+  margin-bottom: 4px;
+  font-size: 0.62rem;
+  font-weight: 700;
+  color: var(--muted);
+  text-align: center;
+}
+
+.lwst-cal-grid {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  gap: 3px;
+}
+
+.lwst-cal-cell--pad {
+  min-height: 28px;
+}
+
+.lwst-cal-day {
+  cursor: pointer;
+  border: 1px solid rgba(55, 80, 106, 0.45);
+  border-radius: 6px;
+  background: rgba(8, 16, 25, 0.75);
+  color: var(--text);
+  font: inherit;
+  font-size: 0.72rem;
+  font-weight: 600;
+  padding: 5px 0;
+  min-height: 28px;
+}
+
+.lwst-cal-day:hover,
+.lwst-cal-day:focus-visible {
+  border-color: var(--accent-2);
+  outline: none;
+}
+
+.lwst-cal-day--selected {
+  border-color: rgba(81, 207, 102, 0.55);
+  background: rgba(20, 45, 29, 0.45);
+  color: #b2f2bb;
+}
+
+/* —— Native inputs: match trigger look (inline field only; browser picker unchanged) —— */
+input[type="date"].lwst-cal-native,
+input[type="datetime-local"].lwst-cal-native {
+  padding: 5px 10px;
+  border-radius: 8px;
+  border: 1px solid var(--line-soft);
+  background: var(--panel-2);
+  color: var(--text);
+  font: inherit;
+  font-size: 0.88rem;
+  font-weight: 600;
+  vertical-align: middle;
+}
+
+input[type="date"].lwst-cal-native:hover,
+input[type="datetime-local"].lwst-cal-native:hover,
+input[type="date"].lwst-cal-native:focus-visible,
+input[type="datetime-local"].lwst-cal-native:focus-visible {
+  border-color: var(--accent-2);
+  outline: none;
+}

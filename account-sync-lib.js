@@ -16,6 +16,9 @@ export const MAX_PAYLOAD_CHARS = 900000;
 /** Train Conductor schedule (`train-conductor-schedule.html`) — merge by `savedAt`, not raw assign order. */
 export const TRAIN_CONDUCTOR_STORAGE_KEY = "lastWarTrainConductorV1";
 
+/** Rare Soil War Tracker (`rare-soil-war-tracker.html`) — merge by `savedAt` on the stored JSON. */
+export const RARE_SOIL_WAR_TRACKER_STORAGE_KEY = "lastwar-rare-soil-war-tracker-v1";
+
 /**
  * When both devices have schedule data, prefer the payload with the newer `savedAt` (ms).
  * Legacy payloads without `savedAt` use length as a weak tie-break (richer schedule wins).
@@ -23,6 +26,32 @@ export const TRAIN_CONDUCTOR_STORAGE_KEY = "lastWarTrainConductorV1";
  * @param {string} cloudVal
  */
 export function pickNewerTrainConductorPayload(localVal, cloudVal) {
+  const parse = (s) => {
+    try {
+      const o = JSON.parse(s);
+      const t = Number(o.savedAt);
+      return {
+        raw: s,
+        t: Number.isFinite(t) && t > 0 ? t : 0,
+        len: String(s || "").length,
+      };
+    } catch {
+      return { raw: s, t: 0, len: String(s || "").length };
+    }
+  };
+  const a = parse(localVal);
+  const b = parse(cloudVal);
+  if (a.t !== b.t) return a.t > b.t ? a.raw : b.raw;
+  return a.len >= b.len ? a.raw : b.raw;
+}
+
+/**
+ * When both devices have Rare Soil data, prefer the payload with the newer `savedAt` (ms).
+ * Legacy payloads without `savedAt` use length as a weak tie-break.
+ * @param {string} localVal
+ * @param {string} cloudVal
+ */
+export function pickNewerRareSoilWarTrackerPayload(localVal, cloudVal) {
   const parse = (s) => {
     try {
       const o = JSON.parse(s);
@@ -293,6 +322,13 @@ export async function mergeAndSyncToCloud(user, db, options) {
     merged[TRAIN_CONDUCTOR_STORAGE_KEY] = pickNewerTrainConductorPayload(
       local[TRAIN_CONDUCTOR_STORAGE_KEY],
       cloudData[TRAIN_CONDUCTOR_STORAGE_KEY],
+    );
+  }
+
+  if (local[RARE_SOIL_WAR_TRACKER_STORAGE_KEY] && cloudData[RARE_SOIL_WAR_TRACKER_STORAGE_KEY]) {
+    merged[RARE_SOIL_WAR_TRACKER_STORAGE_KEY] = pickNewerRareSoilWarTrackerPayload(
+      local[RARE_SOIL_WAR_TRACKER_STORAGE_KEY],
+      cloudData[RARE_SOIL_WAR_TRACKER_STORAGE_KEY],
     );
   }
 

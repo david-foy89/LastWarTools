@@ -1,0 +1,1592 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Rare Soil War Tracker | Last War Tools</title>
+    <meta
+      name="description"
+      content="Track alliances by server and plan Rare Soil War battle days with dates and attacker or defender schedule."
+    />
+    <link
+      rel="canonical"
+      href="https://lastwarsurvivaltools.com/rare-soil-war-tracker.html"
+    />
+    <meta property="og:type" content="website" />
+    <meta property="og:title" content="Rare Soil War Tracker | Last War Tools" />
+    <meta
+      property="og:description"
+      content="Track alliances by server and plan Rare Soil War battle days with dates and attacker or defender schedule."
+    />
+    <meta
+      property="og:url"
+      content="https://lastwarsurvivaltools.com/rare-soil-war-tracker.html"
+    />
+    <meta
+      property="og:image"
+      content="https://lastwarsurvivaltools.com/media/lwst.png"
+    />
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:title" content="Rare Soil War Tracker | Last War Tools" />
+    <meta
+      name="twitter:description"
+      content="Track alliances by server and plan Rare Soil War battle days with dates and attacker or defender schedule."
+    />
+    <meta
+      name="twitter:image"
+      content="https://lastwarsurvivaltools.com/media/lwst.png"
+    />
+    <script type="application/ld+json">
+      {
+        "@context": "https://schema.org",
+        "@type": "WebPage",
+        "name": "Rare Soil War Tracker",
+        "description": "Track alliances by server and plan Rare Soil War battle days with dates and attacker or defender schedule.",
+        "url": "https://lastwarsurvivaltools.com/rare-soil-war-tracker.html"
+      }
+    </script>
+    <link rel="stylesheet" href="last-war-furnace-upgrade-calculator.css" />
+    <link rel="stylesheet" href="last-war-calendar.css" />
+    <script src="last-war-calendar.js"></script>
+    <script src="page-nav-dropdown.js" defer></script>
+    <script src="language-translate.js" defer></script>
+    <style>
+      /* Single-card pages: default .layout is two columns — span full width */
+      .rs-tracker-layout {
+        grid-template-columns: 1fr;
+        width: 100%;
+        min-width: 0;
+        box-sizing: border-box;
+      }
+
+      .rs-tracker-layout > .card {
+        min-width: 0;
+        max-width: 100%;
+      }
+
+      .rs-toolbar {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 10px;
+        align-items: center;
+        margin-bottom: 14px;
+      }
+
+      .rs-toolbar .action-button {
+        cursor: pointer;
+        border: 1px solid var(--line-soft);
+        border-radius: 999px;
+        background: rgba(12, 24, 37, 0.88);
+        color: var(--text);
+        padding: 10px 16px;
+        font: inherit;
+        font-size: 0.88rem;
+        font-weight: 700;
+      }
+
+      .rs-toolbar .action-button:hover,
+      .rs-toolbar .action-button:focus-visible {
+        border-color: var(--accent-2);
+        outline: none;
+      }
+
+      .rs-toolbar .rs-hint {
+        color: var(--muted);
+        font-size: 0.88rem;
+      }
+
+      .rs-account-sync-note {
+        margin: 0 0 12px;
+        font-size: 0.82rem;
+        line-height: 1.45;
+        color: var(--muted);
+        max-width: 52rem;
+      }
+
+      .rs-account-sync-note a {
+        color: var(--accent-2);
+        text-decoration: underline;
+        text-underline-offset: 2px;
+      }
+
+      .rs-export-toolbar {
+        flex-wrap: wrap;
+        gap: 8px;
+        margin-bottom: 10px;
+        align-items: center;
+      }
+
+      .rs-export-toolbar .rs-export-label {
+        font-size: 0.82rem;
+        font-weight: 700;
+        color: var(--muted);
+        margin-right: 4px;
+      }
+
+      .rs-export-toolbar .rs-export-divider {
+        width: 1px;
+        height: 1.35rem;
+        margin: 0 4px 0 8px;
+        background: var(--line-soft);
+        flex-shrink: 0;
+        align-self: center;
+      }
+
+      .rs-export-toolbar label.rs-live-label {
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        font-size: 0.82rem;
+        line-height: 1.2;
+        color: var(--text);
+        margin: 0;
+        cursor: pointer;
+      }
+
+      .rs-export-toolbar label.rs-live-label input {
+        accent-color: var(--accent-2);
+      }
+
+      .rs-export-toolbar .rs-live-status {
+        font-size: 0.82rem;
+      }
+
+      .rs-table-wrap {
+        width: 100%;
+        max-width: 100%;
+        min-width: 0;
+        overflow-x: auto;
+        margin: 0;
+        padding: 0 0 8px;
+        -webkit-overflow-scrolling: touch;
+      }
+
+      .rs-table {
+        width: 100%;
+        max-width: 100%;
+        table-layout: fixed;
+        border-collapse: separate;
+        border-spacing: 0;
+        font-size: clamp(0.72rem, 1.6vw, 0.88rem);
+      }
+
+      .rs-table th,
+      .rs-table td {
+        border: 1px solid var(--line-soft);
+        padding: clamp(4px, 1vw, 8px) clamp(3px, 0.8vw, 10px);
+        vertical-align: middle;
+        background: rgba(8, 16, 25, 0.45);
+        min-width: 0;
+        overflow: hidden;
+        /* Override global `table th, td` and `:last-child` rules from furnace CSS */
+        text-align: center;
+      }
+
+      .rs-table thead th {
+        background: rgba(17, 28, 40, 0.92);
+        font-weight: 700;
+      }
+
+      .rs-table th:last-child,
+      .rs-table td:last-child {
+        text-align: center;
+      }
+
+      .rs-table .rs-col-alliance-cell {
+        width: 9%;
+        min-width: 5.25rem;
+        max-width: 7.25rem;
+        text-align: center;
+        vertical-align: middle;
+        padding: 4px 5px !important;
+      }
+
+      .rs-alliance-cell-inner {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 3px;
+        min-width: 0;
+      }
+
+      .rs-alliance-cell-inner .rs-in-server {
+        width: 100%;
+        max-width: 4.5rem;
+        text-align: center;
+      }
+
+      .rs-alliance-cell-inner .rs-in-alliance {
+        width: 100%;
+        min-width: 0;
+        text-align: center;
+      }
+
+      /* Global `th { text-align: left }` in furnace CSS — force center for this cell */
+      .rs-table thead th.rs-battle-schedule-label {
+        text-align: center !important;
+        text-transform: none;
+        letter-spacing: normal;
+        font-size: clamp(0.65rem, 1.1vw, 0.76rem);
+        line-height: 1.2;
+        color: var(--muted);
+        font-weight: 600;
+        vertical-align: middle;
+        padding: clamp(3px, 0.65vw, 6px) clamp(3px, 0.5vw, 6px) !important;
+      }
+
+      .rs-battle-schedule-label__inner {
+        display: block;
+        width: 100%;
+        text-align: center;
+      }
+
+      .rs-table .rs-day-title {
+        font-size: clamp(0.62rem, 1.25vw, 0.76rem);
+        letter-spacing: 0.02em;
+        line-height: 1.15;
+        hyphens: auto;
+        overflow-wrap: break-word;
+      }
+
+      /* Day columns: tighter padding so date / side / role controls fit narrow widths */
+      .rs-table thead tr:first-child th.rs-day-title,
+      .rs-table thead th.rs-day-controls {
+        padding: clamp(3px, 0.65vw, 6px) clamp(2px, 0.45vw, 5px);
+      }
+
+      .rs-day-controls-inner {
+        display: grid;
+        gap: clamp(2px, 0.45vw, 5px);
+        justify-items: center;
+        align-content: start;
+        min-width: 0;
+        width: 100%;
+      }
+
+      .rs-side-heading {
+        display: block;
+        font-size: clamp(0.52rem, 0.95vw, 0.62rem);
+        font-weight: 600;
+        color: var(--muted);
+        text-align: center;
+        width: 100%;
+        margin: 0;
+        line-height: 1.1;
+      }
+
+      .rs-date-field-label {
+        display: block;
+        font-size: clamp(0.52rem, 0.95vw, 0.62rem);
+        font-weight: 600;
+        color: var(--muted);
+        text-align: center;
+        width: 100%;
+        margin: 0;
+        line-height: 1.1;
+      }
+
+      .rs-day-controls-inner .lwst-cal-trigger {
+        display: block;
+        width: min(100%, 6.75rem);
+        min-width: 0;
+        max-width: 100%;
+        margin-inline: auto;
+        font-size: clamp(0.54rem, 1.05vw, 0.65rem);
+        line-height: 1.15;
+        padding: 2px 4px;
+      }
+
+      .rs-role-checks {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 2px;
+        width: 100%;
+        margin: 0;
+        box-sizing: border-box;
+      }
+
+      /* Global furnace `label { display: block }` + `input { width:100% }` stretch rows left — shrink to content and center */
+      .rs-table .rs-role-checks .rs-role-check {
+        display: inline-flex;
+        align-items: center;
+        justify-content: flex-start;
+        gap: 4px;
+        width: fit-content;
+        max-width: 100%;
+        margin: 0;
+        margin-bottom: 0;
+        padding: 0;
+        cursor: pointer;
+        font-size: clamp(0.68rem, 1.28vw, 0.84rem);
+        font-weight: 600;
+        color: var(--text);
+        text-transform: none;
+        letter-spacing: normal;
+        user-select: none;
+        box-sizing: border-box;
+        line-height: 1.15;
+      }
+
+      .rs-table .rs-role-checks .rs-role-check input[type="checkbox"] {
+        width: 14px;
+        height: 14px;
+        min-width: 14px;
+        min-height: 14px;
+        margin: 0;
+        padding: 0;
+        flex-shrink: 0;
+        border-radius: 4px;
+        accent-color: var(--accent-2);
+        cursor: pointer;
+        box-sizing: border-box;
+      }
+
+      .rs-table tbody td.rs-cell-note {
+        padding: clamp(2px, 0.45vw, 4px) clamp(2px, 0.4vw, 4px);
+      }
+
+      .rs-table tbody td.rs-cell-note input.rs-in-note {
+        width: 100%;
+        box-sizing: border-box;
+        min-width: 0;
+        padding: 2px 3px;
+        border-radius: 6px;
+        border: 1px solid rgba(55, 80, 106, 0.45);
+        background: rgba(12, 24, 37, 0.65);
+        color: var(--text);
+        font: inherit;
+        font-size: clamp(0.56rem, 1.05vw, 0.7rem);
+        line-height: 1.25;
+        text-align: center;
+      }
+
+      .rs-table tbody td.rs-cell-note input.rs-in-note::placeholder {
+        font-size: clamp(0.54rem, 1vw, 0.66rem);
+        letter-spacing: -0.02em;
+        opacity: 0.85;
+      }
+
+      .rs-opponent-cell {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: clamp(2px, 0.4vw, 4px);
+        width: 100%;
+        min-width: 0;
+        box-sizing: border-box;
+      }
+
+      .rs-table tbody td.rs-cell-note select.rs-out-select {
+        width: 100%;
+        max-width: 100%;
+        min-width: 0;
+        margin: 0;
+        padding: 2px 4px;
+        border-radius: 6px;
+        border: 1px solid rgba(55, 80, 106, 0.45);
+        background: rgba(12, 24, 37, 0.65);
+        color: var(--text);
+        font: inherit;
+        font-size: clamp(0.56rem, 1.05vw, 0.7rem);
+        line-height: 1.25;
+        text-align: center;
+        cursor: pointer;
+        box-sizing: border-box;
+        appearance: auto;
+      }
+
+      .rs-table tbody td.rs-cell-note select.rs-out-select:focus {
+        outline: none;
+        border-color: var(--accent-2);
+        box-shadow: 0 0 0 2px rgba(77, 171, 247, 0.2);
+        background: rgba(15, 29, 44, 0.92);
+      }
+
+      /* Must beat `.rs-table tbody td.rs-cell-note input/select...` (higher specificity) */
+      .rs-table tbody td.rs-cell-note .rs-opponent-cell[data-outcome="win"] input.rs-in-note,
+      .rs-table tbody td.rs-cell-note .rs-opponent-cell[data-outcome="win"] select.rs-out-select {
+        border-color: rgba(72, 180, 110, 0.82) !important;
+        background: rgba(14, 42, 28, 0.78) !important;
+        color: #d8f0e2 !important;
+      }
+
+      .rs-table tbody td.rs-cell-note .rs-opponent-cell[data-outcome="win"] input.rs-in-note::placeholder {
+        color: rgba(200, 235, 210, 0.55);
+      }
+
+      .rs-table tbody td.rs-cell-note .rs-opponent-cell[data-outcome="win"] select.rs-out-select:focus {
+        border-color: rgba(110, 215, 140, 0.95) !important;
+        box-shadow: 0 0 0 2px rgba(72, 180, 110, 0.38) !important;
+        background: rgba(18, 52, 34, 0.9) !important;
+      }
+
+      .rs-table tbody td.rs-cell-note .rs-opponent-cell[data-outcome="win"] input.rs-in-note:focus {
+        outline: none;
+        border-color: rgba(110, 215, 140, 0.95) !important;
+        box-shadow: 0 0 0 2px rgba(72, 180, 110, 0.35) !important;
+      }
+
+      .rs-table tbody td.rs-cell-note .rs-opponent-cell[data-outcome="loss"] input.rs-in-note,
+      .rs-table tbody td.rs-cell-note .rs-opponent-cell[data-outcome="loss"] select.rs-out-select {
+        border-color: rgba(215, 95, 95, 0.85) !important;
+        background: rgba(48, 20, 22, 0.78) !important;
+        color: #ffd9d9 !important;
+      }
+
+      .rs-table tbody td.rs-cell-note .rs-opponent-cell[data-outcome="loss"] input.rs-in-note::placeholder {
+        color: rgba(255, 200, 200, 0.45);
+      }
+
+      .rs-table tbody td.rs-cell-note .rs-opponent-cell[data-outcome="loss"] select.rs-out-select:focus {
+        border-color: rgba(240, 120, 120, 0.95) !important;
+        box-shadow: 0 0 0 2px rgba(215, 95, 95, 0.38) !important;
+        background: rgba(54, 24, 26, 0.9) !important;
+      }
+
+      .rs-table tbody td.rs-cell-note .rs-opponent-cell[data-outcome="loss"] input.rs-in-note:focus {
+        outline: none;
+        border-color: rgba(240, 120, 120, 0.95) !important;
+        box-shadow: 0 0 0 2px rgba(215, 95, 95, 0.35) !important;
+      }
+
+      .rs-table tbody .rs-col-alliance-cell input {
+        width: 100%;
+        max-width: 100%;
+        min-width: 0;
+        box-sizing: border-box;
+        padding: 3px 5px;
+        border-radius: 6px;
+        border: 1px solid rgba(55, 80, 106, 0.45);
+        background: rgba(12, 24, 37, 0.65);
+        color: var(--text);
+        font: inherit;
+        font-size: clamp(0.68rem, 1.35vw, 0.78rem);
+        text-align: center;
+      }
+
+      .rs-table tbody tr:nth-child(even) td {
+        background: rgba(10, 18, 28, 0.55);
+      }
+
+      .rs-row-actions {
+        width: 2.75rem;
+        text-align: center;
+        padding: 4px 2px !important;
+      }
+
+      .rs-remove-row {
+        cursor: pointer;
+        border: 1px solid rgba(255, 146, 43, 0.35);
+        border-radius: 8px;
+        background: rgba(80, 40, 20, 0.25);
+        color: #ffd8a8;
+        padding: 4px 8px;
+        font: inherit;
+        font-size: 0.75rem;
+        font-weight: 700;
+      }
+
+      .rs-remove-row:hover,
+      .rs-remove-row:focus-visible {
+        border-color: rgba(255, 146, 43, 0.6);
+        outline: none;
+      }
+
+      .rs-col-head-compact {
+        display: block;
+        font-size: clamp(0.62rem, 1.25vw, 0.72rem);
+        line-height: 1.15;
+        font-weight: 700;
+      }
+
+      @media (max-width: 520px) {
+        .rs-table .rs-day-title {
+          font-size: 0.62rem;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <div class="page">
+      <div class="page-top-stack">
+        <aside class="account-promo-strip" aria-label="Optional account">
+          <p class="account-promo-strip__text">
+            <strong>No account required.</strong> Every calculator works in your browser without signing up.
+            Create a free account only if you want to sync saved data across devices.
+          </p>
+          <div class="account-promo-actions">
+            <a href="account.html" class="action-button">Create account</a>
+            <a href="account.html" class="action-button action-button--quiet">Sign in</a>
+          </div>
+        </aside>
+        <div class="page-top-controls">
+          <div class="logo-control">
+            <a href="index.html" aria-label="Go to homepage">
+              <img src="media/lwst.png" alt="LWST logo" class="site-logo" />
+            </a>
+          </div>
+          <div class="language-control">
+            <label for="languageSelect">Language</label>
+            <select id="languageSelect"></select>
+          </div>
+        </div>
+      </div>
+      <div id="google_translate_element" class="hidden-translate"></div>
+
+      <nav class="page-nav" aria-label="Calculator pages">
+        <a href="hq-upgrade-calculator.html" class="page-link">HQ Upgrade</a>
+        <details class="page-nav-dropdown" name="alliance-nav">
+          <summary class="page-link page-nav-dropdown-toggle">Alliance Tools</summary>
+          <div class="page-nav-dropdown-menu">
+            <a href="train-conductor-schedule.html" class="page-link">Train Conductor</a>
+            <a href="transfer-tracker.html" class="page-link">Transfer Tracker</a>
+            <a href="verus-tracker.html" class="page-link">Versus Tracker</a>
+            <a href="ds-tracker.html" class="page-link">Desert Storm Tracker/Planner</a>
+            <a href="server-search.html" class="page-link">Server Search</a>
+            <a href="alliance-hive.html" class="page-link">Hive Builder</a>
+          </div>
+        </details>
+        <details class="page-nav-dropdown" name="troop-nav">
+          <summary class="page-link page-nav-dropdown-toggle">Troop Tools</summary>
+          <div class="page-nav-dropdown-menu">
+            <a href="t10-troops-calculator.html" class="page-link">T10 Troops</a>
+            <a href="t11-troops-calculator.html" class="page-link">T11 Troops</a>
+          </div>
+        </details>
+        <details class="page-nav-dropdown" name="season-nav">
+          <summary class="page-link page-nav-dropdown-toggle">Season 1 Tools</summary>
+          <div class="page-nav-dropdown-menu">
+            <a href="virus-research-institute-calculator.html" class="page-link"
+              >Virus Research Institute</a
+            >
+            <a href="season-1-squad-base-calculator.html" class="page-link">Season 1 Squad Base</a>
+            <a href="season-1-interactive-map.html" class="page-link">Interactive Map</a>
+          </div>
+        </details>
+        <details class="page-nav-dropdown active" name="season-nav">
+          <summary class="page-link page-nav-dropdown-toggle">Season 2 Tools</summary>
+          <div class="page-nav-dropdown-menu">
+            <a href="last-war-furnace-upgrade-calculator.html" class="page-link">Furnace Calculator</a>
+            <a href="season-2-tank-center-calculator.html" class="page-link">Season 2 Squad Base</a>
+            <a href="season-2-interactive-map.html" class="page-link">Interactive Map</a>
+            <a href="season-2-supplies-checklist.html" class="page-link">Supplies Checklist</a>
+            <a href="rare-soil-war-tracker.html" class="page-link active">Rare Soil War Tracker</a>
+          </div>
+        </details>
+        <details class="page-nav-dropdown" name="season-nav">
+          <summary class="page-link page-nav-dropdown-toggle">Season 3 Tools</summary>
+          <div class="page-nav-dropdown-menu">
+            <a href="curse-research-lab-calculator.html" class="page-link">Curse Research Lab</a>
+            <a href="altar-calculator.html" class="page-link">Altar</a>
+            <a href="protectors-field-calculator.html" class="page-link">Protector's Field</a>
+            <a href="season-3-interactive-map.html" class="page-link">Interactive Map</a>
+          </div>
+        </details>
+        <details class="page-nav-dropdown" name="season-nav">
+          <summary class="page-link page-nav-dropdown-toggle">Season 4 Tools</summary>
+          <div class="page-nav-dropdown-menu">
+            <a href="optoelectronic-lab-calculator.html" class="page-link">Optoelectronic Lab</a>
+            <a href="protectors-field-s4-calculator.html" class="page-link">Protector's Field S4</a>
+            <a href="lighthouse-s4-calculator.html" class="page-link">Lighthouse S4</a>
+            <a href="season-4-interactive-map.html" class="page-link">Interactive Map</a>
+          </div>
+        </details>
+        <details class="page-nav-dropdown" name="season-nav">
+          <summary class="page-link page-nav-dropdown-toggle">Season 5 Tools</summary>
+          <div class="page-nav-dropdown-menu">
+            <a href="caffeine-institute-calculator.html" class="page-link">Caffeine Institute</a>
+            <a href="protectors-field-s5-calculator.html" class="page-link">Protector's Field S5</a>
+            <a href="season-5-squad-base-calculator.html" class="page-link">Season 5 Tanker Bar</a>
+            <a href="season-5-interactive-map.html" class="page-link">Interactive Map</a>
+          </div>
+        </details>
+      </nav>
+
+      <section class="hero">
+        <h1>Rare Soil War Tracker</h1>
+        <div class="sub">
+          List alliances with server numbers, set each battle day’s date, and mark whether your side is
+          attacking or defending that day. Add opponent, then pick Win or Loss (or —) from the menu per
+          day. Export to CSV, Excel, or image; use a live link for real-time shared editing, or sign in to
+          sync across your devices.
+        </div>
+      </section>
+
+      <section class="layout rs-tracker-layout">
+        <div class="card">
+          <div class="rs-toolbar">
+            <button type="button" class="action-button" id="rsAddRow">Add alliance row</button>
+            <button type="button" class="action-button" id="rsSyncNow" title="Merge with cloud (requires signed-in account)">
+              Sync to account
+            </button>
+            <span class="rs-hint" id="rsSaveStatus" aria-live="polite"></span>
+            <span class="rs-hint" id="rsSyncStatus" aria-live="polite"></span>
+          </div>
+          <p class="rs-account-sync-note">
+            Optional: create a free account and verify your email on the
+            <a href="account.html">Account</a> page. While signed in, changes upload automatically and
+            merge with other devices.
+          </p>
+
+          <div class="rs-toolbar rs-export-toolbar" aria-label="Export and live link">
+            <span class="rs-export-label">Export</span>
+            <button type="button" class="action-button" id="rsExportCsv" title="Download spreadsheet as CSV">
+              CSV
+            </button>
+            <button type="button" class="action-button" id="rsExportXlsx" title="Download spreadsheet as Excel">
+              Excel
+            </button>
+            <button type="button" class="action-button" id="rsExportPng" title="Download table as PNG image">
+              Image
+            </button>
+            <span class="rs-export-divider" aria-hidden="true"></span>
+            <label class="rs-live-label">
+              <input type="checkbox" id="rsLiveEnabled" aria-label="Live link" />
+              <span>Live link</span>
+            </label>
+            <button type="button" class="action-button" id="rsCopyLiveLink">Copy live link</button>
+            <span class="rs-hint rs-live-status" id="rsLiveStatus" aria-live="polite"></span>
+          </div>
+
+          <div class="rs-table-wrap" id="rsTableExportRoot">
+            <table class="rs-table" id="rsTable">
+              <thead>
+                <tr>
+                  <th class="rs-col-alliance-cell" scope="col">
+                    <span class="rs-col-head-compact"># · Alliance</span>
+                  </th>
+                  <th class="rs-day-title" scope="col" title="Battle day 1">Day 1</th>
+                  <th class="rs-day-title" scope="col" title="Battle day 2">Day 2</th>
+                  <th class="rs-day-title" scope="col" title="Battle day 3">Day 3</th>
+                  <th class="rs-day-title" scope="col" title="Battle day 4">Day 4</th>
+                  <th class="rs-day-title" scope="col" title="Battle day 5">Day 5</th>
+                  <th class="rs-day-title" scope="col" title="Battle day 6">Day 6</th>
+                  <th class="rs-day-title" scope="col" title="Battle day 7">Day 7</th>
+                  <th class="rs-day-title" scope="col" title="Battle day 8">Day 8</th>
+                  <th class="rs-row-actions" aria-label="Row actions"></th>
+                </tr>
+                <tr id="rsDayControlsRow"></tr>
+              </thead>
+              <tbody id="rsBody"></tbody>
+            </table>
+          </div>
+        </div>
+      </section>
+    </div>
+
+    <div class="support-bar">
+      <a
+        href="https://buymeacoffee.com/dkfoy56w"
+        class="support-link"
+        target="_blank"
+        rel="noopener noreferrer"
+        >Buy Me a Coffee</a
+      >
+    </div>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.12.5/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.12.5/firebase-database-compat.js"></script>
+
+    <script>
+      (function () {
+        const STORAGE_KEY = "lastwar-rare-soil-war-tracker-v1";
+        const NUM_DAYS = 8;
+
+        /** @type {{ days: { date: string, role: string }[], rows: { server: string, alliance: string, notes: string[], outcomes: string[] }[] }} */
+        /* day.date: YYYY-MM-DD. notes[] = opponent; outcomes[] = "" | "win" | "loss" per battle day. */
+        let state = {
+          days: Array.from({ length: NUM_DAYS }, () => ({
+            date: "",
+            role: "attacker",
+          })),
+          rows: [],
+        };
+
+        const rsDayControlsRow = document.getElementById("rsDayControlsRow");
+        const rsBody = document.getElementById("rsBody");
+        const rsAddRow = document.getElementById("rsAddRow");
+        const rsSaveStatus = document.getElementById("rsSaveStatus");
+        const rsSyncNow = document.getElementById("rsSyncNow");
+        const rsSyncStatus = document.getElementById("rsSyncStatus");
+        const rsExportCsv = document.getElementById("rsExportCsv");
+        const rsExportXlsx = document.getElementById("rsExportXlsx");
+        const rsExportPng = document.getElementById("rsExportPng");
+        const rsLiveEnabled = document.getElementById("rsLiveEnabled");
+        const rsCopyLiveLink = document.getElementById("rsCopyLiveLink");
+        const rsLiveStatus = document.getElementById("rsLiveStatus");
+
+        let saveTimer = null;
+        let livePushTimer = null;
+
+        const RS_LIVE_DEFAULT_DB =
+          "https://lastwartools-c12c8-default-rtdb.firebaseio.com/";
+        const rsLiveState = {
+          clientId:
+            "rs-" +
+            Math.random().toString(36).slice(2, 10) +
+            "-" +
+            Date.now(),
+          shareId: null,
+          dbUrl: "",
+          firebaseApp: null,
+          firebaseDb: null,
+          firebaseRef: null,
+          valueHandler: null,
+          active: false,
+          lastSeenAt: 0,
+          applyingRemote: false,
+        };
+
+        function sanitizeShareId(raw) {
+          const value = String(raw || "").trim();
+          return /^[a-zA-Z0-9_-]{6,64}$/.test(value) ? value : null;
+        }
+
+        function createShareId() {
+          return (
+            Date.now().toString(36) + Math.random().toString(36).slice(2, 8)
+          );
+        }
+
+        function rsResolveLiveDbUrl() {
+          const params = new URLSearchParams(window.location.search);
+          const fromUrl = params.get("db");
+          let fromStorage = "";
+          try {
+            fromStorage = String(
+              localStorage.getItem("lastWarLiveSyncDbUrl") || "",
+            );
+          } catch {
+            fromStorage = "";
+          }
+          const resolved = String(
+            fromUrl || fromStorage || RS_LIVE_DEFAULT_DB || "",
+          ).trim();
+          rsLiveState.dbUrl = resolved;
+          if (resolved) {
+            try {
+              localStorage.setItem("lastWarLiveSyncDbUrl", resolved);
+            } catch {
+              /* ignore */
+            }
+          }
+          return resolved;
+        }
+
+        function buildRsLiveShareUrl(shareId) {
+          const url = new URL(window.location.href);
+          url.search = "";
+          url.searchParams.set("shareId", shareId);
+          if (rsLiveState.dbUrl) {
+            url.searchParams.set("db", rsLiveState.dbUrl);
+          }
+          return url.toString();
+        }
+
+        function rsEnsureFirebaseReady() {
+          if (!rsLiveState.dbUrl) return false;
+          if (!window.firebase || !window.firebase.apps) {
+            if (rsLiveStatus) {
+              rsLiveStatus.textContent =
+                "Firebase SDK not loaded. Refresh the page.";
+            }
+            return false;
+          }
+          const currentDb = rsLiveState.dbUrl.replace(/\/$/, "");
+          if (
+            rsLiveState.firebaseApp &&
+            rsLiveState.firebaseApp.options &&
+            String(
+              rsLiveState.firebaseApp.options.databaseURL || "",
+            ).replace(/\/$/, "") !== currentDb
+          ) {
+            if (rsLiveStatus) {
+              rsLiveStatus.textContent =
+                "Database URL changed — refresh the page.";
+            }
+            return false;
+          }
+          if (!rsLiveState.firebaseApp) {
+            const appName =
+              "lwst-rs-" +
+              btoa(currentDb)
+                .replace(/[^a-zA-Z0-9]/g, "")
+                .slice(0, 20);
+            const existing = window.firebase.apps.find(function (app) {
+              return app.name === appName;
+            });
+            rsLiveState.firebaseApp =
+              existing ||
+              window.firebase.initializeApp(
+                { databaseURL: currentDb },
+                appName,
+              );
+            rsLiveState.firebaseDb = window.firebase.database(
+              rsLiveState.firebaseApp,
+            );
+          }
+          return true;
+        }
+
+        function stopRsLiveSync() {
+          if (rsLiveState.firebaseRef && rsLiveState.valueHandler) {
+            rsLiveState.firebaseRef.off("value", rsLiveState.valueHandler);
+          }
+          rsLiveState.firebaseRef = null;
+          rsLiveState.valueHandler = null;
+          rsLiveState.active = false;
+        }
+
+        function normalizeRowsFromLive(rows) {
+          if (!Array.isArray(rows)) return [emptyRow()];
+          return rows.map(function (r) {
+            return {
+              server: String(r.server ?? ""),
+              alliance: String(r.alliance ?? ""),
+              notes: Array.from({ length: NUM_DAYS }, (_, i) =>
+                String((r.notes && r.notes[i]) ?? ""),
+              ),
+              outcomes: Array.from({ length: NUM_DAYS }, (_, i) =>
+                normalizeOutcome(r.outcomes && r.outcomes[i]),
+              ),
+            };
+          });
+        }
+
+        function applyRsLivePayload(payload) {
+          if (!payload || !Array.isArray(payload.days) || !payload.rows) {
+            return;
+          }
+          rsLiveState.applyingRemote = true;
+          state.days = payload.days.slice(0, NUM_DAYS);
+          while (state.days.length < NUM_DAYS) {
+            state.days.push({ date: "", role: "attacker" });
+          }
+          state.days.forEach(function (day) {
+            day.date = normalizeCalendarDate(day.date);
+            day.role = day.role === "defender" ? "defender" : "attacker";
+          });
+          state.rows = normalizeRowsFromLive(payload.rows);
+          if (state.rows.length === 0) state.rows = [emptyRow()];
+          renderDayControls();
+          renderBody();
+          try {
+            localStorage.setItem(
+              STORAGE_KEY,
+              JSON.stringify({
+                days: state.days,
+                rows: state.rows,
+                savedAt: Date.now(),
+              }),
+            );
+          } catch {
+            /* ignore */
+          }
+          rsLiveState.applyingRemote = false;
+        }
+
+        function getRsLivePayloadForCloud() {
+          return {
+            v: 1,
+            days: state.days,
+            rows: state.rows,
+            updatedAt: Date.now(),
+            updatedBy: rsLiveState.clientId,
+          };
+        }
+
+        function pushRsLivePayload() {
+          if (
+            !rsLiveState.active ||
+            !rsLiveState.shareId ||
+            rsLiveState.applyingRemote
+          ) {
+            return;
+          }
+          if (!rsEnsureFirebaseReady()) return;
+          const ref = rsLiveState.firebaseDb.ref(
+            "rare-soil-war/" + rsLiveState.shareId,
+          );
+          const payload = getRsLivePayloadForCloud();
+          ref
+            .set(payload)
+            .then(function () {
+              rsLiveState.lastSeenAt = Number(payload.updatedAt);
+              if (rsLiveStatus) rsLiveStatus.textContent = "";
+            })
+            .catch(function () {
+              if (rsLiveStatus) {
+                rsLiveStatus.textContent =
+                  "Live save failed. Check Realtime Database rules.";
+              }
+            });
+        }
+
+        function rsScheduleLivePush() {
+          if (!rsLiveState.active || rsLiveState.applyingRemote) return;
+          if (livePushTimer) clearTimeout(livePushTimer);
+          livePushTimer = setTimeout(function () {
+            livePushTimer = null;
+            pushRsLivePayload();
+          }, 700);
+        }
+
+        function startRsLiveSync(shareId) {
+          stopRsLiveSync();
+          rsLiveState.shareId = shareId;
+          rsLiveState.active = true;
+          if (!rsEnsureFirebaseReady()) {
+            rsLiveState.active = false;
+            return;
+          }
+          rsLiveState.firebaseRef = rsLiveState.firebaseDb.ref(
+            "rare-soil-war/" + shareId,
+          );
+          rsLiveState.valueHandler = function (snapshot) {
+            const val = snapshot.val();
+            if (!val || typeof val.updatedAt !== "number") return;
+            const t = Number(val.updatedAt);
+            if (!Number.isFinite(t)) return;
+            if (t <= rsLiveState.lastSeenAt) return;
+            if (val.updatedBy === rsLiveState.clientId) {
+              rsLiveState.lastSeenAt = t;
+              return;
+            }
+            rsLiveState.lastSeenAt = t;
+            applyRsLivePayload(val);
+          };
+          rsLiveState.firebaseRef.on(
+            "value",
+            rsLiveState.valueHandler,
+            function (err) {
+              if (rsLiveStatus) {
+                rsLiveStatus.textContent =
+                  "Live read failed: " +
+                  (err && err.code ? err.code : "unknown");
+              }
+            },
+          );
+          history.replaceState(null, "", buildRsLiveShareUrl(shareId));
+        }
+
+        function downloadBlob(blob, filename) {
+          const a = document.createElement("a");
+          a.href = URL.createObjectURL(blob);
+          a.download = filename;
+          a.rel = "noopener";
+          document.body.appendChild(a);
+          a.click();
+          a.remove();
+          setTimeout(function () {
+            URL.revokeObjectURL(a.href);
+          }, 40000);
+        }
+
+        function exportFilename(ext) {
+          return (
+            "rare-soil-war-" +
+            new Date().toISOString().slice(0, 10) +
+            "-" +
+            String(Date.now()).slice(-6) +
+            "." +
+            ext
+          );
+        }
+
+        function buildExportMatrix() {
+          const header = ["Server #", "Alliance"];
+          for (let d = 0; d < NUM_DAYS; d++) {
+            header.push("Day " + (d + 1) + " opponent");
+            header.push("Day " + (d + 1) + " result");
+          }
+          const sched = [
+            "Battle schedule (dates / sides for all rows)",
+            "",
+          ];
+          for (let d = 0; d < NUM_DAYS; d++) {
+            sched.push(formatDateMdDisplay(state.days[d].date));
+            sched.push(
+              state.days[d].role === "defender" ? "Defender" : "Attacker",
+            );
+          }
+          const rows = [sched, header];
+          state.rows.forEach(function (row) {
+            const r = [row.server, row.alliance];
+            for (let d = 0; d < NUM_DAYS; d++) {
+              r.push(row.notes[d] || "");
+              r.push(
+                row.outcomes[d] === "win"
+                  ? "Win"
+                  : row.outcomes[d] === "loss"
+                    ? "Loss"
+                    : "",
+              );
+            }
+            rows.push(r);
+          });
+          return rows;
+        }
+
+        function exportAsCsv() {
+          readDomIntoState();
+          const matrix = buildExportMatrix();
+          const esc = function (cell) {
+            const s = String(cell ?? "");
+            if (/[",\r\n]/.test(s)) return '"' + s.replace(/"/g, '""') + '"';
+            return s;
+          };
+          let out = "\ufeff";
+          matrix.forEach(function (line) {
+            out += line.map(esc).join(",") + "\r\n";
+          });
+          downloadBlob(
+            new Blob([out], { type: "text/csv;charset=utf-8" }),
+            exportFilename("csv"),
+          );
+        }
+
+        function exportAsXlsx() {
+          if (!window.XLSX) {
+            alert("Excel library is still loading. Try again in a moment.");
+            return;
+          }
+          readDomIntoState();
+          const matrix = buildExportMatrix();
+          const ws = window.XLSX.utils.aoa_to_sheet(matrix);
+          const wb = window.XLSX.utils.book_new();
+          window.XLSX.utils.book_append_sheet(wb, ws, "Rare Soil War");
+          window.XLSX.writeFile(wb, exportFilename("xlsx"));
+        }
+
+        async function exportAsPng() {
+          if (!window.html2canvas) {
+            alert("Image library is still loading. Try again in a moment.");
+            return;
+          }
+          readDomIntoState();
+          const root =
+            document.getElementById("rsTableExportRoot") ||
+            document.getElementById("rsTable");
+          if (!root) return;
+          const canvas = await window.html2canvas(root, {
+            backgroundColor: "#0a1219",
+            scale: Math.max(2, Math.floor((window.devicePixelRatio || 1) * 2)),
+            useCORS: true,
+          });
+          const blob = await new Promise(function (resolve) {
+            canvas.toBlob(resolve, "image/png");
+          });
+          if (!blob) {
+            alert("Could not create image in this browser.");
+            return;
+          }
+          downloadBlob(blob, exportFilename("png"));
+        }
+
+        function normalizeCalendarDate(raw) {
+          return window.LwstCalendar.normalizeCalendarDate(raw);
+        }
+
+        function formatDateMdDisplay(iso) {
+          return window.LwstCalendar.formatDateMdDisplay(iso);
+        }
+
+        function openCalPopover(dayIndex) {
+          var btn = document.getElementById("rs-cal-tr-" + dayIndex);
+          if (!btn || !window.LwstCalendar) return;
+          window.LwstCalendar.openAtAnchor(btn, {
+            getValue: function () {
+              return (state.days[dayIndex] && state.days[dayIndex].date) || "";
+            },
+            setValue: function (iso) {
+              if (state.days[dayIndex]) state.days[dayIndex].date = iso;
+            },
+            afterPick: function () {
+              renderDayControls();
+              scheduleSave();
+            },
+          });
+        }
+
+        function emptyRow() {
+          return {
+            server: "",
+            alliance: "",
+            notes: Array.from({ length: NUM_DAYS }, () => ""),
+            outcomes: Array.from({ length: NUM_DAYS }, () => ""),
+          };
+        }
+
+        function normalizeOutcome(raw) {
+          const v = String(raw ?? "")
+            .trim()
+            .toLowerCase();
+          return v === "win" || v === "loss" ? v : "";
+        }
+
+        function loadState() {
+          try {
+            const raw = localStorage.getItem(STORAGE_KEY);
+            if (!raw) {
+              state.rows = [emptyRow(), emptyRow(), emptyRow(), emptyRow(), emptyRow()];
+              return;
+            }
+            const parsed = JSON.parse(raw);
+            if (!parsed.days || !Array.isArray(parsed.rows)) throw new Error("bad shape");
+            state.days = parsed.days.slice(0, NUM_DAYS);
+            while (state.days.length < NUM_DAYS) {
+              state.days.push({ date: "", role: "attacker" });
+            }
+            state.days.forEach(function (day) {
+              day.date = normalizeCalendarDate(day.date);
+            });
+            state.rows = parsed.rows.map((r) => ({
+              server: String(r.server ?? ""),
+              alliance: String(r.alliance ?? ""),
+              notes: Array.from({ length: NUM_DAYS }, (_, i) =>
+                String((r.notes && r.notes[i]) ?? "")
+              ),
+              outcomes: Array.from({ length: NUM_DAYS }, (_, i) =>
+                normalizeOutcome(r.outcomes && r.outcomes[i]),
+              ),
+            }));
+            if (state.rows.length === 0) state.rows = [emptyRow()];
+          } catch {
+            state.rows = [emptyRow(), emptyRow(), emptyRow()];
+          }
+        }
+
+        function scheduleSave() {
+          if (saveTimer) clearTimeout(saveTimer);
+          rsSaveStatus.textContent = "Saving…";
+          saveTimer = setTimeout(function () {
+            try {
+              const payload = {
+                days: state.days,
+                rows: state.rows,
+                savedAt: Date.now(),
+              };
+              localStorage.setItem(STORAGE_KEY, JSON.stringify(payload));
+              rsSaveStatus.textContent = "Saved";
+              rsScheduleLivePush();
+              setTimeout(function () {
+                if (rsSaveStatus.textContent === "Saved") rsSaveStatus.textContent = "";
+              }, 1600);
+            } catch {
+              rsSaveStatus.textContent = "Could not save";
+            }
+            saveTimer = null;
+          }, 280);
+        }
+
+        function readDomIntoState() {
+          for (let d = 0; d < NUM_DAYS; d++) {
+            const defEl = document.getElementById("rs-day-def-" + d);
+            const isDef = defEl && defEl.checked;
+            const prevDate = state.days[d] ? state.days[d].date : "";
+            state.days[d] = {
+              date: prevDate,
+              role: isDef ? "defender" : "attacker",
+            };
+          }
+          const trs = rsBody.querySelectorAll("tr[data-row-index]");
+          trs.forEach(function (tr) {
+            const i = parseInt(tr.getAttribute("data-row-index"), 10);
+            if (!state.rows[i]) return;
+            if (
+              !state.rows[i].outcomes ||
+              state.rows[i].outcomes.length !== NUM_DAYS
+            ) {
+              state.rows[i].outcomes = Array.from(
+                { length: NUM_DAYS },
+                () => "",
+              );
+            }
+            const s = tr.querySelector(".rs-in-server");
+            const a = tr.querySelector(".rs-in-alliance");
+            if (s) state.rows[i].server = s.value;
+            if (a) state.rows[i].alliance = a.value;
+            for (let d = 0; d < NUM_DAYS; d++) {
+              const n = tr.querySelector('.rs-in-note[data-day="' + d + '"]');
+              if (n) state.rows[i].notes[d] = n.value;
+              const sel = tr.querySelector(
+                '.rs-out-select[data-day="' + d + '"]',
+              );
+              if (sel) {
+                state.rows[i].outcomes[d] = normalizeOutcome(sel.value);
+              }
+            }
+          });
+        }
+
+        function renderDayControls() {
+          rsDayControlsRow.innerHTML = "";
+          const corner1 = document.createElement("th");
+          corner1.className = "rs-col-alliance-cell rs-battle-schedule-label";
+          corner1.colSpan = 1;
+          corner1.innerHTML =
+            '<span class="rs-battle-schedule-label__inner">Battle schedule</span>';
+          rsDayControlsRow.appendChild(corner1);
+
+          for (let d = 0; d < NUM_DAYS; d++) {
+            const th = document.createElement("th");
+            th.className = "rs-day-controls";
+            const day = state.days[d] || { date: "", role: "attacker" };
+            const atkChecked = day.role !== "defender";
+            const defChecked = day.role === "defender";
+            const calLabel = escapeAttr(formatDateMdDisplay(day.date));
+            th.innerHTML =
+              '<div class="rs-day-controls-inner">' +
+              '<span class="rs-date-field-label">Date</span>' +
+              '<button type="button" class="lwst-cal-trigger" id="rs-cal-tr-' +
+              d +
+              '" aria-label="Battle day ' +
+              (d + 1) +
+              ' — open calendar (month and day)">' +
+              calLabel +
+              "</button>" +
+              '<span class="rs-side-heading">Side</span>' +
+              '<div class="rs-role-checks" role="group" aria-label="Battle day ' +
+              (d + 1) +
+              ' attacker or defender">' +
+              '<label class="rs-role-check">' +
+              '<input type="checkbox" id="rs-day-atk-' +
+              d +
+              '" class="rs-check-atk" data-day="' +
+              d +
+              '"' +
+              (atkChecked ? " checked" : "") +
+              " />" +
+              "<span>Attacker</span>" +
+              "</label>" +
+              '<label class="rs-role-check">' +
+              '<input type="checkbox" id="rs-day-def-' +
+              d +
+              '" class="rs-check-def" data-day="' +
+              d +
+              '"' +
+              (defChecked ? " checked" : "") +
+              " />" +
+              "<span>Defender</span>" +
+              "</label>" +
+              "</div>" +
+              "</div>";
+            rsDayControlsRow.appendChild(th);
+          }
+
+          const thActions = document.createElement("th");
+          thActions.className = "rs-row-actions";
+          thActions.innerHTML = "";
+          rsDayControlsRow.appendChild(thActions);
+
+          for (let d = 0; d < NUM_DAYS; d++) {
+            const trg = document.getElementById("rs-cal-tr-" + d);
+            const atkEl = document.getElementById("rs-day-atk-" + d);
+            const defEl = document.getElementById("rs-day-def-" + d);
+            trg.addEventListener("click", function (e) {
+              e.stopPropagation();
+              openCalPopover(d);
+            });
+            atkEl.addEventListener("change", function () {
+              if (atkEl.checked) {
+                defEl.checked = false;
+              } else if (!defEl.checked) {
+                atkEl.checked = true;
+              }
+              readDomIntoState();
+              scheduleSave();
+            });
+            defEl.addEventListener("change", function () {
+              if (defEl.checked) {
+                atkEl.checked = false;
+              } else if (!atkEl.checked) {
+                defEl.checked = true;
+              }
+              readDomIntoState();
+              scheduleSave();
+            });
+          }
+        }
+
+        function escapeAttr(s) {
+          return String(s)
+            .replace(/&/g, "&amp;")
+            .replace(/"/g, "&quot;")
+            .replace(/</g, "&lt;");
+        }
+
+        function renderBody() {
+          rsBody.innerHTML = "";
+          state.rows.forEach(function (row, i) {
+            const tr = document.createElement("tr");
+            tr.setAttribute("data-row-index", String(i));
+
+            const tdMeta = document.createElement("td");
+            tdMeta.className = "rs-col-alliance-cell";
+            tdMeta.innerHTML =
+              '<div class="rs-alliance-cell-inner">' +
+              '<input type="text" inputmode="numeric" class="rs-in-server" placeholder="#" title="Server #" aria-label="Server number row ' +
+              (i + 1) +
+              '" value="' +
+              escapeAttr(row.server) +
+              '" />' +
+              '<input type="text" class="rs-in-alliance" placeholder="Tag / name" aria-label="Alliance row ' +
+              (i + 1) +
+              '" value="' +
+              escapeAttr(row.alliance) +
+              '" />' +
+              "</div>";
+
+            tr.appendChild(tdMeta);
+
+            for (let d = 0; d < NUM_DAYS; d++) {
+              const td = document.createElement("td");
+              td.className = "rs-cell-note";
+              const oc = normalizeOutcome(row.outcomes && row.outcomes[d]);
+              td.innerHTML =
+                '<div class="rs-opponent-cell" data-outcome="' +
+                escapeAttr(oc) +
+                '">' +
+                '<input type="text" class="rs-in-note" data-day="' +
+                d +
+                '" placeholder="Opp." title="Opponent" aria-label="Opponent for row ' +
+                (i + 1) +
+                ", battle day " +
+                (d + 1) +
+                '" value="' +
+                escapeAttr(row.notes[d]) +
+                '" />' +
+                '<select class="rs-out-select" data-day="' +
+                d +
+                '" aria-label="Win or loss for row ' +
+                (i + 1) +
+                ", battle day " +
+                (d + 1) +
+                '">' +
+                '<option value=""' +
+                (oc === "" ? " selected" : "") +
+                ">—</option>" +
+                '<option value="win"' +
+                (oc === "win" ? " selected" : "") +
+                ">Win</option>" +
+                '<option value="loss"' +
+                (oc === "loss" ? " selected" : "") +
+                ">Loss</option>" +
+                "</select>" +
+                "</div>";
+              tr.appendChild(td);
+            }
+
+            const tdRm = document.createElement("td");
+            tdRm.className = "rs-row-actions";
+            tdRm.innerHTML =
+              '<button type="button" class="rs-remove-row" aria-label="Remove row ' +
+              (i + 1) +
+              '">✕</button>';
+            tr.appendChild(tdRm);
+
+            rsBody.appendChild(tr);
+          });
+
+          rsBody.querySelectorAll(".rs-in-server, .rs-in-alliance, .rs-in-note").forEach(function (el) {
+            el.addEventListener("input", function () {
+              readDomIntoState();
+              scheduleSave();
+            });
+          });
+
+          rsBody.querySelectorAll(".rs-out-select").forEach(function (sel) {
+            sel.addEventListener("change", function () {
+              readDomIntoState();
+              const wrap = sel.closest(".rs-opponent-cell");
+              if (wrap) {
+                wrap.setAttribute(
+                  "data-outcome",
+                  normalizeOutcome(sel.value),
+                );
+              }
+              scheduleSave();
+            });
+          });
+
+          rsBody.querySelectorAll(".rs-remove-row").forEach(function (btn) {
+            btn.addEventListener("click", function () {
+              const tr = btn.closest("tr");
+              const idx = parseInt(tr.getAttribute("data-row-index"), 10);
+              readDomIntoState();
+              state.rows.splice(idx, 1);
+              if (state.rows.length === 0) state.rows.push(emptyRow());
+              renderBody();
+              scheduleSave();
+            });
+          });
+        }
+
+        rsAddRow.addEventListener("click", function () {
+          readDomIntoState();
+          state.rows.push(emptyRow());
+          renderBody();
+          scheduleSave();
+        });
+
+        function refreshAfterAccountStorageMerge(syncedKeys) {
+          const keys = Array.isArray(syncedKeys) ? syncedKeys : [];
+          if (!keys.length || !keys.includes(STORAGE_KEY)) return;
+          loadState();
+          renderDayControls();
+          renderBody();
+        }
+
+        window.addEventListener("lw-localstorage-synced", function (ev) {
+          refreshAfterAccountStorageMerge(
+            ev.detail && ev.detail.keys ? ev.detail.keys : [],
+          );
+        });
+
+        const LW_FORCE_MERGE_WAIT_MS = 12000;
+        const LW_FORCE_MERGE_POLL_MS = 100;
+
+        async function waitForLwForceAccountMerge() {
+          const deadline = Date.now() + LW_FORCE_MERGE_WAIT_MS;
+          while (Date.now() < deadline) {
+            if (typeof window.__lwForceAccountMerge === "function") {
+              return true;
+            }
+            await new Promise(function (r) {
+              setTimeout(r, LW_FORCE_MERGE_POLL_MS);
+            });
+          }
+          return typeof window.__lwForceAccountMerge === "function";
+        }
+
+        if (rsExportCsv) rsExportCsv.addEventListener("click", exportAsCsv);
+        if (rsExportXlsx) rsExportXlsx.addEventListener("click", exportAsXlsx);
+        if (rsExportPng) rsExportPng.addEventListener("click", exportAsPng);
+
+        if (rsLiveEnabled) {
+          rsLiveEnabled.addEventListener("change", function () {
+            if (!rsLiveEnabled.checked) {
+              stopRsLiveSync();
+              rsLiveState.shareId = null;
+              try {
+                const u = new URL(window.location.href);
+                u.searchParams.delete("shareId");
+                history.replaceState(null, "", u.toString());
+              } catch {
+                /* ignore */
+              }
+              if (rsLiveStatus) rsLiveStatus.textContent = "Live collaboration off.";
+              return;
+            }
+            rsResolveLiveDbUrl();
+            if (!rsLiveState.dbUrl) {
+              alert(
+                "Live link needs a Firebase Realtime Database URL. Open this page with ?db=YOUR_DB_URL once, or use the site default if configured.",
+              );
+              rsLiveEnabled.checked = false;
+              return;
+            }
+            const sid = rsLiveState.shareId || createShareId();
+            startRsLiveSync(sid);
+            pushRsLivePayload();
+            if (rsLiveStatus) {
+              rsLiveStatus.textContent =
+                "Live on — use Copy live link to share.";
+            }
+          });
+        }
+
+        if (rsCopyLiveLink) {
+          rsCopyLiveLink.addEventListener("click", async function () {
+            rsResolveLiveDbUrl();
+            if (!rsLiveState.dbUrl) {
+              alert(
+                "Set a Realtime Database URL (?db=...) or rely on the site default.",
+              );
+              return;
+            }
+            if (!rsLiveState.shareId) {
+              const sid = createShareId();
+              rsLiveState.shareId = sid;
+              if (rsLiveEnabled) rsLiveEnabled.checked = true;
+              startRsLiveSync(sid);
+              pushRsLivePayload();
+            }
+            const url = buildRsLiveShareUrl(rsLiveState.shareId);
+            try {
+              await navigator.clipboard.writeText(url);
+              if (rsLiveStatus) rsLiveStatus.textContent = "Live link copied.";
+            } catch {
+              window.prompt("Copy this live link:", url);
+            }
+          });
+        }
+
+        if (rsSyncNow) {
+          rsSyncNow.addEventListener("click", async function () {
+            if (rsSyncStatus) rsSyncStatus.textContent = "";
+            const ready = await waitForLwForceAccountMerge();
+            if (!ready) {
+              if (rsSyncStatus) {
+                rsSyncStatus.textContent =
+                  "Account sync is still loading. Wait a few seconds and try again, or hard-refresh the page.";
+              }
+              return;
+            }
+            if (rsSyncStatus) rsSyncStatus.textContent = "Syncing…";
+            rsSyncNow.disabled = true;
+            try {
+              const raw = await window.__lwForceAccountMerge();
+              loadState();
+              renderDayControls();
+              renderBody();
+              if (rsSyncStatus) {
+                if (raw && raw.ok === true) {
+                  rsSyncStatus.textContent = raw.message || "Synced.";
+                } else {
+                  rsSyncStatus.textContent =
+                    (raw && raw.message) ||
+                    "Sync failed. Sign in with a verified email on the Account page.";
+                }
+              }
+            } catch (err) {
+              loadState();
+              renderDayControls();
+              renderBody();
+              if (rsSyncStatus) {
+                rsSyncStatus.textContent =
+                  (err && err.message) || "Sync failed.";
+              }
+            } finally {
+              rsSyncNow.disabled = false;
+            }
+          });
+        }
+
+        loadState();
+        renderDayControls();
+        renderBody();
+
+        rsResolveLiveDbUrl();
+        try {
+          const qs = new URLSearchParams(window.location.search);
+          const sid = sanitizeShareId(qs.get("shareId"));
+          if (sid && rsLiveEnabled) {
+            rsLiveEnabled.checked = true;
+            rsLiveState.shareId = sid;
+            startRsLiveSync(sid);
+            if (rsLiveStatus) {
+              rsLiveStatus.textContent =
+                "Live session — edits sync to this link.";
+            }
+          }
+        } catch {
+          /* ignore */
+        }
+      })();
+    </script>
+  </body>
+</html>

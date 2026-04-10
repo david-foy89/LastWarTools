@@ -86,6 +86,7 @@
     </script>
     <!-- Removed legacy exportAllianceMembersButton and exportAllianceMembers code. Only DOMContentLoaded handler remains. -->
     <link rel="stylesheet" href="last-war-furnace-upgrade-calculator.css" />
+    <link rel="stylesheet" href="last-war-calendar.css" />
     <script src="firebase-config.example.js"></script>
     <script src="firebase-config.js"></script>
     <script src="page-nav-dropdown.js" defer></script>
@@ -1008,6 +1009,9 @@
             <a href="season-2-supplies-checklist.html" class="page-link"
               >Supplies Checklist</a
             >
+            <a href="rare-soil-war-tracker.html" class="page-link"
+              >Rare Soil War Tracker</a
+            >
           </div>
         </details>
         <details class="page-nav-dropdown" name="season-nav">
@@ -1096,7 +1100,7 @@
             </div>
             <div class="field">
               <label for="startDateInput">Start date (snaps to Monday)</label>
-              <input id="startDateInput" type="date" />
+              <input id="startDateInput" type="date" class="lwst-cal-auto" />
               <div
                 class="field"
                 style="
@@ -5051,6 +5055,10 @@
           closeBulkAddModal();
         }
       });
+    </script>
+    <script src="last-war-calendar.js"></script>
+    <script>
+      if (window.LwstCalendar) window.LwstCalendar.initAuto();
     </script>
   </body>
 </html>

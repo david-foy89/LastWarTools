@@ -1,6 +1,7 @@
 /**
  * Desert Storm tracker: "Desert Storm Mail" button (signed-in only) opens a modal with mail day,
- * Template, Team A / B tabs, and mail history (localStorage).
+ * Template, Team A / B tabs, roster side panel (per team for the mail day), and mail history.
+ * Refresh fills A/B from the template and mail date; click roster names to paste into A/B.
  */
 import { initializeApp, getApp, getApps } from "https://www.gstatic.com/firebasejs/9.22.2/firebase-app.js";
 import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/9.22.2/firebase-auth.js";
@@ -34,11 +35,20 @@ const TAB_B = "B";
 const LS_TEMPLATE_KEY = "dsFightPlanTemplateTextV1";
 const LS_MAIL_DAY_PREF = "dsFightPlanMailDayPreferenceV1";
 const LS_MAIL_HISTORY = "dsFightPlanMailHistoryV1";
+const DS_TRACKER_HISTORY_KEY = "dsTrackerHistoryV1";
+const DS_TRACKER_PLAYERS_KEY = "dsTrackerPlayersV1";
 const MAX_MAIL_HISTORY = 50;
+
+/** Request (r2b) values grouped like Desert Storm Mail / tracker dropdowns */
+const ROSTER_TEAM_A = new Set(["A", "A-S", "A-X"]);
+const ROSTER_TEAM_B = new Set(["B", "B-S", "B-X"]);
 
 var previousActiveElement = null;
 /** @type {"template"|"A"|"B"} */
 var activeTab = TAB_TEMPLATE;
+
+/** Snapshot of textarea + selection taken on roster button pointerdown (before focus leaves the field). */
+var rosterPasteSelection = { ta: null, start: 0, end: 0 };
 
 var templateSaveTimer = null;
 
@@ -305,11 +315,119 @@ function closeFightPlanModal() {
   previousActiveElement = null;
 }
 
+function normalizeR2bKey(r2b) {
+  return String(r2b || "")
+    .trim()
+    .toUpperCase()
+    .replace(/\u2013|\u2014/g, "-");
+}
+
+function filterMergedRowsForTeam(rows, teamKey) {
+  var set = teamKey === "B" ? ROSTER_TEAM_B : ROSTER_TEAM_A;
+  var list = (Array.isArray(rows) ? rows : []).filter(function (r) {
+    return set.has(normalizeR2bKey(r && r.r2b));
+  });
+  list.sort(function (a, b) {
+    return String((a && a.name) || "").localeCompare(String((b && b.name) || ""), undefined, { sensitivity: "base" });
+  });
+  return list;
+}
+
+function insertTextAtCursor(textarea, text, start, end) {
+  if (!textarea) return;
+  var t = String(text || "").trim();
+  if (!t) return;
+  var v = textarea.value;
+  var s = typeof start === "number" ? start : textarea.selectionStart;
+  var e = typeof end === "number" ? end : textarea.selectionEnd;
+  if (s > e) {
+    var tmp = s;
+    s = e;
+    e = tmp;
+  }
+  s = Math.max(0, Math.min(s, v.length));
+  e = Math.max(0, Math.min(e, v.length));
+  textarea.value = v.slice(0, s) + t + v.slice(e);
+  var np = s + t.length;
+  textarea.selectionStart = textarea.selectionEnd = np;
+  textarea.focus();
+}
+
+function fillFightPlanRosterList(ul, rows, teamKey) {
+  if (!ul) return;
+  var tk = teamKey === "B" ? "B" : "A";
+  ul.innerHTML = "";
+  if (!rows.length) {
+    var li0 = document.createElement("li");
+    var p0 = document.createElement("p");
+    p0.className = "ds-fight-plan-roster-empty";
+    p0.textContent = "No players with this team’s request.";
+    li0.appendChild(p0);
+    ul.appendChild(li0);
+    return;
+  }
+  rows.forEach(function (r) {
+    var li = document.createElement("li");
+    if (r && r.noshow) li.classList.add("ds-fight-plan-roster-noshow");
+    var nm = String((r && r.name) || "").trim() || "(unnamed)";
+    var btn = document.createElement("button");
+    btn.type = "button";
+    btn.className = "ds-fight-plan-roster-paste";
+    btn.setAttribute("data-team-key", tk);
+    btn.setAttribute("data-paste", nm);
+    btn.textContent = r && r.noshow ? nm + " (no show)" : nm;
+    var sp = document.createElement("span");
+    sp.className = "ds-fight-plan-roster-asmt";
+    var as = String((r && r.assignment) || "").trim();
+    sp.textContent = as ? "Assignment: " + as : "—";
+    li.appendChild(btn);
+    li.appendChild(sp);
+    ul.appendChild(li);
+  });
+}
+
+function refreshFightPlanRosterPanels() {
+  var cap = document.getElementById("dsFightPlanRosterCaption");
+  var listA = document.getElementById("dsFightPlanRosterListA");
+  var listB = document.getElementById("dsFightPlanRosterListB");
+  if (!listA || !listB) return;
+  var fn =
+    typeof window.__lwDsGetMergedRowsForMailDay === "function" ? window.__lwDsGetMergedRowsForMailDay : null;
+  var day = mailDayInput ? String(mailDayInput.value || "").trim() : "";
+  if (!fn) {
+    if (cap) cap.textContent = "Open the tracker on this page to load roster lists from saved days.";
+    listA.innerHTML = "";
+    listB.innerHTML = "";
+    return;
+  }
+  if (!day || !/^\d{4}-\d{2}-\d{2}$/.test(day)) {
+    if (cap) cap.textContent = "Choose a mail day to match the tracker’s saved day and week.";
+    listA.innerHTML = "";
+    listB.innerHTML = "";
+    return;
+  }
+  if (cap) {
+    cap.textContent =
+      "Players for " +
+      day +
+      " (from tracker data for that day). Put the cursor in Template, Team A, or Team B — click a name to insert there.";
+  }
+  var rows = [];
+  try {
+    rows = fn(day) || [];
+  } catch (_) {
+    rows = [];
+  }
+  fillFightPlanRosterList(listA, filterMergedRowsForTeam(rows, "A"), "A");
+  fillFightPlanRosterList(listB, filterMergedRowsForTeam(rows, "B"), "B");
+}
+
 function runGenerate() {
   var fnTeam =
     typeof window.__lwDsBuildFightPlanTeamText === "function" ? window.__lwDsBuildFightPlanTeamText : null;
   if (!fnTeam || !textareaA || !textareaB) {
     if (statusEl) statusEl.textContent = "Planner data is not ready yet.";
+    refreshFightPlanRosterPanels();
     return;
   }
   try {
@@ -323,11 +441,12 @@ function runGenerate() {
     textareaB.value = fnTeam("B");
     if (statusEl) {
       statusEl.textContent =
-        "Team A and Team B updated from mail day, template, current table, and map pins for that day.";
+        "Team A & B filled from your template and mail date — edit each tab for that team.";
     }
   } catch (e) {
     if (statusEl) statusEl.textContent = e && e.message ? String(e.message) : "Could not build text.";
   }
+  refreshFightPlanRosterPanels();
 }
 
 async function runCopy() {
@@ -363,7 +482,43 @@ modalCloseBtn?.addEventListener("click", function () {
   closeFightPlanModal();
 });
 
+modal?.addEventListener(
+  "pointerdown",
+  function (ev) {
+    if (!ev.target || !ev.target.closest || !ev.target.closest(".ds-fight-plan-roster-paste")) return;
+    var el = document.activeElement;
+    if (el === textareaTemplate || el === textareaA || el === textareaB) {
+      rosterPasteSelection = { ta: el, start: el.selectionStart, end: el.selectionEnd };
+    } else {
+      rosterPasteSelection = { ta: null, start: 0, end: 0 };
+    }
+  },
+  true
+);
+
 modal?.addEventListener("click", function (ev) {
+  var pasteBtn = ev.target && ev.target.closest && ev.target.closest(".ds-fight-plan-roster-paste");
+  if (pasteBtn) {
+    ev.preventDefault();
+    var teamKey = pasteBtn.getAttribute("data-team-key");
+    var paste = pasteBtn.getAttribute("data-paste") || "";
+    var ta = null;
+    var st;
+    var en;
+    var snap = rosterPasteSelection;
+    if (snap.ta === textareaTemplate || snap.ta === textareaA || snap.ta === textareaB) {
+      ta = snap.ta;
+      st = snap.start;
+      en = snap.end;
+    } else {
+      ta = teamKey === "B" ? textareaB : textareaA;
+      if (ta) {
+        st = en = ta.value.length;
+      }
+    }
+    if (ta && paste) insertTextAtCursor(ta, paste, st, en);
+    return;
+  }
   if (ev.target === modal) closeFightPlanModal();
 });
 
@@ -435,7 +590,13 @@ document.addEventListener("keydown", function (ev) {
 
 window.addEventListener("lw-localstorage-synced", function (ev) {
   var keys = ev.detail && ev.detail.keys;
-  var mine = new Set([LS_TEMPLATE_KEY, LS_MAIL_DAY_PREF, LS_MAIL_HISTORY]);
+  var mine = new Set([
+    LS_TEMPLATE_KEY,
+    LS_MAIL_DAY_PREF,
+    LS_MAIL_HISTORY,
+    DS_TRACKER_HISTORY_KEY,
+    DS_TRACKER_PLAYERS_KEY,
+  ]);
   if (keys && keys.length && !keys.some(function (k) { return mine.has(k); })) return;
   loadTemplateFromStorage();
   syncMailDayOnOpen();

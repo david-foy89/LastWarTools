@@ -9,6 +9,7 @@
       content="Versus Tracker for Last War: Survival. Tracks players, weekly day scores, and VS Total."
     />
     <link rel="stylesheet" href="last-war-furnace-upgrade-calculator.css" />
+    <link rel="stylesheet" href="last-war-calendar.css" />
     <script src="page-nav-dropdown.js" defer></script>
     <script src="language-translate.js" defer></script>
     <script src="firebase-config.example.js"></script>
@@ -47,8 +48,7 @@
         color: var(--muted);
         white-space: nowrap;
       }
-      #verusWeekPicker,
-      #verusDsDayPicker {
+      #verusWeekPicker {
         padding: 7px 10px;
         border-radius: 8px;
         border: 1px solid var(--line-soft);
@@ -56,9 +56,6 @@
         color: var(--text);
         font-size: 0.92rem;
         min-width: 160px;
-      }
-      #verusDsDayPicker {
-        min-width: 150px;
       }
       .verus-week-arrows {
         display: inline-flex;
@@ -333,14 +330,8 @@
         font-size: 0.82rem;
         color: var(--muted);
       }
-      .ds-match-history-toolbar input[type="date"] {
-        padding: 5px 8px;
-        border-radius: 8px;
-        border: 1px solid var(--line-soft);
-        background: var(--panel-2);
-        color: var(--text);
-        font-size: 0.82rem;
-        min-height: 32px;
+      .ds-match-history-toolbar input[type="date"].lwst-cal-input-hidden {
+        min-height: 0;
       }
       .ds-match-history-toolbar select {
         flex: 1 1 200px;
@@ -847,6 +838,9 @@
             <a href="season-2-supplies-checklist.html" class="page-link"
               >Supplies Checklist</a
             >
+            <a href="rare-soil-war-tracker.html" class="page-link"
+              >Rare Soil War Tracker</a
+            >
           </div>
         </details>
         <details class="page-nav-dropdown" name="season-nav">
@@ -941,14 +935,6 @@
               </button>
             </div>
             <input type="week" id="verusWeekPicker" name="verusWeek" />
-            <label for="verusDsDayPicker">DS day</label>
-            <input
-              type="date"
-              id="verusDsDayPicker"
-              name="verusDsDay"
-              title="Desert Storm server day (EST + 2, midnight reset)"
-              aria-label="Desert Storm calendar day"
-            />
             <p id="verusWeekDateRange" class="verus-week-dates" aria-live="polite">
               <!-- Filled by script: Mon–Sat dates for the ISO week -->
             </p>
@@ -1246,7 +1232,12 @@
         </p>
         <div class="ds-match-history-toolbar">
           <label for="verusMatchHistoryWeekStart">Match date</label>
-          <input type="date" id="verusMatchHistoryWeekStart" aria-label="Match date" />
+          <input
+            type="date"
+            id="verusMatchHistoryWeekStart"
+            class="lwst-cal-auto"
+            aria-label="Match date"
+          />
           <button type="button" id="verusMatchHistorySaveBtn" class="action-button">Save match</button>
         </div>
         <div class="ds-mh-browser">
@@ -3285,14 +3276,13 @@
         }
 
         function advanceDsDayAcrossWeeks(prevKey, nextKey) {
-          const dsPicker = document.getElementById("verusDsDayPicker");
-          if (!dsPicker || !/^\d{4}-W\d{2}$/.test(String(nextKey || "").trim())) {
+          if (!/^\d{4}-W\d{2}$/.test(String(nextKey || "").trim())) {
             return;
           }
           if (!prevKey || !/^\d{4}-W\d{2}$/.test(String(prevKey))) {
-            dsPicker.value = pickDsDayForWeek(nextKey);
+            currentDsDayYmd = pickDsDayForWeek(nextKey);
             try {
-              localStorage.setItem(LAST_DS_DAY_KEY, dsPicker.value);
+              localStorage.setItem(LAST_DS_DAY_KEY, currentDsDayYmd);
             } catch {
               // ignore
             }
@@ -3303,8 +3293,8 @@
           const newM = mondayDateFromWeekKey(nextKey);
           if (!oldM || !newM) return;
           let offset = 0;
-          if (/^\d{4}-\d{2}-\d{2}$/.test(dsPicker.value)) {
-            const gd = parseYmdLocal(dsPicker.value);
+          if (/^\d{4}-\d{2}-\d{2}$/.test(currentDsDayYmd)) {
+            const gd = parseYmdLocal(currentDsDayYmd);
             if (Number.isFinite(gd.getTime())) {
               offset = Math.round((gd - oldM) / 86400000);
             }
@@ -3312,9 +3302,9 @@
           offset = Math.max(0, Math.min(5, offset));
           const nd = new Date(newM);
           nd.setDate(newM.getDate() + offset);
-          dsPicker.value = formatYmd(nd);
+          currentDsDayYmd = formatYmd(nd);
           try {
-            localStorage.setItem(LAST_DS_DAY_KEY, dsPicker.value);
+            localStorage.setItem(LAST_DS_DAY_KEY, currentDsDayYmd);
           } catch {
             // ignore
           }
@@ -3323,11 +3313,10 @@
         /** Default OCR column from DS calendar date (Mon–Sat only; Sunday → Monday). */
         function syncOcrDayFromDsDay() {
           const sel = document.getElementById("verusOcrDay");
-          const dsPicker = document.getElementById("verusDsDayPicker");
-          if (!sel || !dsPicker || !/^\d{4}-\d{2}-\d{2}$/.test(dsPicker.value)) {
+          if (!sel || !/^\d{4}-\d{2}-\d{2}$/.test(currentDsDayYmd)) {
             return;
           }
-          const d = parseYmdLocal(dsPicker.value);
+          const d = parseYmdLocal(currentDsDayYmd);
           if (!Number.isFinite(d.getTime())) return;
           const dow = d.getDay();
           let name;
@@ -3452,6 +3441,8 @@
         let verusRows = [];
         let weeksMap = {};
         let currentWeekKey = "";
+        /** YYYY-MM-DD — Desert Storm calendar day for OCR / match history (no separate picker UI). */
+        let currentDsDayYmd = "";
         let saveTimer = null;
         /** One of DAYS or "vsTotal"; null = default (VS sum desc, blanks last). */
         let sortColumn = null;
@@ -3629,9 +3620,8 @@
           switchToWeek(initial);
           verusSkipDsDaySync = false;
 
-          const dsPicker = document.getElementById("verusDsDayPicker");
+          currentDsDayYmd = dsDay;
           const picker = document.getElementById("verusWeekPicker");
-          if (dsPicker) dsPicker.value = dsDay;
           if (picker) {
             picker.value = currentWeekKey;
             if (!picker.value) picker.value = currentWeekKey;
@@ -4206,36 +4196,17 @@
         });
 
         window.__lwVersusGetMatchHistoryDate = function () {
-          const dsPicker = document.getElementById("verusDsDayPicker");
-          const v = dsPicker && dsPicker.value ? String(dsPicker.value).trim() : "";
+          const v = String(currentDsDayYmd || "").trim();
           if (/^\d{4}-\d{2}-\d{2}$/.test(v)) return v;
           const m = mondayDateFromWeekKey(currentWeekKey);
           return m ? formatYmd(m) : "";
         };
 
         const weekPicker = document.getElementById("verusWeekPicker");
-        const dsDayPicker = document.getElementById("verusDsDayPicker");
         if (weekPicker) {
           weekPicker.addEventListener("change", function () {
             const v = String(weekPicker.value || "").trim();
             if (v && v !== currentWeekKey) switchToWeek(v);
-          });
-        }
-        if (dsDayPicker) {
-          dsDayPicker.addEventListener("change", function () {
-            const v = String(dsDayPicker.value || "").trim();
-            if (!/^\d{4}-\d{2}-\d{2}$/.test(v)) return;
-            const d = parseYmdLocal(v);
-            if (!Number.isFinite(d.getTime())) return;
-            const wk = getISOWeekString(d);
-            verusSkipDsDaySync = true;
-            if (wk !== currentWeekKey) switchToWeek(wk);
-            verusSkipDsDaySync = false;
-            try {
-              localStorage.setItem(LAST_DS_DAY_KEY, v);
-            } catch {
-              // ignore
-            }
           });
         }
         const weekPrev = document.getElementById("verusWeekPrevBtn");
@@ -4494,6 +4465,10 @@
           });
         }
       })();
+    </script>
+    <script src="last-war-calendar.js"></script>
+    <script>
+      if (window.LwstCalendar) window.LwstCalendar.initAuto();
     </script>
     <script type="module" src="verus-tracker-match-history.js"></script>
   </body>
