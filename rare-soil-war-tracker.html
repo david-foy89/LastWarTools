@@ -846,6 +846,31 @@
           }
         }
 
+        /** RTDB snapshot `updatedAt`: number, numeric string, or rare unresolved sentinel. */
+        function parseRtdbUpdatedAtMs(raw) {
+          if (raw == null) return NaN;
+          if (typeof raw === "number" && Number.isFinite(raw)) return raw;
+          if (typeof raw === "string") {
+            const n = Number(raw);
+            if (Number.isFinite(n)) return n;
+          }
+          if (
+            typeof raw === "object" &&
+            raw !== null &&
+            raw[".sv"] === "timestamp"
+          ) {
+            return NaN;
+          }
+          return NaN;
+        }
+
+        function rsEnsureFirebaseDatabaseInstance() {
+          if (rsLiveState.firebaseDb || !rsLiveState.firebaseApp) return;
+          rsLiveState.firebaseDb = window.firebase.database(
+            rsLiveState.firebaseApp,
+          );
+        }
+
         function buildRsLiveShareUrl(shareId) {
           const url = new URL(window.location.href);
           url.search = "";
@@ -880,11 +905,20 @@
             return false;
           }
           if (!rsLiveState.firebaseApp) {
-            const appName =
-              "lwst-rs-" +
-              btoa(currentDb)
-                .replace(/[^a-zA-Z0-9]/g, "")
-                .slice(0, 20);
+            let appName;
+            try {
+              appName =
+                "lwst-rs-" +
+                btoa(currentDb)
+                  .replace(/[^a-zA-Z0-9]/g, "")
+                  .slice(0, 20);
+            } catch {
+              var h = 0;
+              for (var ci = 0; ci < currentDb.length; ci++) {
+                h = ((h << 5) - h + currentDb.charCodeAt(ci)) | 0;
+              }
+              appName = "lwst-rs-" + String(h >>> 0);
+            }
             const existing = window.firebase.apps.find(function (app) {
               return app.name === appName;
             });
@@ -893,10 +927,14 @@
               existing || window.firebase.initializeApp(appOpts, appName);
             if (!existing) {
               maybeActivateRsAppCheck(rsLiveState.firebaseApp, appOpts);
+              setTimeout(function () {
+                rsEnsureFirebaseDatabaseInstance();
+              }, 0);
+            } else {
+              rsEnsureFirebaseDatabaseInstance();
             }
-            rsLiveState.firebaseDb = window.firebase.database(
-              rsLiveState.firebaseApp,
-            );
+          } else if (!rsLiveState.firebaseDb) {
+            rsEnsureFirebaseDatabaseInstance();
           }
           return true;
         }
@@ -909,6 +947,7 @@
           rsLiveState.valueHandler = null;
           rsLiveState.active = false;
           rsLiveState.lastPushedContentJson = "";
+          rsLiveState.lastSeenAt = 0;
         }
 
         /**
@@ -1030,6 +1069,23 @@
             return;
           }
           if (!rsEnsureFirebaseReady()) return;
+          if (!rsLiveState.firebaseDb) {
+            setTimeout(function () {
+              if (
+                rsLiveState.active &&
+                rsLiveState.shareId &&
+                !rsLiveState.applyingRemote &&
+                rsLiveState.firebaseDb
+              ) {
+                pushRsLivePayload();
+              }
+            }, 120);
+            if (rsLiveStatus) {
+              rsLiveStatus.textContent =
+                "Live link: Firebase is still initializing…";
+            }
+            return;
+          }
           const ref = rsLiveState.firebaseDb.ref(
             "rare-soil-war/" + rsLiveState.shareId,
           );
@@ -1047,10 +1103,15 @@
               }
               if (rsLiveStatus) rsLiveStatus.textContent = "";
             })
-            .catch(function () {
+            .catch(function (err) {
               if (rsLiveStatus) {
+                var code = err && err.code ? String(err.code) : "";
                 rsLiveStatus.textContent =
-                  "Live save failed. Check Realtime Database rules.";
+                  code === "PERMISSION_DENIED"
+                    ? "Live save denied — check RTDB rules for rare-soil-war."
+                    : "Live save failed" +
+                        (code ? " (" + code + ")" : "") +
+                        ". Check rules / network.";
               }
             });
         }
@@ -1068,77 +1129,96 @@
           stopRsLiveSync();
           rsLiveState.shareId = shareId;
           rsLiveState.active = true;
+          rsLiveState.lastSeenAt = 0;
           if (!rsEnsureFirebaseReady()) {
             rsLiveState.active = false;
             return;
           }
-          rsLiveState.firebaseRef = rsLiveState.firebaseDb.ref(
-            "rare-soil-war/" + shareId,
-          );
-          rsLiveState.valueHandler = function (snapshot) {
-            const val = snapshot.val();
-            if (!val || val.updatedAt == null) return;
-            const t = Number(val.updatedAt);
-            if (!Number.isFinite(t)) return;
 
-            const remoteBy = String(
-              val.updatedBy != null ? val.updatedBy : "",
-            );
-
-            if (remoteBy === rsLiveState.clientId) {
-              rsLiveState.lastSeenAt = Math.max(rsLiveState.lastSeenAt, t);
-              return;
-            }
-
-            const normalized = normalizeIncomingLiveState(val);
-            if (!normalized) {
-              rsLiveState.lastSeenAt = Math.max(rsLiveState.lastSeenAt, t);
-              return;
-            }
-
-            const incomingJson = JSON.stringify({
-              days: normalized.days,
-              rows: normalized.rows,
-            });
-
-            if (
-              !remoteBy &&
-              rsLiveState.lastPushedContentJson &&
-              incomingJson === rsLiveState.lastPushedContentJson
-            ) {
-              rsLiveState.lastSeenAt = Math.max(rsLiveState.lastSeenAt, t);
-              return;
-            }
-
-            if (
-              liveTrackerStateEqual(
-                { days: state.days, rows: state.rows },
-                normalized,
-              )
-            ) {
-              rsLiveState.lastSeenAt = Math.max(rsLiveState.lastSeenAt, t);
-              return;
-            }
-
-            /*
-             * Apply remote edits from other users. Do not gate on t <= lastSeenAt — that
-             * compared each client's Date.now() and dropped other tabs when clocks skewed.
-             * Deduping is handled above (same content) and by server timestamps on new writes.
-             */
-            rsLiveState.lastSeenAt = Math.max(rsLiveState.lastSeenAt, t);
-            applyRsLivePayload(val);
-          };
-          rsLiveState.firebaseRef.on(
-            "value",
-            rsLiveState.valueHandler,
-            function (err) {
-              if (rsLiveStatus) {
-                rsLiveStatus.textContent =
-                  "Live read failed: " +
-                  (err && err.code ? err.code : "unknown");
+          var attachAttempts = 0;
+          function attachRsLiveListener() {
+            if (!rsLiveState.firebaseDb) {
+              attachAttempts += 1;
+              if (attachAttempts > 120) {
+                if (rsLiveStatus) {
+                  rsLiveStatus.textContent =
+                    "Live link: Firebase database did not initialize. Refresh the page.";
+                }
+                return;
               }
-            },
-          );
+              setTimeout(attachRsLiveListener, 30);
+              return;
+            }
+            rsLiveState.firebaseRef = rsLiveState.firebaseDb.ref(
+              "rare-soil-war/" + shareId,
+            );
+            rsLiveState.valueHandler = function (snapshot) {
+              const val = snapshot.val();
+              if (!val) return;
+              const t = parseRtdbUpdatedAtMs(val.updatedAt);
+              if (!Number.isFinite(t)) return;
+
+              const remoteBy = String(
+                val.updatedBy != null ? val.updatedBy : "",
+              );
+
+              if (remoteBy === rsLiveState.clientId) {
+                rsLiveState.lastSeenAt = Math.max(rsLiveState.lastSeenAt, t);
+                return;
+              }
+
+              const normalized = normalizeIncomingLiveState(val);
+              if (!normalized) {
+                rsLiveState.lastSeenAt = Math.max(rsLiveState.lastSeenAt, t);
+                return;
+              }
+
+              const incomingJson = JSON.stringify({
+                days: normalized.days,
+                rows: normalized.rows,
+              });
+
+              if (
+                !remoteBy &&
+                rsLiveState.lastPushedContentJson &&
+                incomingJson === rsLiveState.lastPushedContentJson
+              ) {
+                rsLiveState.lastSeenAt = Math.max(rsLiveState.lastSeenAt, t);
+                return;
+              }
+
+              if (
+                liveTrackerStateEqual(
+                  { days: state.days, rows: state.rows },
+                  normalized,
+              )
+              ) {
+                rsLiveState.lastSeenAt = Math.max(rsLiveState.lastSeenAt, t);
+                return;
+              }
+
+              /*
+               * Apply remote edits from other users. Do not gate on t <= lastSeenAt — that
+               * compared each client's Date.now() and dropped other tabs when clocks skewed.
+               * Deduping is handled above (same content) and by server timestamps on new writes.
+               */
+              rsLiveState.lastSeenAt = Math.max(rsLiveState.lastSeenAt, t);
+              applyRsLivePayload(val);
+            };
+            rsLiveState.firebaseRef.on(
+              "value",
+              rsLiveState.valueHandler,
+              function (err) {
+                if (rsLiveStatus) {
+                  rsLiveStatus.textContent =
+                    "Live read failed: " +
+                    (err && err.code ? err.code : "unknown");
+                }
+              },
+            );
+          }
+
+          attachRsLiveListener();
           history.replaceState(null, "", buildRsLiveShareUrl(shareId));
         }
 
