@@ -1,5 +1,7 @@
 (function () {
   const LANGUAGE_STORAGE_KEY = "selectedLanguage";
+  /** Homepage historically used this key; keep read/write in sync with {@link LANGUAGE_STORAGE_KEY}. */
+  const HOMEPAGE_LEGACY_LANGUAGE_KEY = "lastWarHomepageLanguageV1";
   const GOOGLE_TRANSLATE_SCRIPT_ID = "google-translate-script";
   const languageOptions = [
     { code: "en", label: "English" },
@@ -58,9 +60,22 @@
     return "";
   }
 
+  function isValidLanguageCode(code) {
+    return (
+      typeof code === "string" &&
+      languageOptions.some(function (lang) {
+        return lang.code === code;
+      })
+    );
+  }
+
   function savePreferredLanguage(languageCode) {
     try {
       localStorage.setItem(LANGUAGE_STORAGE_KEY, languageCode);
+      localStorage.setItem(
+        HOMEPAGE_LEGACY_LANGUAGE_KEY,
+        JSON.stringify({ language: languageCode }),
+      );
     } catch {
       // Ignore storage errors.
     }
@@ -69,16 +84,31 @@
   function loadPreferredLanguage() {
     try {
       const stored = localStorage.getItem(LANGUAGE_STORAGE_KEY);
-      if (stored) {
+      if (stored && isValidLanguageCode(stored)) {
         return stored;
       }
     } catch {
       // Ignore storage errors.
     }
 
+    try {
+      const raw = localStorage.getItem(HOMEPAGE_LEGACY_LANGUAGE_KEY);
+      if (raw) {
+        const state = JSON.parse(raw);
+        if (state && isValidLanguageCode(state.language)) {
+          return state.language;
+        }
+      }
+    } catch {
+      // Ignore malformed or inaccessible stored state.
+    }
+
     const googTrans = getCookie("googtrans");
-    const match = googTrans.match(/^\/en\/(.+)$/);
-    return match ? match[1] : "en";
+    const match = googTrans && googTrans.match(/^\/en\/(.+)$/);
+    if (match && isValidLanguageCode(match[1])) {
+      return match[1];
+    }
+    return "en";
   }
 
   function buildLanguageOptions(select, preferredLanguage) {
@@ -179,6 +209,35 @@
 
     initTranslate(languageSelect, preferredLanguage);
   }
+
+  function onAccountStorageSynced(ev) {
+    const keys = ev.detail && ev.detail.keys;
+    if (!keys || !keys.length) {
+      return;
+    }
+    const syncKeys = [LANGUAGE_STORAGE_KEY, HOMEPAGE_LEGACY_LANGUAGE_KEY];
+    const relevant = keys.some(function (k) {
+      return syncKeys.indexOf(k) !== -1;
+    });
+    if (!relevant) {
+      return;
+    }
+
+    const languageSelect = document.getElementById("languageSelect");
+    if (!languageSelect) {
+      return;
+    }
+
+    const preferredLanguage = loadPreferredLanguage();
+    buildLanguageOptions(languageSelect, preferredLanguage);
+
+    if (isGoogleTranslateDisabledForThisPage()) {
+      return;
+    }
+    applyGoogleLanguage(preferredLanguage, 25);
+  }
+
+  window.addEventListener("lw-localstorage-synced", onAccountStorageSynced);
 
   if (document.readyState === "loading") {
     document.addEventListener("DOMContentLoaded", setupLanguageTranslate);
