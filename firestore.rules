@@ -15,6 +15,17 @@ service cloud.firestore {
     }
 
     // =============================================================================
+    // SECTION: Rare Soil War Tracker — live collaboration (share link)
+    // Page: rare-soil-war-tracker.html — Firestore doc per shareId (same idea as transfer board).
+    // Code: collection "rareSoilWarLive" — setDoc / onSnapshot
+    // =============================================================================
+    match /rareSoilWarLive/{shareId} {
+      allow read: if true;
+      allow create, update: if true;
+      allow delete: if true;
+    }
+
+    // =============================================================================
     // SECTION: Account — localStorage cloud sync
     // Pages: account.html ("Sync now", "Restore to this device")
     //        All calculator pages (silent): account-sync-global.js via page-nav-dropdown.js
@@ -24,8 +35,8 @@ service cloud.firestore {
     // Rare Soil War Tracker (rare-soil-war-tracker.html):
     //   • "Sync to account" stores key lastwar-rare-soil-war-tracker-v1 inside this blob — no
     //     extra Firestore collection or rules block is required.
-    //   • Live collaboration (share link) uses Realtime Database path rare-soil-war/{shareId},
-    //     not Firestore — configure RTDB rules separately (see database.rules.json.example).
+    //   • Live collaboration (share link) prefers Firestore rareSoilWarLive/{shareId}; RTDB
+    //     rare-soil-war/{shareId} is optional fallback if only a DB URL is configured.
     // =============================================================================
     match /userLocalStorageSync/{userId} {
       allow read, write: if request.auth != null && request.auth.uid == userId;
