@@ -95,20 +95,6 @@
         font-size: 0.88rem;
       }
 
-      .rs-account-sync-note {
-        margin: 0 0 12px;
-        font-size: 0.82rem;
-        line-height: 1.45;
-        color: var(--muted);
-        max-width: 52rem;
-      }
-
-      .rs-account-sync-note a {
-        color: var(--accent-2);
-        text-decoration: underline;
-        text-underline-offset: 2px;
-      }
-
       .rs-export-toolbar {
         flex-wrap: wrap;
         gap: 8px;
@@ -615,20 +601,6 @@
 
       <section class="layout rs-tracker-layout">
         <div class="card">
-          <div class="rs-toolbar">
-            <button type="button" class="action-button" id="rsAddRow">Add alliance row</button>
-            <button type="button" class="action-button" id="rsSyncNow" title="Merge with cloud (requires signed-in account)">
-              Sync to account
-            </button>
-            <span class="rs-hint" id="rsSaveStatus" aria-live="polite"></span>
-            <span class="rs-hint" id="rsSyncStatus" aria-live="polite"></span>
-          </div>
-          <p class="rs-account-sync-note">
-            Optional: create a free account and verify your email on the
-            <a href="account.html">Account</a> page. While signed in, changes upload automatically and
-            merge with other devices.
-          </p>
-
           <div class="rs-toolbar rs-export-toolbar" aria-label="Export and live link">
             <span class="rs-export-label">Export</span>
             <button type="button" class="action-button" id="rsExportCsv" title="Download spreadsheet as CSV">
@@ -647,6 +619,15 @@
             </label>
             <button type="button" class="action-button" id="rsCopyLiveLink">Copy live link</button>
             <span class="rs-hint rs-live-status" id="rsLiveStatus" aria-live="polite"></span>
+          </div>
+
+          <div class="rs-toolbar">
+            <button type="button" class="action-button" id="rsAddRow">Add alliance row</button>
+            <button type="button" class="action-button" id="rsSyncNow" title="Merge with cloud (requires signed-in account)">
+              Sync to account
+            </button>
+            <span class="rs-hint" id="rsSaveStatus" aria-live="polite"></span>
+            <span class="rs-hint" id="rsSyncStatus" aria-live="polite"></span>
           </div>
 
           <div class="rs-table-wrap" id="rsTableExportRoot">
