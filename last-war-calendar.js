@@ -56,12 +56,15 @@
     var existing = document.getElementById("lwstCalPopover");
     if (existing) {
       popoverEl = existing;
+      existing.classList.add("notranslate");
+      existing.setAttribute("translate", "no");
       wirePopoverControls();
       return popoverEl;
     }
     var el = document.createElement("div");
     el.id = "lwstCalPopover";
-    el.className = "lwst-cal-popover";
+    el.className = "lwst-cal-popover notranslate";
+    el.setAttribute("translate", "no");
     el.setAttribute("hidden", "");
     el.setAttribute("role", "dialog");
     el.setAttribute("aria-modal", "true");

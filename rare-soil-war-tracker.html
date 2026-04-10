@@ -52,6 +52,12 @@
     <script src="language-translate.js" defer></script>
     <style>
       /* Single-card pages: default .layout is two columns — span full width */
+      /* Calendar popover must not intercept clicks when closed (Translate / layout edge cases). */
+      .lwst-cal-popover[hidden] {
+        display: none !important;
+        pointer-events: none !important;
+      }
+
       .rs-tracker-layout {
         grid-template-columns: 1fr;
         width: 100%;
@@ -599,7 +605,7 @@
         </div>
       </section>
 
-      <section class="layout rs-tracker-layout">
+      <section class="layout rs-tracker-layout notranslate" translate="no">
         <div class="card">
           <div class="rs-toolbar rs-export-toolbar" aria-label="Export and live link">
             <span class="rs-export-label">Export</span>
@@ -1222,7 +1228,7 @@
             th.innerHTML =
               '<div class="rs-day-controls-inner">' +
               '<span class="rs-date-field-label">Date</span>' +
-              '<button type="button" class="lwst-cal-trigger" id="rs-cal-tr-' +
+              '<button type="button" class="lwst-cal-trigger notranslate" translate="no" id="rs-cal-tr-' +
               d +
               '" aria-label="Battle day ' +
               (d + 1) +
@@ -1236,7 +1242,7 @@
               '<label class="rs-role-check">' +
               '<input type="checkbox" id="rs-day-atk-' +
               d +
-              '" class="rs-check-atk" data-day="' +
+              '" class="rs-check-atk notranslate" translate="no" data-day="' +
               d +
               '"' +
               (atkChecked ? " checked" : "") +
@@ -1246,7 +1252,7 @@
               '<label class="rs-role-check">' +
               '<input type="checkbox" id="rs-day-def-' +
               d +
-              '" class="rs-check-def" data-day="' +
+              '" class="rs-check-def notranslate" translate="no" data-day="' +
               d +
               '"' +
               (defChecked ? " checked" : "") +
@@ -1309,12 +1315,12 @@
             tdMeta.className = "rs-col-alliance-cell";
             tdMeta.innerHTML =
               '<div class="rs-alliance-cell-inner">' +
-              '<input type="text" inputmode="numeric" class="rs-in-server" placeholder="#" title="Server #" aria-label="Server number row ' +
+              '<input type="text" inputmode="numeric" class="rs-in-server notranslate" translate="no" autocomplete="off" spellcheck="false" placeholder="#" title="Server #" aria-label="Server number row ' +
               (i + 1) +
               '" value="' +
               escapeAttr(row.server) +
               '" />' +
-              '<input type="text" class="rs-in-alliance" placeholder="Tag / name" aria-label="Alliance row ' +
+              '<input type="text" class="rs-in-alliance notranslate" translate="no" autocomplete="off" spellcheck="false" placeholder="Tag / name" aria-label="Alliance row ' +
               (i + 1) +
               '" value="' +
               escapeAttr(row.alliance) +
@@ -1331,7 +1337,7 @@
                 '<div class="rs-opponent-cell" data-outcome="' +
                 escapeAttr(oc) +
                 '">' +
-                '<input type="text" class="rs-in-note" data-day="' +
+                '<input type="text" class="rs-in-note notranslate" translate="no" autocomplete="off" spellcheck="false" data-day="' +
                 d +
                 '" placeholder="Opp." title="Opponent" aria-label="Opponent for row ' +
                 (i + 1) +
@@ -1340,7 +1346,7 @@
                 '" value="' +
                 escapeAttr(row.notes[d]) +
                 '" />' +
-                '<select class="rs-out-select" data-day="' +
+                '<select class="rs-out-select notranslate" translate="no" data-day="' +
                 d +
                 '" aria-label="Win or loss for row ' +
                 (i + 1) +
