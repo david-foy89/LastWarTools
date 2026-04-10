@@ -15,6 +15,7 @@ service cloud.firestore {
     }
 
     // --- Account: localStorage sync (account.html Sync/Restore; account-sync-global.js on tools) ---
+    // Rare Soil War Tracker: data is in this blob (key lastwar-rare-soil-war-tracker-v1). Live link = RTDB.
     match /userLocalStorageSync/{userId} {
       allow read, write: if request.auth != null && request.auth.uid == userId;
     }

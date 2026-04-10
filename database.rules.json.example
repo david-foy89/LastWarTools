@@ -1,0 +1,46 @@
+{
+  "rules": {
+    "rare-soil-war": {
+      "$shareId": {
+        ".read": true,
+        ".write": true
+      }
+    },
+    "season1-map": {
+      "$shareId": {
+        ".read": true,
+        ".write": true
+      }
+    },
+    "season2-map": {
+      "$shareId": {
+        ".read": true,
+        ".write": true
+      }
+    },
+    "season2-supplies": {
+      "$shareId": {
+        ".read": true,
+        ".write": true
+      }
+    },
+    "season3-map": {
+      "$shareId": {
+        ".read": true,
+        ".write": true
+      }
+    },
+    "season4-map": {
+      "$shareId": {
+        ".read": true,
+        ".write": true
+      }
+    },
+    "season5-map": {
+      "$shareId": {
+        ".read": true,
+        ".write": true
+      }
+    }
+  }
+}

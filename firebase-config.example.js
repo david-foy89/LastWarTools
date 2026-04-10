@@ -26,6 +26,11 @@
  * for localhost. Google Cloud → APIs & Services → Credentials: if the browser API key is
  * restricted, allow “Firestore API” and the correct HTTP referrers (or unrestricted for dev).
  *
+ * Realtime Database rules (live link): Rare Soil uses path `rare-soil-war/{shareId}`.
+ * That is **Realtime Database**, not Firestore — set rules in Firebase Console → Realtime
+ * Database → Rules (see `database.rules.json.example` in this repo). Firestore rules do
+ * not apply to RTDB.
+ *
  * Realtime Database + App Check (rare-soil-war-tracker live link):
  * If the console shows “Missing appcheck token” for RTDB, Firebase has App Check *enforcement*
  * on for that database. Either:

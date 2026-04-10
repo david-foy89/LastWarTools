@@ -20,6 +20,12 @@ service cloud.firestore {
     //        All calculator pages (silent): account-sync-global.js via page-nav-dropdown.js
     // Actions: read/write only your own doc (document id = Firebase Auth UID).
     // Code: account-sync-lib.js → userLocalStorageSync/{uid}
+    //
+    // Rare Soil War Tracker (rare-soil-war-tracker.html):
+    //   • "Sync to account" stores key lastwar-rare-soil-war-tracker-v1 inside this blob — no
+    //     extra Firestore collection or rules block is required.
+    //   • Live collaboration (share link) uses Realtime Database path rare-soil-war/{shareId},
+    //     not Firestore — configure RTDB rules separately (see database.rules.json.example).
     // =============================================================================
     match /userLocalStorageSync/{userId} {
       allow read, write: if request.auth != null && request.auth.uid == userId;
