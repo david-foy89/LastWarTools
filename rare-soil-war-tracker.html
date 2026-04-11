@@ -1239,6 +1239,16 @@
           };
         }
 
+        function rsPerformRtdbSetPromise() {
+          if (!rsEnsureFirebaseReady()) {
+            return Promise.reject(new Error("Firebase not ready"));
+          }
+          const ref = rsLiveState.firebaseDb.ref(
+            "rare-soil-war/" + rsLiveState.shareId,
+          );
+          return ref.set(getRsLivePayloadForRtdb());
+        }
+
         function pushRsLivePayload() {
           if (
             !rsLiveState.active ||
@@ -1249,13 +1259,7 @@
             return;
           }
           if (rsLiveState.liveBackend !== "rtdb") return;
-          if (!rsEnsureFirebaseReady()) return;
-          const ref = rsLiveState.firebaseDb.ref(
-            "rare-soil-war/" + rsLiveState.shareId,
-          );
-          const payload = getRsLivePayloadForRtdb();
-          ref
-            .set(payload)
+          rsPerformRtdbSetPromise()
             .then(function () {
               if (rsLiveStatus) rsLiveStatus.textContent = "";
             })
@@ -1270,6 +1274,46 @@
                         ". Check rules / network.";
               }
             });
+        }
+
+        /**
+         * Reads inputs into state, clears debounce, writes current table to RTDB immediately.
+         * Use before copying a share link so the URL already points at saved data.
+         */
+        function rsFlushLivePushToCloud() {
+          readDomIntoState();
+          if (livePushTimer) {
+            clearTimeout(livePushTimer);
+            livePushTimer = null;
+          }
+          if (
+            !rsLiveState.active ||
+            !rsLiveState.shareId ||
+            rsLiveState.applyingRemote ||
+            !rsLiveState.livePushUnlocked
+          ) {
+            return Promise.reject(new Error("Live sync not ready"));
+          }
+          if (rsLiveState.liveBackend !== "rtdb") {
+            return Promise.reject(new Error("Live backend not RTDB"));
+          }
+          return rsPerformRtdbSetPromise().then(
+            function () {
+              if (rsLiveStatus) rsLiveStatus.textContent = "";
+            },
+            function (err) {
+              if (rsLiveStatus) {
+                var code = err && err.code ? String(err.code) : "";
+                rsLiveStatus.textContent =
+                  code === "PERMISSION_DENIED"
+                    ? "Live save denied — check RTDB rules for rare-soil-war."
+                    : "Live save failed" +
+                        (code ? " (" + code + ")" : "") +
+                        ". Check rules / network.";
+              }
+              throw err;
+            },
+          );
         }
 
         function rsScheduleLivePush() {
@@ -1359,7 +1403,19 @@
           rsAttachRtdbListener(shareId, deferFirstLivePush);
           if (!deferFirstLivePush) {
             readDomIntoState();
-            rsScheduleLivePush();
+            rsFlushLivePushToCloud()
+              .then(function () {
+                if (rsLiveStatus && rsLiveState.active) {
+                  rsLiveStatus.textContent =
+                    "Live on — use Copy live link to share.";
+                }
+              })
+              .catch(function () {
+                if (rsLiveStatus && rsLiveState.active) {
+                  rsLiveStatus.textContent =
+                    "Live on but cloud save failed — check status above or RTDB rules.";
+                }
+              });
           }
         }
 
@@ -1926,10 +1982,6 @@
               resolveShareIdFromUrl() ||
               createShareId();
             startRsLiveSync(sid);
-            if (rsLiveStatus && rsLiveState.active) {
-              rsLiveStatus.textContent =
-                "Live on — use Copy live link to share.";
-            }
           });
         }
 
@@ -1954,10 +2006,21 @@
             if (!rsLiveState.active || !rsLiveState.shareId) {
               return;
             }
+            if (rsLiveStatus) {
+              rsLiveStatus.textContent = "Saving table to link…";
+            }
+            try {
+              await rsFlushLivePushToCloud();
+            } catch {
+              alert(
+                "Could not save your table to the cloud. Fix the error in the status line, then try Copy live link again.",
+              );
+              return;
+            }
             const url = buildRsLiveShareUrl(rsLiveState.shareId);
             try {
               await navigator.clipboard.writeText(url);
-              if (rsLiveStatus) rsLiveStatus.textContent = "Live link copied.";
+              if (rsLiveStatus) rsLiveStatus.textContent = "Live link copied (table saved).";
             } catch {
               window.prompt("Copy this live link:", url);
             }
