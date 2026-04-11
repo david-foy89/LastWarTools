@@ -1070,6 +1070,39 @@
         }
 
         /**
+         * When RTDB App Check **enforcement** is on, connections close with "Missing appcheck token"
+         * if reads/writes start before the first token. Wait for {@link firebase.appCheck#getToken}
+         * after activate (reCAPTCHA Enterprise key in firebase-config.js / GitHub secret).
+         */
+        function rsAwaitAppCheckTokenBeforeRtdb(app) {
+          var key = "";
+          try {
+            key = String(window.__FIREBASE_APPCHECK_SITE_KEY__ || "").trim();
+          } catch (_) {}
+          if (!key || !app || !window.firebase || !window.firebase.appCheck) {
+            return Promise.resolve();
+          }
+          try {
+            var ac = firebase.appCheck(app);
+            if (typeof ac.getToken !== "function") {
+              return Promise.resolve();
+            }
+            return ac.getToken(false).then(
+              function () {
+                return;
+              },
+              function (err) {
+                console.warn("[Rare Soil] App Check getToken:", err);
+                return;
+              },
+            );
+          } catch (e) {
+            console.warn("[Rare Soil] App Check getToken:", e);
+            return Promise.resolve();
+          }
+        }
+
+        /**
          * Compat RTDB app: use full `firebaseConfig` + `databaseURL` when available so App Check
          * can attach (enforcement on RTDB). Fallback: `{ databaseURL }` only (maps / legacy).
          */
@@ -1292,10 +1325,14 @@
           if (!rsEnsureFirebaseReady()) {
             return Promise.reject(new Error("Firebase not ready"));
           }
+          var app = rsLiveState.firebaseApp;
           const ref = rsLiveState.firebaseDb.ref(
             "rare-soil-war/" + rsLiveState.shareId,
           );
-          return ref.set(getRsLivePayloadForRtdb());
+          const payload = getRsLivePayloadForRtdb();
+          return rsAwaitAppCheckTokenBeforeRtdb(app).then(function () {
+            return ref.set(payload);
+          });
         }
 
         function pushRsLivePayload() {
@@ -1463,24 +1500,35 @@
             rsFailStartLiveSync();
             return;
           }
+          /* Set before async App Check wait so Copy → flush can run immediately with rsPerformRtdbSetPromise. */
           rsLiveState.liveBackend = "rtdb";
-          rsAttachRtdbListener(shareId, deferFirstLivePush);
-          if (deferFirstLivePush !== true) {
-            readDomIntoState();
-            rsFlushLivePushToCloud({ force: true })
-              .then(function () {
-                if (rsLiveStatus && rsLiveState.active) {
-                  rsLiveStatus.textContent =
-                    "Live on — use Copy live link to share.";
-                }
-              })
-              .catch(function () {
-                if (rsLiveStatus && rsLiveState.active) {
-                  rsLiveStatus.textContent =
-                    "Live on but cloud save failed — check status above or RTDB rules.";
-                }
-              });
-          }
+          var appReady = rsLiveState.firebaseApp;
+          rsAwaitAppCheckTokenBeforeRtdb(appReady)
+            .catch(function () {
+              return undefined;
+            })
+            .then(function () {
+              if (!rsLiveState.active || rsLiveState.shareId !== shareId) {
+                return;
+              }
+              rsAttachRtdbListener(shareId, deferFirstLivePush);
+              if (deferFirstLivePush !== true) {
+                readDomIntoState();
+                rsFlushLivePushToCloud({ force: true })
+                  .then(function () {
+                    if (rsLiveStatus && rsLiveState.active) {
+                      rsLiveStatus.textContent =
+                        "Live on — use Copy live link to share.";
+                    }
+                  })
+                  .catch(function () {
+                    if (rsLiveStatus && rsLiveState.active) {
+                      rsLiveStatus.textContent =
+                        "Live on but cloud save failed — App Check, RTDB rules, or network.";
+                    }
+                  });
+              }
+            });
         }
 
         function downloadBlob(blob, filename) {
