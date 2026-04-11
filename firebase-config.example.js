@@ -56,9 +56,12 @@ window.__FIREBASE_CONFIG__ = {
 window.__RECAPTCHA_SITE_KEY__ = "";
 
 /**
- * reCAPTCHA *Enterprise* site key for Firebase App Check (web). Used by rare-soil-war-tracker
- * when RTDB App Check enforcement is on. Register the app + key in Firebase Console → App Check.
- * Leave "" if you use Monitor/Off for RTDB instead.
+ * reCAPTCHA *Enterprise* site key for Firebase App Check (web). Required in firebase-config.js
+ * when App Check **enforcement** is on for **Firestore** and/or **Realtime Database** (otherwise
+ * you see permission-denied / HTTP 400 / “Missing appcheck token”). Register in Firebase Console
+ * → App Check → your web app → reCAPTCHA Enterprise. rare-soil-war-tracker.html activates App Check
+ * for both the modular Firestore client and the compat RTDB client when this is non-empty.
+ * Leave "" only if enforcement is Off or Monitor for both products.
  */
 window.__FIREBASE_APPCHECK_SITE_KEY__ = "";
 

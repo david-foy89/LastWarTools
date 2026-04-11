@@ -12,9 +12,16 @@ import {
   onSnapshot,
   serverTimestamp,
 } from "https://www.gstatic.com/firebasejs/10.12.5/firebase-firestore.js";
+import {
+  initializeAppCheck,
+  ReCaptchaEnterpriseProvider,
+} from "https://www.gstatic.com/firebasejs/10.12.5/firebase-app-check.js";
 
 const APP_NAME = "lwst-rare-soil-live";
 const COL = "rareSoilWarLive";
+
+/** @type {WeakMap<import("firebase/app").FirebaseApp, true>} */
+const _appCheckReady = new WeakMap();
 
 function getOrInitApp(cfg) {
   const apps = getApps();
@@ -22,6 +29,25 @@ function getOrInitApp(cfg) {
     if (apps[i].name === APP_NAME) return apps[i];
   }
   return initializeApp(cfg, APP_NAME);
+}
+
+function ensureModularAppCheck(app) {
+  if (_appCheckReady.has(app)) return;
+  try {
+    var sk =
+      typeof window !== "undefined" && window.__FIREBASE_APPCHECK_SITE_KEY__;
+    var key = String(sk || "").trim();
+    if (!key) {
+      return;
+    }
+    initializeAppCheck(app, {
+      provider: new ReCaptchaEnterpriseProvider(key),
+      isTokenAutoRefreshEnabled: true,
+    });
+    _appCheckReady.set(app, true);
+  } catch (e) {
+    console.warn("[Rare Soil] App Check (Firestore module):", e);
+  }
 }
 
 function getDb(app) {
@@ -42,6 +68,7 @@ function getDb(app) {
  */
 export function startRareSoilFirestoreLive(cfg, shareId, handlers) {
   const app = getOrInitApp(cfg);
+  ensureModularAppCheck(app);
   const db = getDb(app);
   const dref = doc(db, COL, shareId);
   const unsub = onSnapshot(dref, handlers.onSnapshot, handlers.onError);

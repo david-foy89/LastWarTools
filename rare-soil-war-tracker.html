@@ -980,9 +980,43 @@
         }
 
         /**
+         * When App Check is **enforced** for Realtime Database / Firestore, requests need a
+         * valid token. Activate with your reCAPTCHA Enterprise key from Firebase Console →
+         * App Check (`__FIREBASE_APPCHECK_SITE_KEY__` in firebase-config.js). Debug: `?apcDebug=1`.
+         */
+        function rsEnsureAppCheckCompat(app) {
+          if (
+            !app ||
+            !window.firebase ||
+            !window.firebase.appCheck ||
+            app._rsAppCheckActivated
+          ) {
+            return;
+          }
+          var key = "";
+          try {
+            key = String(
+              window.__FIREBASE_APPCHECK_SITE_KEY__ || "",
+            ).trim();
+          } catch (_) {}
+          if (!key) {
+            return;
+          }
+          try {
+            var Prov = firebase.appCheck.ReCaptchaEnterpriseProvider;
+            if (typeof Prov !== "function") {
+              return;
+            }
+            firebase.appCheck(app).activate(new Prov(key), true);
+            app._rsAppCheckActivated = true;
+          } catch (e) {
+            console.warn("[Rare Soil] App Check (Realtime Database):", e);
+          }
+        }
+
+        /**
          * Same strategy as season-2-supplies / maps: `{ databaseURL }` only (compat SDK).
-         * Avoids merging __FIREBASE_CONFIG__ + App Check here so RTDB matches open rules
-         * when App Check is not registered for this page.
+         * App Check is activated separately via {@link rsEnsureAppCheckCompat} when a site key is set.
          */
         function rsEnsureFirebaseReady() {
           if (!rsLiveState.dbUrl) return false;
@@ -1041,6 +1075,7 @@
               rsLiveState.firebaseApp,
             );
           }
+          rsEnsureAppCheckCompat(rsLiveState.firebaseApp);
           return true;
         }
 
