@@ -1102,6 +1102,32 @@
           }
         }
 
+        /** Avoid indefinite "Saving table to link…" when App Check or RTDB never settles. */
+        function rsPromiseWithTimeout(promise, ms, timeoutMessage) {
+          return new Promise(function (resolve, reject) {
+            var settled = false;
+            var timer = setTimeout(function () {
+              if (settled) return;
+              settled = true;
+              reject(new Error(timeoutMessage || "Operation timed out."));
+            }, ms);
+            Promise.resolve(promise).then(
+              function (v) {
+                if (settled) return;
+                settled = true;
+                clearTimeout(timer);
+                resolve(v);
+              },
+              function (e) {
+                if (settled) return;
+                settled = true;
+                clearTimeout(timer);
+                reject(e);
+              },
+            );
+          });
+        }
+
         /**
          * Compat RTDB app: use full `firebaseConfig` + `databaseURL` when available so App Check
          * can attach (enforcement on RTDB). Fallback: `{ databaseURL }` only (maps / legacy).
@@ -1288,23 +1314,26 @@
           const normalized = normalizeIncomingLiveState(payload);
           if (!normalized) return;
           rsLiveState.applyingRemote = true;
-          state.days = normalized.days;
-          state.rows = normalized.rows;
-          renderDayControls();
-          renderBody();
           try {
-            localStorage.setItem(
-              STORAGE_KEY,
-              JSON.stringify({
-                days: state.days,
-                rows: state.rows,
-                savedAt: Date.now(),
-              }),
-            );
-          } catch {
-            /* ignore */
+            state.days = normalized.days;
+            state.rows = normalized.rows;
+            renderDayControls();
+            renderBody();
+            try {
+              localStorage.setItem(
+                STORAGE_KEY,
+                JSON.stringify({
+                  days: state.days,
+                  rows: state.rows,
+                  savedAt: Date.now(),
+                }),
+              );
+            } catch {
+              /* ignore */
+            }
+          } finally {
+            rsLiveState.applyingRemote = false;
           }
-          rsLiveState.applyingRemote = false;
         }
 
         /** RTDB fallback payload (server clock). */
@@ -1330,9 +1359,13 @@
             "rare-soil-war/" + rsLiveState.shareId,
           );
           const payload = getRsLivePayloadForRtdb();
-          return rsAwaitAppCheckTokenBeforeRtdb(app).then(function () {
-            return ref.set(payload);
-          });
+          return rsPromiseWithTimeout(
+            rsAwaitAppCheckTokenBeforeRtdb(app).then(function () {
+              return ref.set(payload);
+            }),
+            45000,
+            "Saving to cloud timed out (network, App Check, or Realtime Database). Try again.",
+          );
         }
 
         function pushRsLivePayload() {
@@ -1494,38 +1527,43 @@
           rsResolveLiveDbUrl();
           if (!String(rsLiveState.dbUrl || "").trim()) {
             rsFailStartLiveSync();
-            return;
+            return Promise.reject(
+              new Error("No Realtime Database URL (firebase-config or ?db=)."),
+            );
           }
           if (!rsEnsureFirebaseReady()) {
             rsFailStartLiveSync();
-            return;
+            return Promise.reject(new Error("Firebase could not initialize."));
           }
           /* Set before async App Check wait so Copy → flush can run immediately with rsPerformRtdbSetPromise. */
           rsLiveState.liveBackend = "rtdb";
           var appReady = rsLiveState.firebaseApp;
-          rsAwaitAppCheckTokenBeforeRtdb(appReady)
-            .catch(function () {
+          return rsPromiseWithTimeout(
+            rsAwaitAppCheckTokenBeforeRtdb(appReady).catch(function () {
               return undefined;
-            })
-            .then(function () {
+            }),
+            30000,
+            "Live sync: App Check timed out (reCAPTCHA / network). Refresh and try again.",
+          ).then(function () {
               if (!rsLiveState.active || rsLiveState.shareId !== shareId) {
                 return;
               }
               rsAttachRtdbListener(shareId, deferFirstLivePush);
               if (deferFirstLivePush !== true) {
                 readDomIntoState();
-                rsFlushLivePushToCloud({ force: true })
+                return rsFlushLivePushToCloud({ force: true })
                   .then(function () {
                     if (rsLiveStatus && rsLiveState.active) {
                       rsLiveStatus.textContent =
                         "Live on — use Copy live link to share.";
                     }
                   })
-                  .catch(function () {
+                  .catch(function (err) {
                     if (rsLiveStatus && rsLiveState.active) {
                       rsLiveStatus.textContent =
                         "Live on but cloud save failed — App Check, RTDB rules, or network.";
                     }
+                    return Promise.reject(err);
                   });
               }
             });
@@ -2093,7 +2131,9 @@
               rsLiveState.shareId ||
               resolveShareIdFromUrl() ||
               createShareId();
-            startRsLiveSync(sid);
+            startRsLiveSync(sid).catch(function (err) {
+              console.warn("[Rare Soil] Live start:", err);
+            });
           });
         }
 
@@ -2113,7 +2153,17 @@
               const sid = resolveShareIdFromUrl() || createShareId();
               rsLiveState.shareId = sid;
               if (rsLiveEnabled) rsLiveEnabled.checked = true;
-              startRsLiveSync(sid);
+              try {
+                await startRsLiveSync(sid);
+              } catch (err) {
+                console.error("[Rare Soil] Live start from Copy:", err);
+                alert(
+                  (rsLiveStatus && rsLiveStatus.textContent) ||
+                    String(err && err.message ? err.message : err) ||
+                    "Live sync could not start. Check firebase-config.js, database URL, and browser console.",
+                );
+                return;
+              }
             }
             if (!rsLiveState.active || !rsLiveState.shareId) {
               alert(
@@ -2227,7 +2277,9 @@
           ];
           if (rsLiveEnabled) rsLiveEnabled.checked = true;
           rsLiveState.shareId = incomingShareId;
-          startRsLiveSync(incomingShareId, true);
+          startRsLiveSync(incomingShareId, true).catch(function (err) {
+            console.warn("[Rare Soil] Guest live start:", err);
+          });
           if (rsLiveStatus && rsLiveState.active) {
             rsLiveStatus.textContent =
               "Live session — loading shared data…";
