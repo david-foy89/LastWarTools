@@ -1,0 +1,33 @@
+/**
+ * Hides Google Website Translator’s top iframe bar / “Original: …” strip.
+ * Loaded by language-translate.js (injected) and linked from pages with inline translate.
+ */
+.goog-te-banner-frame,
+iframe.goog-te-banner-frame,
+body > .goog-te-banner-frame {
+  display: none !important;
+  visibility: hidden !important;
+  height: 0 !important;
+  max-height: 0 !important;
+  overflow: hidden !important;
+}
+
+html,
+body {
+  margin-top: 0 !important;
+  top: 0 !important;
+}
+
+body {
+  position: static !important;
+}
+
+.goog-te-balloon-frame,
+#goog-gt-tt {
+  display: none !important;
+}
+
+.goog-text-highlight {
+  background-color: transparent !important;
+  box-shadow: none !important;
+}

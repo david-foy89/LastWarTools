@@ -1,4 +1,22 @@
 (function () {
+  (function ensureGoogleTranslateBarHidden() {
+    if (document.getElementById("lwst-gtranslate-bar-hide-css")) {
+      return;
+    }
+    var href = "google-translate-toolbar-hide.css";
+    try {
+      var sc = document.querySelector('script[src*="language-translate.js"]');
+      if (sc && sc.src) {
+        href = new URL("google-translate-toolbar-hide.css", sc.src).href;
+      }
+    } catch (_) {}
+    var link = document.createElement("link");
+    link.id = "lwst-gtranslate-bar-hide-css";
+    link.rel = "stylesheet";
+    link.href = href;
+    (document.head || document.documentElement).appendChild(link);
+  })();
+
   const LANGUAGE_STORAGE_KEY = "selectedLanguage";
   /** Homepage historically used this key; keep read/write in sync with {@link LANGUAGE_STORAGE_KEY}. */
   const HOMEPAGE_LEGACY_LANGUAGE_KEY = "lastWarHomepageLanguageV1";

@@ -1431,21 +1431,7 @@ tr.active td {
   }
 }
 
-/* Hide Google Translate top bar/overlays */
-.goog-te-banner-frame.skiptranslate,
-.goog-te-balloon-frame,
-#goog-gt-tt {
-  display: none !important;
-}
-
-body {
-  top: 0 !important;
-}
-
-.goog-text-highlight {
-  background-color: transparent !important;
-  box-shadow: none !important;
-}
+/* Google Translate toolbar: see google-translate-toolbar-hide.css (linked from HTML). */
 
 /* Interactive map: multi-tab slots */
 .map-tabs-wrap {
