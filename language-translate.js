@@ -120,23 +120,60 @@
       : "en";
   }
 
-  /** Avoids repeat translate passes on the same language (major source of page “flashing”). */
-  function googleComboMatchesLanguage(combo, languageCode) {
-    const v = String(combo.value || "");
-    const want = String(languageCode || "");
-    if (!want || want === "en") {
-      return v === "" || v === "en" || v === want;
+  /** Google’s goog-te-combo uses different option values than our picker for some languages (e.g. Filipino → tl). */
+  function toGoogleComboValue(ourCode) {
+    const c = String(ourCode || "");
+    if (c === "fil") {
+      return "tl";
     }
-    return v === want || v.toLowerCase() === want.toLowerCase();
+    return c;
+  }
+
+  function findGoogleTeCombo() {
+    const scoped = document.querySelector(
+      "#google_translate_element .goog-te-combo",
+    );
+    if (scoped) {
+      return scoped;
+    }
+    return document.querySelector(".goog-te-combo");
+  }
+
+  function isRareSoilWarTrackerPage() {
+    try {
+      if (document.body && document.body.classList.contains("rs-war-tracker-page")) {
+        return true;
+      }
+      const p = (window.location.pathname || "").toLowerCase();
+      return p.indexOf("rare-soil-war-tracker") !== -1;
+    } catch {
+      return false;
+    }
+  }
+
+  /** Avoids repeat translate passes on the same language (major source of page “flashing”). */
+  function googleComboMatchesLanguage(combo, ourLanguageCode) {
+    const v = String(combo.value || "");
+    const wantGt = toGoogleComboValue(ourLanguageCode);
+    const want = String(ourLanguageCode || "");
+    if (!want || want === "en") {
+      return v === "" || v === "en" || v === wantGt;
+    }
+    return (
+      v === wantGt ||
+      v === want ||
+      v.toLowerCase() === wantGt.toLowerCase() ||
+      v.toLowerCase() === want.toLowerCase()
+    );
   }
 
   function applyGoogleLanguage(languageCode, retries) {
-    const combo = document.querySelector(".goog-te-combo");
+    const combo = findGoogleTeCombo();
     if (!combo) {
       if (retries > 0) {
         window.setTimeout(function () {
           applyGoogleLanguage(languageCode, retries - 1);
-        }, 250);
+        }, isRareSoilWarTrackerPage() ? 320 : 250);
       }
       return;
     }
@@ -145,7 +182,7 @@
       return;
     }
 
-    combo.value = languageCode;
+    combo.value = toGoogleComboValue(languageCode);
     combo.dispatchEvent(new Event("change", { bubbles: true }));
   }
 
@@ -233,6 +270,19 @@
     buildLanguageOptions(languageSelect, preferredLanguage);
 
     initTranslate(languageSelect, preferredLanguage);
+
+    /*
+     * Rare Soil has a large DOM + live table; Google’s combo sometimes mounts late or needs a
+     * second pass after notranslate sections settle.
+     */
+    if (isRareSoilWarTrackerPage()) {
+      window.setTimeout(function () {
+        scheduleApplyGoogleLanguage(preferredLanguage, 35);
+      }, 550);
+      window.setTimeout(function () {
+        scheduleApplyGoogleLanguage(preferredLanguage, 25);
+      }, 1800);
+    }
   }
 
   let accountLanguageSyncTimer = null;
