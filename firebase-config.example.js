@@ -4,6 +4,12 @@
  * (the firebaseConfig object). firebase-config.js is gitignored — do not commit
  * real keys to public repositories.
  *
+ * GitHub Actions (`.github/workflows/deploy-pages.yml`): set repository secrets
+ * `FIREBASE_CONFIG_JSON` (the firebaseConfig object as JSON) and, if App Check
+ * enforcement is on for Firestore/RTDB, `FIREBASE_APPCHECK_SITE_KEY` (reCAPTCHA
+ * Enterprise key from Firebase → App Check). Optional: `FIREBASE_APPCHECK_DEBUG_TOKEN`
+ * for local/testing (`?apcDebug=1` flow).
+ *
  * Pages load firebase-config.example.js first, then apply firebase-config.js
  * if present (same folder). On http(s) the override is fetched; on file://
  * (opening HTML from disk) a script tag is used because fetch() is unreliable.

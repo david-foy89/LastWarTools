@@ -30,6 +30,8 @@ jobs:
       - name: Generate firebase-config.js from secret
         env:
           FIREBASE_CONFIG_JSON: ${{ secrets.FIREBASE_CONFIG_JSON }}
+          FIREBASE_APPCHECK_SITE_KEY: ${{ secrets.FIREBASE_APPCHECK_SITE_KEY }}
+          FIREBASE_APPCHECK_DEBUG_TOKEN: ${{ secrets.FIREBASE_APPCHECK_DEBUG_TOKEN }}
         run: |
           node -e "
           const fs = require('fs');
@@ -43,8 +45,17 @@ jobs:
             console.error('FIREBASE_CONFIG_JSON must be valid JSON');
             process.exit(1);
           }
-          fs.writeFileSync('firebase-config.js', 'window.__FIREBASE_CONFIG__ = ' + JSON.stringify(cfg, null, 2) + ';\n');
-          console.log('Wrote firebase-config.js');
+          let out = 'window.__FIREBASE_CONFIG__ = ' + JSON.stringify(cfg, null, 2) + ';\n';
+          const apk = (process.env.FIREBASE_APPCHECK_SITE_KEY || '').trim();
+          if (apk) {
+            out += 'window.__FIREBASE_APPCHECK_SITE_KEY__ = ' + JSON.stringify(apk) + ';\n';
+          }
+          const dbg = (process.env.FIREBASE_APPCHECK_DEBUG_TOKEN || '').trim();
+          if (dbg) {
+            out += 'window.__FIREBASE_APPCHECK_DEBUG_TOKEN__ = ' + JSON.stringify(dbg) + ';\n';
+          }
+          fs.writeFileSync('firebase-config.js', out);
+          console.log('Wrote firebase-config.js' + (apk ? ' (with App Check site key)' : ''));
           "
 
       - name: Upload artifact
