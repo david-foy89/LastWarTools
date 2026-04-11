@@ -52,6 +52,8 @@ window.__FIREBASE_CONFIG__ = {
   apiKey: "YOUR_WEB_API_KEY",
   authDomain: "YOUR_PROJECT_ID.firebaseapp.com",
   projectId: "YOUR_PROJECT_ID",
+  /** Realtime Database URL — required for Rare Soil live link RTDB sync (path rare-soil-war/). */
+  databaseURL: "https://YOUR_PROJECT_ID-default-rtdb.firebaseio.com",
   storageBucket: "YOUR_PROJECT_ID.appspot.com",
   messagingSenderId: "YOUR_MESSAGING_SENDER_ID",
   appId: "YOUR_APP_ID",

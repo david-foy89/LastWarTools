@@ -764,8 +764,8 @@
         <div class="sub">
           List alliances with server numbers, set each battle day’s date, and mark whether your side is
           attacking or defending that day. Add opponent, then pick Win or Loss (or —) from the menu per
-          day. Export to CSV, Excel, or image; use a live link for real-time shared editing, or sign in to
-          sync across your devices.
+          day. Export to CSV, Excel, or image; use a live link for real-time shared editing (Realtime
+          Database path rare-soil-war — not Firestore), or sign in to sync across your devices.
         </div>
       </section>
 
@@ -946,6 +946,28 @@
           );
         }
 
+        /**
+         * Prefer URL from firebase-config.js (or derived from projectId) over localStorage.
+         * `lastWarLiveSyncDbUrl` is shared with maps/other tools and often points at the wrong DB,
+         * which breaks Rare Soil writes (nothing appears under rare-soil-war/ in the console).
+         */
+        function rsInferDatabaseUrlFromFirebaseConfig() {
+          try {
+            var cfg = window.__FIREBASE_CONFIG__;
+            if (!cfg || typeof cfg !== "object") return "";
+            var du = String(cfg.databaseURL || "").trim();
+            if (/^https?:\/\//i.test(du)) {
+              return du.endsWith("/") ? du : du + "/";
+            }
+            if (!rsFirebaseConfigOk(cfg)) return "";
+            var pid = String(cfg.projectId || "").trim();
+            if (!pid) return "";
+            return "https://" + pid + "-default-rtdb.firebaseio.com/";
+          } catch (_) {
+            return "";
+          }
+        }
+
         function rsResolveLiveDbUrl() {
           const params = new URLSearchParams(window.location.search);
           const fromUrl = params.get("db");
@@ -963,8 +985,14 @@
           } catch {
             fromGlobal = "";
           }
+          var fromFirebaseConfig = rsInferDatabaseUrlFromFirebaseConfig();
           const resolved = String(
-            fromUrl || fromStorage || fromGlobal || RS_LIVE_DEFAULT_DB || "",
+            fromUrl ||
+              fromFirebaseConfig ||
+              fromStorage ||
+              fromGlobal ||
+              RS_LIVE_DEFAULT_DB ||
+              "",
           ).trim();
           rsLiveState.dbUrl = resolved;
           if (resolved) {
@@ -1064,7 +1092,13 @@
         }
 
         function rsEnsureFirebaseReady() {
-          if (!rsLiveState.dbUrl) return false;
+          if (!rsLiveState.dbUrl) {
+            if (rsLiveStatus) {
+              rsLiveStatus.textContent =
+                "Live link: no database URL (check firebase-config or ?db=).";
+            }
+            return false;
+          }
           if (!window.firebase || !window.firebase.apps) {
             if (rsLiveStatus) {
               rsLiveStatus.textContent =
@@ -1104,12 +1138,21 @@
             const existing = window.firebase.apps.find(function (app) {
               return app.name === appName;
             });
-            rsLiveState.firebaseApp =
-              existing ||
-              window.firebase.initializeApp(
-                rsRtdbCompatInitOptions(currentDb),
-                appName,
-              );
+            try {
+              rsLiveState.firebaseApp =
+                existing ||
+                window.firebase.initializeApp(
+                  rsRtdbCompatInitOptions(currentDb),
+                  appName,
+                );
+            } catch (initErr) {
+              console.error("[Rare Soil] Firebase initializeApp failed:", initErr);
+              if (rsLiveStatus) {
+                rsLiveStatus.textContent =
+                  "Firebase init failed — check database URL matches your project.";
+              }
+              return false;
+            }
             rsLiveState.firebaseDb = window.firebase.database(
               rsLiveState.firebaseApp,
             );
@@ -1292,7 +1335,16 @@
             rsLiveState.applyingRemote ||
             !rsLiveState.livePushUnlocked
           ) {
-            return Promise.reject(new Error("Live sync not ready"));
+            var why =
+              !rsLiveState.active
+                ? "inactive"
+                : !rsLiveState.shareId
+                  ? "no-shareId"
+                  : rsLiveState.applyingRemote
+                    ? "applying-remote"
+                    : "push-locked";
+            console.warn("[Rare Soil] Flush skipped:", why);
+            return Promise.reject(new Error("Live sync not ready (" + why + ")"));
           }
           if (rsLiveState.liveBackend !== "rtdb") {
             return Promise.reject(new Error("Live backend not RTDB"));
@@ -1302,11 +1354,12 @@
               if (rsLiveStatus) rsLiveStatus.textContent = "";
             },
             function (err) {
+              console.error("[Rare Soil] RTDB set failed:", err);
               if (rsLiveStatus) {
                 var code = err && err.code ? String(err.code) : "";
                 rsLiveStatus.textContent =
                   code === "PERMISSION_DENIED"
-                    ? "Live save denied — check RTDB rules for rare-soil-war."
+                    ? "Live save denied — deploy RTDB rules (rare-soil-war) & App Check."
                     : "Live save failed" +
                         (code ? " (" + code + ")" : "") +
                         ". Check rules / network.";
@@ -1386,8 +1439,9 @@
           stopRsLiveSync();
           rsLiveState.shareId = shareId;
           rsLiveState.active = true;
-          rsLiveState.livePushUnlocked = !deferFirstLivePush;
-          rsLiveState.pendingShareWelcomeMsg = !!deferFirstLivePush;
+          /* Only opening ?shareId= as guest uses defer === true; omit/false => host can push. */
+          rsLiveState.livePushUnlocked = deferFirstLivePush !== true;
+          rsLiveState.pendingShareWelcomeMsg = deferFirstLivePush === true;
           history.replaceState(null, "", buildRsLiveShareUrl(shareId));
 
           rsResolveLiveDbUrl();
@@ -1401,7 +1455,7 @@
           }
           rsLiveState.liveBackend = "rtdb";
           rsAttachRtdbListener(shareId, deferFirstLivePush);
-          if (!deferFirstLivePush) {
+          if (deferFirstLivePush !== true) {
             readDomIntoState();
             rsFlushLivePushToCloud()
               .then(function () {

@@ -45,6 +45,9 @@ jobs:
             console.error('FIREBASE_CONFIG_JSON must be valid JSON');
             process.exit(1);
           }
+          if (!cfg.databaseURL && cfg.projectId && typeof cfg.projectId === 'string' && !/^YOUR_/i.test(cfg.projectId)) {
+            cfg.databaseURL = 'https://' + cfg.projectId + '-default-rtdb.firebaseio.com';
+          }
           let out = 'window.__FIREBASE_CONFIG__ = ' + JSON.stringify(cfg, null, 2) + ';\n';
           const apk = (process.env.FIREBASE_APPCHECK_SITE_KEY || '').trim();
           if (apk) {
