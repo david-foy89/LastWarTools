@@ -150,35 +150,50 @@
   }
 
   function buildTranslateElementOptions() {
-    const base = {
+    return {
       pageLanguage: "en",
       autoDisplay: false,
     };
-    try {
-      const IL = window.google.translate.TranslateElement.InlineLayout;
-      if (IL && typeof IL.SIMPLE !== "undefined") {
-        base.layout = IL.SIMPLE;
-      }
-    } catch {
-      // Ignore — older translate builds.
+  }
+
+  let applyGoogleLanguageTimer = null;
+
+  function scheduleApplyGoogleLanguage(languageCode, retries) {
+    if (applyGoogleLanguageTimer) {
+      window.clearTimeout(applyGoogleLanguageTimer);
+      applyGoogleLanguageTimer = null;
     }
-    return base;
+    applyGoogleLanguageTimer = window.setTimeout(function () {
+      applyGoogleLanguageTimer = null;
+      applyGoogleLanguage(languageCode, retries);
+    }, 80);
   }
 
   function initTranslate(languageSelect, preferredLanguage) {
     languageSelect.addEventListener("change", function () {
       const nextLanguage = languageSelect.value;
       savePreferredLanguage(nextLanguage);
-      applyGoogleLanguage(nextLanguage, 20);
+      scheduleApplyGoogleLanguage(nextLanguage, 20);
     });
 
     window.googleTranslateElementInit = function googleTranslateElementInit() {
-      new window.google.translate.TranslateElement(
-        buildTranslateElementOptions(),
-        "google_translate_element",
-      );
+      if (window._lwstGoogleTranslateMounted) {
+        scheduleApplyGoogleLanguage(preferredLanguage, 20);
+        return;
+      }
+      window._lwstGoogleTranslateMounted = true;
+      try {
+        new window.google.translate.TranslateElement(
+          buildTranslateElementOptions(),
+          "google_translate_element",
+        );
+      } catch (e) {
+        window._lwstGoogleTranslateMounted = false;
+        console.warn("[language-translate] TranslateElement failed:", e);
+        return;
+      }
 
-      applyGoogleLanguage(preferredLanguage, 20);
+      scheduleApplyGoogleLanguage(preferredLanguage, 20);
     };
 
     if (window.google && window.google.translate) {
@@ -203,6 +218,15 @@
     const translateHost = document.getElementById("google_translate_element");
     if (!languageSelect || !translateHost) {
       return;
+    }
+
+    const wrap = languageSelect.closest(".language-control");
+    if (wrap) {
+      wrap.classList.add("notranslate");
+      wrap.setAttribute("translate", "no");
+    } else {
+      languageSelect.classList.add("notranslate");
+      languageSelect.setAttribute("translate", "no");
     }
 
     const preferredLanguage = loadPreferredLanguage();
@@ -239,9 +263,18 @@
       }
 
       const preferredLanguage = loadPreferredLanguage();
+      /*
+       * Changing language writes localStorage → account sync merges → lw-localstorage-synced
+       * with the same keys. Rebuilding the select + re-applying Google here caused a loop
+       * (repeated translate passes / “refresh” feel). Only sync UI when another device changed
+       * the stored preference (select value out of date).
+       */
+      if (languageSelect.value === preferredLanguage) {
+        return;
+      }
       buildLanguageOptions(languageSelect, preferredLanguage);
-      applyGoogleLanguage(preferredLanguage, 20);
-    }, 350);
+      scheduleApplyGoogleLanguage(preferredLanguage, 20);
+    }, 500);
   }
 
   window.addEventListener("lw-localstorage-synced", onAccountStorageSynced);
