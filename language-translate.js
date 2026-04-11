@@ -17,6 +17,68 @@
     (document.head || document.documentElement).appendChild(link);
   })();
 
+  /** Google sets inline top/margin on html/body for the banner; re-apply after it injects. */
+  function normalizeGoogleTranslateTopBar() {
+    try {
+      var nodes = document.querySelectorAll(
+        ".goog-te-banner-frame, iframe.goog-te-banner-frame",
+      );
+      for (var i = 0; i < nodes.length; i++) {
+        nodes[i].style.setProperty("display", "none", "important");
+        nodes[i].style.setProperty("visibility", "hidden", "important");
+        nodes[i].style.setProperty("height", "0", "important");
+        nodes[i].style.setProperty("max-height", "0", "important");
+      }
+      var html = document.documentElement;
+      var body = document.body;
+      if (html) {
+        html.style.setProperty("margin-top", "0", "important");
+        html.style.setProperty("padding-top", "0", "important");
+        html.style.setProperty("top", "0", "important");
+      }
+      if (body) {
+        body.style.setProperty("margin-top", "0", "important");
+        body.style.setProperty("padding-top", "0", "important");
+        body.style.setProperty("top", "0", "important");
+        body.style.setProperty("position", "static", "important");
+      }
+    } catch (_) {}
+  }
+
+  (function watchGoogleTranslateTopBar() {
+    normalizeGoogleTranslateTopBar();
+    var t = null;
+    function schedule() {
+      if (t) {
+        clearTimeout(t);
+      }
+      t = setTimeout(function () {
+        t = null;
+        normalizeGoogleTranslateTopBar();
+      }, 50);
+    }
+    schedule();
+    [50, 200, 600, 1500, 3000].forEach(function (ms) {
+      setTimeout(normalizeGoogleTranslateTopBar, ms);
+    });
+    function attachObserver() {
+      if (typeof MutationObserver === "undefined") {
+        return;
+      }
+      var root = document.body;
+      if (!root) {
+        return;
+      }
+      var obs = new MutationObserver(schedule);
+      obs.observe(root, { childList: true, subtree: true });
+    }
+    if (document.body) {
+      attachObserver();
+    } else {
+      document.addEventListener("DOMContentLoaded", attachObserver);
+    }
+  })();
+
   const LANGUAGE_STORAGE_KEY = "selectedLanguage";
   /** Homepage historically used this key; keep read/write in sync with {@link LANGUAGE_STORAGE_KEY}. */
   const HOMEPAGE_LEGACY_LANGUAGE_KEY = "lastWarHomepageLanguageV1";

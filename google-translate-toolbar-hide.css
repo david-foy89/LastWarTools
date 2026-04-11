@@ -1,24 +1,35 @@
 /**
- * Hides Google Website Translator’s top iframe bar / “Original: …” strip.
- * Loaded by language-translate.js (injected) and linked from pages with inline translate.
+ * Hides Google Website Translator’s top iframe bar / “View this page in …” strip.
+ * Linked from HTML (early) and loaded by language-translate.js when not present.
  */
 .goog-te-banner-frame,
 iframe.goog-te-banner-frame,
+.goog-te-banner-frame.skiptranslate,
+.skiptranslate.goog-te-banner-frame,
 body > .goog-te-banner-frame {
   display: none !important;
   visibility: hidden !important;
   height: 0 !important;
   max-height: 0 !important;
+  min-height: 0 !important;
   overflow: hidden !important;
+  border: 0 !important;
+  clip: rect(0, 0, 0, 0) !important;
+  position: absolute !important;
+  width: 0 !important;
+  pointer-events: none !important;
 }
 
-html,
-body {
+html {
   margin-top: 0 !important;
+  padding-top: 0 !important;
   top: 0 !important;
 }
 
 body {
+  margin-top: 0 !important;
+  padding-top: 0 !important;
+  top: 0 !important;
   position: static !important;
 }
 
