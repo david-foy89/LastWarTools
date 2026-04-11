@@ -918,9 +918,9 @@
           livePushUnlocked: true,
           /** Cleared after first RTDB `value` when opening `?shareId=` (welcome status text). */
           pendingShareWelcomeMsg: false,
-          /** `"firestore"` (modular SDK, same idea as transfer tracker) or `"rtdb"` fallback. */
+          /** Always `"rtdb"` when live is on (path `rare-soil-war/{shareId}`). */
           liveBackend: null,
-          /** `{ unsubscribe, push }` from rare-soil-war-live-fs.js — not set until module loads. */
+          /** Legacy: cleared in stopRsLiveSync (Firestore module removed). */
           fsModConn: null,
         };
 
@@ -1122,29 +1122,6 @@
           return true;
         }
 
-        /**
-         * Firestore is tried first when config exists; guests who cannot use Firestore (e.g. App
-         * Check) fall back to RTDB — but the host only wrote to Firestore. Mirror each successful
-         * FS write to `rare-soil-war/{shareId}` so fallback listeners receive the same payload.
-         */
-        function rsMirrorLivePayloadToRtdbForFallbackGuests() {
-          if (!rsLiveState.shareId || rsLiveState.liveBackend !== "firestore") {
-            return;
-          }
-          if (!rsEnsureFirebaseReady()) {
-            return;
-          }
-          var ref = rsLiveState.firebaseDb.ref(
-            "rare-soil-war/" + rsLiveState.shareId,
-          );
-          ref.set(getRsLivePayloadForRtdb()).catch(function (err) {
-            console.warn(
-              "[Rare Soil] RTDB mirror (for guests on Firestore fallback):",
-              err,
-            );
-          });
-        }
-
         function stopRsLiveSync() {
           if (
             rsLiveState.fsModConn &&
@@ -1271,45 +1248,6 @@
           ) {
             return;
           }
-          if (rsLiveState.liveBackend === "firestore") {
-            if (
-              !rsLiveState.fsModConn ||
-              typeof rsLiveState.fsModConn.push !== "function"
-            ) {
-              return;
-            }
-            rsLiveState.fsModConn
-              .push(state.days, state.rows, rsLiveState.clientId)
-              .then(function () {
-                if (rsLiveStatus) rsLiveStatus.textContent = "";
-                rsMirrorLivePayloadToRtdbForFallbackGuests();
-              })
-              .catch(function (err) {
-                var code = err && err.code ? String(err.code) : "";
-                if (
-                  rsLiveState.shareId &&
-                  (code === "permission-denied" ||
-                    code === "failed-precondition" ||
-                    code === "unavailable") &&
-                  rsFallbackFirestoreToRtdb(
-                    rsLiveState.shareId,
-                    false,
-                    "write:" + code,
-                  )
-                ) {
-                  return;
-                }
-                if (rsLiveStatus) {
-                  rsLiveStatus.textContent =
-                    code === "permission-denied"
-                      ? ""
-                      : "Live save failed" +
-                          (code ? " (" + code + ")" : "") +
-                          ". Check rules / network.";
-                }
-              });
-            return;
-          }
           if (rsLiveState.liveBackend !== "rtdb") return;
           if (!rsEnsureFirebaseReady()) return;
           const ref = rsLiveState.firebaseDb.ref(
@@ -1380,47 +1318,6 @@
           );
         }
 
-        /**
-         * Firestore can fail (rules not published, App Check, etc.) while RTDB is open for
-         * rare-soil-war/{shareId}. Unsubscribe modular FS and continue with compat RTDB.
-         */
-        function rsFallbackFirestoreToRtdb(shareId, deferFirstLivePush, reason) {
-          if (!rsLiveState.active || rsLiveState.shareId !== shareId) {
-            return false;
-          }
-          console.warn(
-            "[Rare Soil] Firestore live unavailable, using Realtime Database.",
-            reason || "",
-          );
-          try {
-            if (
-              rsLiveState.fsModConn &&
-              typeof rsLiveState.fsModConn.unsubscribe === "function"
-            ) {
-              rsLiveState.fsModConn.unsubscribe();
-            }
-          } catch (_) {}
-          rsLiveState.fsModConn = null;
-          rsLiveState.liveBackend = null;
-          if (!rsEnsureFirebaseReady()) {
-            if (rsLiveStatus) {
-              rsLiveStatus.textContent =
-                "Live link needs a Realtime Database URL (?db=…) or working Firebase config.";
-            }
-            return false;
-          }
-          rsLiveState.liveBackend = "rtdb";
-          rsAttachRtdbListener(shareId, deferFirstLivePush);
-          if (rsLiveStatus) {
-            rsLiveStatus.textContent =
-              "Live session — edits sync to this link.";
-          }
-          if (!deferFirstLivePush) {
-            rsScheduleLivePush();
-          }
-          return true;
-        }
-
         function rsFailStartLiveSync() {
           rsLiveState.active = false;
           rsLiveState.shareId = null;
@@ -1431,10 +1328,16 @@
           if (rsLiveEnabled) rsLiveEnabled.checked = false;
           if (rsLiveStatus) {
             rsLiveStatus.textContent =
-              "Live link: add firebase-config.js (Firestore) or set Realtime Database URL (?db=…).";
+              "Live link: add firebase-config.js (with databaseURL) or set Realtime Database URL (?db=…).";
           }
         }
 
+        /**
+         * Live collaboration uses Realtime Database only (`rare-soil-war/{shareId}`).
+         * Firestore + dynamic import() was removed: the module loaded after `startRsLiveSync`,
+         * so immediate `pushRsLivePayload()` ran while `fsModConn` was still null and every
+         * push was dropped — nothing synced for hosts or guests.
+         */
         function startRsLiveSync(shareId, deferFirstLivePush) {
           stopRsLiveSync();
           rsLiveState.shareId = shareId;
@@ -1443,109 +1346,21 @@
           rsLiveState.pendingShareWelcomeMsg = !!deferFirstLivePush;
           history.replaceState(null, "", buildRsLiveShareUrl(shareId));
 
-          if (rsFirebaseConfigOk(window.__FIREBASE_CONFIG__)) {
-            var startToken = shareId + "-" + String(Date.now());
-            rsLiveState._fsStartToken = startToken;
-            rsLiveState.liveBackend = "firestore";
-            import("./rare-soil-war-live-fs.js")
-              .then(function (mod) {
-                if (
-                  !rsLiveState.active ||
-                  rsLiveState.shareId !== shareId ||
-                  rsLiveState._fsStartToken !== startToken
-                ) {
-                  return;
-                }
-                function onFsSnap(snap) {
-                  rsLiveState.livePushUnlocked = true;
-                  if (rsLiveStatus && rsLiveState.pendingShareWelcomeMsg) {
-                    rsLiveState.pendingShareWelcomeMsg = false;
-                    rsLiveStatus.textContent =
-                      "Live session — edits sync to this link.";
-                  }
-                  var snapExists =
-                    typeof snap.exists === "function"
-                      ? snap.exists()
-                      : !!snap.exists;
-                  if (!snapExists) return;
-                  var data = snap.data();
-                  if (!data || data.updatedAt == null) return;
-                  var updatedAtMs = data.updatedAt;
-                  if (updatedAtMs && typeof updatedAtMs.toMillis === "function") {
-                    updatedAtMs = updatedAtMs.toMillis();
-                  } else {
-                    updatedAtMs = Number(updatedAtMs);
-                  }
-                  if (!Number.isFinite(updatedAtMs)) return;
-                  if (updatedAtMs <= rsLiveState.lastSeenUpdatedAt) return;
-                  rsLiveState.lastSeenUpdatedAt = updatedAtMs;
-                  var remoteBy = String(
-                    data.updatedBy != null ? data.updatedBy : "",
-                  );
-                  if (remoteBy === rsLiveState.clientId) return;
-                  applyRsLivePayload(data);
-                }
-                function onFsErr(err) {
-                  if (
-                    !rsLiveState.active ||
-                    rsLiveState.shareId !== shareId
-                  ) {
-                    return;
-                  }
-                  var code = err && err.code ? String(err.code) : "";
-                  if (
-                    code === "permission-denied" ||
-                    code === "failed-precondition" ||
-                    code === "unavailable"
-                  ) {
-                    if (rsFallbackFirestoreToRtdb(shareId, deferFirstLivePush, code)) {
-                      return;
-                    }
-                  }
-                  if (rsLiveStatus) {
-                    rsLiveStatus.textContent =
-                      "Live read failed: " + (code || "unknown");
-                  }
-                }
-                rsLiveState.fsModConn = mod.startRareSoilFirestoreLive(
-                  window.__FIREBASE_CONFIG__,
-                  shareId,
-                  { onSnapshot: onFsSnap, onError: onFsErr },
-                );
-                /* First push runs before import() resolved — schedule now that fsModConn exists. */
-                if (!deferFirstLivePush) {
-                  rsScheduleLivePush();
-                }
-              })
-              .catch(function (err) {
-                console.warn("[Rare Soil] Firestore live module failed:", err);
-                if (
-                  !rsLiveState.active ||
-                  rsLiveState.shareId !== shareId ||
-                  rsLiveState._fsStartToken !== startToken
-                ) {
-                  return;
-                }
-                rsLiveState.liveBackend = null;
-                rsLiveState.fsModConn = null;
-                if (!rsEnsureFirebaseReady()) {
-                  rsFailStartLiveSync();
-                  return;
-                }
-                rsAttachRtdbListener(shareId, deferFirstLivePush);
-                if (!deferFirstLivePush) {
-                  rsScheduleLivePush();
-                }
-              });
+          rsResolveLiveDbUrl();
+          if (!String(rsLiveState.dbUrl || "").trim()) {
+            rsFailStartLiveSync();
             return;
           }
-
           if (!rsEnsureFirebaseReady()) {
             rsFailStartLiveSync();
             return;
           }
-
+          rsLiveState.liveBackend = "rtdb";
           rsAttachRtdbListener(shareId, deferFirstLivePush);
+          if (!deferFirstLivePush) {
+            readDomIntoState();
+            rsScheduleLivePush();
+          }
         }
 
         function downloadBlob(blob, filename) {
@@ -1740,6 +1555,7 @@
           rsSaveStatus.textContent = "Saving…";
           saveTimer = setTimeout(function () {
             try {
+              readDomIntoState();
               const payload = {
                 days: state.days,
                 rows: state.rows,
@@ -2100,7 +1916,7 @@
               !String(rsLiveState.dbUrl || "").trim()
             ) {
               alert(
-                "Live link needs firebase-config.js (Firestore — same as Transfer Tracker) or a Realtime Database URL (?db=…).",
+                "Live link needs a Realtime Database URL (default is built in) or firebase-config.js with your project’s database URL. Check the browser console if sync still fails.",
               );
               rsLiveEnabled.checked = false;
               return;
@@ -2110,7 +1926,6 @@
               resolveShareIdFromUrl() ||
               createShareId();
             startRsLiveSync(sid);
-            pushRsLivePayload();
             if (rsLiveStatus && rsLiveState.active) {
               rsLiveStatus.textContent =
                 "Live on — use Copy live link to share.";
@@ -2126,7 +1941,7 @@
               !String(rsLiveState.dbUrl || "").trim()
             ) {
               alert(
-                "Deploy firebase-config.js (Firestore) or set ?db= to your Realtime Database URL.",
+                "Set ?db= to your Realtime Database URL or deploy firebase-config.js. The live link uses Realtime Database (rare-soil-war/…).",
               );
               return;
             }
@@ -2135,7 +1950,6 @@
               rsLiveState.shareId = sid;
               if (rsLiveEnabled) rsLiveEnabled.checked = true;
               startRsLiveSync(sid);
-              pushRsLivePayload();
             }
             if (!rsLiveState.active || !rsLiveState.shareId) {
               return;

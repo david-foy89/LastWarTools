@@ -1,4 +1,5 @@
 /**
+ * Legacy / unused: rare-soil-war-tracker.html uses Realtime Database only for live sync.
  * Modular Firestore live sync for rare-soil-war-tracker.html (matches transfer-tracker pattern).
  * Compat FieldValue.serverTimestamp() inside object literals can throw "Unsupported field value";
  * modular serverTimestamp() avoids that.
