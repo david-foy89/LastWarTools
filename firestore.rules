@@ -35,8 +35,9 @@ service cloud.firestore {
     // Rare Soil War Tracker (rare-soil-war-tracker.html):
     //   • "Sync to account" stores key lastwar-rare-soil-war-tracker-v1 inside this blob — no
     //     extra Firestore collection or rules block is required.
-    //   • Live collaboration (share link) prefers Firestore rareSoilWarLive/{shareId}; RTDB
-    //     rare-soil-war/{shareId} is optional fallback if only a DB URL is configured.
+    //   • Live collaboration (share link) uses Firestore rareSoilWarLive/{shareId} when
+    //     firebase-config.js is present; each successful write is mirrored to RTDB
+    //     rare-soil-war/{shareId} so guests who fall back to RTDB (e.g. App Check) still sync.
     // =============================================================================
     match /userLocalStorageSync/{userId} {
       allow read, write: if request.auth != null && request.auth.uid == userId;

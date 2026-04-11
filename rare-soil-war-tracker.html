@@ -1040,9 +1040,29 @@
         }
 
         /**
-         * Same strategy as season-2-supplies / maps: `{ databaseURL }` only (compat SDK).
-         * App Check is activated separately via {@link rsEnsureAppCheckCompat} when a site key is set.
+         * Compat RTDB app: use full `firebaseConfig` + `databaseURL` when available so App Check
+         * can attach (enforcement on RTDB). Fallback: `{ databaseURL }` only (maps / legacy).
          */
+        function rsRtdbCompatInitOptions(currentDb) {
+          var cfg = window.__FIREBASE_CONFIG__;
+          if (rsFirebaseConfigOk(cfg)) {
+            var o = {
+              apiKey: cfg.apiKey,
+              authDomain: cfg.authDomain,
+              projectId: cfg.projectId,
+              storageBucket: cfg.storageBucket,
+              messagingSenderId: cfg.messagingSenderId,
+              appId: cfg.appId,
+              databaseURL: currentDb,
+            };
+            if (cfg.measurementId) {
+              o.measurementId = cfg.measurementId;
+            }
+            return o;
+          }
+          return { databaseURL: currentDb };
+        }
+
         function rsEnsureFirebaseReady() {
           if (!rsLiveState.dbUrl) return false;
           if (!window.firebase || !window.firebase.apps) {
@@ -1087,9 +1107,7 @@
             rsLiveState.firebaseApp =
               existing ||
               window.firebase.initializeApp(
-                {
-                  databaseURL: currentDb,
-                },
+                rsRtdbCompatInitOptions(currentDb),
                 appName,
               );
             rsLiveState.firebaseDb = window.firebase.database(
@@ -1102,6 +1120,29 @@
           }
           rsEnsureAppCheckCompat(rsLiveState.firebaseApp);
           return true;
+        }
+
+        /**
+         * Firestore is tried first when config exists; guests who cannot use Firestore (e.g. App
+         * Check) fall back to RTDB — but the host only wrote to Firestore. Mirror each successful
+         * FS write to `rare-soil-war/{shareId}` so fallback listeners receive the same payload.
+         */
+        function rsMirrorLivePayloadToRtdbForFallbackGuests() {
+          if (!rsLiveState.shareId || rsLiveState.liveBackend !== "firestore") {
+            return;
+          }
+          if (!rsEnsureFirebaseReady()) {
+            return;
+          }
+          var ref = rsLiveState.firebaseDb.ref(
+            "rare-soil-war/" + rsLiveState.shareId,
+          );
+          ref.set(getRsLivePayloadForRtdb()).catch(function (err) {
+            console.warn(
+              "[Rare Soil] RTDB mirror (for guests on Firestore fallback):",
+              err,
+            );
+          });
         }
 
         function stopRsLiveSync() {
@@ -1241,6 +1282,7 @@
               .push(state.days, state.rows, rsLiveState.clientId)
               .then(function () {
                 if (rsLiveStatus) rsLiveStatus.textContent = "";
+                rsMirrorLivePayloadToRtdbForFallbackGuests();
               })
               .catch(function (err) {
                 var code = err && err.code ? String(err.code) : "";
