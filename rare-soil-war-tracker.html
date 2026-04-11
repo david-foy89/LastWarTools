@@ -1214,16 +1214,33 @@
               }
               return false;
             }
-            rsLiveState.firebaseDb = window.firebase.database(
-              rsLiveState.firebaseApp,
-            );
-          } else if (!rsLiveState.firebaseDb) {
-            rsLiveState.firebaseDb = window.firebase.database(
-              rsLiveState.firebaseApp,
-            );
+            /*
+             * Do not call firebase.database() here. RTDB opens a connection immediately; with App Check
+             * enforcement the first socket must attach a token. Wait until after getToken() in
+             * rsEnsureFirebaseDbAfterAppCheck() before creating the database instance.
+             */
           }
           rsEnsureAppCheckCompat(rsLiveState.firebaseApp);
           return true;
+        }
+
+        /**
+         * Obtains an App Check token (if configured), then creates the compat RTDB instance once.
+         * Must run before any ref() / listener so the connection is not opened without a token.
+         */
+        function rsEnsureFirebaseDbAfterAppCheck() {
+          if (!rsLiveState.firebaseApp) {
+            return Promise.reject(new Error("No Firebase app"));
+          }
+          return rsAwaitAppCheckTokenBeforeRtdb(rsLiveState.firebaseApp).then(
+            function () {
+              if (!rsLiveState.firebaseDb) {
+                rsLiveState.firebaseDb = window.firebase.database(
+                  rsLiveState.firebaseApp,
+                );
+              }
+            },
+          );
         }
 
         function stopRsLiveSync() {
@@ -1347,6 +1364,57 @@
           };
         }
 
+        /** RTDB write failures don't always set `err.code`; parse message for permission / App Check. */
+        function rsCoalesceRtdbWriteError(err) {
+          var code =
+            err && err.code !== undefined && err.code !== null
+              ? String(err.code)
+              : "";
+          var msg = err && err.message ? String(err.message) : "";
+          var lump = (code + " " + msg + " " + String(err || "")).toUpperCase();
+          if (!code) {
+            if (
+              lump.indexOf("PERMISSION_DENIED") !== -1 ||
+              lump.indexOf("PERMISSION DENIED") !== -1
+            ) {
+              code = "PERMISSION_DENIED";
+            } else if (/APP.?CHECK|APPCHECK|MISSING.*TOKEN/i.test(msg + String(err))) {
+              code = "APP_CHECK";
+            }
+          }
+          return { code: code, message: msg };
+        }
+
+        function rsLiveSaveFailureText(err) {
+          var m = rsCoalesceRtdbWriteError(err);
+          var host =
+            typeof location !== "undefined" && location.hostname
+              ? location.hostname
+              : "this site";
+          if (m.code === "PERMISSION_DENIED") {
+            return (
+              "Live save denied — in Firebase Console deploy RTDB rules for path rare-soil-war (see database.rules.json.example). " +
+              "If App Check enforcement is on for Realtime Database, also register " +
+              host +
+              " and use the reCAPTCHA Enterprise site key in deployed firebase-config.js."
+            );
+          }
+          if (m.code === "APP_CHECK") {
+            return (
+              "Live save blocked by App Check — set __FIREBASE_APPCHECK_SITE_KEY__ in firebase-config.js on deploy, " +
+              "register " +
+              host +
+              " for your web app in Firebase App Check, or turn RTDB enforcement to Monitor/Off while testing."
+            );
+          }
+          return (
+            "Live save failed" +
+            (m.code ? " (" + m.code + ")" : "") +
+            (m.message ? ": " + m.message : "") +
+            ". Check Realtime Database rules, App Check, and network; see browser console."
+          );
+        }
+
         function rsPerformRtdbSetPromise() {
           if (!window.firebase) {
             return Promise.reject(new Error("Firebase SDK not loaded"));
@@ -1354,14 +1422,11 @@
           if (!rsEnsureFirebaseReady()) {
             return Promise.reject(new Error("Firebase not ready"));
           }
-          var app = rsLiveState.firebaseApp;
-          const ref = rsLiveState.firebaseDb.ref(
-            "rare-soil-war/" + rsLiveState.shareId,
-          );
+          const path = "rare-soil-war/" + rsLiveState.shareId;
           const payload = getRsLivePayloadForRtdb();
           return rsPromiseWithTimeout(
-            rsAwaitAppCheckTokenBeforeRtdb(app).then(function () {
-              return ref.set(payload);
+            rsEnsureFirebaseDbAfterAppCheck().then(function () {
+              return rsLiveState.firebaseDb.ref(path).set(payload);
             }),
             45000,
             "Saving to cloud timed out (network, App Check, or Realtime Database). Try again.",
@@ -1384,13 +1449,7 @@
             })
             .catch(function (err) {
               if (rsLiveStatus) {
-                var code = err && err.code ? String(err.code) : "";
-                rsLiveStatus.textContent =
-                  code === "PERMISSION_DENIED"
-                    ? "Live save denied — check RTDB rules for rare-soil-war."
-                    : "Live save failed" +
-                        (code ? " (" + code + ")" : "") +
-                        ". Check rules / network.";
+                rsLiveStatus.textContent = rsLiveSaveFailureText(err);
               }
             });
         }
@@ -1434,13 +1493,7 @@
             function (err) {
               console.error("[Rare Soil] RTDB set failed:", err);
               if (rsLiveStatus) {
-                var code = err && err.code ? String(err.code) : "";
-                rsLiveStatus.textContent =
-                  code === "PERMISSION_DENIED"
-                    ? "Live save denied — deploy RTDB rules (rare-soil-war) & App Check."
-                    : "Live save failed" +
-                        (code ? " (" + code + ")" : "") +
-                        ". Check rules / network.";
+                rsLiveStatus.textContent = rsLiveSaveFailureText(err);
               }
               throw err;
             },
@@ -1537,11 +1590,8 @@
           }
           /* Set before async App Check wait so Copy → flush can run immediately with rsPerformRtdbSetPromise. */
           rsLiveState.liveBackend = "rtdb";
-          var appReady = rsLiveState.firebaseApp;
           return rsPromiseWithTimeout(
-            rsAwaitAppCheckTokenBeforeRtdb(appReady).catch(function () {
-              return undefined;
-            }),
+            rsEnsureFirebaseDbAfterAppCheck(),
             30000,
             "Live sync: App Check timed out (reCAPTCHA / network). Refresh and try again.",
           ).then(function () {
@@ -2187,10 +2237,12 @@
                 await rsFlushLivePushToCloud({ force: true });
               } catch (err) {
                 console.error("[Rare Soil] Copy flush:", err);
+                var explain = rsLiveSaveFailureText(err);
                 alert(
-                  (rsLiveStatus && rsLiveStatus.textContent) ||
-                    String(err && err.message ? err.message : err) ||
-                    "Could not save to Firebase. Check Realtime Database rules, App Check, and console.",
+                  explain +
+                    "\n\n(Technical: " +
+                    String(err && err.message ? err.message : err) +
+                    ")",
                 );
                 return;
               }
