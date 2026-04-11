@@ -922,6 +922,8 @@
           liveBackend: null,
           /** Legacy: cleared in stopRsLiveSync (Firestore module removed). */
           fsModConn: null,
+          /** True when page opened with ?shareId= (guest) — Copy may skip flush until first snapshot. */
+          isShareGuest: false,
         };
 
         function sanitizeShareId(raw) {
@@ -1185,6 +1187,7 @@
           rsLiveState.lastSeenUpdatedAt = 0;
           rsLiveState.livePushUnlocked = true;
           rsLiveState.pendingShareWelcomeMsg = false;
+          rsLiveState.isShareGuest = false;
         }
 
         /**
@@ -1283,6 +1286,9 @@
         }
 
         function rsPerformRtdbSetPromise() {
+          if (!window.firebase) {
+            return Promise.reject(new Error("Firebase SDK not loaded"));
+          }
           if (!rsEnsureFirebaseReady()) {
             return Promise.reject(new Error("Firebase not ready"));
           }
@@ -1321,9 +1327,10 @@
 
         /**
          * Reads inputs into state, clears debounce, writes current table to RTDB immediately.
-         * Use before copying a share link so the URL already points at saved data.
+         * @param {{ force?: boolean }} [opt] — `force: true` skips livePushUnlocked (host save / Copy).
          */
-        function rsFlushLivePushToCloud() {
+        function rsFlushLivePushToCloud(opt) {
+          var force = opt && opt.force === true;
           readDomIntoState();
           if (livePushTimer) {
             clearTimeout(livePushTimer);
@@ -1332,19 +1339,20 @@
           if (
             !rsLiveState.active ||
             !rsLiveState.shareId ||
-            rsLiveState.applyingRemote ||
-            !rsLiveState.livePushUnlocked
+            rsLiveState.applyingRemote
           ) {
-            var why =
+            var why0 =
               !rsLiveState.active
                 ? "inactive"
                 : !rsLiveState.shareId
                   ? "no-shareId"
-                  : rsLiveState.applyingRemote
-                    ? "applying-remote"
-                    : "push-locked";
-            console.warn("[Rare Soil] Flush skipped:", why);
-            return Promise.reject(new Error("Live sync not ready (" + why + ")"));
+                  : "applying-remote";
+            console.warn("[Rare Soil] Flush skipped:", why0);
+            return Promise.reject(new Error("Live sync not ready (" + why0 + ")"));
+          }
+          if (!force && !rsLiveState.livePushUnlocked) {
+            console.warn("[Rare Soil] Flush skipped: push-locked");
+            return Promise.reject(new Error("Live sync not ready (push-locked)"));
           }
           if (rsLiveState.liveBackend !== "rtdb") {
             return Promise.reject(new Error("Live backend not RTDB"));
@@ -1420,6 +1428,7 @@
           rsLiveState.shareId = null;
           rsLiveState.livePushUnlocked = true;
           rsLiveState.pendingShareWelcomeMsg = false;
+          rsLiveState.isShareGuest = false;
           rsLiveState.liveBackend = null;
           rsLiveState.fsModConn = null;
           if (rsLiveEnabled) rsLiveEnabled.checked = false;
@@ -1442,6 +1451,7 @@
           /* Only opening ?shareId= as guest uses defer === true; omit/false => host can push. */
           rsLiveState.livePushUnlocked = deferFirstLivePush !== true;
           rsLiveState.pendingShareWelcomeMsg = deferFirstLivePush === true;
+          rsLiveState.isShareGuest = deferFirstLivePush === true;
           history.replaceState(null, "", buildRsLiveShareUrl(shareId));
 
           rsResolveLiveDbUrl();
@@ -1457,7 +1467,7 @@
           rsAttachRtdbListener(shareId, deferFirstLivePush);
           if (deferFirstLivePush !== true) {
             readDomIntoState();
-            rsFlushLivePushToCloud()
+            rsFlushLivePushToCloud({ force: true })
               .then(function () {
                 if (rsLiveStatus && rsLiveState.active) {
                   rsLiveStatus.textContent =
@@ -2058,23 +2068,44 @@
               startRsLiveSync(sid);
             }
             if (!rsLiveState.active || !rsLiveState.shareId) {
-              return;
-            }
-            if (rsLiveStatus) {
-              rsLiveStatus.textContent = "Saving table to link…";
-            }
-            try {
-              await rsFlushLivePushToCloud();
-            } catch {
               alert(
-                "Could not save your table to the cloud. Fix the error in the status line, then try Copy live link again.",
+                (rsLiveStatus && rsLiveStatus.textContent) ||
+                  "Live sync could not start. Check firebase-config.js, database URL, and browser console.",
               );
               return;
             }
             const url = buildRsLiveShareUrl(rsLiveState.shareId);
+            /*
+             * Guest (opened ?shareId=): do not flush until unlocked — avoids overwriting host
+             * with empty local grid. Copy URL only in that case. Host uses force flush.
+             */
+            var isGuestLocked =
+              rsLiveState.isShareGuest && !rsLiveState.livePushUnlocked;
+            if (!isGuestLocked) {
+              if (rsLiveStatus) {
+                rsLiveStatus.textContent = "Saving table to link…";
+              }
+              try {
+                await rsFlushLivePushToCloud({ force: true });
+              } catch (err) {
+                console.error("[Rare Soil] Copy flush:", err);
+                alert(
+                  (rsLiveStatus && rsLiveStatus.textContent) ||
+                    String(err && err.message ? err.message : err) ||
+                    "Could not save to Firebase. Check Realtime Database rules, App Check, and console.",
+                );
+                return;
+              }
+            } else if (rsLiveStatus) {
+              rsLiveStatus.textContent = "Copying link (loading shared table first…)";
+            }
             try {
               await navigator.clipboard.writeText(url);
-              if (rsLiveStatus) rsLiveStatus.textContent = "Live link copied (table saved).";
+              if (rsLiveStatus) {
+                rsLiveStatus.textContent = isGuestLocked
+                  ? "Link copied (wait for table to load before editing)."
+                  : "Live link copied (table saved).";
+              }
             } catch {
               window.prompt("Copy this live link:", url);
             }
