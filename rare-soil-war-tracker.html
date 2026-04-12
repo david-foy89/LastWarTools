@@ -1604,6 +1604,40 @@
             rsLiveStatus.textContent =
               "Live sync needs a configured DB URL. Set RS_LIVE_SYNC.defaultDatabaseUrl, use ?db=, or lastWarLiveSyncDbUrl.";
           }
+          /* Guests already had ?shareId= written above — remove it so refresh does not retry forever. */
+          try {
+            const u = new URL(window.location.href);
+            if (u.searchParams.has("shareId")) {
+              u.searchParams.delete("shareId");
+              history.replaceState(null, "", u.toString());
+            }
+          } catch (_) {}
+        }
+
+        /**
+         * Guest `?shareId=` flow: if `active` was set true and then `rsEnsureFirebaseDbReady` (or attach)
+         * fails asynchronously, reset live state and reload localStorage so the page is not stuck on an
+         * empty placeholder grid with `active === true`.
+         */
+        function rsGuestLiveSyncStartFailed(err) {
+          console.warn("[Rare Soil] Guest live start:", err);
+          if (rsLiveStatus) {
+            rsLiveStatus.textContent =
+              "Could not load live session — showing your saved local table. (" +
+              rsLiveSaveFailureText(err) +
+              ")";
+          }
+          stopRsLiveSync();
+          rsLiveState.shareId = null;
+          if (rsLiveEnabled) rsLiveEnabled.checked = false;
+          try {
+            const u = new URL(window.location.href);
+            u.searchParams.delete("shareId");
+            history.replaceState(null, "", u.toString());
+          } catch (_) {}
+          loadState();
+          renderDayControls();
+          renderBody();
         }
 
         /**
@@ -1640,9 +1674,13 @@
           }
           rsLiveState.liveBackend = "rtdb";
           if (deferFirstLivePush === true) {
-            return rsEnsureFirebaseDbReady().then(function () {
-              rsAttachRtdbListener(shareId, true);
-            });
+            return rsEnsureFirebaseDbReady()
+              .then(function () {
+                rsAttachRtdbListener(shareId, true);
+              })
+              .catch(function (err) {
+                rsGuestLiveSyncStartFailed(err);
+              });
           }
           if (rsLiveStatus) {
             rsLiveStatus.textContent = "Saving table to cloud…";
@@ -2380,13 +2418,15 @@
           ];
           if (rsLiveEnabled) rsLiveEnabled.checked = true;
           rsLiveState.shareId = incomingShareId;
-          startRsLiveSync(incomingShareId, true).catch(function (err) {
-            console.warn("[Rare Soil] Guest live start:", err);
+          startRsLiveSync(incomingShareId, true).catch(function () {
+            /* Synchronous validation failures reject here (rsFailStartLiveSync + URL cleanup). Async guest failures are handled inside startRsLiveSync. */
           });
           if (rsLiveStatus && rsLiveState.active) {
             rsLiveStatus.textContent =
               "Live session — loading shared data…";
           }
+          /* Sync failures in startRsLiveSync call rsFailStartLiveSync (active false) — load local.
+           * Async guest failures call rsGuestLiveSyncStartFailed (load + re-render). */
           if (!rsLiveState.active) {
             loadState();
           }
