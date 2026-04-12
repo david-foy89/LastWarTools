@@ -1024,6 +1024,13 @@
         const STORAGE_KEY = "lastwar-spice-war-tracker-v1";
         const NUM_DAYS = 8;
 
+        /**
+         * Live RTDB path: `rare-soil-war/spice-{shareId}` — same top-level rules as Rare Soil
+         * (`database.rules.json` → `rare-soil-war/$shareId`) so live link works without deploying
+         * a separate `spice-war` rules branch. Data stays isolated from Rare Soil keys.
+         */
+        const SW_LIVE_RTDB_PATH_PREFIX = "rare-soil-war/spice-";
+
         /** @type {{ days: { date: string, role: string }[], rows: { server: string, alliance: string, notes: string[], outcomes: string[] }[] }} */
         /* day.date: YYYY-MM-DD. notes[] = opponent; outcomes[] = "" | "win" | "loss" per battle day. */
         let state = {
@@ -1081,7 +1088,7 @@
           livePushUnlocked: true,
           /** Cleared after first RTDB `value` when opening `?shareId=` (welcome status text). */
           pendingShareWelcomeMsg: false,
-          /** Always `"rtdb"` when live is on (path `spice-war/{shareId}`). */
+          /** Always `"rtdb"` when live is on (path `rare-soil-war/spice-{shareId}`). */
           liveBackend: null,
           /** Legacy: cleared in stopRsLiveSync (Firestore module removed). */
           fsModConn: null,
@@ -1661,7 +1668,7 @@
           }
           if (m.code === "PERMISSION_DENIED") {
             return (
-              "Live save denied — deploy RTDB rules for path spice-war (see database.rules.json.example in this repo)."
+              "Live save denied — deploy RTDB rules for path rare-soil-war (see database.rules.json.example in this repo)."
             );
           }
           if (m.code === "APP_CHECK") {
@@ -1684,7 +1691,7 @@
           if (!rsEnsureFirebaseReady()) {
             return Promise.reject(new Error("Firebase not ready"));
           }
-          const path = "spice-war/" + rsLiveState.shareId;
+          const path = SW_LIVE_RTDB_PATH_PREFIX + rsLiveState.shareId;
           const payload = getRsLivePayloadForRtdb();
           return rsEnsureFirebaseDbReady()
             .then(function () {
@@ -1795,7 +1802,7 @@
         function rsAttachRtdbListener(shareId, deferFirstLivePush) {
           rsLiveState.liveBackend = "rtdb";
           rsLiveState.firebaseRef = rsLiveState.firebaseDb.ref(
-            "spice-war/" + shareId,
+            SW_LIVE_RTDB_PATH_PREFIX + shareId,
           );
           rsLiveState.valueHandler = function (snapshot) {
             const payload = snapshot.val();
@@ -1892,7 +1899,7 @@
         }
 
         /**
-         * Realtime Database only (`spice-war/{shareId}`).
+         * Realtime Database only (`rare-soil-war/spice-{shareId}` — shares Rare Soil RTDB rules).
          * Hosts: write the current table first, then attach the `value` listener. If the listener
          * runs first, an older cloud snapshot can overwrite local state and the next save pushes
          * wrong data — especially when the grid was filled before turning live on.
@@ -1951,7 +1958,7 @@
             .catch(function (err) {
               if (rsLiveStatus && rsLiveState.active) {
                 rsLiveStatus.textContent =
-                  "Live sync failed — table was not saved to the cloud. Check RTDB rules (deploy spice-war), App Check for this domain, and network.";
+                  "Live sync failed — table was not saved to the cloud. Check RTDB rules (deploy rare-soil-war), App Check for this domain, and network.";
               }
               stopRsLiveSync();
               rsLiveState.shareId = null;
