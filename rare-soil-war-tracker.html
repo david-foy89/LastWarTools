@@ -1089,12 +1089,25 @@
             if (typeof ac.getToken !== "function") {
               return Promise.resolve();
             }
-            return ac.getToken(false).then(
+            var p = ac.getToken(false).then(
               function () {},
               function (err) {
                 console.warn("[Rare Soil] App Check getToken:", err);
               },
             );
+            return rsPromiseWithTimeout(
+              p,
+              20000,
+              "App Check token timed out — check network, App Check domain registration for this host, and browser console.",
+            ).catch(function (err) {
+              var te = err && err.__rsPromiseTimeout ? err : null;
+              if (te) {
+                var e2 = new Error(te.message);
+                e2.__rsAppCheckTimeout = true;
+                return Promise.reject(e2);
+              }
+              return Promise.reject(err);
+            });
           } catch (e) {
             console.warn("[Rare Soil] App Check getToken:", e);
             return Promise.resolve();
@@ -1372,6 +1385,9 @@
               ? String(err.code)
               : "";
           var lump = (code + " " + msg + " " + String(err || "")).toUpperCase();
+          if (err && err.__rsAppCheckTimeout) {
+            return { code: "APP_CHECK", message: msg };
+          }
           if (!code) {
             if (
               lump.indexOf("PERMISSION_DENIED") !== -1 ||
@@ -1531,13 +1547,26 @@
             "rare-soil-war/" + shareId,
           );
           rsLiveState.valueHandler = function (snapshot) {
-            rsLiveState.livePushUnlocked = true;
-            if (rsLiveStatus && rsLiveState.pendingShareWelcomeMsg) {
-              rsLiveState.pendingShareWelcomeMsg = false;
-              rsLiveStatus.textContent =
-                "Live session — edits sync to this link.";
-            }
             const payload = snapshot.val();
+            /* Guests: do not unlock pushes until the host has written a real payload — avoids
+             * overwriting cloud (or showing a bogus "ready" state) when the node is still empty. */
+            if (deferFirstLivePush === true) {
+              if (!payload || payload.updatedAt == null) {
+                if (rsLiveStatus && rsLiveState.pendingShareWelcomeMsg) {
+                  rsLiveStatus.textContent =
+                    "Waiting for host to save the shared table…";
+                }
+                return;
+              }
+              rsLiveState.livePushUnlocked = true;
+              if (rsLiveStatus && rsLiveState.pendingShareWelcomeMsg) {
+                rsLiveState.pendingShareWelcomeMsg = false;
+                rsLiveStatus.textContent =
+                  "Live session — edits sync to this link.";
+              }
+            } else {
+              rsLiveState.livePushUnlocked = true;
+            }
             if (!payload || payload.updatedAt == null) return;
             var updatedAt = Number(payload.updatedAt);
             if (!Number.isFinite(updatedAt)) return;
@@ -1592,7 +1621,11 @@
           rsLiveState.livePushUnlocked = deferFirstLivePush !== true;
           rsLiveState.pendingShareWelcomeMsg = deferFirstLivePush === true;
           rsLiveState.isShareGuest = deferFirstLivePush === true;
-          history.replaceState(null, "", buildRsLiveShareUrl(shareId));
+          /* Host: do not put ?shareId= in the address bar until the first RTDB write succeeds —
+           * otherwise someone can copy the URL before the table exists in the cloud. Guests keep the URL they opened. */
+          if (deferFirstLivePush === true) {
+            history.replaceState(null, "", buildRsLiveShareUrl(shareId));
+          }
 
           rsResolveLiveDbUrl();
           if (!String(rsLiveState.dbUrl || "").trim()) {
@@ -1611,11 +1644,15 @@
               rsAttachRtdbListener(shareId, true);
             });
           }
+          if (rsLiveStatus) {
+            rsLiveStatus.textContent = "Saving table to cloud…";
+          }
           return rsFlushLivePushToCloud({ force: true })
             .then(function () {
               if (!rsLiveState.active || rsLiveState.shareId !== shareId) {
                 return;
               }
+              history.replaceState(null, "", buildRsLiveShareUrl(shareId));
               rsAttachRtdbListener(shareId, false);
               if (rsLiveStatus && rsLiveState.active) {
                 rsLiveStatus.textContent =
@@ -1625,8 +1662,16 @@
             .catch(function (err) {
               if (rsLiveStatus && rsLiveState.active) {
                 rsLiveStatus.textContent =
-                  "Live on but cloud save failed — check DB rules/URL.";
+                  "Live sync failed — table was not saved to the cloud. Check RTDB rules (deploy rare-soil-war), App Check for this domain, and network.";
               }
+              stopRsLiveSync();
+              rsLiveState.shareId = null;
+              if (rsLiveEnabled) rsLiveEnabled.checked = false;
+              try {
+                const u = new URL(window.location.href);
+                u.searchParams.delete("shareId");
+                history.replaceState(null, "", u.toString());
+              } catch (_) {}
               return Promise.reject(err);
             });
         }
