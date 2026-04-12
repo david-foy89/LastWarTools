@@ -38,7 +38,12 @@ function ensureModularAppCheck(app) {
     var sk =
       typeof window !== "undefined" && window.__FIREBASE_APPCHECK_SITE_KEY__;
     var key = String(sk || "").trim();
-    if (!key) {
+    if (
+      !key ||
+      key.length > 120 ||
+      /[{[]|"apiKey"\s*:|"projectId"\s*:/i.test(key) ||
+      !/^6L[a-zA-Z0-9_-]{20,}$/.test(key)
+    ) {
       return;
     }
     initializeAppCheck(app, {

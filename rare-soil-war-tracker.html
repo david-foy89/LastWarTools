@@ -1017,12 +1017,31 @@
           );
         }
 
+        /** reCAPTCHA Enterprise App Check keys look like 6L…; firebaseConfig JSON must never be used here. */
+        function rsPlausibleAppCheckSiteKey(sk) {
+          var s = String(sk || "").trim();
+          if (!s) return false;
+          if (s.length > 120) return false;
+          if (/[{[]|"apiKey"\s*:|'apiKey'\s*:|"projectId"\s*:|"databaseURL"\s*:/i.test(s)) {
+            return false;
+          }
+          return /^6L[a-zA-Z0-9_-]{20,}$/.test(s);
+        }
+
         function rsAppCheckSiteKeyPresent() {
           try {
-            return (
-              String(window.__FIREBASE_APPCHECK_SITE_KEY__ || "").trim().length >
-              0
-            );
+            var raw = String(window.__FIREBASE_APPCHECK_SITE_KEY__ || "").trim();
+            if (!raw) return false;
+            if (!rsPlausibleAppCheckSiteKey(raw)) {
+              if (!window.__rsBadAppCheckKeyWarned) {
+                window.__rsBadAppCheckKeyWarned = true;
+                console.warn(
+                  "[Rare Soil] __FIREBASE_APPCHECK_SITE_KEY__ is not a valid App Check site key (use the short 6L… key from Firebase → App Check, not the web app firebaseConfig JSON). App Check is disabled until this is fixed.",
+                );
+              }
+              return false;
+            }
+            return true;
           } catch (_) {
             return false;
           }

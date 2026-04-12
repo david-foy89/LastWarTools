@@ -22,6 +22,19 @@ const _dbByApp = new WeakMap();
 /** @type {WeakMap<import("firebase/app").FirebaseApp, true>} */
 const _appCheckInitialized = new WeakMap();
 
+let _badAppCheckKeyWarned = false;
+
+/** reCAPTCHA Enterprise keys for Firebase App Check are short strings (e.g. 6L…). Reject pasted firebaseConfig JSON. */
+function isPlausibleAppCheckSiteKey(sk) {
+  const s = String(sk || "").trim();
+  if (!s) return false;
+  if (s.length > 120) return false;
+  if (/[{[]|"apiKey"\s*:|'apiKey'\s*:|"projectId"\s*:|"databaseURL"\s*:/i.test(s)) {
+    return false;
+  }
+  return /^6L[a-zA-Z0-9_-]{20,}$/.test(s);
+}
+
 function ensureAppCheckBeforeFirestore(app) {
   if (!app || _appCheckInitialized.has(app)) return;
   const key =
@@ -29,6 +42,15 @@ function ensureAppCheckBeforeFirestore(app) {
       ? String(window.__FIREBASE_APPCHECK_SITE_KEY__ || "").trim()
       : "";
   if (!key) return;
+  if (!isPlausibleAppCheckSiteKey(key)) {
+    if (!_badAppCheckKeyWarned) {
+      _badAppCheckKeyWarned = true;
+      console.warn(
+        "[Last War Tools] __FIREBASE_APPCHECK_SITE_KEY__ does not look like a reCAPTCHA Enterprise site key (expected a short 6L… string). It may be the Firebase web config JSON — fix GitHub secret FIREBASE_APPCHECK_SITE_KEY or firebase-config.js; paste only the App Check key from Firebase Console → App Check.",
+      );
+    }
+    return;
+  }
   try {
     initializeAppCheck(app, {
       provider: new ReCaptchaEnterpriseProvider(key),

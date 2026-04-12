@@ -73,6 +73,16 @@ jobs:
             "window.__FIREBASE_CONFIG__ = " + JSON.stringify(cfg, null, 2) + ";\n";
           const apk = (process.env.FIREBASE_APPCHECK_SITE_KEY || "").trim();
           if (apk) {
+            const badJson =
+              apk.length > 120 ||
+              /[{[]|"apiKey"\s*:|"projectId"\s*:|"databaseURL"\s*:/i.test(apk);
+            const okKey = /^6L[a-zA-Z0-9_-]{20,}$/.test(apk) && !badJson;
+            if (!okKey) {
+              console.error(
+                "FIREBASE_APPCHECK_SITE_KEY must be the reCAPTCHA Enterprise site key only (short string starting with 6L from Firebase → App Check). It looks like the Firebase web config JSON was pasted — fix the repository secret.",
+              );
+              process.exit(1);
+            }
             out +=
               "window.__FIREBASE_APPCHECK_SITE_KEY__ = " +
               JSON.stringify(apk) +

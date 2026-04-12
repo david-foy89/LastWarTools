@@ -6,8 +6,9 @@
  *
  * GitHub Actions (`.github/workflows/deploy-pages.yml`): set repository secrets
  * `FIREBASE_CONFIG_JSON` (the firebaseConfig object as JSON) and, if App Check
- * enforcement is on for Firestore/RTDB, `FIREBASE_APPCHECK_SITE_KEY` (reCAPTCHA
- * Enterprise key from Firebase → App Check). Optional: `FIREBASE_APPCHECK_DEBUG_TOKEN`
+ * enforcement is on for Firestore/RTDB, `FIREBASE_APPCHECK_SITE_KEY` (only the
+ * short reCAPTCHA Enterprise site key string, e.g. 6L… — never paste the same JSON
+ * as `FIREBASE_CONFIG_JSON`). Optional: `FIREBASE_APPCHECK_DEBUG_TOKEN`
  * for local/testing (`?apcDebug=1` flow).
  *
  * Pages load firebase-config.example.js first, then apply firebase-config.js
