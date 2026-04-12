@@ -48,6 +48,20 @@
  * Local dev: add `?apcDebug=1` to the page URL *once*, copy the debug token from the browser
  * console into App Check → Manage debug tokens, or set `__FIREBASE_APPCHECK_DEBUG_TOKEN__` in
  * `firebase-config.js` (see below).
+ *
+ * App Check + CSP / extensions:
+ * These pages do **not** ship a Content-Security-Policy (no meta tag, no `_headers`). If DevTools
+ * reports `connect-src 'none'` or blocked connections to `google.com` / `gstatic.com`, the cause is
+ * usually a browser extension, strict privacy mode, or device/enterprise policy — not this repo.
+ * Ad blockers also break reCAPTCHA; test in a clean profile or incognito with extensions disabled.
+ * Initialization uses **reCAPTCHA Enterprise** (`ReCaptchaEnterpriseProvider`), not reCAPTCHA v3’s
+ * `ReCaptchaV3Provider`, and runs before Firestore/RTDB in `firestore-db.js` / rare-soil compat code.
+ *
+ * If the site key is a valid `6L…` string but the console still shows `appCheck/recaptcha-error`:
+ * register this host under Firebase → Authentication → Authorized domains; confirm App Check lists the
+ * same reCAPTCHA Enterprise key for your web app; enable **reCAPTCHA Enterprise API** in Google Cloud
+ * for the project. The log line `Uncaught (in promise) cancelled` from `firebase-app-check.js` is often
+ * the SDK cancelling an in-flight refresh — noisy but usually harmless once reCAPTCHA succeeds.
  */
 window.__FIREBASE_CONFIG__ = {
   apiKey: "YOUR_WEB_API_KEY",

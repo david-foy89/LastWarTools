@@ -8,6 +8,7 @@
  * `rare-soil-war-live-fs.js`).
  */
 import {
+  getToken,
   initializeAppCheck,
   ReCaptchaEnterpriseProvider,
 } from "https://www.gstatic.com/firebasejs/9.22.2/firebase-app-check.js";
@@ -23,6 +24,7 @@ const _dbByApp = new WeakMap();
 const _appCheckInitialized = new WeakMap();
 
 let _badAppCheckKeyWarned = false;
+let _recaptchaHintLogged = false;
 
 /** reCAPTCHA Enterprise keys for Firebase App Check are short strings (e.g. 6L…). Reject pasted firebaseConfig JSON. */
 function isPlausibleAppCheckSiteKey(sk) {
@@ -51,8 +53,9 @@ function ensureAppCheckBeforeFirestore(app) {
     }
     return;
   }
+  let appCheck;
   try {
-    initializeAppCheck(app, {
+    appCheck = initializeAppCheck(app, {
       provider: new ReCaptchaEnterpriseProvider(key),
       isTokenAutoRefreshEnabled: true,
     });
@@ -63,6 +66,19 @@ function ensureAppCheckBeforeFirestore(app) {
     }
   }
   _appCheckInitialized.set(app, true);
+  if (appCheck && typeof getToken === "function") {
+    getToken(appCheck, false).catch(function (e) {
+      if (!e || e.code !== "appCheck/recaptcha-error" || _recaptchaHintLogged) return;
+      _recaptchaHintLogged = true;
+      var host =
+        typeof location !== "undefined" && location.hostname ? location.hostname : "(host)";
+      console.warn(
+        "[Last War Tools] App Check reCAPTCHA failed with your 6L… site key. Check: (1) Firebase Console → App Check → your **web** app — provider must be reCAPTCHA **Enterprise** and the key must match __FIREBASE_APPCHECK_SITE_KEY__; (2) Authentication → Settings → **Authorized domains** includes `" +
+          host +
+          "`; (3) Google Cloud → APIs: **reCAPTCHA Enterprise API** enabled for this project; (4) disable ad blockers / test another browser. Debug: set __FIREBASE_APPCHECK_DEBUG_TOKEN__ or ?apcDebug=1 on localhost.",
+      );
+    });
+  }
 }
 
 /**
