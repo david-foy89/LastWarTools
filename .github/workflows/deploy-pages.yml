@@ -97,21 +97,13 @@ jobs:
           }
           // Same logic as __lwSanitizeAppCheckSiteKey in firebase-config.example.js — runs at end of
           // this file so bad keys are cleared before any subsequent <script> in the page runs.
-          out += `(function(){
-try{
-var s=String(window.__FIREBASE_APPCHECK_SITE_KEY__||"").trim();
-if(!s)return;
-var bad=s.length>120||/[{[]|"apiKey"\\s*:|'apiKey'\\s*:|"projectId"\\s*:|"databaseURL"\\s*:/i.test(s);
-var ok=/^6L[a-zA-Z0-9_-]{20,}$/.test(s);
-if(bad||!ok){
-if(!window.__lwSanitizedBadAppCheckKey){
-window.__lwSanitizedBadAppCheckKey=true;
-console.warn("[Last War Tools] Cleared invalid __FIREBASE_APPCHECK_SITE_KEY__. Use only the short reCAPTCHA Enterprise site key (6L…) from Firebase Console → App Check — not the firebaseConfig JSON. Fix GitHub Actions secret FIREBASE_APPCHECK_SITE_KEY or local firebase-config.js.");
-}
-window.__FIREBASE_APPCHECK_SITE_KEY__="";
-}
-}catch(e){}
-})();`;
+          out +=
+            "(function(){try{var s=String(window.__FIREBASE_APPCHECK_SITE_KEY__||\"\").trim();" +
+            "if(!s)return;var bad=s.length>120||/[{[]|\\\"apiKey\\\"\\\\s*:|'apiKey'\\\\s*:|\\\"projectId\\\"\\\\s*:|\\\"databaseURL\\\"\\\\s*:/i.test(s);" +
+            "var ok=/^6L[a-zA-Z0-9_-]{20,}$/.test(s);if(bad||!ok){" +
+            "if(!window.__lwSanitizedBadAppCheckKey){window.__lwSanitizedBadAppCheckKey=true;" +
+            "console.warn(\"[Last War Tools] Cleared invalid __FIREBASE_APPCHECK_SITE_KEY__. Use only the short reCAPTCHA Enterprise site key (6L…) from Firebase Console → App Check — not the firebaseConfig JSON. Fix GitHub Actions secret FIREBASE_APPCHECK_SITE_KEY or local firebase-config.js.\");" +
+            "}window.__FIREBASE_APPCHECK_SITE_KEY__=\"\";}}catch(e){}})();";
           fs.writeFileSync("firebase-config.js", out);
           console.log(
             "Wrote firebase-config.js" + (apk ? " (with App Check site key)" : ""),
