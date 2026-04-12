@@ -1131,7 +1131,9 @@
             var timer = setTimeout(function () {
               if (settled) return;
               settled = true;
-              reject(new Error(timeoutMessage || "Operation timed out."));
+              var te = new Error(timeoutMessage || "Operation timed out.");
+              te.__rsPromiseTimeout = true;
+              reject(te);
             }, ms);
             Promise.resolve(promise).then(
               function (v) {
@@ -1388,11 +1390,14 @@
 
         /** RTDB write failures don't always set `err.code`; parse message for permission / App Check. */
         function rsCoalesceRtdbWriteError(err) {
+          var msg = err && err.message ? String(err.message) : "";
+          if (err && err.__rsPromiseTimeout) {
+            return { code: "TIMEOUT", message: msg };
+          }
           var code =
             err && err.code !== undefined && err.code !== null
               ? String(err.code)
               : "";
-          var msg = err && err.message ? String(err.message) : "";
           var lump = (code + " " + msg + " " + String(err || "")).toUpperCase();
           if (!code) {
             if (
@@ -1413,6 +1418,23 @@
             typeof location !== "undefined" && location.hostname
               ? location.hostname
               : "this site";
+          if (m.code === "TIMEOUT") {
+            if (!rsAppCheckSiteKeyPresent() && rsFirebaseConfigOk(window.__FIREBASE_CONFIG__)) {
+              return (
+                "Live save timed out. GitHub Pages builds firebase-config.js from repository secrets — " +
+                  "your local firebase-config.js is not deployed. Add secret FIREBASE_APPCHECK_SITE_KEY " +
+                  "(same reCAPTCHA Enterprise key as local), redeploy, register " +
+                  host +
+                  " in Firebase App Check, or set Realtime Database App Check to Monitor/Off."
+              );
+            }
+            return (
+              "Live save timed out — check network, Realtime Database rules, and the browser console. " +
+                "If the console shows Missing appcheck token, fix App Check for " +
+                host +
+                "."
+            );
+          }
           if (
             /timed out/i.test(m.message) &&
             !rsAppCheckSiteKeyPresent() &&
@@ -1420,11 +1442,11 @@
           ) {
             return (
               "Live save timed out — console showed Missing appcheck token. " +
-              "Deploy firebase-config.js with __FIREBASE_APPCHECK_SITE_KEY__ (secret FIREBASE_APPCHECK_SITE_KEY), " +
-              "register " +
-              host +
-              " in Firebase App Check, or set Realtime Database App Check to Monitor/Off. " +
-              "CSP lines marked report-only do not block this."
+                "Deploy firebase-config.js with __FIREBASE_APPCHECK_SITE_KEY__ (secret FIREBASE_APPCHECK_SITE_KEY), " +
+                "register " +
+                host +
+                " in Firebase App Check, or set Realtime Database App Check to Monitor/Off. " +
+                "CSP lines marked report-only do not block this."
             );
           }
           if (m.code === "PERMISSION_DENIED") {
@@ -1465,7 +1487,7 @@
               return rsLiveState.firebaseDb.ref(path).set(payload);
             }),
             45000,
-            "Saving to cloud timed out (network, App Check, or Realtime Database). Try again.",
+            "Saving to cloud timed out (network, RTDB rules, or connectivity). Try again.",
           );
         }
 
@@ -1630,7 +1652,7 @@
           return rsPromiseWithTimeout(
             rsEnsureFirebaseDbAfterAppCheck(),
             30000,
-            "Live sync: App Check timed out (reCAPTCHA / network). Refresh and try again.",
+            "Live sync: token wait timed out (reCAPTCHA / network). Refresh and try again.",
           ).then(function () {
               if (!rsLiveState.active || rsLiveState.shareId !== shareId) {
                 return;
