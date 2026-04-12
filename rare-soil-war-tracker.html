@@ -1397,6 +1397,13 @@
               "Live save denied — deploy RTDB rules for path rare-soil-war (see database.rules.json.example in this repo)."
             );
           }
+          if (m.code === "APP_CHECK") {
+            return (
+              "Live save blocked by App Check — register this hostname in Firebase App Check (reCAPTCHA Enterprise), " +
+                "ensure the App Check site key is included in deployed firebase-config (GitHub: secret FIREBASE_APPCHECK_SITE_KEY), " +
+                "or set Realtime Database App Check enforcement to Monitor/Off in Firebase Console."
+            );
+          }
           return (
             "Live sync write failed. Check DB rules/URL and browser console." +
             (m.message ? " (" + m.message + ")" : "")
