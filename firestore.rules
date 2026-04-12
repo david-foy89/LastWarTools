@@ -37,6 +37,7 @@ service cloud.firestore {
     //     extra Firestore collection or rules block is required.
     //   • Rare Soil War Tracker live link uses Realtime Database only (rare-soil-war/{shareId}).
     //   • Spice War Tracker (spice-war-tracker.html): key lastwar-spice-war-tracker-v1; live RTDB rare-soil-war/spice-{shareId}.
+    //   • Copper War Tracker (copper-war-tracker.html): key lastwar-copper-war-tracker-v1; live RTDB rare-soil-war/copper-{shareId}.
     //     This collection is unused by current page code but kept for older clients / experiments.
     // =============================================================================
     match /userLocalStorageSync/{userId} {
