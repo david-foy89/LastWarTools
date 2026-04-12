@@ -839,6 +839,7 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.12.5/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.12.5/firebase-app-check-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.12.5/firebase-database-compat.js"></script>
 
     <script>
@@ -1016,6 +1017,118 @@
           );
         }
 
+        function rsAppCheckSiteKeyPresent() {
+          try {
+            return (
+              String(window.__FIREBASE_APPCHECK_SITE_KEY__ || "").trim().length >
+              0
+            );
+          } catch (_) {
+            return false;
+          }
+        }
+
+        /**
+         * When RTDB App Check enforcement is on, open RTDB only after activate + getToken.
+         * If a site key is set, prefer full web `__FIREBASE_CONFIG__` for `initializeApp` (App Check + reCAPTCHA Enterprise).
+         */
+        function rsFirebaseInitOptionsForRtdb(currentDb) {
+          var cfg = window.__FIREBASE_CONFIG__;
+          if (rsAppCheckSiteKeyPresent() && rsFirebaseConfigOk(cfg)) {
+            var o = {
+              apiKey: cfg.apiKey,
+              authDomain: cfg.authDomain,
+              projectId: cfg.projectId,
+              storageBucket: cfg.storageBucket,
+              messagingSenderId: cfg.messagingSenderId,
+              appId: cfg.appId,
+              databaseURL: currentDb,
+            };
+            if (cfg.measurementId) {
+              o.measurementId = cfg.measurementId;
+            }
+            return o;
+          }
+          return { databaseURL: currentDb };
+        }
+
+        function rsActivateAppCheckIfConfigured(app) {
+          if (
+            !app ||
+            !window.firebase ||
+            !window.firebase.appCheck ||
+            app._rsRareSoilAppCheckActivated
+          ) {
+            return;
+          }
+          if (!rsAppCheckSiteKeyPresent()) {
+            return;
+          }
+          try {
+            var Prov = firebase.appCheck.ReCaptchaEnterpriseProvider;
+            if (typeof Prov !== "function") {
+              return;
+            }
+            var key = String(
+              window.__FIREBASE_APPCHECK_SITE_KEY__ || "",
+            ).trim();
+            firebase.appCheck(app).activate(new Prov(key), true);
+            app._rsRareSoilAppCheckActivated = true;
+          } catch (e) {
+            console.warn("[Rare Soil] App Check activate:", e);
+          }
+        }
+
+        /** Resolves after first App Check token when enforcement expects one (then RTDB can open). */
+        function rsAwaitAppCheckTokenIfNeeded(app) {
+          if (!rsAppCheckSiteKeyPresent() || !app || !window.firebase.appCheck) {
+            return Promise.resolve();
+          }
+          try {
+            var ac = firebase.appCheck(app);
+            if (typeof ac.getToken !== "function") {
+              return Promise.resolve();
+            }
+            return ac.getToken(false).then(
+              function () {},
+              function (err) {
+                console.warn("[Rare Soil] App Check getToken:", err);
+              },
+            );
+          } catch (e) {
+            console.warn("[Rare Soil] App Check getToken:", e);
+            return Promise.resolve();
+          }
+        }
+
+        /**
+         * Creates compat RTDB instance once App Check token is ready (if configured).
+         * @returns {Promise<void>}
+         */
+        function rsEnsureFirebaseDbReady() {
+          if (rsLiveState.firebaseDb) {
+            return Promise.resolve();
+          }
+          if (!rsLiveState.firebaseApp) {
+            return Promise.reject(new Error("No Firebase app"));
+          }
+          if (!rsAppCheckSiteKeyPresent()) {
+            rsLiveState.firebaseDb = window.firebase.database(
+              rsLiveState.firebaseApp,
+            );
+            return Promise.resolve();
+          }
+          return rsAwaitAppCheckTokenIfNeeded(rsLiveState.firebaseApp).then(
+            function () {
+              if (!rsLiveState.firebaseDb) {
+                rsLiveState.firebaseDb = window.firebase.database(
+                  rsLiveState.firebaseApp,
+                );
+              }
+            },
+          );
+        }
+
         /** Avoid indefinite "Saving table to link…" when RTDB never settles. */
         function rsPromiseWithTimeout(promise, ms, timeoutMessage) {
           return new Promise(function (resolve, reject) {
@@ -1045,7 +1158,8 @@
         }
 
         /**
-         * Minimal RTDB app (`{ databaseURL }` only) — same as season-2-supplies-checklist live sync.
+         * Ensures Firebase App exists for this DB URL. If App Check is configured, does not open RTDB
+         * until {@link rsEnsureFirebaseDbReady} (token must precede socket when enforcement is on).
          */
         function rsEnsureFirebaseReady() {
           if (!rsLiveState.dbUrl) {
@@ -1098,7 +1212,7 @@
               rsLiveState.firebaseApp =
                 existing ||
                 window.firebase.initializeApp(
-                  { databaseURL: currentDb },
+                  rsFirebaseInitOptionsForRtdb(currentDb),
                   appName,
                 );
             } catch (initErr) {
@@ -1109,13 +1223,19 @@
               }
               return false;
             }
-            rsLiveState.firebaseDb = window.firebase.database(
-              rsLiveState.firebaseApp,
-            );
-          } else if (!rsLiveState.firebaseDb) {
-            rsLiveState.firebaseDb = window.firebase.database(
-              rsLiveState.firebaseApp,
-            );
+            rsActivateAppCheckIfConfigured(rsLiveState.firebaseApp);
+            if (!rsAppCheckSiteKeyPresent()) {
+              rsLiveState.firebaseDb = window.firebase.database(
+                rsLiveState.firebaseApp,
+              );
+            }
+          } else {
+            rsActivateAppCheckIfConfigured(rsLiveState.firebaseApp);
+            if (!rsLiveState.firebaseDb && !rsAppCheckSiteKeyPresent()) {
+              rsLiveState.firebaseDb = window.firebase.database(
+                rsLiveState.firebaseApp,
+              );
+            }
           }
           return true;
         }
@@ -1286,9 +1406,10 @@
           }
           if (m.code === "APP_CHECK") {
             return (
-              "Live save blocked (App Check). Register " +
+              "Live save blocked (App Check). Deploy firebase-config.js with __FIREBASE_APPCHECK_SITE_KEY__ " +
+                "(GitHub secret FIREBASE_APPCHECK_SITE_KEY), register " +
                 host +
-                " in Firebase App Check for your web app, or set Realtime Database App Check enforcement to Monitor/Off."
+                " in App Check, or set Realtime Database App Check to Monitor/Off in Firebase Console."
             );
           }
           return (
@@ -1306,13 +1427,17 @@
           }
           const path = "rare-soil-war/" + rsLiveState.shareId;
           const payload = getRsLivePayloadForRtdb();
-          return rsPromiseWithTimeout(
-            rsLiveState.firebaseDb.ref(path).set(payload),
-            45000,
-            "Saving to cloud timed out (network, RTDB rules, or connectivity). Try again.",
-          ).then(function () {
-            rsLiveState.lastSeenUpdatedAt = Number(payload.updatedAt);
-          });
+          return rsEnsureFirebaseDbReady()
+            .then(function () {
+              return rsPromiseWithTimeout(
+                rsLiveState.firebaseDb.ref(path).set(payload),
+                45000,
+                "Saving to cloud timed out (network, RTDB rules, or connectivity). Try again.",
+              );
+            })
+            .then(function () {
+              rsLiveState.lastSeenUpdatedAt = Number(payload.updatedAt);
+            });
         }
 
         function pushRsLivePayload() {
@@ -1490,8 +1615,9 @@
           }
           rsLiveState.liveBackend = "rtdb";
           if (deferFirstLivePush === true) {
-            rsAttachRtdbListener(shareId, true);
-            return Promise.resolve();
+            return rsEnsureFirebaseDbReady().then(function () {
+              rsAttachRtdbListener(shareId, true);
+            });
           }
           return rsFlushLivePushToCloud({ force: true })
             .then(function () {
