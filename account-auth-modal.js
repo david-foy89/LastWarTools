@@ -475,6 +475,13 @@ function boot() {
       return loadClassicScript("firebase-config.js");
     })
     .then(function () {
+      try {
+        if (typeof window.__lwSanitizeAppCheckSiteKey === "function") {
+          window.__lwSanitizeAppCheckSiteKey();
+        }
+      } catch (e) {
+        /* ignore */
+      }
       var cfg = window.__FIREBASE_CONFIG__;
       let auth = null;
       let db = null;

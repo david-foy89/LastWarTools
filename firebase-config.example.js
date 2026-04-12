@@ -79,3 +79,34 @@ window.__FIREBASE_APPCHECK_SITE_KEY__ = "";
  * `"true"` / `"1"` to use the interactive debug flow. Only for localhost / testing.
  */
 window.__FIREBASE_APPCHECK_DEBUG_TOKEN__ = "";
+
+/**
+ * If `firebase-config.js` mistakenly sets `__FIREBASE_APPCHECK_SITE_KEY__` to the web app JSON
+ * (common copy-paste error for GitHub secret FIREBASE_APPCHECK_SITE_KEY), reCAPTCHA gets `k=apiKey…`
+ * and App Check throws appCheck/recaptcha-error. Call after firebase-config.js loads.
+ */
+window.__lwSanitizeAppCheckSiteKey = function () {
+  try {
+    var s = String(window.__FIREBASE_APPCHECK_SITE_KEY__ || "").trim();
+    if (!s) return;
+    var looksLikeFirebaseJson =
+      s.length > 120 ||
+      /[{[]|"apiKey"\s*:|'apiKey'\s*:|"projectId"\s*:|"databaseURL"\s*:/i.test(s);
+    var looksLikeRecaptchaEnterpriseKey = /^6L[a-zA-Z0-9_-]{20,}$/.test(s);
+    if (looksLikeFirebaseJson || !looksLikeRecaptchaEnterpriseKey) {
+      if (!window.__lwSanitizedBadAppCheckKey) {
+        window.__lwSanitizedBadAppCheckKey = true;
+        console.warn(
+          "[Last War Tools] Cleared invalid __FIREBASE_APPCHECK_SITE_KEY__. Use only the short reCAPTCHA Enterprise site key (6L…) from Firebase Console → App Check — not the firebaseConfig JSON. Fix GitHub Actions secret FIREBASE_APPCHECK_SITE_KEY or local firebase-config.js.",
+        );
+      }
+      window.__FIREBASE_APPCHECK_SITE_KEY__ = "";
+    }
+  } catch (e) {}
+};
+/* Runs after the next script tag (firebase-config.js) on pages that include both in order. */
+setTimeout(function () {
+  if (typeof window.__lwSanitizeAppCheckSiteKey === "function") {
+    window.__lwSanitizeAppCheckSiteKey();
+  }
+}, 0);

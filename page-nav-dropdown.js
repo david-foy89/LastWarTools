@@ -390,6 +390,13 @@
       })
       .then(function () {
         try {
+          if (typeof window.__lwSanitizeAppCheckSiteKey === 'function') {
+            window.__lwSanitizeAppCheckSiteKey();
+          }
+        } catch (e) {
+          /* ignore */
+        }
+        try {
           var c = window.__FIREBASE_CONFIG__;
           var k = c && c.apiKey ? String(c.apiKey) : '';
           var p = c && c.projectId ? String(c.projectId) : '';
