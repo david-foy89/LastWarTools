@@ -342,10 +342,11 @@ export async function mergeAndSyncToCloud(user, db, options) {
     return;
   }
 
-  const existingPayloadStr =
-    snap && snap.exists() && typeof snap.data()?.payload === "string"
-      ? snap.data().payload
-      : "";
+  let existingPayloadStr = "";
+  if (snap && snap.exists()) {
+    const d = snap.data();
+    if (d && typeof d.payload === "string") existingPayloadStr = d.payload;
+  }
   if (existingPayloadStr && syncPayloadsAreEquivalent(existingPayloadStr, json)) {
     const ms = getCloudDocumentWriteMs(snap);
     // Always record uid + server time (or 0). Skipping when updatedAt was missing left
