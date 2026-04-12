@@ -754,6 +754,13 @@
         }
       }
 
+      /* Narrowest widths: smaller day column headers so more table fits horizontally (was 640px 0.78rem). */
+      @media (max-width: 520px) {
+        body.rs-war-tracker-page .rs-table .rs-day-title {
+          font-size: 0.62rem;
+        }
+      }
+
       @media (max-width: 480px) {
         body.rs-war-tracker-page .page {
           padding-left: max(8px, env(safe-area-inset-left, 0px));
