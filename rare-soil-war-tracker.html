@@ -839,30 +839,10 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.12.5/firebase-app-compat.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/10.12.5/firebase-app-check-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.12.5/firebase-database-compat.js"></script>
 
     <script>
       (function () {
-        try {
-          var qsApc = new URLSearchParams(window.location.search || "");
-          if (qsApc.get("apcDebug") === "1" && typeof globalThis !== "undefined") {
-            globalThis.FIREBASE_APPCHECK_DEBUG_TOKEN = true;
-          }
-        } catch (_) {}
-        try {
-          var dTok = window.__FIREBASE_APPCHECK_DEBUG_TOKEN__;
-          if (
-            typeof dTok === "string" &&
-            dTok.trim().length > 0 &&
-            typeof globalThis !== "undefined"
-          ) {
-            var dv = dTok.trim();
-            globalThis.FIREBASE_APPCHECK_DEBUG_TOKEN =
-              dv === "true" || dv === "1" ? true : dv;
-          }
-        } catch (_) {}
-
         const STORAGE_KEY = "lastwar-rare-soil-war-tracker-v1";
         const NUM_DAYS = 8;
 
@@ -893,8 +873,13 @@
         let livePushTimer = null;
         let accountMergeRefreshTimer = null;
 
-        const RS_LIVE_DEFAULT_DB =
-          "https://lastwartools-c12c8-default-rtdb.firebaseio.com/";
+        /** Same live-RTDB pattern as `season-2-supplies-checklist.html` (`LIVE_SYNC`). */
+        const RS_LIVE_SYNC = {
+          // 1) ?db=, 2) localStorage lastWarLiveSyncDbUrl, 3) window.LWST_LIVE_SYNC_DB_URL,
+          // 4) database URL from firebase-config `__FIREBASE_CONFIG__`, 5) default below.
+          defaultDatabaseUrl:
+            "https://lastwartools-c12c8-default-rtdb.firebaseio.com/",
+        };
         const rsLiveState = {
           clientId:
             "rs-" +
@@ -948,11 +933,7 @@
           );
         }
 
-        /**
-         * Prefer URL from firebase-config.js (or derived from projectId) over localStorage.
-         * `lastWarLiveSyncDbUrl` is shared with maps/other tools and often points at the wrong DB,
-         * which breaks Rare Soil writes (nothing appears under rare-soil-war/ in the console).
-         */
+        /** Optional fallback when `firebase-config.js` includes `databaseURL` / `projectId`. */
         function rsInferDatabaseUrlFromFirebaseConfig() {
           try {
             var cfg = window.__FIREBASE_CONFIG__;
@@ -970,6 +951,7 @@
           }
         }
 
+        /** Resolution order matches `season-2-supplies-checklist.html` `resolveLiveSyncDbUrl`. */
         function rsResolveLiveDbUrl() {
           const params = new URLSearchParams(window.location.search);
           const fromUrl = params.get("db");
@@ -990,10 +972,10 @@
           var fromFirebaseConfig = rsInferDatabaseUrlFromFirebaseConfig();
           const resolved = String(
             fromUrl ||
-              fromFirebaseConfig ||
               fromStorage ||
               fromGlobal ||
-              RS_LIVE_DEFAULT_DB ||
+              fromFirebaseConfig ||
+              RS_LIVE_SYNC.defaultDatabaseUrl ||
               "",
           ).trim();
           rsLiveState.dbUrl = resolved;
@@ -1034,97 +1016,7 @@
           );
         }
 
-        function rsAppCheckSiteKeyPresent() {
-          try {
-            return String(window.__FIREBASE_APPCHECK_SITE_KEY__ || "").trim().length > 0;
-          } catch (_) {
-            return false;
-          }
-        }
-
-        var rsWarnedMissingAppCheckKey = false;
-        /** If RTDB App Check enforcement is on, missing key → "Missing appcheck token" and stalled writes. */
-        function rsWarnRtdbIfAppCheckKeyMissing() {
-          if (rsWarnedMissingAppCheckKey) return;
-          if (rsAppCheckSiteKeyPresent()) return;
-          if (!rsFirebaseConfigOk(window.__FIREBASE_CONFIG__)) return;
-          rsWarnedMissingAppCheckKey = true;
-          console.warn(
-            "[Rare Soil] __FIREBASE_APPCHECK_SITE_KEY__ is not set. " +
-              "If App Check enforcement is on for Realtime Database, you will see FIREBASE WARNING: Missing appcheck token and saves will time out. " +
-              "Fix: add GitHub secret FIREBASE_APPCHECK_SITE_KEY (reCAPTCHA Enterprise site key) and redeploy, register this hostname in App Check, or set RTDB to Monitor/Off in Firebase Console.",
-          );
-        }
-
-        /**
-         * When App Check is **enforced** for Realtime Database / Firestore, requests need a
-         * valid token. Activate with your reCAPTCHA Enterprise key from Firebase Console →
-         * App Check (`__FIREBASE_APPCHECK_SITE_KEY__` in firebase-config.js). Debug: `?apcDebug=1`.
-         */
-        function rsEnsureAppCheckCompat(app) {
-          if (
-            !app ||
-            !window.firebase ||
-            !window.firebase.appCheck ||
-            app._rsAppCheckActivated
-          ) {
-            return;
-          }
-          var key = "";
-          try {
-            key = String(
-              window.__FIREBASE_APPCHECK_SITE_KEY__ || "",
-            ).trim();
-          } catch (_) {}
-          if (!key) {
-            return;
-          }
-          try {
-            var Prov = firebase.appCheck.ReCaptchaEnterpriseProvider;
-            if (typeof Prov !== "function") {
-              return;
-            }
-            firebase.appCheck(app).activate(new Prov(key), true);
-            app._rsAppCheckActivated = true;
-          } catch (e) {
-            console.warn("[Rare Soil] App Check (Realtime Database):", e);
-          }
-        }
-
-        /**
-         * When RTDB App Check **enforcement** is on, connections close with "Missing appcheck token"
-         * if reads/writes start before the first token. Wait for {@link firebase.appCheck#getToken}
-         * after activate (reCAPTCHA Enterprise key in firebase-config.js / GitHub secret).
-         */
-        function rsAwaitAppCheckTokenBeforeRtdb(app) {
-          var key = "";
-          try {
-            key = String(window.__FIREBASE_APPCHECK_SITE_KEY__ || "").trim();
-          } catch (_) {}
-          if (!key || !app || !window.firebase || !window.firebase.appCheck) {
-            return Promise.resolve();
-          }
-          try {
-            var ac = firebase.appCheck(app);
-            if (typeof ac.getToken !== "function") {
-              return Promise.resolve();
-            }
-            return ac.getToken(false).then(
-              function () {
-                return;
-              },
-              function (err) {
-                console.warn("[Rare Soil] App Check getToken:", err);
-                return;
-              },
-            );
-          } catch (e) {
-            console.warn("[Rare Soil] App Check getToken:", e);
-            return Promise.resolve();
-          }
-        }
-
-        /** Avoid indefinite "Saving table to link…" when App Check or RTDB never settles. */
+        /** Avoid indefinite "Saving table to link…" when RTDB never settles. */
         function rsPromiseWithTimeout(promise, ms, timeoutMessage) {
           return new Promise(function (resolve, reject) {
             var settled = false;
@@ -1153,29 +1045,8 @@
         }
 
         /**
-         * Compat RTDB app: use full `firebaseConfig` + `databaseURL` when available so App Check
-         * can attach (enforcement on RTDB). Fallback: `{ databaseURL }` only (maps / legacy).
+         * Minimal RTDB app (`{ databaseURL }` only) — same as season-2-supplies-checklist live sync.
          */
-        function rsRtdbCompatInitOptions(currentDb) {
-          var cfg = window.__FIREBASE_CONFIG__;
-          if (rsFirebaseConfigOk(cfg)) {
-            var o = {
-              apiKey: cfg.apiKey,
-              authDomain: cfg.authDomain,
-              projectId: cfg.projectId,
-              storageBucket: cfg.storageBucket,
-              messagingSenderId: cfg.messagingSenderId,
-              appId: cfg.appId,
-              databaseURL: currentDb,
-            };
-            if (cfg.measurementId) {
-              o.measurementId = cfg.measurementId;
-            }
-            return o;
-          }
-          return { databaseURL: currentDb };
-        }
-
         function rsEnsureFirebaseReady() {
           if (!rsLiveState.dbUrl) {
             if (rsLiveStatus) {
@@ -1227,7 +1098,7 @@
               rsLiveState.firebaseApp =
                 existing ||
                 window.firebase.initializeApp(
-                  rsRtdbCompatInitOptions(currentDb),
+                  { databaseURL: currentDb },
                   appName,
                 );
             } catch (initErr) {
@@ -1238,33 +1109,15 @@
               }
               return false;
             }
-            /*
-             * Do not call firebase.database() here. RTDB opens a connection immediately; with App Check
-             * enforcement the first socket must attach a token. Wait until after getToken() in
-             * rsEnsureFirebaseDbAfterAppCheck() before creating the database instance.
-             */
+            rsLiveState.firebaseDb = window.firebase.database(
+              rsLiveState.firebaseApp,
+            );
+          } else if (!rsLiveState.firebaseDb) {
+            rsLiveState.firebaseDb = window.firebase.database(
+              rsLiveState.firebaseApp,
+            );
           }
-          rsEnsureAppCheckCompat(rsLiveState.firebaseApp);
           return true;
-        }
-
-        /**
-         * Obtains an App Check token (if configured), then creates the compat RTDB instance once.
-         * Must run before any ref() / listener so the connection is not opened without a token.
-         */
-        function rsEnsureFirebaseDbAfterAppCheck() {
-          if (!rsLiveState.firebaseApp) {
-            return Promise.reject(new Error("No Firebase app"));
-          }
-          return rsAwaitAppCheckTokenBeforeRtdb(rsLiveState.firebaseApp).then(
-            function () {
-              if (!rsLiveState.firebaseDb) {
-                rsLiveState.firebaseDb = window.firebase.database(
-                  rsLiveState.firebaseApp,
-                );
-              }
-            },
-          );
         }
 
         function stopRsLiveSync() {
@@ -1377,18 +1230,18 @@
           }
         }
 
-        /** RTDB fallback payload (server clock). */
+        /** RTDB payload — `updatedAt` client millis (same pattern as season-2-supplies-checklist). */
         function getRsLivePayloadForRtdb() {
           return {
             v: 1,
             days: state.days,
             rows: state.rows,
-            updatedAt: window.firebase.database.ServerValue.TIMESTAMP,
+            updatedAt: Date.now(),
             updatedBy: rsLiveState.clientId,
           };
         }
 
-        /** RTDB write failures don't always set `err.code`; parse message for permission / App Check. */
+        /** RTDB write failures don't always set `err.code`; parse message for permission. */
         function rsCoalesceRtdbWriteError(err) {
           var msg = err && err.message ? String(err.message) : "";
           if (err && err.__rsPromiseTimeout) {
@@ -1419,57 +1272,28 @@
               ? location.hostname
               : "this site";
           if (m.code === "TIMEOUT") {
-            if (!rsAppCheckSiteKeyPresent() && rsFirebaseConfigOk(window.__FIREBASE_CONFIG__)) {
-              return (
-                "Live save timed out. GitHub Pages builds firebase-config.js from repository secrets — " +
-                  "your local firebase-config.js is not deployed. Add secret FIREBASE_APPCHECK_SITE_KEY " +
-                  "(same reCAPTCHA Enterprise key as local), redeploy, register " +
-                  host +
-                  " in Firebase App Check, or set Realtime Database App Check to Monitor/Off."
-              );
-            }
             return (
-              "Live save timed out — check network, Realtime Database rules, and the browser console. " +
-                "If the console shows Missing appcheck token, fix App Check for " +
+              "Live save timed out — check network and Realtime Database rules. " +
+                "If the console shows a missing App Check token, turn RTDB App Check to Monitor/Off or register " +
                 host +
-                "."
-            );
-          }
-          if (
-            /timed out/i.test(m.message) &&
-            !rsAppCheckSiteKeyPresent() &&
-            rsFirebaseConfigOk(window.__FIREBASE_CONFIG__)
-          ) {
-            return (
-              "Live save timed out — console showed Missing appcheck token. " +
-                "Deploy firebase-config.js with __FIREBASE_APPCHECK_SITE_KEY__ (secret FIREBASE_APPCHECK_SITE_KEY), " +
-                "register " +
-                host +
-                " in Firebase App Check, or set Realtime Database App Check to Monitor/Off. " +
-                "CSP lines marked report-only do not block this."
+                " in Firebase App Check."
             );
           }
           if (m.code === "PERMISSION_DENIED") {
             return (
-              "Live save denied — in Firebase Console deploy RTDB rules for path rare-soil-war (see database.rules.json.example). " +
-              "If App Check enforcement is on for Realtime Database, also register " +
-              host +
-              " and use the reCAPTCHA Enterprise site key in deployed firebase-config.js."
+              "Live save denied — deploy RTDB rules for path rare-soil-war (see database.rules.json.example in this repo)."
             );
           }
           if (m.code === "APP_CHECK") {
             return (
-              "Live save blocked by App Check — set __FIREBASE_APPCHECK_SITE_KEY__ in firebase-config.js on deploy, " +
-              "register " +
-              host +
-              " for your web app in Firebase App Check, or turn RTDB enforcement to Monitor/Off while testing."
+              "Live save blocked (App Check). Register " +
+                host +
+                " in Firebase App Check for your web app, or set Realtime Database App Check enforcement to Monitor/Off."
             );
           }
           return (
-            "Live save failed" +
-            (m.code ? " (" + m.code + ")" : "") +
-            (m.message ? ": " + m.message : "") +
-            ". Check Realtime Database rules, App Check, and network; see browser console."
+            "Live sync write failed. Check DB rules/URL and browser console." +
+            (m.message ? " (" + m.message + ")" : "")
           );
         }
 
@@ -1483,12 +1307,12 @@
           const path = "rare-soil-war/" + rsLiveState.shareId;
           const payload = getRsLivePayloadForRtdb();
           return rsPromiseWithTimeout(
-            rsEnsureFirebaseDbAfterAppCheck().then(function () {
-              return rsLiveState.firebaseDb.ref(path).set(payload);
-            }),
+            rsLiveState.firebaseDb.ref(path).set(payload),
             45000,
             "Saving to cloud timed out (network, RTDB rules, or connectivity). Try again.",
-          );
+          ).then(function () {
+            rsLiveState.lastSeenUpdatedAt = Number(payload.updatedAt);
+          });
         }
 
         function pushRsLivePayload() {
@@ -1615,15 +1439,13 @@
           if (rsLiveEnabled) rsLiveEnabled.checked = false;
           if (rsLiveStatus) {
             rsLiveStatus.textContent =
-              "Live link: add firebase-config.js (with databaseURL) or set Realtime Database URL (?db=…).";
+              "Live sync needs a configured DB URL. Set RS_LIVE_SYNC.defaultDatabaseUrl, use ?db=, or lastWarLiveSyncDbUrl.";
           }
         }
 
         /**
-         * Live collaboration uses Realtime Database only (`rare-soil-war/{shareId}`).
-         * Firestore + dynamic import() was removed: the module loaded after `startRsLiveSync`,
-         * so immediate `pushRsLivePayload()` ran while `fsModConn` was still null and every
-         * push was dropped — nothing synced for hosts or guests.
+         * Realtime Database only (`rare-soil-war/{shareId}`) — same flow as season-2-supplies-checklist
+         * `startLiveSync` (synchronous listener attach after `ensureFirebaseReady`).
          */
         function startRsLiveSync(shareId, deferFirstLivePush) {
           stopRsLiveSync();
@@ -1646,36 +1468,26 @@
             rsFailStartLiveSync();
             return Promise.reject(new Error("Firebase could not initialize."));
           }
-          rsWarnRtdbIfAppCheckKeyMissing();
-          /* Set before async App Check wait so Copy → flush can run immediately with rsPerformRtdbSetPromise. */
           rsLiveState.liveBackend = "rtdb";
-          return rsPromiseWithTimeout(
-            rsEnsureFirebaseDbAfterAppCheck(),
-            30000,
-            "Live sync: token wait timed out (reCAPTCHA / network). Refresh and try again.",
-          ).then(function () {
-              if (!rsLiveState.active || rsLiveState.shareId !== shareId) {
-                return;
-              }
-              rsAttachRtdbListener(shareId, deferFirstLivePush);
-              if (deferFirstLivePush !== true) {
-                readDomIntoState();
-                return rsFlushLivePushToCloud({ force: true })
-                  .then(function () {
-                    if (rsLiveStatus && rsLiveState.active) {
-                      rsLiveStatus.textContent =
-                        "Live on — use Copy live link to share.";
-                    }
-                  })
-                  .catch(function (err) {
-                    if (rsLiveStatus && rsLiveState.active) {
-                      rsLiveStatus.textContent =
-                        "Live on but cloud save failed — App Check, RTDB rules, or network.";
-                    }
-                    return Promise.reject(err);
-                  });
-              }
-            });
+          rsAttachRtdbListener(shareId, deferFirstLivePush);
+          if (deferFirstLivePush !== true) {
+            readDomIntoState();
+            return rsFlushLivePushToCloud({ force: true })
+              .then(function () {
+                if (rsLiveStatus && rsLiveState.active) {
+                  rsLiveStatus.textContent =
+                    "Live on — use Copy live link to share.";
+                }
+              })
+              .catch(function (err) {
+                if (rsLiveStatus && rsLiveState.active) {
+                  rsLiveStatus.textContent =
+                    "Live on but cloud save failed — check DB rules/URL.";
+                }
+                return Promise.reject(err);
+              });
+          }
+          return Promise.resolve();
         }
 
         function downloadBlob(blob, filename) {
@@ -2226,12 +2038,9 @@
               return;
             }
             rsResolveLiveDbUrl();
-            if (
-              !rsFirebaseConfigOk(window.__FIREBASE_CONFIG__) &&
-              !String(rsLiveState.dbUrl || "").trim()
-            ) {
+            if (!String(rsLiveState.dbUrl || "").trim()) {
               alert(
-                "Live link needs a Realtime Database URL (default is built in) or firebase-config.js with your project’s database URL. Check the browser console if sync still fails.",
+                "Live sync needs a configured DB URL. Set RS_LIVE_SYNC.defaultDatabaseUrl in this page, use ?db=, or set lastWarLiveSyncDbUrl (same as Season 2 Supplies Checklist).",
               );
               rsLiveEnabled.checked = false;
               return;
@@ -2249,12 +2058,9 @@
         if (rsCopyLiveLink) {
           rsCopyLiveLink.addEventListener("click", async function () {
             rsResolveLiveDbUrl();
-            if (
-              !rsFirebaseConfigOk(window.__FIREBASE_CONFIG__) &&
-              !String(rsLiveState.dbUrl || "").trim()
-            ) {
+            if (!String(rsLiveState.dbUrl || "").trim()) {
               alert(
-                "Set ?db= to your Realtime Database URL or deploy firebase-config.js. The live link uses Realtime Database (rare-soil-war/…).",
+                "Live sync needs a Realtime Database URL (?db=, localStorage lastWarLiveSyncDbUrl, or RS_LIVE_SYNC.defaultDatabaseUrl).",
               );
               return;
             }
