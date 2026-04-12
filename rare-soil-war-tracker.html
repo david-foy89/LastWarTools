@@ -1342,7 +1342,24 @@
          */
         function rsFlushLivePushToCloud(opt) {
           var force = opt && opt.force === true;
+          /* Pending localStorage debounce can leave `state` stale vs inputs — drain before read. */
+          if (saveTimer) {
+            clearTimeout(saveTimer);
+            saveTimer = null;
+          }
           readDomIntoState();
+          try {
+            localStorage.setItem(
+              STORAGE_KEY,
+              JSON.stringify({
+                days: state.days,
+                rows: state.rows,
+                savedAt: Date.now(),
+              }),
+            );
+          } catch {
+            /* ignore */
+          }
           if (livePushTimer) {
             clearTimeout(livePushTimer);
             livePushTimer = null;
@@ -1444,8 +1461,11 @@
         }
 
         /**
-         * Realtime Database only (`rare-soil-war/{shareId}`) — same flow as season-2-supplies-checklist
-         * `startLiveSync` (synchronous listener attach after `ensureFirebaseReady`).
+         * Realtime Database only (`rare-soil-war/{shareId}`).
+         * Hosts: write the current table first, then attach the `value` listener. If the listener
+         * runs first, an older cloud snapshot can overwrite local state and the next save pushes
+         * wrong data — especially when the grid was filled before turning live on.
+         * Guests (`deferFirstLivePush`): listen immediately so the shared table can load.
          */
         function startRsLiveSync(shareId, deferFirstLivePush) {
           stopRsLiveSync();
@@ -1469,25 +1489,28 @@
             return Promise.reject(new Error("Firebase could not initialize."));
           }
           rsLiveState.liveBackend = "rtdb";
-          rsAttachRtdbListener(shareId, deferFirstLivePush);
-          if (deferFirstLivePush !== true) {
-            readDomIntoState();
-            return rsFlushLivePushToCloud({ force: true })
-              .then(function () {
-                if (rsLiveStatus && rsLiveState.active) {
-                  rsLiveStatus.textContent =
-                    "Live on — use Copy live link to share.";
-                }
-              })
-              .catch(function (err) {
-                if (rsLiveStatus && rsLiveState.active) {
-                  rsLiveStatus.textContent =
-                    "Live on but cloud save failed — check DB rules/URL.";
-                }
-                return Promise.reject(err);
-              });
+          if (deferFirstLivePush === true) {
+            rsAttachRtdbListener(shareId, true);
+            return Promise.resolve();
           }
-          return Promise.resolve();
+          return rsFlushLivePushToCloud({ force: true })
+            .then(function () {
+              if (!rsLiveState.active || rsLiveState.shareId !== shareId) {
+                return;
+              }
+              rsAttachRtdbListener(shareId, false);
+              if (rsLiveStatus && rsLiveState.active) {
+                rsLiveStatus.textContent =
+                  "Live on — use Copy live link to share.";
+              }
+            })
+            .catch(function (err) {
+              if (rsLiveStatus && rsLiveState.active) {
+                rsLiveStatus.textContent =
+                  "Live on but cloud save failed — check DB rules/URL.";
+              }
+              return Promise.reject(err);
+            });
         }
 
         function downloadBlob(blob, filename) {
