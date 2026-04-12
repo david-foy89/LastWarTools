@@ -23,6 +23,9 @@
       if (typeof window.__lwSanitizeAppCheckSiteKey === "function") {
         window.__lwSanitizeAppCheckSiteKey();
       }
+      if (typeof window.__lwApplyFirebaseAppCheckDebug === "function") {
+        window.__lwApplyFirebaseAppCheckDebug();
+      }
     </script>
     <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/tesseract.js@5/dist/tesseract.min.js"></script>

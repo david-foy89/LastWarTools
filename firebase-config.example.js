@@ -128,5 +128,38 @@ window.__lwSanitizeAppCheckSiteKey = function () {
     }
   } catch (e) {}
 };
-/* Pages that load firebase-config.js should call __lwSanitizeAppCheckSiteKey() in an inline
- * <script> immediately after firebase-config.js (see HTML files). Dynamic loaders also call it. */
+
+/**
+ * Sets `self.FIREBASE_APPCHECK_DEBUG_TOKEN` before any Firebase / App Check script runs so App Check
+ * can pass: (1) `?apcDebug=1` → interactive debug token in console; (2) localhost / 127.0.0.1 → same;
+ * (3) `window.__FIREBASE_APPCHECK_DEBUG_TOKEN__` from firebase-config (string token from Firebase Console
+ * → App Check → Manage debug tokens, or boolean true). Call after firebase-config.js loads.
+ */
+window.__lwApplyFirebaseAppCheckDebug = function () {
+  try {
+    var sp = new URLSearchParams(
+      typeof location !== "undefined" ? location.search || "" : "",
+    );
+    if (sp.get("apcDebug") === "1") {
+      self.FIREBASE_APPCHECK_DEBUG_TOKEN = true;
+      return;
+    }
+    var h = typeof location !== "undefined" ? location.hostname : "";
+    if (h === "localhost" || h === "127.0.0.1") {
+      self.FIREBASE_APPCHECK_DEBUG_TOKEN = true;
+      return;
+    }
+    var dt = window.__FIREBASE_APPCHECK_DEBUG_TOKEN__;
+    if (dt != null && dt !== "") {
+      if (typeof dt === "string" && dt.trim()) {
+        self.FIREBASE_APPCHECK_DEBUG_TOKEN = dt.trim();
+        return;
+      }
+      if (dt === true || dt === "true" || dt === "1") {
+        self.FIREBASE_APPCHECK_DEBUG_TOKEN = true;
+      }
+    }
+  } catch (e) {}
+};
+/* Pages that load firebase-config.js should call __lwSanitizeAppCheckSiteKey() and
+ * __lwApplyFirebaseAppCheckDebug() in an inline <script> immediately after firebase-config.js. */

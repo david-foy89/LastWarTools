@@ -397,6 +397,13 @@
           /* ignore */
         }
         try {
+          if (typeof window.__lwApplyFirebaseAppCheckDebug === 'function') {
+            window.__lwApplyFirebaseAppCheckDebug();
+          }
+        } catch (e) {
+          /* ignore */
+        }
+        try {
           var c = window.__FIREBASE_CONFIG__;
           var k = c && c.apiKey ? String(c.apiKey) : '';
           var p = c && c.projectId ? String(c.projectId) : '';

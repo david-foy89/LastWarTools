@@ -482,6 +482,13 @@ function boot() {
       } catch (e) {
         /* ignore */
       }
+      try {
+        if (typeof window.__lwApplyFirebaseAppCheckDebug === "function") {
+          window.__lwApplyFirebaseAppCheckDebug();
+        }
+      } catch (e) {
+        /* ignore */
+      }
       var cfg = window.__FIREBASE_CONFIG__;
       let auth = null;
       let db = null;

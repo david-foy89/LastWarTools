@@ -16,16 +16,14 @@
     />
     <script src="page-nav-dropdown.js" defer></script>
     <script src="language-translate.js" defer></script>
-    <script>
-      if (location.hostname === "localhost" || location.hostname === "127.0.0.1") {
-        self.FIREBASE_APPCHECK_DEBUG_TOKEN = true;
-      }
-    </script>
     <script src="firebase-config.example.js"></script>
     <script src="firebase-config.js"></script>
     <script>
       if (typeof window.__lwSanitizeAppCheckSiteKey === "function") {
         window.__lwSanitizeAppCheckSiteKey();
+      }
+      if (typeof window.__lwApplyFirebaseAppCheckDebug === "function") {
+        window.__lwApplyFirebaseAppCheckDebug();
       }
     </script>
   </head>
