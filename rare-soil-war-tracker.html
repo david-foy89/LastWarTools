@@ -1034,6 +1034,28 @@
           );
         }
 
+        function rsAppCheckSiteKeyPresent() {
+          try {
+            return String(window.__FIREBASE_APPCHECK_SITE_KEY__ || "").trim().length > 0;
+          } catch (_) {
+            return false;
+          }
+        }
+
+        var rsWarnedMissingAppCheckKey = false;
+        /** If RTDB App Check enforcement is on, missing key → "Missing appcheck token" and stalled writes. */
+        function rsWarnRtdbIfAppCheckKeyMissing() {
+          if (rsWarnedMissingAppCheckKey) return;
+          if (rsAppCheckSiteKeyPresent()) return;
+          if (!rsFirebaseConfigOk(window.__FIREBASE_CONFIG__)) return;
+          rsWarnedMissingAppCheckKey = true;
+          console.warn(
+            "[Rare Soil] __FIREBASE_APPCHECK_SITE_KEY__ is not set. " +
+              "If App Check enforcement is on for Realtime Database, you will see FIREBASE WARNING: Missing appcheck token and saves will time out. " +
+              "Fix: add GitHub secret FIREBASE_APPCHECK_SITE_KEY (reCAPTCHA Enterprise site key) and redeploy, register this hostname in App Check, or set RTDB to Monitor/Off in Firebase Console.",
+          );
+        }
+
         /**
          * When App Check is **enforced** for Realtime Database / Firestore, requests need a
          * valid token. Activate with your reCAPTCHA Enterprise key from Firebase Console →
@@ -1391,6 +1413,20 @@
             typeof location !== "undefined" && location.hostname
               ? location.hostname
               : "this site";
+          if (
+            /timed out/i.test(m.message) &&
+            !rsAppCheckSiteKeyPresent() &&
+            rsFirebaseConfigOk(window.__FIREBASE_CONFIG__)
+          ) {
+            return (
+              "Live save timed out — console showed Missing appcheck token. " +
+              "Deploy firebase-config.js with __FIREBASE_APPCHECK_SITE_KEY__ (secret FIREBASE_APPCHECK_SITE_KEY), " +
+              "register " +
+              host +
+              " in Firebase App Check, or set Realtime Database App Check to Monitor/Off. " +
+              "CSP lines marked report-only do not block this."
+            );
+          }
           if (m.code === "PERMISSION_DENIED") {
             return (
               "Live save denied — in Firebase Console deploy RTDB rules for path rare-soil-war (see database.rules.json.example). " +
@@ -1588,6 +1624,7 @@
             rsFailStartLiveSync();
             return Promise.reject(new Error("Firebase could not initialize."));
           }
+          rsWarnRtdbIfAppCheckKeyMissing();
           /* Set before async App Check wait so Copy → flush can run immediately with rsPerformRtdbSetPromise. */
           rsLiveState.liveBackend = "rtdb";
           return rsPromiseWithTimeout(
