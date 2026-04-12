@@ -12,7 +12,8 @@ permissions:
 
 concurrency:
   group: "pages"
-  cancel-in-progress: true
+  # Let an in-flight production deploy finish; GitHub Pages starter uses false for the same reason.
+  cancel-in-progress: false
 
 jobs:
   deploy:
@@ -91,10 +92,12 @@ jobs:
           NODE_SCRIPT
 
       - name: Upload artifact
-        uses: actions/upload-pages-artifact@v3
+        uses: actions/upload-pages-artifact@v4
         with:
           path: .
+          # v4 excludes dotfiles by default; include .nojekyll and any .well-known assets.
+          include-hidden-files: true
 
       - name: Deploy to GitHub Pages
         id: deployment
-        uses: actions/deploy-pages@v4
+        uses: actions/deploy-pages@v5
