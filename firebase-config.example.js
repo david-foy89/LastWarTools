@@ -45,6 +45,10 @@
  *   • Register this web app under App Check with a **reCAPTCHA Enterprise** key, set
  *     `__FIREBASE_APPCHECK_SITE_KEY__` below, deploy real `firebase-config.js` (full
  *     `firebaseConfig`, not placeholders). Rare Soil merges that with `?db=` for RTDB.
+ * If reCAPTCHA still blocks the live link but RTDB App Check is **Off** or **Monitor**, open the page
+ * with `?rsLiveDbOnly=1` (shared links can include it) or set `window.__RS_LIVE_SKIP_APPCHECK__ = true`
+ * in `firebase-config.js` so Rare Soil uses RTDB with `{ databaseURL }` only — **do not** use this
+ * when RTDB App Check **enforcement** is on (writes will fail).
  * Local dev: add `?apcDebug=1` to the page URL *once*, copy the debug token from the browser
  * console into App Check → Manage debug tokens, or set `__FIREBASE_APPCHECK_DEBUG_TOKEN__` in
  * `firebase-config.js` (see below).
@@ -93,6 +97,12 @@ window.__FIREBASE_APPCHECK_SITE_KEY__ = "";
  * `"true"` / `"1"` to use the interactive debug flow. Only for localhost / testing.
  */
 window.__FIREBASE_APPCHECK_DEBUG_TOKEN__ = "";
+
+/**
+ * Rare Soil live link only: set `true` to skip App Check activation for RTDB (same as `?rsLiveDbOnly=1`).
+ * Only safe when Firebase → App Check → **Realtime Database** enforcement is **Off** or **Monitor**.
+ */
+window.__RS_LIVE_SKIP_APPCHECK__ = false;
 
 /**
  * If `firebase-config.js` mistakenly sets `__FIREBASE_APPCHECK_SITE_KEY__` to the web app JSON

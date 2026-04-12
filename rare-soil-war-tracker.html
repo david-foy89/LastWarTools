@@ -1002,7 +1002,45 @@
           if (rsLiveState.dbUrl) {
             url.searchParams.set("db", rsLiveState.dbUrl);
           }
+          try {
+            if (
+              new URLSearchParams(window.location.search || "").get(
+                "rsLiveDbOnly",
+              ) === "1"
+            ) {
+              url.searchParams.set("rsLiveDbOnly", "1");
+            }
+          } catch (_) {
+            /* ignore */
+          }
           return url.toString();
+        }
+
+        /**
+         * When reCAPTCHA / App Check blocks live RTDB, use `?rsLiveDbOnly=1` on the page (and on shared
+         * links) or set `window.__RS_LIVE_SKIP_APPCHECK__ = true` in firebase-config.js **only if**
+         * Firebase → App Check → Realtime Database is Off or Monitor (not Enforced). Opens RTDB with
+         * `{ databaseURL }` only — no Enterprise activation — so guests are not stuck on App Check.
+         */
+        function rsLiveSkipAppCheckForRtdb() {
+          try {
+            if (window.__RS_LIVE_SKIP_APPCHECK__ === true) {
+              return true;
+            }
+            var q = new URLSearchParams(window.location.search || "");
+            return (
+              q.get("rsLiveDbOnly") === "1" || q.get("liveDbOnly") === "1"
+            );
+          } catch (_) {
+            return false;
+          }
+        }
+
+        /** Use App Check for Rare Soil RTDB only when we have a valid key and are not in db-only mode. */
+        function rsEffectiveAppCheckForLiveRtdb() {
+          return (
+            rsAppCheckSiteKeyPresent() && !rsLiveSkipAppCheckForRtdb()
+          );
         }
 
         /** Same check as transfer-tracker — full web config enables Firestore live sync. */
@@ -1058,7 +1096,7 @@
          */
         function rsFirebaseInitOptionsForRtdb(currentDb) {
           var cfg = window.__FIREBASE_CONFIG__;
-          if (rsAppCheckSiteKeyPresent() && rsFirebaseConfigOk(cfg)) {
+          if (rsEffectiveAppCheckForLiveRtdb() && rsFirebaseConfigOk(cfg)) {
             var o = {
               apiKey: cfg.apiKey,
               authDomain: cfg.authDomain,
@@ -1085,6 +1123,9 @@
           ) {
             return;
           }
+          if (rsLiveSkipAppCheckForRtdb()) {
+            return;
+          }
           if (!rsAppCheckSiteKeyPresent()) {
             return;
           }
@@ -1105,7 +1146,7 @@
 
         /** Resolves after first App Check token when enforcement expects one (then RTDB can open). */
         function rsAwaitAppCheckTokenIfNeeded(app) {
-          if (!rsAppCheckSiteKeyPresent() || !app || !window.firebase.appCheck) {
+          if (!rsEffectiveAppCheckForLiveRtdb() || !app || !window.firebase.appCheck) {
             return Promise.resolve();
           }
           try {
@@ -1113,12 +1154,24 @@
             if (typeof ac.getToken !== "function") {
               return Promise.resolve();
             }
-            var p = ac.getToken(false).then(
+            var tokenPromise = ac.getToken(false).then(
               function () {},
               function (err) {
                 console.warn("[Rare Soil] App Check getToken:", err);
               },
             );
+            var stallMs = 12000;
+            var stallPromise = new Promise(function (resolve) {
+              setTimeout(function () {
+                console.warn(
+                  "[Rare Soil] App Check getToken still pending after " +
+                    stallMs +
+                    "ms — opening RTDB anyway. If writes fail with App Check errors, fix reCAPTCHA domains, use ?rsLiveDbOnly=1 when RTDB enforcement is Off/Monitor, or set window.__RS_LIVE_SKIP_APPCHECK__.",
+                );
+                resolve();
+              }, stallMs);
+            });
+            var p = Promise.race([tokenPromise, stallPromise]);
             return rsPromiseWithTimeout(
               p,
               20000,
@@ -1149,7 +1202,7 @@
           if (!rsLiveState.firebaseApp) {
             return Promise.reject(new Error("No Firebase app"));
           }
-          if (!rsAppCheckSiteKeyPresent()) {
+          if (!rsEffectiveAppCheckForLiveRtdb()) {
             rsLiveState.firebaseDb = window.firebase.database(
               rsLiveState.firebaseApp,
             );
@@ -1234,13 +1287,15 @@
                 "lwst-" +
                 btoa(currentDb)
                   .replace(/[^a-zA-Z0-9]/g, "")
-                  .slice(0, 24);
+                  .slice(0, 24) +
+                (rsLiveSkipAppCheckForRtdb() ? "nac" : "");
             } catch {
               var h = 0;
               for (var ci = 0; ci < currentDb.length; ci++) {
                 h = ((h << 5) - h + currentDb.charCodeAt(ci)) | 0;
               }
-              appName = "lwst-" + String(h >>> 0);
+              appName =
+                "lwst-" + String(h >>> 0) + (rsLiveSkipAppCheckForRtdb() ? "nac" : "");
             }
             const existing = window.firebase.apps.find(function (app) {
               return app.name === appName;
@@ -1261,14 +1316,14 @@
               return false;
             }
             rsActivateAppCheckIfConfigured(rsLiveState.firebaseApp);
-            if (!rsAppCheckSiteKeyPresent()) {
+            if (!rsEffectiveAppCheckForLiveRtdb()) {
               rsLiveState.firebaseDb = window.firebase.database(
                 rsLiveState.firebaseApp,
               );
             }
           } else {
             rsActivateAppCheckIfConfigured(rsLiveState.firebaseApp);
-            if (!rsLiveState.firebaseDb && !rsAppCheckSiteKeyPresent()) {
+            if (!rsLiveState.firebaseDb && !rsEffectiveAppCheckForLiveRtdb()) {
               rsLiveState.firebaseDb = window.firebase.database(
                 rsLiveState.firebaseApp,
               );
