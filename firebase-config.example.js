@@ -104,9 +104,5 @@ window.__lwSanitizeAppCheckSiteKey = function () {
     }
   } catch (e) {}
 };
-/* Runs after the next script tag (firebase-config.js) on pages that include both in order. */
-setTimeout(function () {
-  if (typeof window.__lwSanitizeAppCheckSiteKey === "function") {
-    window.__lwSanitizeAppCheckSiteKey();
-  }
-}, 0);
+/* Pages that load firebase-config.js should call __lwSanitizeAppCheckSiteKey() in an inline
+ * <script> immediately after firebase-config.js (see HTML files). Dynamic loaders also call it. */

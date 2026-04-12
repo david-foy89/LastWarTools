@@ -19,6 +19,11 @@
     <script src="language-translate.js" defer></script>
     <script src="firebase-config.example.js"></script>
     <script src="firebase-config.js"></script>
+    <script>
+      if (typeof window.__lwSanitizeAppCheckSiteKey === "function") {
+        window.__lwSanitizeAppCheckSiteKey();
+      }
+    </script>
     <script src="https://cdn.jsdelivr.net/npm/tesseract.js@5/dist/tesseract.min.js"></script>
     <script src="tesseract-wasm-warn-filter.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>

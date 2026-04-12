@@ -52,6 +52,11 @@
     />
     <script src="firebase-config.example.js"></script>
     <script src="firebase-config.js"></script>
+    <script>
+      if (typeof window.__lwSanitizeAppCheckSiteKey === "function") {
+        window.__lwSanitizeAppCheckSiteKey();
+      }
+    </script>
     <script src="page-nav-dropdown.js" defer></script>
     <script src="language-translate.js" defer></script>
   </head>
