@@ -1387,29 +1387,14 @@
 
         function rsLiveSaveFailureText(err) {
           var m = rsCoalesceRtdbWriteError(err);
-          var host =
-            typeof location !== "undefined" && location.hostname
-              ? location.hostname
-              : "this site";
           if (m.code === "TIMEOUT") {
             return (
-              "Live save timed out — check network and Realtime Database rules. " +
-                "If the console shows a missing App Check token, turn RTDB App Check to Monitor/Off or register " +
-                host +
-                " in Firebase App Check."
+              "Live save timed out — check network and Realtime Database rules."
             );
           }
           if (m.code === "PERMISSION_DENIED") {
             return (
               "Live save denied — deploy RTDB rules for path rare-soil-war (see database.rules.json.example in this repo)."
-            );
-          }
-          if (m.code === "APP_CHECK") {
-            return (
-              "Live save blocked (App Check). Deploy firebase-config.js with __FIREBASE_APPCHECK_SITE_KEY__ " +
-                "(GitHub secret FIREBASE_APPCHECK_SITE_KEY), register " +
-                host +
-                " in App Check, or set Realtime Database App Check to Monitor/Off in Firebase Console."
             );
           }
           return (
