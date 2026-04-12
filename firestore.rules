@@ -36,6 +36,7 @@ service cloud.firestore {
     //   • "Sync to account" stores key lastwar-rare-soil-war-tracker-v1 inside this blob — no
     //     extra Firestore collection or rules block is required.
     //   • Rare Soil War Tracker live link uses Realtime Database only (rare-soil-war/{shareId}).
+    //   • Spice War Tracker (spice-war-tracker.html): key lastwar-spice-war-tracker-v1; live RTDB spice-war/{shareId}.
     //     This collection is unused by current page code but kept for older clients / experiments.
     // =============================================================================
     match /userLocalStorageSync/{userId} {

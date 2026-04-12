@@ -6,6 +6,12 @@
         ".write": true
       }
     },
+    "spice-war": {
+      "$shareId": {
+        ".read": true,
+        ".write": true
+      }
+    },
     "season1-map": {
       "$shareId": {
         ".read": true,

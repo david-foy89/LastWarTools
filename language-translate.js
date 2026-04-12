@@ -225,7 +225,10 @@
         return true;
       }
       const p = (window.location.pathname || "").toLowerCase();
-      return p.indexOf("rare-soil-war-tracker") !== -1;
+      return (
+        p.indexOf("rare-soil-war-tracker") !== -1 ||
+        p.indexOf("spice-war-tracker") !== -1
+      );
     } catch {
       return false;
     }

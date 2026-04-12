@@ -19,6 +19,9 @@ export const TRAIN_CONDUCTOR_STORAGE_KEY = "lastWarTrainConductorV1";
 /** Rare Soil War Tracker (`rare-soil-war-tracker.html`) — merge by `savedAt` on the stored JSON. */
 export const RARE_SOIL_WAR_TRACKER_STORAGE_KEY = "lastwar-rare-soil-war-tracker-v1";
 
+/** Spice War Tracker (`spice-war-tracker.html`) — merge by `savedAt` on the stored JSON. */
+export const SPICE_WAR_TRACKER_STORAGE_KEY = "lastwar-spice-war-tracker-v1";
+
 /**
  * When both devices have schedule data, prefer the payload with the newer `savedAt` (ms).
  * Legacy payloads without `savedAt` use length as a weak tie-break (richer schedule wins).
@@ -329,6 +332,13 @@ export async function mergeAndSyncToCloud(user, db, options) {
     merged[RARE_SOIL_WAR_TRACKER_STORAGE_KEY] = pickNewerRareSoilWarTrackerPayload(
       local[RARE_SOIL_WAR_TRACKER_STORAGE_KEY],
       cloudData[RARE_SOIL_WAR_TRACKER_STORAGE_KEY],
+    );
+  }
+
+  if (local[SPICE_WAR_TRACKER_STORAGE_KEY] && cloudData[SPICE_WAR_TRACKER_STORAGE_KEY]) {
+    merged[SPICE_WAR_TRACKER_STORAGE_KEY] = pickNewerRareSoilWarTrackerPayload(
+      local[SPICE_WAR_TRACKER_STORAGE_KEY],
+      cloudData[SPICE_WAR_TRACKER_STORAGE_KEY],
     );
   }
 

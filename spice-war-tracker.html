@@ -6,34 +6,34 @@
       name="viewport"
       content="width=device-width, initial-scale=1, viewport-fit=cover, interactive-widget=resizes-content"
     />
-    <title>Rare Soil War Tracker | Last War Tools</title>
+    <title>Spice War Tracker | Last War Tools</title>
     <meta
       name="description"
-      content="Track alliances by server and plan Rare Soil War battle days with dates and attacker or defender schedule."
+      content="Track alliances by server and plan Spice War battle days with dates and attacker or defender schedule."
     />
     <link
       rel="canonical"
-      href="https://lastwarsurvivaltools.com/rare-soil-war-tracker.html"
+      href="https://lastwarsurvivaltools.com/spice-war-tracker.html"
     />
     <meta property="og:type" content="website" />
-    <meta property="og:title" content="Rare Soil War Tracker | Last War Tools" />
+    <meta property="og:title" content="Spice War Tracker | Last War Tools" />
     <meta
       property="og:description"
-      content="Track alliances by server and plan Rare Soil War battle days with dates and attacker or defender schedule."
+      content="Track alliances by server and plan Spice War battle days with dates and attacker or defender schedule."
     />
     <meta
       property="og:url"
-      content="https://lastwarsurvivaltools.com/rare-soil-war-tracker.html"
+      content="https://lastwarsurvivaltools.com/spice-war-tracker.html"
     />
     <meta
       property="og:image"
       content="https://lastwarsurvivaltools.com/media/lwst.png"
     />
     <meta name="twitter:card" content="summary_large_image" />
-    <meta name="twitter:title" content="Rare Soil War Tracker | Last War Tools" />
+    <meta name="twitter:title" content="Spice War Tracker | Last War Tools" />
     <meta
       name="twitter:description"
-      content="Track alliances by server and plan Rare Soil War battle days with dates and attacker or defender schedule."
+      content="Track alliances by server and plan Spice War battle days with dates and attacker or defender schedule."
     />
     <meta
       name="twitter:image"
@@ -43,9 +43,9 @@
       {
         "@context": "https://schema.org",
         "@type": "WebPage",
-        "name": "Rare Soil War Tracker",
-        "description": "Track alliances by server and plan Rare Soil War battle days with dates and attacker or defender schedule.",
-        "url": "https://lastwarsurvivaltools.com/rare-soil-war-tracker.html"
+        "name": "Spice War Tracker",
+        "description": "Track alliances by server and plan Spice War battle days with dates and attacker or defender schedule.",
+        "url": "https://lastwarsurvivaltools.com/spice-war-tracker.html"
       }
     </script>
     <link rel="stylesheet" href="last-war-furnace-upgrade-calculator.css" />
@@ -896,24 +896,24 @@
             <a href="season-1-interactive-map.html" class="page-link">Interactive Map</a>
           </div>
         </details>
-        <details class="page-nav-dropdown active" name="season-nav">
+        <details class="page-nav-dropdown" name="season-nav">
           <summary class="page-link page-nav-dropdown-toggle">Season 2 Tools</summary>
           <div class="page-nav-dropdown-menu">
             <a href="last-war-furnace-upgrade-calculator.html" class="page-link">Furnace Calculator</a>
             <a href="season-2-tank-center-calculator.html" class="page-link">Season 2 Squad Base</a>
             <a href="season-2-interactive-map.html" class="page-link">Interactive Map</a>
             <a href="season-2-supplies-checklist.html" class="page-link">Supplies Checklist</a>
-            <a href="rare-soil-war-tracker.html" class="page-link active">Rare Soil War Tracker</a>
+            <a href="rare-soil-war-tracker.html" class="page-link">Rare Soil War Tracker</a>
           </div>
         </details>
-        <details class="page-nav-dropdown" name="season-nav">
+        <details class="page-nav-dropdown active" name="season-nav">
           <summary class="page-link page-nav-dropdown-toggle">Season 3 Tools</summary>
           <div class="page-nav-dropdown-menu">
             <a href="curse-research-lab-calculator.html" class="page-link">Curse Research Lab</a>
             <a href="altar-calculator.html" class="page-link">Altar</a>
             <a href="protectors-field-calculator.html" class="page-link">Protector's Field</a>
             <a href="season-3-interactive-map.html" class="page-link">Interactive Map</a>
-            <a href="spice-war-tracker.html" class="page-link">Spice War Tracker</a>
+            <a href="spice-war-tracker.html" class="page-link active">Spice War Tracker</a>
           </div>
         </details>
         <details class="page-nav-dropdown" name="season-nav">
@@ -937,7 +937,7 @@
       </nav>
 
       <section class="hero">
-        <h1>Rare Soil War Tracker</h1>
+        <h1>Spice War Tracker</h1>
         <div class="sub">
           List alliances with server numbers, set each battle day’s date, and mark whether your side is
           attacking or defending that day. Add opponent, then pick Win or Loss (or —) from the menu per
@@ -1021,7 +1021,7 @@
 
     <script>
       (function () {
-        const STORAGE_KEY = "lastwar-rare-soil-war-tracker-v1";
+        const STORAGE_KEY = "lastwar-spice-war-tracker-v1";
         const NUM_DAYS = 8;
 
         /** @type {{ days: { date: string, role: string }[], rows: { server: string, alliance: string, notes: string[], outcomes: string[] }[] }} */
@@ -1060,7 +1060,7 @@
         };
         const rsLiveState = {
           clientId:
-            "rs-" +
+            "sw-" +
             Math.random().toString(36).slice(2, 10) +
             "-" +
             Date.now(),
@@ -1081,7 +1081,7 @@
           livePushUnlocked: true,
           /** Cleared after first RTDB `value` when opening `?shareId=` (welcome status text). */
           pendingShareWelcomeMsg: false,
-          /** Always `"rtdb"` when live is on (path `rare-soil-war/{shareId}`). */
+          /** Always `"rtdb"` when live is on (path `spice-war/{shareId}`). */
           liveBackend: null,
           /** Legacy: cleared in stopRsLiveSync (Firestore module removed). */
           fsModConn: null,
@@ -1208,7 +1208,7 @@
           }
         }
 
-        /** Use App Check for Rare Soil RTDB only when we have a valid key and are not in db-only mode. */
+        /** Use App Check for Spice War RTDB only when we have a valid key and are not in db-only mode. */
         function rsEffectiveAppCheckForLiveRtdb() {
           return (
             rsAppCheckSiteKeyPresent() && !rsLiveSkipAppCheckForRtdb()
@@ -1248,10 +1248,10 @@
             var raw = String(window.__FIREBASE_APPCHECK_SITE_KEY__ || "").trim();
             if (!raw) return false;
             if (!rsPlausibleAppCheckSiteKey(raw)) {
-              if (!window.__rsBadAppCheckKeyWarned) {
-                window.__rsBadAppCheckKeyWarned = true;
+              if (!window.__swBadAppCheckKeyWarned) {
+                window.__swBadAppCheckKeyWarned = true;
                 console.warn(
-                  "[Rare Soil] __FIREBASE_APPCHECK_SITE_KEY__ is not a valid App Check site key (use the short 6L… key from Firebase → App Check, not the web app firebaseConfig JSON). App Check is disabled until this is fixed.",
+                  "[Spice War] __FIREBASE_APPCHECK_SITE_KEY__ is not a valid App Check site key (use the short 6L… key from Firebase → App Check, not the web app firebaseConfig JSON). App Check is disabled until this is fixed.",
                 );
               }
               return false;
@@ -1291,7 +1291,7 @@
             !app ||
             !window.firebase ||
             !window.firebase.appCheck ||
-            app._rsRareSoilAppCheckActivated
+            app._swSpiceWarAppCheckActivated
           ) {
             return;
           }
@@ -1310,9 +1310,9 @@
               window.__FIREBASE_APPCHECK_SITE_KEY__ || "",
             ).trim();
             firebase.appCheck(app).activate(new Prov(key), true);
-            app._rsRareSoilAppCheckActivated = true;
+            app._swSpiceWarAppCheckActivated = true;
           } catch (e) {
-            console.warn("[Rare Soil] App Check activate:", e);
+            console.warn("[Spice War] App Check activate:", e);
           }
         }
 
@@ -1329,14 +1329,14 @@
             var tokenPromise = ac.getToken(false).then(
               function () {},
               function (err) {
-                console.warn("[Rare Soil] App Check getToken:", err);
+                console.warn("[Spice War] App Check getToken:", err);
               },
             );
             var stallMs = 12000;
             var stallPromise = new Promise(function (resolve) {
               setTimeout(function () {
                 console.warn(
-                  "[Rare Soil] App Check getToken still pending after " +
+                  "[Spice War] App Check getToken still pending after " +
                     stallMs +
                     "ms — opening RTDB anyway. If writes fail with App Check errors, fix reCAPTCHA domains, use ?rsLiveDbOnly=1 when RTDB enforcement is Off/Monitor, or set window.__RS_LIVE_SKIP_APPCHECK__.",
                 );
@@ -1358,7 +1358,7 @@
               return Promise.reject(err);
             });
           } catch (e) {
-            console.warn("[Rare Soil] App Check getToken:", e);
+            console.warn("[Spice War] App Check getToken:", e);
             return Promise.resolve();
           }
         }
@@ -1480,7 +1480,7 @@
                   appName,
                 );
             } catch (initErr) {
-              console.error("[Rare Soil] Firebase initializeApp failed:", initErr);
+              console.error("[Spice War] Firebase initializeApp failed:", initErr);
               if (rsLiveStatus) {
                 rsLiveStatus.textContent =
                   "Firebase init failed — check database URL matches your project.";
@@ -1661,7 +1661,7 @@
           }
           if (m.code === "PERMISSION_DENIED") {
             return (
-              "Live save denied — deploy RTDB rules for path rare-soil-war (see database.rules.json.example in this repo)."
+              "Live save denied — deploy RTDB rules for path spice-war (see database.rules.json.example in this repo)."
             );
           }
           if (m.code === "APP_CHECK") {
@@ -1684,7 +1684,7 @@
           if (!rsEnsureFirebaseReady()) {
             return Promise.reject(new Error("Firebase not ready"));
           }
-          const path = "rare-soil-war/" + rsLiveState.shareId;
+          const path = "spice-war/" + rsLiveState.shareId;
           const payload = getRsLivePayloadForRtdb();
           return rsEnsureFirebaseDbReady()
             .then(function () {
@@ -1759,11 +1759,11 @@
                 : !rsLiveState.shareId
                   ? "no-shareId"
                   : "applying-remote";
-            console.warn("[Rare Soil] Flush skipped:", why0);
+            console.warn("[Spice War] Flush skipped:", why0);
             return Promise.reject(new Error("Live sync not ready (" + why0 + ")"));
           }
           if (!force && !rsLiveState.livePushUnlocked) {
-            console.warn("[Rare Soil] Flush skipped: push-locked");
+            console.warn("[Spice War] Flush skipped: push-locked");
             return Promise.reject(new Error("Live sync not ready (push-locked)"));
           }
           if (rsLiveState.liveBackend !== "rtdb") {
@@ -1774,7 +1774,7 @@
               if (rsLiveStatus) rsLiveStatus.textContent = "";
             },
             function (err) {
-              console.error("[Rare Soil] RTDB set failed:", err);
+              console.error("[Spice War] RTDB set failed:", err);
               if (rsLiveStatus) {
                 rsLiveStatus.textContent = rsLiveSaveFailureText(err);
               }
@@ -1795,7 +1795,7 @@
         function rsAttachRtdbListener(shareId, deferFirstLivePush) {
           rsLiveState.liveBackend = "rtdb";
           rsLiveState.firebaseRef = rsLiveState.firebaseDb.ref(
-            "rare-soil-war/" + shareId,
+            "spice-war/" + shareId,
           );
           rsLiveState.valueHandler = function (snapshot) {
             const payload = snapshot.val();
@@ -1871,7 +1871,7 @@
          * empty placeholder grid with `active === true`.
          */
         function rsGuestLiveSyncStartFailed(err) {
-          console.warn("[Rare Soil] Guest live start:", err);
+          console.warn("[Spice War] Guest live start:", err);
           if (rsLiveStatus) {
             rsLiveStatus.textContent =
               "Could not load live session — showing your saved local table. (" +
@@ -1892,7 +1892,7 @@
         }
 
         /**
-         * Realtime Database only (`rare-soil-war/{shareId}`).
+         * Realtime Database only (`spice-war/{shareId}`).
          * Hosts: write the current table first, then attach the `value` listener. If the listener
          * runs first, an older cloud snapshot can overwrite local state and the next save pushes
          * wrong data — especially when the grid was filled before turning live on.
@@ -1951,7 +1951,7 @@
             .catch(function (err) {
               if (rsLiveStatus && rsLiveState.active) {
                 rsLiveStatus.textContent =
-                  "Live sync failed — table was not saved to the cloud. Check RTDB rules (deploy rare-soil-war), App Check for this domain, and network.";
+                  "Live sync failed — table was not saved to the cloud. Check RTDB rules (deploy spice-war), App Check for this domain, and network.";
               }
               stopRsLiveSync();
               rsLiveState.shareId = null;
@@ -1980,7 +1980,7 @@
 
         function exportFilename(ext) {
           return (
-            "rare-soil-war-" +
+            "spice-war-" +
             new Date().toISOString().slice(0, 10) +
             "-" +
             String(Date.now()).slice(-6) +
@@ -2050,7 +2050,7 @@
           const matrix = buildExportMatrix();
           const ws = window.XLSX.utils.aoa_to_sheet(matrix);
           const wb = window.XLSX.utils.book_new();
-          window.XLSX.utils.book_append_sheet(wb, ws, "Rare Soil War");
+          window.XLSX.utils.book_append_sheet(wb, ws, "Spice War");
           window.XLSX.writeFile(wb, exportFilename("xlsx"));
         }
 
@@ -2525,7 +2525,7 @@
               resolveShareIdFromUrl() ||
               createShareId();
             startRsLiveSync(sid).catch(function (err) {
-              console.warn("[Rare Soil] Live start:", err);
+              console.warn("[Spice War] Live start:", err);
             });
           });
         }
@@ -2546,7 +2546,7 @@
               try {
                 await startRsLiveSync(sid);
               } catch (err) {
-                console.error("[Rare Soil] Live start from Copy:", err);
+                console.error("[Spice War] Live start from Copy:", err);
                 alert(
                   (rsLiveStatus && rsLiveStatus.textContent) ||
                     String(err && err.message ? err.message : err) ||
@@ -2576,7 +2576,7 @@
               try {
                 await rsFlushLivePushToCloud({ force: true });
               } catch (err) {
-                console.error("[Rare Soil] Copy flush:", err);
+                console.error("[Spice War] Copy flush:", err);
                 var explain = rsLiveSaveFailureText(err);
                 alert(
                   explain +
