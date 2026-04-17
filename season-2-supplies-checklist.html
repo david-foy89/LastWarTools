@@ -47,6 +47,16 @@
     </script>
     <link rel="stylesheet" href="google-translate-toolbar-hide.css" />
     <link rel="stylesheet" href="last-war-furnace-upgrade-calculator.css" />
+    <script src="firebase-config.example.js"></script>
+    <script src="firebase-config.js"></script>
+    <script>
+      if (typeof window.__lwSanitizeAppCheckSiteKey === "function") {
+        window.__lwSanitizeAppCheckSiteKey();
+      }
+      if (typeof window.__lwApplyFirebaseAppCheckDebug === "function") {
+        window.__lwApplyFirebaseAppCheckDebug();
+      }
+    </script>
     <script src="page-nav-dropdown.js" defer></script>
     <style>
       .checklist-layout {
@@ -897,15 +907,16 @@
     </div>
 
     <script src="https://www.gstatic.com/firebasejs/10.12.5/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.12.5/firebase-app-check-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.12.5/firebase-database-compat.js"></script>
     <script>
       const DATA_URL = "season2_supplies_api.json";
       const STORAGE_KEY = "lastWarSeason2SuppliesChecklistV1";
       const LIVE_SYNC = {
         // Live sync DB URL can come from:
-        // 1) ?db=... in URL, 2) localStorage key "lastWarLiveSyncDbUrl", 3) window.LWST_LIVE_SYNC_DB_URL,
-        // 4) hardcoded default below.
-        // Example value: https://your-project-default-rtdb.firebaseio.com
+        // 1) ?db=..., 2) localStorage "lastWarLiveSyncDbUrl", 3) window.LWST_LIVE_SYNC_DB_URL,
+        // 4) firebase-config.js → __FIREBASE_CONFIG__.databaseURL (see infer helper below),
+        // 5) hardcoded default below.
         defaultDatabaseUrl:
           "https://lastwartools-c12c8-default-rtdb.firebaseio.com/",
         pollMs: 1200,
@@ -946,6 +957,7 @@
       const dismissSharedButton = document.getElementById(
         "dismissSharedButton",
       );
+      const liveSyncDbInput = document.getElementById("liveSyncDbInput");
 
       let preferredLanguage = "en";
       let pendingShareData = null;
@@ -962,6 +974,196 @@
         hadError: false,
         enabled: false,
       };
+
+      function firebaseConfigOk(cfg) {
+        if (!cfg || typeof cfg !== "object") return false;
+        const k = String(cfg.apiKey || "");
+        const pid = String(cfg.projectId || "");
+        return (
+          k.length > 0 &&
+          k !== "YOUR_WEB_API_KEY" &&
+          !k.startsWith("YOUR_") &&
+          pid.length > 0 &&
+          pid !== "YOUR_PROJECT_ID" &&
+          !pid.startsWith("YOUR_") &&
+          typeof cfg.appId === "string" &&
+          cfg.appId.length > 0
+        );
+      }
+
+      function inferDatabaseUrlFromFirebaseConfig() {
+        try {
+          const cfg = window.__FIREBASE_CONFIG__;
+          if (!cfg || typeof cfg !== "object") return "";
+          const du = String(cfg.databaseURL || "").trim();
+          if (/^https?:\/\//i.test(du)) {
+            return du.endsWith("/") ? du : `${du}/`;
+          }
+          if (!firebaseConfigOk(cfg)) return "";
+          const pid = String(cfg.projectId || "").trim();
+          if (!pid) return "";
+          return `https://${pid}-default-rtdb.firebaseio.com/`;
+        } catch {
+          return "";
+        }
+      }
+
+      function plausibleAppCheckSiteKey(sk) {
+        const s = String(sk || "").trim();
+        if (!s || s.length > 120) return false;
+        if (/[{[]|"apiKey"\s*:|'apiKey'\s*:|"projectId"\s*:|"databaseURL"\s*:/i.test(s)) {
+          return false;
+        }
+        return /^6L[a-zA-Z0-9_-]{20,}$/.test(s);
+      }
+
+      function appCheckSiteKeyPresent() {
+        try {
+          const raw = String(window.__FIREBASE_APPCHECK_SITE_KEY__ || "").trim();
+          if (!raw) return false;
+          if (!plausibleAppCheckSiteKey(raw)) {
+            if (!window.__s2SuppliesBadAppCheckKeyWarned) {
+              window.__s2SuppliesBadAppCheckKeyWarned = true;
+              console.warn(
+                "[Season 2 Supplies] __FIREBASE_APPCHECK_SITE_KEY__ must be the short reCAPTCHA Enterprise key from Firebase → App Check.",
+              );
+            }
+            return false;
+          }
+          return true;
+        } catch {
+          return false;
+        }
+      }
+
+      function liveSkipAppCheckForRtdb() {
+        try {
+          if (window.__RS_LIVE_SKIP_APPCHECK__ === true) return true;
+          const q = new URLSearchParams(window.location.search || "");
+          return q.get("rsLiveDbOnly") === "1" || q.get("liveDbOnly") === "1";
+        } catch {
+          return false;
+        }
+      }
+
+      function effectiveAppCheckForLiveRtdb() {
+        return appCheckSiteKeyPresent() && !liveSkipAppCheckForRtdb();
+      }
+
+      function firebaseInitOptionsForRtdb(currentDb) {
+        const cfg = window.__FIREBASE_CONFIG__;
+        if (effectiveAppCheckForLiveRtdb() && firebaseConfigOk(cfg)) {
+          const o = {
+            apiKey: cfg.apiKey,
+            authDomain: cfg.authDomain,
+            projectId: cfg.projectId,
+            storageBucket: cfg.storageBucket,
+            messagingSenderId: cfg.messagingSenderId,
+            appId: cfg.appId,
+            databaseURL: currentDb,
+          };
+          if (cfg.measurementId) o.measurementId = cfg.measurementId;
+          return o;
+        }
+        return { databaseURL: currentDb };
+      }
+
+      function activateAppCheckIfConfigured(app) {
+        if (
+          !app ||
+          !window.firebase ||
+          !window.firebase.appCheck ||
+          app._s2SuppliesAppCheckActivated
+        ) {
+          return;
+        }
+        if (liveSkipAppCheckForRtdb()) return;
+        if (!appCheckSiteKeyPresent()) return;
+        try {
+          const Prov = firebase.appCheck.ReCaptchaEnterpriseProvider;
+          if (typeof Prov !== "function") return;
+          const key = String(window.__FIREBASE_APPCHECK_SITE_KEY__ || "").trim();
+          firebase.appCheck(app).activate(new Prov(key), true);
+          app._s2SuppliesAppCheckActivated = true;
+        } catch (e) {
+          console.warn("[Season 2 Supplies] App Check activate:", e);
+        }
+      }
+
+      function promiseWithTimeout(promise, ms, timeoutMessage) {
+        return new Promise((resolve, reject) => {
+          let settled = false;
+          const timer = setTimeout(() => {
+            if (settled) return;
+            settled = true;
+            const te = new Error(timeoutMessage || "Operation timed out.");
+            te.__s2Timeout = true;
+            reject(te);
+          }, ms);
+          Promise.resolve(promise).then(
+            (v) => {
+              if (settled) return;
+              settled = true;
+              clearTimeout(timer);
+              resolve(v);
+            },
+            (e) => {
+              if (settled) return;
+              settled = true;
+              clearTimeout(timer);
+              reject(e);
+            },
+          );
+        });
+      }
+
+      function awaitAppCheckTokenIfNeeded(app) {
+        if (!effectiveAppCheckForLiveRtdb() || !app || !window.firebase.appCheck) {
+          return Promise.resolve();
+        }
+        try {
+          const ac = firebase.appCheck(app);
+          if (typeof ac.getToken !== "function") return Promise.resolve();
+          const tokenPromise = ac.getToken(false).then(
+            () => {},
+            (err) => console.warn("[Season 2 Supplies] App Check getToken:", err),
+          );
+          const stallMs = 12000;
+          const stallPromise = new Promise((resolve) => {
+            setTimeout(() => {
+              console.warn(
+                "[Season 2 Supplies] App Check getToken still pending — opening RTDB anyway. If sync fails, check App Check domain registration or use ?rsLiveDbOnly=1 when RTDB enforcement is Off/Monitor.",
+              );
+              resolve();
+            }, stallMs);
+          });
+          return promiseWithTimeout(Promise.race([tokenPromise, stallPromise]), 20000, "App Check token timed out.").catch(
+            (err) => {
+              if (err && err.__s2Timeout) console.warn(err.message);
+              return undefined;
+            },
+          );
+        } catch (e) {
+          console.warn("[Season 2 Supplies] App Check getToken:", e);
+          return Promise.resolve();
+        }
+      }
+
+      function ensureFirebaseDbReady() {
+        if (liveSyncState.firebaseDb) return Promise.resolve();
+        if (!liveSyncState.firebaseApp) {
+          return Promise.reject(new Error("No Firebase app"));
+        }
+        if (!effectiveAppCheckForLiveRtdb()) {
+          liveSyncState.firebaseDb = window.firebase.database(liveSyncState.firebaseApp);
+          return Promise.resolve();
+        }
+        return awaitAppCheckTokenIfNeeded(liveSyncState.firebaseApp).then(() => {
+          if (!liveSyncState.firebaseDb) {
+            liveSyncState.firebaseDb = window.firebase.database(liveSyncState.firebaseApp);
+          }
+        });
+      }
 
       const languageOptions = [
         { code: "en", label: "English" },
@@ -1102,12 +1304,26 @@
       function resolveLiveSyncDbUrl() {
         const params = new URLSearchParams(window.location.search);
         const fromUrl = params.get("db");
-        const fromStorage = localStorage.getItem("lastWarLiveSyncDbUrl");
-        const fromGlobal = window.LWST_LIVE_SYNC_DB_URL;
+        let fromStorage = "";
+        try {
+          fromStorage = String(
+            localStorage.getItem("lastWarLiveSyncDbUrl") || "",
+          );
+        } catch {
+          fromStorage = "";
+        }
+        let fromGlobal = "";
+        try {
+          fromGlobal = String(window.LWST_LIVE_SYNC_DB_URL || "").trim();
+        } catch {
+          fromGlobal = "";
+        }
+        const fromFirebaseConfig = inferDatabaseUrlFromFirebaseConfig();
         const resolved = String(
           fromUrl ||
             fromStorage ||
             fromGlobal ||
+            fromFirebaseConfig ||
             LIVE_SYNC.defaultDatabaseUrl ||
             "",
         ).trim();
@@ -1161,6 +1377,17 @@
         url.searchParams.set("shareId", shareId);
         if (isLiveSyncConfigured()) {
           url.searchParams.set("db", liveSyncState.dbUrl);
+        }
+        try {
+          if (
+            new URLSearchParams(window.location.search || "").get(
+              "rsLiveDbOnly",
+            ) === "1"
+          ) {
+            url.searchParams.set("rsLiveDbOnly", "1");
+          }
+        } catch {
+          /* ignore */
         }
         return url.toString();
       }
@@ -1222,8 +1449,6 @@
             "",
           ) !== currentDb
         ) {
-          // Switching DB URL after init can create cross-app confusion in compat mode.
-          // Keep behavior explicit for users.
           setStatus(
             "DB endpoint changed. Refresh page to reinitialize Firebase.",
             true,
@@ -1231,24 +1456,50 @@
           return false;
         }
 
+        const skipAc = liveSkipAppCheckForRtdb();
+        let appName;
+        try {
+          appName =
+            `lwst-${btoa(currentDb).replace(/[^a-zA-Z0-9]/g, "").slice(0, 24)}` +
+            (skipAc ? "nac" : "");
+        } catch {
+          let h = 0;
+          for (let i = 0; i < currentDb.length; i++) {
+            h = ((h << 5) - h + currentDb.charCodeAt(i)) | 0;
+          }
+          appName = `lwst-${String(h >>> 0)}${skipAc ? "nac" : ""}`;
+        }
+
         if (!liveSyncState.firebaseApp) {
-          const appName = `lwst-${btoa(currentDb)
-            .replace(/[^a-zA-Z0-9]/g, "")
-            .slice(0, 24)}`;
-          const existing = window.firebase.apps.find(
-            (app) => app.name === appName,
-          );
-          liveSyncState.firebaseApp =
-            existing ||
-            window.firebase.initializeApp(
-              {
-                databaseURL: currentDb,
-              },
-              appName,
+          const existing = window.firebase.apps.find((app) => app.name === appName);
+          try {
+            liveSyncState.firebaseApp =
+              existing ||
+              window.firebase.initializeApp(
+                firebaseInitOptionsForRtdb(currentDb),
+                appName,
+              );
+          } catch (initErr) {
+            console.error("[Season 2 Supplies] Firebase initializeApp failed:", initErr);
+            setStatus(
+              "Firebase init failed — check database URL matches firebase-config.",
+              true,
             );
-          liveSyncState.firebaseDb = window.firebase.database(
-            liveSyncState.firebaseApp,
-          );
+            return false;
+          }
+          activateAppCheckIfConfigured(liveSyncState.firebaseApp);
+          if (!effectiveAppCheckForLiveRtdb()) {
+            liveSyncState.firebaseDb = window.firebase.database(
+              liveSyncState.firebaseApp,
+            );
+          }
+        } else {
+          activateAppCheckIfConfigured(liveSyncState.firebaseApp);
+          if (!liveSyncState.firebaseDb && !effectiveAppCheckForLiveRtdb()) {
+            liveSyncState.firebaseDb = window.firebase.database(
+              liveSyncState.firebaseApp,
+            );
+          }
         }
 
         return true;
@@ -1264,6 +1515,20 @@
         }
 
         if (!ensureFirebaseReady()) return;
+        try {
+          await ensureFirebaseDbReady();
+        } catch (e) {
+          if (!liveSyncState.hadError) {
+            setStatus(
+              "Live sync write failed (Firebase not ready). Check App Check and console.",
+              true,
+            );
+            liveSyncState.hadError = true;
+          }
+          return;
+        }
+        if (!liveSyncState.firebaseRef) return;
+
         const payload = getLivePayload();
 
         try {
@@ -1272,7 +1537,7 @@
           liveSyncState.hadError = false;
         } catch {
           if (!liveSyncState.hadError) {
-            setStatus("Live sync write failed. Check DB rules/URL.", true);
+            setStatus("Live sync write failed. Check DB rules/URL/App Check.", true);
             liveSyncState.hadError = true;
           }
         }
@@ -1289,12 +1554,23 @@
         liveSyncState.firebaseValueHandler = null;
       }
 
-      function startLiveSync(shareId) {
+      async function startLiveSync(shareId) {
         stopLiveSyncPolling();
         liveSyncState.shareId = shareId;
         history.replaceState(null, "", buildLiveShareUrl(shareId));
 
         if (!isLiveSyncActive() || !ensureFirebaseReady()) return;
+
+        try {
+          await ensureFirebaseDbReady();
+        } catch (e) {
+          console.warn("[Season 2 Supplies] Live sync DB ready:", e);
+          setStatus(
+            "Live sync could not start. Check firebase-config.js, App Check domain, and browser console.",
+            true,
+          );
+          return;
+        }
 
         const attachListener = () => {
           liveSyncState.firebaseRef = liveSyncState.firebaseDb.ref(
@@ -1321,7 +1597,7 @@
             (error) => {
               if (!liveSyncState.hadError) {
                 setStatus(
-                  `Live sync read failed (${error?.code || "unknown"}). Check DB rules/URL.`,
+                  `Live sync read failed (${error?.code || "unknown"}). Check DB rules/URL/App Check.`,
                   true,
                 );
                 liveSyncState.hadError = true;
@@ -1893,14 +2169,19 @@
 
         if (!isLiveSyncActive()) {
           setStatus(
-            "This link uses live sync, but live sync is not configured for this site.",
+            "Could not connect live sync. Deploy firebase-config.js with your Realtime Database URL, or open the link with a ?db= parameter.",
             true,
           );
           return;
         }
 
-        startLiveSync(shareId);
-        setStatus("Live shared list connected");
+        void startLiveSync(shareId)
+          .then(() => {
+            setStatus("Live shared list connected");
+          })
+          .catch((err) => {
+            console.warn("[Season 2 Supplies] initLiveSyncFromUrl:", err);
+          });
       }
 
       function handleShareParam() {
@@ -2091,7 +2372,7 @@
         let url = generateShareUrl();
         if (isLiveSyncActive()) {
           const shareId = liveSyncState.shareId || createShareId();
-          startLiveSync(shareId);
+          await startLiveSync(shareId);
           await pushLiveState();
           url = buildLiveShareUrl(shareId);
         } else {
@@ -2208,7 +2489,7 @@
         saveState();
       });
 
-      liveSyncEnabledInput.addEventListener("change", () => {
+      liveSyncEnabledInput.addEventListener("change", async () => {
         liveSyncState.enabled = liveSyncEnabledInput.checked;
         localStorage.setItem(
           "lastWarLiveSyncEnabled",
@@ -2227,16 +2508,18 @@
           liveSyncState.enabled = false;
           localStorage.setItem("lastWarLiveSyncEnabled", "0");
           setStatus(
-            "Live sync needs a configured DB URL. Ask site admin to set LIVE_SYNC.defaultDatabaseUrl.",
+            "Live sync needs a configured DB URL. Set firebase-config.js (or LIVE_SYNC.defaultDatabaseUrl / ?db=).",
             true,
           );
           return;
         }
 
         if (liveSyncState.shareId) {
-          startLiveSync(liveSyncState.shareId);
+          await startLiveSync(liveSyncState.shareId);
         }
-        setStatus("Live sync is on.");
+        if (liveSyncState.enabled) {
+          setStatus("Live sync is on.");
+        }
       });
 
       window.addEventListener("beforeunload", stopLiveSyncPolling);
