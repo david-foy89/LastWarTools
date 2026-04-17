@@ -288,6 +288,47 @@
         margin-top: 24px;
       }
 
+      .leadership-live-share-panel {
+        margin: 0;
+        padding: 14px 16px;
+        border: 1px solid rgba(116, 192, 252, 0.28);
+        border-radius: 14px;
+        background: rgba(8, 16, 25, 0.45);
+      }
+      .leadership-live-share-panel.is-hidden {
+        display: none;
+      }
+      .leadership-live-share-label {
+        font-size: 0.82rem;
+        font-weight: 700;
+        color: var(--muted);
+        margin-bottom: 8px;
+      }
+      .leadership-live-share-row {
+        display: flex;
+        flex-wrap: wrap;
+        align-items: stretch;
+        gap: 8px;
+      }
+      .leadership-live-share-input {
+        flex: 1 1 220px;
+        min-width: 0;
+        box-sizing: border-box;
+        padding: 10px 12px;
+        border: 1px solid var(--line-soft);
+        border-radius: 10px;
+        background: rgba(12, 24, 37, 0.75);
+        color: var(--text);
+        font: inherit;
+        font-size: 0.85rem;
+      }
+      .leadership-live-share-hint {
+        margin: 10px 0 0;
+        font-size: 0.78rem;
+        color: var(--muted);
+        line-height: 1.35;
+      }
+
       /* Browsers without subgrid: stack panels with flex (alignment between columns N/A) */
       @supports not (grid-template-rows: subgrid) {
         .transfer-top-cards {
@@ -634,6 +675,43 @@
           <div class="transfer-top-cards__results">
             <div id="shareableLinkResult" style="word-break: break-all"></div>
             <div id="leadershipLinkResult" style="word-break: break-all"></div>
+            <div
+              id="leadershipLiveSharePanel"
+              class="leadership-live-share-panel is-hidden"
+              aria-live="polite"
+            >
+              <div class="leadership-live-share-label">Leadership live link</div>
+              <div class="leadership-live-share-row">
+                <input
+                  type="text"
+                  id="leadershipLiveShareUrlInput"
+                  readonly
+                  class="leadership-live-share-input"
+                  value=""
+                  spellcheck="false"
+                  aria-label="Leadership shared list URL"
+                />
+                <button
+                  type="button"
+                  class="action-button"
+                  id="leadershipLiveShareCopyBtn"
+                >
+                  Copy
+                </button>
+                <button
+                  type="button"
+                  class="action-button"
+                  id="leadershipLiveShareChangeBtn"
+                >
+                  Change link
+                </button>
+              </div>
+              <p class="leadership-live-share-hint">
+                Same list until you click Change link — then share the new URL
+                with your team. Submit links for this list include the list id
+                automatically.
+              </p>
+            </div>
           </div>
         </div>
         <script>
@@ -748,6 +826,83 @@
           }
 
           const currentListId = getCurrentListId();
+          const LEADERSHIP_LIST_STORAGE_KEY =
+            "lastWarTransferLeadershipListIdV1";
+
+          function normalizeLeadershipListId(raw) {
+            try {
+              return String(raw || "")
+                .trim()
+                .toLowerCase()
+                .replace(/[^a-z0-9_-]/g, "");
+            } catch {
+              return "";
+            }
+          }
+
+          function getPersistedLeadershipListId() {
+            try {
+              return normalizeLeadershipListId(
+                localStorage.getItem(LEADERSHIP_LIST_STORAGE_KEY),
+              );
+            } catch {
+              return "";
+            }
+          }
+
+          function setPersistedLeadershipListId(id) {
+            const s = normalizeLeadershipListId(id);
+            if (!s) return;
+            try {
+              localStorage.setItem(LEADERSHIP_LIST_STORAGE_KEY, s);
+            } catch {
+              /* ignore */
+            }
+          }
+
+          function buildLeadershipTrackerUrl(listId) {
+            const id = normalizeLeadershipListId(listId);
+            if (!id) return "";
+            const u = new URL(window.location.href);
+            u.search = "";
+            u.searchParams.set("list", id);
+            return u.href;
+          }
+
+          function getLeadershipListIdForPanel() {
+            if (currentListId) return currentListId;
+            return getPersistedLeadershipListId();
+          }
+
+          function canChangeLeadershipLink() {
+            if (!db) return false;
+            const p = getPersistedLeadershipListId();
+            if (!currentListId) return Boolean(p);
+            return Boolean(p && currentListId === p);
+          }
+
+          function updateLeadershipLivePanel() {
+            const panel = document.getElementById("leadershipLiveSharePanel");
+            const input = document.getElementById("leadershipLiveShareUrlInput");
+            const changeBtn = document.getElementById(
+              "leadershipLiveShareChangeBtn",
+            );
+            if (!panel || !input) return;
+            const listId = getLeadershipListIdForPanel();
+            if (!db || !listId) {
+              panel.classList.add("is-hidden");
+              input.value = "";
+              input.placeholder = "";
+              if (changeBtn) changeBtn.style.display = "none";
+              return;
+            }
+            panel.classList.remove("is-hidden");
+            input.placeholder = "";
+            input.value = buildLeadershipTrackerUrl(listId);
+            if (changeBtn) {
+              changeBtn.style.display = canChangeLeadershipLink() ? "" : "none";
+            }
+          }
 
           function isRowInCurrentList(row) {
             if (!currentListId) return true;
@@ -1592,13 +1747,9 @@
               async function () {
                 // If already inside a shared leadership list, just re-share that live URL.
                 if (currentListId) {
-                  const currentUrl = new URL(window.location.href);
-                  currentUrl.searchParams.set("list", currentListId);
-                  renderCopyableLink(
-                    "leadershipLinkResult",
-                    currentUrl.href,
-                    "Leadership link (live shared list):",
-                  );
+                  updateLeadershipLivePanel();
+                  const lr = document.getElementById("leadershipLinkResult");
+                  if (lr) lr.innerHTML = "";
                   return;
                 }
 
@@ -1610,8 +1761,6 @@
                 }
 
                 const listId = generateId(14);
-                const trackerUrl = new URL(window.location.href);
-                trackerUrl.searchParams.set("list", listId);
 
                 const rowsToShare = (lastTransferRows || []).filter(
                   (r) => r && r._docId,
@@ -1637,11 +1786,10 @@
                     }
                   }
 
-                  renderCopyableLink(
-                    "leadershipLinkResult",
-                    trackerUrl.href,
-                    "Leadership link (live shared list):",
-                  );
+                  setPersistedLeadershipListId(listId);
+                  updateLeadershipLivePanel();
+                  const lr = document.getElementById("leadershipLinkResult");
+                  if (lr) lr.innerHTML = "";
 
                   if (fail > 0) {
                     alert(
@@ -1662,6 +1810,92 @@
 
           initTransferFilters();
           listenForTransfers();
+
+          const leadershipLiveShareCopyBtn = document.getElementById(
+            "leadershipLiveShareCopyBtn",
+          );
+          const leadershipLiveShareChangeBtn = document.getElementById(
+            "leadershipLiveShareChangeBtn",
+          );
+          if (leadershipLiveShareCopyBtn) {
+            leadershipLiveShareCopyBtn.addEventListener(
+              "click",
+              async function () {
+                const listId = getLeadershipListIdForPanel();
+                const url = buildLeadershipTrackerUrl(listId);
+                if (!url) return;
+                const ok = await copyTextWithFallback(url);
+                if (ok) {
+                  const prev = leadershipLiveShareCopyBtn.textContent;
+                  leadershipLiveShareCopyBtn.textContent = "Copied!";
+                  setTimeout(() => {
+                    leadershipLiveShareCopyBtn.textContent = prev;
+                  }, 2000);
+                } else {
+                  window.prompt("Copy this link:", url);
+                }
+              },
+            );
+          }
+          if (leadershipLiveShareChangeBtn) {
+            leadershipLiveShareChangeBtn.addEventListener(
+              "click",
+              async function () {
+                if (!db || !canChangeLeadershipLink()) return;
+                const oldId =
+                  normalizeLeadershipListId(currentListId) ||
+                  getPersistedLeadershipListId();
+                if (!oldId) return;
+                const newId = generateId(14);
+                leadershipLiveShareChangeBtn.disabled = true;
+                const prevT = leadershipLiveShareChangeBtn.textContent;
+                leadershipLiveShareChangeBtn.textContent = "Updating…";
+                try {
+                  let ok = 0;
+                  let fail = 0;
+                  const rows = lastTransferRows || [];
+                  for (let i = 0; i < rows.length; i++) {
+                    const row = rows[i];
+                    if (normalizeLeadershipListId(row.listId) !== oldId)
+                      continue;
+                    const docId = String(row._docId || "");
+                    if (!docId) continue;
+                    try {
+                      await updateDoc(doc(db, "transferSubmissions", docId), {
+                        listId: newId,
+                      });
+                      ok++;
+                    } catch {
+                      fail++;
+                    }
+                  }
+                  setPersistedLeadershipListId(newId);
+                  if (
+                    currentListId &&
+                    normalizeLeadershipListId(currentListId) === oldId
+                  ) {
+                    window.location.href = buildLeadershipTrackerUrl(newId);
+                    return;
+                  }
+                  updateLeadershipLivePanel();
+                  if (fail > 0) {
+                    alert(
+                      "New link is ready, but some rows could not be updated.\n\nUpdated: " +
+                        ok +
+                        "\nFailed: " +
+                        fail,
+                    );
+                  }
+                } finally {
+                  leadershipLiveShareChangeBtn.disabled = false;
+                  leadershipLiveShareChangeBtn.textContent =
+                    prevT || "Change link";
+                }
+              },
+            );
+          }
+
+          updateLeadershipLivePanel();
 
           // Additional info modal handlers
           (function () {

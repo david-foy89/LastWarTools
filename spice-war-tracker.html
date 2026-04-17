@@ -635,9 +635,45 @@
           align-items: center;
         }
 
-        .rs-export-toolbar > #rsCopyLiveLink {
-          flex: 1 1 100%;
+        .rs-live-share-panel {
+          margin: 0 0 12px;
+          padding: 12px 14px;
+          border: 1px solid rgba(116, 192, 252, 0.28);
+          border-radius: 12px;
+          background: rgba(8, 16, 25, 0.45);
+        }
+        .rs-live-share-panel.is-hidden {
+          display: none;
+        }
+        .rs-live-share-label {
+          font-size: 0.82rem;
+          font-weight: 700;
+          color: var(--muted);
+          margin-bottom: 8px;
+        }
+        .rs-live-share-row {
+          display: flex;
+          flex-wrap: wrap;
+          align-items: stretch;
+          gap: 8px;
+        }
+        .rs-live-share-input {
+          flex: 1 1 200px;
           min-width: 0;
+          box-sizing: border-box;
+          padding: 8px 10px;
+          border: 1px solid var(--line-soft);
+          border-radius: 10px;
+          background: rgba(12, 24, 37, 0.75);
+          color: var(--text);
+          font: inherit;
+          font-size: 0.78rem;
+        }
+        .rs-live-share-hint {
+          margin: 8px 0 0;
+          font-size: 0.75rem;
+          color: var(--muted);
+          line-height: 1.35;
         }
 
         .rs-export-toolbar > .rs-live-status {
@@ -806,11 +842,6 @@
           min-height: 44px;
         }
 
-        .rs-export-toolbar > #rsCopyLiveLink {
-          min-height: 44px;
-          width: 100%;
-        }
-
         .rs-export-toolbar > .rs-live-label {
           width: 100%;
           justify-content: flex-start;
@@ -965,8 +996,44 @@
               <input type="checkbox" id="rsLiveEnabled" aria-label="Live link" />
               <span>Live link</span>
             </label>
-            <button type="button" class="action-button" id="rsCopyLiveLink">Copy live link</button>
             <span class="rs-hint rs-live-status" id="rsLiveStatus" aria-live="polite"></span>
+          </div>
+
+          <div
+            class="rs-live-share-panel is-hidden"
+            id="rsLiveSharePanel"
+            aria-live="polite"
+          >
+            <div class="rs-live-share-label">Live link</div>
+            <div class="rs-live-share-row">
+              <input
+                type="text"
+                id="rsLiveShareUrlInput"
+                readonly
+                class="rs-live-share-input"
+                value=""
+                spellcheck="false"
+                aria-label="Live collaboration URL"
+              />
+              <button
+                type="button"
+                class="action-button subtle"
+                id="rsLiveShareCopyBtn"
+              >
+                Copy
+              </button>
+              <button
+                type="button"
+                class="action-button subtle"
+                id="rsLiveShareChangeBtn"
+              >
+                Change link
+              </button>
+            </div>
+            <p class="rs-live-share-hint">
+              Same link until you click Change link — then share the new URL with
+              your group.
+            </p>
           </div>
 
           <div class="rs-toolbar">
@@ -1052,7 +1119,10 @@
         const rsExportXlsx = document.getElementById("rsExportXlsx");
         const rsExportPng = document.getElementById("rsExportPng");
         const rsLiveEnabled = document.getElementById("rsLiveEnabled");
-        const rsCopyLiveLink = document.getElementById("rsCopyLiveLink");
+        const rsLiveSharePanel = document.getElementById("rsLiveSharePanel");
+        const rsLiveShareUrlInput = document.getElementById("rsLiveShareUrlInput");
+        const rsLiveShareCopyBtn = document.getElementById("rsLiveShareCopyBtn");
+        const rsLiveShareChangeBtn = document.getElementById("rsLiveShareChangeBtn");
         const rsLiveStatus = document.getElementById("rsLiveStatus");
 
         let saveTimer = null;
@@ -1066,6 +1136,7 @@
           defaultDatabaseUrl:
             "https://lastwartools-c12c8-default-rtdb.firebaseio.com/",
         };
+        const RS_LIVE_SHARE_ID_STORAGE_KEY = "spiceWarLiveShareIdV1";
         const rsLiveState = {
           clientId:
             "sw-" +
@@ -1117,6 +1188,59 @@
           return (
             Date.now().toString(36) + Math.random().toString(36).slice(2, 8)
           );
+        }
+
+        function getPersistedRsLiveShareId() {
+          try {
+            return sanitizeShareId(
+              localStorage.getItem(RS_LIVE_SHARE_ID_STORAGE_KEY),
+            );
+          } catch (_) {
+            return null;
+          }
+        }
+
+        function setPersistedRsLiveShareId(id) {
+          var s = sanitizeShareId(String(id || ""));
+          if (!s) return;
+          try {
+            localStorage.setItem(RS_LIVE_SHARE_ID_STORAGE_KEY, s);
+          } catch (_) {}
+        }
+
+        function ensureRsHostShareId() {
+          if (rsLiveState.shareId) return rsLiveState.shareId;
+          var p = getPersistedRsLiveShareId();
+          if (p) {
+            rsLiveState.shareId = p;
+            return p;
+          }
+          var id = createShareId();
+          setPersistedRsLiveShareId(id);
+          rsLiveState.shareId = id;
+          return id;
+        }
+
+        function updateRsLiveSharePanel() {
+          if (!rsLiveSharePanel || !rsLiveShareUrlInput) return;
+          if (
+            !rsLiveEnabled ||
+            !rsLiveEnabled.checked ||
+            !String(rsLiveState.dbUrl || "").trim()
+          ) {
+            rsLiveSharePanel.classList.add("is-hidden");
+            rsLiveShareUrlInput.value = "";
+            rsLiveShareUrlInput.placeholder = "";
+            return;
+          }
+          rsLiveSharePanel.classList.remove("is-hidden");
+          if (!rsLiveState.shareId) {
+            rsLiveShareUrlInput.value = "";
+            rsLiveShareUrlInput.placeholder = "Preparing live link…";
+            return;
+          }
+          rsLiveShareUrlInput.placeholder = "";
+          rsLiveShareUrlInput.value = buildRsLiveShareUrl(rsLiveState.shareId);
         }
 
         /** Optional fallback when `firebase-config.js` includes `databaseURL` / `projectId`. */
@@ -2518,6 +2642,7 @@
                 /* ignore */
               }
               if (rsLiveStatus) rsLiveStatus.textContent = "Live collaboration off.";
+              updateRsLiveSharePanel();
               return;
             }
             rsResolveLiveDbUrl();
@@ -2526,87 +2651,115 @@
                 "Live sync needs a configured DB URL. Set RS_LIVE_SYNC.defaultDatabaseUrl in this page, use ?db=, or set lastWarLiveSyncDbUrl (same as Season 2 Supplies Checklist).",
               );
               rsLiveEnabled.checked = false;
+              updateRsLiveSharePanel();
               return;
             }
-            const sid =
-              rsLiveState.shareId ||
-              resolveShareIdFromUrl() ||
-              createShareId();
+            const sid = ensureRsHostShareId();
             startRsLiveSync(sid).catch(function (err) {
               console.warn("[Spice War] Live start:", err);
             });
+            updateRsLiveSharePanel();
           });
         }
 
-        if (rsCopyLiveLink) {
-          rsCopyLiveLink.addEventListener("click", async function () {
-            rsResolveLiveDbUrl();
-            if (!String(rsLiveState.dbUrl || "").trim()) {
-              alert(
-                "Live sync needs a Realtime Database URL (?db=, localStorage lastWarLiveSyncDbUrl, or RS_LIVE_SYNC.defaultDatabaseUrl).",
-              );
-              return;
-            }
-            if (!rsLiveState.shareId) {
-              const sid = resolveShareIdFromUrl() || createShareId();
-              rsLiveState.shareId = sid;
-              if (rsLiveEnabled) rsLiveEnabled.checked = true;
-              try {
-                await startRsLiveSync(sid);
-              } catch (err) {
-                console.error("[Spice War] Live start from Copy:", err);
-                alert(
-                  (rsLiveStatus && rsLiveStatus.textContent) ||
-                    String(err && err.message ? err.message : err) ||
-                    "Live sync could not start. Check firebase-config.js, database URL, and browser console.",
-                );
-                return;
-              }
-            }
-            if (!rsLiveState.active || !rsLiveState.shareId) {
+        async function copyRsLiveShareToClipboard() {
+          rsResolveLiveDbUrl();
+          if (!String(rsLiveState.dbUrl || "").trim()) {
+            alert(
+              "Live sync needs a Realtime Database URL (?db=, localStorage lastWarLiveSyncDbUrl, or RS_LIVE_SYNC.defaultDatabaseUrl).",
+            );
+            return;
+          }
+          if (!rsLiveState.shareId) {
+            const sid = ensureRsHostShareId();
+            if (rsLiveEnabled) rsLiveEnabled.checked = true;
+            try {
+              await startRsLiveSync(sid);
+            } catch (err) {
+              console.error("[Spice War] Live start from Copy:", err);
               alert(
                 (rsLiveStatus && rsLiveStatus.textContent) ||
+                  String(err && err.message ? err.message : err) ||
                   "Live sync could not start. Check firebase-config.js, database URL, and browser console.",
               );
               return;
             }
-            const url = buildRsLiveShareUrl(rsLiveState.shareId);
-            /*
-             * Guest (opened ?shareId=): do not flush until unlocked — avoids overwriting host
-             * with empty local grid. Copy URL only in that case. Host uses force flush.
-             */
-            var isGuestLocked =
-              rsLiveState.isShareGuest && !rsLiveState.livePushUnlocked;
-            if (!isGuestLocked) {
-              if (rsLiveStatus) {
-                rsLiveStatus.textContent = "Saving table to link…";
-              }
-              try {
-                await rsFlushLivePushToCloud({ force: true });
-              } catch (err) {
-                console.error("[Spice War] Copy flush:", err);
-                var explain = rsLiveSaveFailureText(err);
-                alert(
-                  explain +
-                    "\n\n(Technical: " +
-                    String(err && err.message ? err.message : err) +
-                    ")",
-                );
-                return;
-              }
-            } else if (rsLiveStatus) {
-              rsLiveStatus.textContent = "Copying link (loading shared table first…)";
+          }
+          if (!rsLiveState.active || !rsLiveState.shareId) {
+            alert(
+              (rsLiveStatus && rsLiveStatus.textContent) ||
+                "Live sync could not start. Check firebase-config.js, database URL, and browser console.",
+            );
+            return;
+          }
+          const url = buildRsLiveShareUrl(rsLiveState.shareId);
+          var isGuestLocked =
+            rsLiveState.isShareGuest && !rsLiveState.livePushUnlocked;
+          if (!isGuestLocked) {
+            if (rsLiveStatus) {
+              rsLiveStatus.textContent = "Saving table to link…";
             }
             try {
-              await navigator.clipboard.writeText(url);
-              if (rsLiveStatus) {
-                rsLiveStatus.textContent = isGuestLocked
-                  ? "Link copied (wait for table to load before editing)."
-                  : "Live link copied (table saved).";
-              }
-            } catch {
-              window.prompt("Copy this live link:", url);
+              await rsFlushLivePushToCloud({ force: true });
+            } catch (err) {
+              console.error("[Spice War] Copy flush:", err);
+              var explain = rsLiveSaveFailureText(err);
+              alert(
+                explain +
+                  "\n\n(Technical: " +
+                  String(err && err.message ? err.message : err) +
+                  ")",
+              );
+              return;
             }
+          } else if (rsLiveStatus) {
+            rsLiveStatus.textContent = "Copying link (loading shared table first…)";
+          }
+          try {
+            await navigator.clipboard.writeText(url);
+            if (rsLiveStatus) {
+              rsLiveStatus.textContent = isGuestLocked
+                ? "Link copied (wait for table to load before editing)."
+                : "Live link copied (table saved).";
+            }
+          } catch {
+            window.prompt("Copy this live link:", url);
+          }
+          updateRsLiveSharePanel();
+        }
+
+        if (rsLiveShareCopyBtn) {
+          rsLiveShareCopyBtn.addEventListener("click", function () {
+            copyRsLiveShareToClipboard();
+          });
+        }
+        if (rsLiveShareChangeBtn) {
+          rsLiveShareChangeBtn.addEventListener("click", async function () {
+            if (!rsLiveEnabled || !rsLiveEnabled.checked) return;
+            rsResolveLiveDbUrl();
+            if (!String(rsLiveState.dbUrl || "").trim()) {
+              alert("Configure a Realtime Database URL first.");
+              return;
+            }
+            const newId = createShareId();
+            setPersistedRsLiveShareId(newId);
+            rsLiveState.shareId = newId;
+            if (rsLiveEnabled) rsLiveEnabled.checked = true;
+            try {
+              await startRsLiveSync(newId, false);
+              await rsFlushLivePushToCloud({ force: true });
+              if (rsLiveStatus) {
+                rsLiveStatus.textContent =
+                  "New live link — share the URL above with your group.";
+              }
+            } catch (err) {
+              console.error("[Spice War] Change live link:", err);
+              alert(
+                String(err && err.message ? err.message : err) ||
+                  "Could not switch to a new live link.",
+              );
+            }
+            updateRsLiveSharePanel();
           });
         }
 
@@ -2689,12 +2842,30 @@
           if (!rsLiveState.active) {
             loadState();
           }
+          updateRsLiveSharePanel();
         } else {
           loadState();
+          try {
+            if (
+              rsLiveEnabled &&
+              rsLiveEnabled.checked &&
+              !incomingShareId
+            ) {
+              var persistedSid = getPersistedRsLiveShareId();
+              if (persistedSid && !rsLiveState.shareId) {
+                rsLiveState.shareId = persistedSid;
+                startRsLiveSync(persistedSid, false).catch(function (e) {
+                  console.warn("[Spice War] restore host live:", e);
+                });
+              }
+            }
+          } catch (_) {}
+          updateRsLiveSharePanel();
         }
 
         renderDayControls();
         renderBody();
+        updateRsLiveSharePanel();
       })();
     </script>
   </body>
