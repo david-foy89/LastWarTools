@@ -214,6 +214,56 @@
         accent-color: var(--accent-2);
       }
 
+      .live-share-link-panel {
+        margin: 0 0 16px;
+        padding: 14px 16px;
+        border: 1px solid rgba(116, 192, 252, 0.28);
+        border-radius: 14px;
+        background: rgba(8, 16, 25, 0.45);
+      }
+
+      .live-share-link-panel.is-hidden {
+        display: none;
+      }
+
+      .live-share-link-label {
+        font-size: 0.82rem;
+        font-weight: 700;
+        color: var(--muted);
+        margin-bottom: 8px;
+      }
+
+      .live-share-link-row {
+        display: flex;
+        flex-wrap: wrap;
+        align-items: stretch;
+        gap: 8px;
+      }
+
+      .live-share-link-input {
+        flex: 1 1 200px;
+        min-width: 0;
+        box-sizing: border-box;
+        padding: 10px 12px;
+        border: 1px solid var(--line-soft);
+        border-radius: 10px;
+        background: rgba(12, 24, 37, 0.75);
+        color: var(--text);
+        font: inherit;
+        font-size: 0.8rem;
+      }
+
+      .live-share-link-row .action-button {
+        flex: 0 0 auto;
+      }
+
+      .live-share-link-hint {
+        margin: 10px 0 0;
+        font-size: 0.78rem;
+        color: var(--muted);
+        line-height: 1.35;
+      }
+
       .level-progress-list {
         display: grid;
         gap: 10px;
@@ -869,13 +919,6 @@
                   <button
                     type="button"
                     class="export-menu-item"
-                    id="copyLinkButton"
-                  >
-                    Copy shareable link
-                  </button>
-                  <button
-                    type="button"
-                    class="export-menu-item"
                     id="exportCsvButton"
                   >
                     Download as CSV
@@ -898,6 +941,42 @@
               </div>
             </div>
           </div>
+          <div
+            class="live-share-link-panel is-hidden"
+            id="liveShareLinkPanel"
+            aria-live="polite"
+          >
+            <div class="live-share-link-label">Live share link</div>
+            <div class="live-share-link-row">
+              <input
+                type="text"
+                id="liveShareLinkInput"
+                readonly
+                class="live-share-link-input"
+                value=""
+                spellcheck="false"
+                aria-label="Live share link URL"
+              />
+              <button
+                type="button"
+                class="action-button subtle"
+                id="copyLiveShareLinkBtn"
+              >
+                Copy
+              </button>
+              <button
+                type="button"
+                class="action-button subtle"
+                id="changeLiveShareLinkBtn"
+              >
+                Change link
+              </button>
+            </div>
+            <p class="live-share-link-hint">
+              Same link until you click Change link — then everyone should use
+              the new URL.
+            </p>
+          </div>
           <div class="checklist-root" id="checklistRoot"></div>
           <div class="status-pill is-hidden" id="statusPill" aria-hidden="true">
             Loading supplies...
@@ -912,6 +991,7 @@
     <script>
       const DATA_URL = "season2_supplies_api.json";
       const STORAGE_KEY = "lastWarSeason2SuppliesChecklistV1";
+      const LIVE_SHARE_ID_STORAGE_KEY = "lastWarSeason2SuppliesLiveShareIdV1";
       const LIVE_SYNC = {
         // Live sync DB URL can come from:
         // 1) ?db=..., 2) localStorage "lastWarLiveSyncDbUrl", 3) window.LWST_LIVE_SYNC_DB_URL,
@@ -941,7 +1021,6 @@
       const exportMenuWrap = document.getElementById("exportMenuWrap");
       const exportMenuToggle = document.getElementById("exportMenuToggle");
       const exportMenu = document.getElementById("exportMenu");
-      const copyLinkButton = document.getElementById("copyLinkButton");
       const exportCsvButton = document.getElementById("exportCsvButton");
       const exportPdfButton = document.getElementById("exportPdfButton");
       const exportPngButton = document.getElementById("exportPngButton");
@@ -958,6 +1037,14 @@
         "dismissSharedButton",
       );
       const liveSyncDbInput = document.getElementById("liveSyncDbInput");
+      const liveShareLinkPanel = document.getElementById("liveShareLinkPanel");
+      const liveShareLinkInput = document.getElementById("liveShareLinkInput");
+      const copyLiveShareLinkBtn = document.getElementById(
+        "copyLiveShareLinkBtn",
+      );
+      const changeLiveShareLinkBtn = document.getElementById(
+        "changeLiveShareLinkBtn",
+      );
 
       let preferredLanguage = "en";
       let pendingShareData = null;
@@ -1366,6 +1453,61 @@
         return `${Date.now().toString(36)}${Math.random().toString(36).slice(2, 8)}`;
       }
 
+      function getPersistedLiveShareId() {
+        try {
+          return sanitizeShareId(
+            localStorage.getItem(LIVE_SHARE_ID_STORAGE_KEY),
+          );
+        } catch {
+          return null;
+        }
+      }
+
+      function setPersistedLiveShareId(id) {
+        const s = sanitizeShareId(String(id || ""));
+        if (!s) return;
+        try {
+          localStorage.setItem(LIVE_SHARE_ID_STORAGE_KEY, s);
+        } catch {
+          /* ignore */
+        }
+      }
+
+      /**
+       * Reuse a stored room id or create and persist one. Does not replace an
+       * in-memory id already set (e.g. from ?shareId=).
+       */
+      function ensureHostShareId() {
+        if (liveSyncState.shareId) return liveSyncState.shareId;
+        const p = getPersistedLiveShareId();
+        if (p) {
+          liveSyncState.shareId = p;
+          return p;
+        }
+        const id = createShareId();
+        setPersistedLiveShareId(id);
+        liveSyncState.shareId = id;
+        return id;
+      }
+
+      function updateLiveSharePanel() {
+        if (!liveShareLinkPanel || !liveShareLinkInput) return;
+        if (!isLiveSyncActive()) {
+          liveShareLinkPanel.classList.add("is-hidden");
+          liveShareLinkInput.value = "";
+          liveShareLinkInput.placeholder = "";
+          return;
+        }
+        liveShareLinkPanel.classList.remove("is-hidden");
+        if (!liveSyncState.shareId) {
+          liveShareLinkInput.value = "";
+          liveShareLinkInput.placeholder = "Preparing live link…";
+          return;
+        }
+        liveShareLinkInput.placeholder = "";
+        liveShareLinkInput.value = buildLiveShareUrl(liveSyncState.shareId);
+      }
+
       function getLiveEndpoint(shareId) {
         const base = liveSyncState.dbUrl.replace(/\/$/, "");
         return `${base}/season2-supplies/${encodeURIComponent(shareId)}.json`;
@@ -1561,17 +1703,6 @@
 
         if (!isLiveSyncActive() || !ensureFirebaseReady()) return;
 
-        try {
-          await ensureFirebaseDbReady();
-        } catch (e) {
-          console.warn("[Season 2 Supplies] Live sync DB ready:", e);
-          setStatus(
-            "Live sync could not start. Check firebase-config.js, App Check domain, and browser console.",
-            true,
-          );
-          return;
-        }
-
         const attachListener = () => {
           liveSyncState.firebaseRef = liveSyncState.firebaseDb.ref(
             `season2-supplies/${shareId}`,
@@ -1606,7 +1737,17 @@
           );
         };
 
-        attachListener();
+        try {
+          await ensureFirebaseDbReady();
+          attachListener();
+        } catch (e) {
+          console.warn("[Season 2 Supplies] startLiveSync:", e);
+          stopLiveSyncPolling();
+          setStatus(
+            "Live sync could not start. Check firebase-config.js, App Check domain, and browser console.",
+            true,
+          );
+        }
       }
 
       function syncLocalChecklistChanges() {
@@ -2050,6 +2191,7 @@
           );
         }
         setStatus(`${formatNumber(state.supplies.length)} supplies loaded`);
+        updateLiveSharePanel();
       }
 
       function toggleItem(id) {
@@ -2178,9 +2320,37 @@
         void startLiveSync(shareId)
           .then(() => {
             setStatus("Live shared list connected");
+            updateLiveSharePanel();
           })
           .catch((err) => {
             console.warn("[Season 2 Supplies] initLiveSyncFromUrl:", err);
+            updateLiveSharePanel();
+          });
+      }
+
+      function initPersistedHostLiveSync() {
+        const urlSid = sanitizeShareId(
+          new URLSearchParams(window.location.search).get("shareId"),
+        );
+        if (urlSid) {
+          updateLiveSharePanel();
+          return;
+        }
+
+        resolveLiveSyncDbUrl();
+        if (!isLiveSyncActive()) {
+          updateLiveSharePanel();
+          return;
+        }
+        ensureHostShareId();
+        void startLiveSync(liveSyncState.shareId)
+          .then(() => {
+            setStatus("Live shared list connected");
+            updateLiveSharePanel();
+          })
+          .catch((err) => {
+            console.warn("[Season 2 Supplies] initPersistedHostLiveSync:", err);
+            updateLiveSharePanel();
           });
       }
 
@@ -2275,6 +2445,7 @@
           }
           render();
           initLiveSyncFromUrl();
+          initPersistedHostLiveSync();
           handleShareParam();
         } catch (error) {
           checklistRoot.innerHTML = `
@@ -2366,26 +2537,71 @@
         if (!exportMenuWrap.contains(e.target)) closeExportMenu();
       });
 
-      copyLinkButton.addEventListener("click", async () => {
-        closeExportMenu();
+      async function copyShareableLinkToClipboard(options = {}) {
+        const closeMenu = options.closeMenu !== false;
+        if (closeMenu) closeExportMenu();
         resolveLiveSyncDbUrl();
         let url = generateShareUrl();
         if (isLiveSyncActive()) {
-          const shareId = liveSyncState.shareId || createShareId();
-          await startLiveSync(shareId);
-          await pushLiveState();
-          url = buildLiveShareUrl(shareId);
+          const shareId = ensureHostShareId();
+          const alreadyConnected =
+            Boolean(liveSyncState.firebaseRef) &&
+            liveSyncState.shareId === shareId;
+          try {
+            if (!alreadyConnected) {
+              await startLiveSync(shareId);
+            }
+            await pushLiveState();
+            url = buildLiveShareUrl(shareId);
+          } catch (e) {
+            console.warn("[Season 2 Supplies] copy share link:", e);
+            setStatus(
+              "Could not prepare live link. Check the browser console.",
+              true,
+            );
+            return false;
+          }
         } else {
           setStatus("Copied snapshot link (live sync is off).");
         }
         try {
           await navigator.clipboard.writeText(url);
-          copyLinkButton.textContent = "Link copied!";
-          setTimeout(() => {
-            copyLinkButton.textContent = "Copy shareable link";
-          }, 2000);
+          updateLiveSharePanel();
+          return true;
         } catch {
           window.prompt("Copy this shareable link:", url);
+          updateLiveSharePanel();
+          return true;
+        }
+      }
+
+      copyLiveShareLinkBtn.addEventListener("click", async () => {
+        const ok = await copyShareableLinkToClipboard({ closeMenu: false });
+        if (ok) {
+          const prev = copyLiveShareLinkBtn.textContent;
+          copyLiveShareLinkBtn.textContent = "Copied!";
+          setTimeout(() => {
+            copyLiveShareLinkBtn.textContent = prev;
+          }, 2000);
+        }
+      });
+
+      changeLiveShareLinkBtn.addEventListener("click", async () => {
+        if (!isLiveSyncActive()) return;
+        const newId = createShareId();
+        setPersistedLiveShareId(newId);
+        liveSyncState.shareId = newId;
+        try {
+          await startLiveSync(newId);
+          await pushLiveState();
+          updateLiveSharePanel();
+          setStatus("New live link is ready — share it with your team.");
+        } catch (e) {
+          console.warn("[Season 2 Supplies] change live link:", e);
+          setStatus(
+            "Could not switch to a new link. Check the browser console.",
+            true,
+          );
         }
       });
 
@@ -2499,6 +2715,7 @@
         if (!liveSyncState.enabled) {
           stopLiveSyncPolling();
           setStatus("Live sync is off. Shared links will be snapshot links.");
+          updateLiveSharePanel();
           return;
         }
 
@@ -2511,15 +2728,29 @@
             "Live sync needs a configured DB URL. Set firebase-config.js (or LIVE_SYNC.defaultDatabaseUrl / ?db=).",
             true,
           );
+          updateLiveSharePanel();
           return;
         }
 
-        if (liveSyncState.shareId) {
-          await startLiveSync(liveSyncState.shareId);
+        const sid = ensureHostShareId();
+        try {
+          await startLiveSync(sid);
+        } catch (e) {
+          console.warn("[Season 2 Supplies] liveSyncEnabledInput:", e);
+          liveSyncEnabledInput.checked = false;
+          liveSyncState.enabled = false;
+          localStorage.setItem("lastWarLiveSyncEnabled", "0");
+          setStatus(
+            "Live sync failed to start. Check the browser console.",
+            true,
+          );
+          updateLiveSharePanel();
+          return;
         }
         if (liveSyncState.enabled) {
           setStatus("Live sync is on.");
         }
+        updateLiveSharePanel();
       });
 
       window.addEventListener("beforeunload", stopLiveSyncPolling);
@@ -2527,6 +2758,7 @@
       loadSavedState();
       resolveLiveSyncDbUrl();
       liveSyncEnabledInput.checked = liveSyncState.enabled;
+      updateLiveSharePanel();
       buildLanguageOptions();
       hideCompletedInput.checked = state.hideCompleted;
       loadGoogleTranslateScript();
