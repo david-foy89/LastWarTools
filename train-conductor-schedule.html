@@ -1745,6 +1745,88 @@
         return [0, 1, 2, 3, 4, 5, 6];
       }
 
+      /** No conductor assigned on any day (shows "-" in the calendar). */
+      function freshBlankDayAssignmentsWeek() {
+        return [-1, -1, -1, -1, -1, -1, -1];
+      }
+
+      /**
+       * When the Monday start date moves by whole weeks, slide stored week rows so
+       * each calendar week keeps the same names/assignments (new slots get blanks).
+       */
+      function shiftWeekSlotDataByCalendarDelta(deltaWeeks) {
+        if (!Number.isFinite(deltaWeeks) || deltaWeeks === 0) return;
+        const oldNames = state.conductorNamesByWeek.map((row) =>
+          Array.isArray(row) ? [...row] : Array(7).fill(""),
+        );
+        const oldDays = state.dayAssignmentsByWeek.map((row) => [
+          ...normalizeDayAssignmentsWeekRow(row),
+        ]);
+        for (let r = 0; r < 4; r++) {
+          const src = r + deltaWeeks;
+          if (src >= 0 && src < 4) {
+            state.conductorNamesByWeek[r] = [...oldNames[src]];
+            state.dayAssignmentsByWeek[r] = normalizeDayAssignmentsWeekRow([
+              ...oldDays[src],
+            ]);
+          } else {
+            state.conductorNamesByWeek[r] = Array(7).fill("");
+            state.dayAssignmentsByWeek[r] = normalizeDayAssignmentsWeekRow(
+              freshBlankDayAssignmentsWeek(),
+            );
+          }
+        }
+      }
+
+      /** Keep member history week indices aligned with the same calendar rows. */
+      function shiftMemberHistoryWeekIndicesByCalendarDelta(deltaWeeks) {
+        if (!Number.isFinite(deltaWeeks) || deltaWeeks === 0) return;
+        state.memberHistory = state.memberHistory.map((entry) => {
+          if (
+            entry.role !== "conductor" ||
+            entry.weekIdx === null ||
+            entry.weekIdx === undefined
+          ) {
+            return entry;
+          }
+          const nw = entry.weekIdx - deltaWeeks;
+          const nextWeekIdx =
+            Number.isFinite(nw) && nw >= 0 && nw <= 3 ? nw : null;
+          return { ...entry, weekIdx: nextWeekIdx };
+        });
+      }
+
+      /** True if this week row still looks like an untouched default row. */
+      function isWeekRowEffectivelyDefault(weekIdx) {
+        if (weekIdx < 0 || weekIdx > 3) return true;
+        const names = state.conductorNamesByWeek[weekIdx] || [];
+        for (let i = 0; i < 7; i++) {
+          if (!conductorSlotIsUnset(names[i], i)) return false;
+        }
+        const days = normalizeDayAssignmentsWeekRow(
+          state.dayAssignmentsByWeek[weekIdx] || [],
+        );
+        const fresh = normalizeDayAssignmentsWeekRow(freshDayAssignmentsWeek());
+        for (let d = 0; d < 7; d++) {
+          if (Number(days[d]) !== Number(fresh[d])) return false;
+        }
+        return true;
+      }
+
+      /**
+       * When showing more weeks, turn still-default hidden rows into explicit blanks
+       * (-) so new weeks do not inherit the default Mon–Sun rotation until filled.
+       */
+      function blankDefaultWeekSlotsInRange(fromWeek, toWeekExclusive) {
+        for (let w = fromWeek; w < toWeekExclusive; w++) {
+          if (!isWeekRowEffectivelyDefault(w)) continue;
+          state.conductorNamesByWeek[w] = Array(7).fill("");
+          state.dayAssignmentsByWeek[w] = normalizeDayAssignmentsWeekRow(
+            freshBlankDayAssignmentsWeek(),
+          );
+        }
+      }
+
       /** Move schedule start forward by whole weeks (keeps table dates aligned). */
       function advanceStartDateByWeeks(weekCount) {
         if (!weekCount || !state.startDateStr) return;
@@ -1853,8 +1935,19 @@
         const todayMon = getMondayOf(getServerTodayDate());
         const anchorMon = new Date(todayMon);
         anchorMon.setDate(todayMon.getDate() - (w - 1) * 7);
-        state.startDateStr = toDateStr(anchorMon);
+        const newStr = toDateStr(anchorMon);
+        if (state.startDateStr && newStr !== state.startDateStr) {
+          const oldMon = new Date(state.startDateStr + "T00:00:00");
+          const deltaMs = anchorMon.getTime() - oldMon.getTime();
+          const deltaWeeks = Math.round(deltaMs / (7 * 86400000));
+          if (deltaWeeks !== 0 && Number.isFinite(deltaWeeks)) {
+            shiftWeekSlotDataByCalendarDelta(deltaWeeks);
+            shiftMemberHistoryWeekIndicesByCalendarDelta(deltaWeeks);
+          }
+        }
+        state.startDateStr = newStr;
         if (startDateInput) startDateInput.value = state.startDateStr;
+        state.nameEditWeek = Math.max(0, Math.min(state.weeks - 1, state.nameEditWeek));
         saveState();
       }
 
@@ -3993,6 +4086,18 @@
             Number(btn.dataset.weeks) === state.weeks,
           );
         });
+        if (conductorWeekSelect) {
+          conductorWeekSelect.querySelectorAll("option").forEach((opt) => {
+            const v = Number(opt.value);
+            opt.disabled = Number.isFinite(v) && v >= state.weeks;
+          });
+          if (state.nameEditWeek >= state.weeks) {
+            state.nameEditWeek = Math.max(0, state.weeks - 1);
+            conductorWeekSelectProgrammatic = true;
+            conductorWeekSelect.value = String(state.nameEditWeek);
+            conductorWeekSelectProgrammatic = false;
+          }
+        }
       }
 
       function getConductorDays(conductorIdx) {
@@ -4456,14 +4561,25 @@
       // Week buttons
       document.querySelectorAll(".week-btn").forEach((btn) => {
         btn.addEventListener("click", () => {
-          state.weeks = Number(btn.dataset.weeks);
+          const prev = state.weeks;
+          const next = Number(btn.dataset.weeks);
+          state.weeks = next;
+          if (next > prev) {
+            blankDefaultWeekSlotsInRange(prev, next);
+          }
+          state.nameEditWeek = Math.max(
+            0,
+            Math.min(state.weeks - 1, state.nameEditWeek),
+          );
           saveState();
           renderWeekButtons();
+          renderConductors();
+          renderAllianceMembers();
           renderSchedule();
         });
       });
       // Name Assignment Week: only switches which stored week row the conductor name inputs edit.
-      // Does not rotate the calendar, start date, or day assignments (use Start date for that).
+      // Changing the start date (above) slides week data with the calendar.
       conductorWeekSelect.addEventListener("change", () => {
         if (conductorWeekSelectProgrammatic) return;
         const n = Number(conductorWeekSelect.value);
@@ -4616,8 +4732,22 @@
         const picked = new Date(startDateInput.value + "T00:00:00");
         const monday = getMondayOf(picked);
         const newMondayStr = toDateStr(monday);
+        const oldStr = state.startDateStr;
+        if (oldStr && newMondayStr !== oldStr) {
+          const oldMon = new Date(oldStr + "T00:00:00");
+          const deltaMs = monday.getTime() - oldMon.getTime();
+          const deltaWeeks = Math.round(deltaMs / (7 * 86400000));
+          if (deltaWeeks !== 0 && Number.isFinite(deltaWeeks)) {
+            shiftWeekSlotDataByCalendarDelta(deltaWeeks);
+            shiftMemberHistoryWeekIndicesByCalendarDelta(deltaWeeks);
+          }
+        }
         state.startDateStr = newMondayStr;
         startDateInput.value = state.startDateStr;
+        state.nameEditWeek = Math.max(
+          0,
+          Math.min(state.weeks - 1, state.nameEditWeek),
+        );
         saveState();
         render();
       });
