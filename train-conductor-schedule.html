@@ -150,6 +150,43 @@
         color: var(--text);
       }
 
+      .start-date-step-wrap {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+      }
+
+      .start-date-step-wrap input[type="date"] {
+        flex: 1;
+        min-width: 0;
+      }
+
+      .start-date-step-btn {
+        cursor: pointer;
+        width: 40px;
+        height: 40px;
+        flex-shrink: 0;
+        border: 1px solid var(--line-soft);
+        border-radius: 999px;
+        background: rgba(12, 24, 37, 0.88);
+        color: var(--muted);
+        font: inherit;
+        font-size: 1.1rem;
+        font-weight: 700;
+        line-height: 1;
+        transition:
+          border-color 140ms ease,
+          background-color 140ms ease,
+          color 140ms ease;
+      }
+
+      .start-date-step-btn:hover,
+      .start-date-step-btn:focus-visible {
+        border-color: var(--accent-2);
+        color: var(--text);
+        outline: none;
+      }
+
       .conductor-row {
         display: flex;
         align-items: center;
@@ -1119,7 +1156,27 @@
             </div>
             <div class="field">
               <label for="startDateInput">Start date (snaps to Monday)</label>
-              <input id="startDateInput" type="date" class="lwst-cal-auto" />
+              <div class="start-date-step-wrap">
+                <button
+                  type="button"
+                  id="startDatePrevWeek"
+                  class="start-date-step-btn"
+                  aria-label="View previous week"
+                  title="Previous week"
+                >
+                  ←
+                </button>
+                <input id="startDateInput" type="date" class="lwst-cal-auto" />
+                <button
+                  type="button"
+                  id="startDateNextWeek"
+                  class="start-date-step-btn"
+                  aria-label="View next week"
+                  title="Next week"
+                >
+                  →
+                </button>
+              </div>
               <div
                 class="field"
                 style="
@@ -1153,7 +1210,7 @@
               <label for="conductorWeekSelect">Name Assignment Week</label>
               <select
                 id="conductorWeekSelect"
-                aria-label="Which schedule week row to edit names for (does not move the calendar)"
+                aria-label="Which calendar week row to edit conductor names for"
               >
                 <option value="0">Week 1</option>
                 <option value="1">Week 2</option>
@@ -1598,6 +1655,8 @@
         allianceMemberSearch: "",
         allianceFillTarget: "conductor",
         allianceFillConductorIdx: 0,
+        /** Per calendar week: key = Monday YYYY-MM-DD, value = { names: string[7], days: number[7] }. */
+        scheduleByWeekStart: {},
       };
 
       const startDateInput = document.getElementById("startDateInput");
@@ -1751,7 +1810,7 @@
         const d = new Date(state.startDateStr + "T00:00:00");
         if (Number.isNaN(d.getTime())) return;
         d.setDate(d.getDate() + 7 * weekCount);
-        state.startDateStr = toDateStr(getMondayOf(d));
+        commitScheduleStartMonday(toDateStr(getMondayOf(d)));
       }
 
       function getMondayOf(date) {
@@ -1768,6 +1827,71 @@
         const m = String(date.getMonth() + 1).padStart(2, "0");
         const d = String(date.getDate()).padStart(2, "0");
         return `${y}-${m}-${d}`;
+      }
+
+      /** Snap schedule start to the Monday of the given calendar date (YYYY-MM-DD). */
+      function commitScheduleStartMonday(newMondayStr) {
+        syncConductorNameInputsFromDomIntoState();
+        const picked = new Date(String(newMondayStr || "").trim() + "T00:00:00");
+        if (Number.isNaN(picked.getTime())) return false;
+        const monday = getMondayOf(picked);
+        const str = toDateStr(monday);
+        if (state.startDateStr === str) {
+          if (startDateInput) startDateInput.value = str;
+          return true;
+        }
+        if (state.startDateStr) {
+          flushLinearWeeksToScheduleMap(state.startDateStr);
+        }
+        state.startDateStr = str;
+        if (startDateInput) startDateInput.value = state.startDateStr;
+        hydrateLinearWeeksFromScheduleMap(state.startDateStr);
+        return true;
+      }
+
+      /** Move the schedule start by whole weeks (negative = earlier). */
+      function bumpScheduleStartByWeeks(deltaWeeks) {
+        if (!Number.isFinite(deltaWeeks) || deltaWeeks === 0) return;
+        let base = state.startDateStr;
+        if (!base) {
+          base = toDateStr(getMondayOf(getServerTodayDate()));
+        }
+        const d = new Date(base + "T00:00:00");
+        if (Number.isNaN(d.getTime())) return;
+        d.setDate(d.getDate() + 7 * deltaWeeks);
+        if (!commitScheduleStartMonday(toDateStr(getMondayOf(d)))) return;
+        saveState();
+        render();
+      }
+
+      /** Dropdown label for row `weekIdx`; same Mon–Sun range as the calendar grid. */
+      function formatNameAssignmentWeekOptionLabel(weekIdx) {
+        if (weekIdx < 0 || weekIdx > 3) {
+          return `Week ${weekIdx + 1}`;
+        }
+        if (!state.startDateStr) {
+          return `Week ${weekIdx + 1}`;
+        }
+        const base = new Date(state.startDateStr + "T00:00:00");
+        if (Number.isNaN(base.getTime())) {
+          return `Week ${weekIdx + 1}`;
+        }
+        const mon = new Date(base);
+        mon.setDate(base.getDate() + weekIdx * 7);
+        const sun = new Date(mon);
+        sun.setDate(mon.getDate() + 6);
+        const m0 = mon.getMonth();
+        const y0 = mon.getFullYear();
+        const m1 = sun.getMonth();
+        const y1 = sun.getFullYear();
+        const left = `${MONTHS[m0]} ${mon.getDate()}`;
+        if (m0 === m1 && y0 === y1) {
+          return `${left}–${sun.getDate()}`;
+        }
+        if (y0 === y1) {
+          return `${left} – ${MONTHS[m1]} ${sun.getDate()}`;
+        }
+        return `${left}, ${y0} – ${MONTHS[m1]} ${sun.getDate()}, ${y1}`;
       }
 
       function getDateTimePartsInTimeZone(date, timeZone) {
@@ -1853,8 +1977,8 @@
         const todayMon = getMondayOf(getServerTodayDate());
         const anchorMon = new Date(todayMon);
         anchorMon.setDate(todayMon.getDate() - (w - 1) * 7);
-        state.startDateStr = toDateStr(anchorMon);
-        if (startDateInput) startDateInput.value = state.startDateStr;
+        commitScheduleStartMonday(toDateStr(anchorMon));
+        clampNameEditWeekToVisibleSchedule();
         saveState();
       }
 
@@ -1981,6 +2105,158 @@
         }
         const row = legacyRow || [0, 1, 2, 3, 4, 5, 6];
         return Array.from({ length: 4 }, () => [...row]);
+      }
+
+      function isMondayDateKey(str) {
+        return /^\d{4}-\d{2}-\d{2}$/.test(String(str || "").trim());
+      }
+
+      /** Monday YYYY-MM-DD for linear row `weekIdx` (0–3) when row 0 Monday is `startStr`. */
+      function getMondayKeyForWeekIndexFromStart(weekIdx, startStr) {
+        if (weekIdx < 0 || weekIdx > 3) return null;
+        const baseStr = String(startStr || "").trim();
+        if (!isMondayDateKey(baseStr)) return null;
+        const base = new Date(baseStr + "T00:00:00");
+        if (Number.isNaN(base.getTime())) return null;
+        const d = new Date(base);
+        d.setDate(base.getDate() + weekIdx * 7);
+        return toDateStr(d);
+      }
+
+      function ensureScheduleMap() {
+        if (!state.scheduleByWeekStart || typeof state.scheduleByWeekStart !== "object") {
+          state.scheduleByWeekStart = {};
+        }
+      }
+
+      function flushLinearWeeksToScheduleMap(startStr) {
+        ensureScheduleMap();
+        const baseStr = String(startStr || "").trim();
+        if (!baseStr) return;
+        for (let w = 0; w < 4; w++) {
+          const key = getMondayKeyForWeekIndexFromStart(w, baseStr);
+          if (!key) continue;
+          const srcNames = state.conductorNamesByWeek[w] || [];
+          const names = [];
+          for (let i = 0; i < 7; i++) {
+            names.push(
+              typeof srcNames[i] === "string"
+                ? srcNames[i].slice(0, 40)
+                : String(srcNames[i] ?? "").slice(0, 40),
+            );
+          }
+          state.scheduleByWeekStart[key] = {
+            names,
+            days: normalizeDayAssignmentsWeekRow(
+              state.dayAssignmentsByWeek[w] || [],
+            ),
+          };
+        }
+      }
+
+      function hydrateLinearWeeksFromScheduleMap(startStr) {
+        const baseStr = String(startStr || "").trim();
+        if (!baseStr) return;
+        ensureScheduleMap();
+        for (let w = 0; w < 4; w++) {
+          const key = getMondayKeyForWeekIndexFromStart(w, baseStr);
+          if (!key) continue;
+          const pack = state.scheduleByWeekStart[key];
+          let rawDaysFromPack = null;
+          if (pack && typeof pack === "object") {
+            if (Array.isArray(pack.days) && pack.days.length === 7) {
+              rawDaysFromPack = pack.days;
+            } else if (
+              Array.isArray(pack.dayAssignments) &&
+              pack.dayAssignments.length === 7
+            ) {
+              rawDaysFromPack = pack.dayAssignments;
+            }
+          }
+          const namesOk =
+            pack &&
+            typeof pack === "object" &&
+            Array.isArray(pack.names) &&
+            pack.names.length === 7;
+
+          if (namesOk) {
+            state.conductorNamesByWeek[w] = pack.names.map((n) =>
+              String(n ?? "").trim().slice(0, 40),
+            );
+            state.dayAssignmentsByWeek[w] = normalizeDayAssignmentsWeekRow(
+              rawDaysFromPack || [],
+            );
+          } else if (rawDaysFromPack) {
+            state.conductorNamesByWeek[w] = Array(7).fill("");
+            state.dayAssignmentsByWeek[w] = normalizeDayAssignmentsWeekRow(
+              rawDaysFromPack,
+            );
+          } else {
+            state.conductorNamesByWeek[w] = Array(7).fill("");
+            state.dayAssignmentsByWeek[w] = normalizeDayAssignmentsWeekRow(
+              freshDayAssignmentsWeek(),
+            );
+          }
+        }
+      }
+
+      function persistWeekPackForLinearIndex(weekIdx, startStr) {
+        ensureScheduleMap();
+        const key = getMondayKeyForWeekIndexFromStart(
+          weekIdx,
+          startStr || state.startDateStr,
+        );
+        if (!key) return;
+        const srcNames = state.conductorNamesByWeek[weekIdx] || [];
+        const names = [];
+        for (let i = 0; i < 7; i++) {
+          names.push(
+            typeof srcNames[i] === "string" ? srcNames[i].slice(0, 40) : "",
+          );
+        }
+        state.scheduleByWeekStart[key] = {
+          names,
+          days: normalizeDayAssignmentsWeekRow(
+            state.dayAssignmentsByWeek[weekIdx] || [],
+          ),
+        };
+      }
+
+      function pruneScheduleByWeekStartMap(maxKeys) {
+        ensureScheduleMap();
+        const lim = maxKeys || 156;
+        const keys = Object.keys(state.scheduleByWeekStart)
+          .filter((k) => isMondayDateKey(k))
+          .sort();
+        if (keys.length <= lim) return;
+        for (let i = 0; i < keys.length - lim; i++) {
+          delete state.scheduleByWeekStart[keys[i]];
+        }
+      }
+
+      function mergeScheduleMapFromSaved(saved) {
+        ensureScheduleMap();
+        state.scheduleByWeekStart = {};
+        if (saved.scheduleByWeekStart && typeof saved.scheduleByWeekStart === "object") {
+          for (const [k, v] of Object.entries(saved.scheduleByWeekStart)) {
+            if (!isMondayDateKey(k)) continue;
+            if (!v || typeof v !== "object" || !Array.isArray(v.names) || v.names.length !== 7) {
+              continue;
+            }
+            const rawDays =
+              v.days ||
+              (Array.isArray(v.dayAssignments) && v.dayAssignments.length === 7
+                ? v.dayAssignments
+                : null);
+            state.scheduleByWeekStart[k] = {
+              names: v.names.map((n) => String(n ?? "").trim().slice(0, 40)),
+              days: normalizeDayAssignmentsWeekRow(rawDays || []),
+            };
+          }
+        }
+        if (state.startDateStr) {
+          flushLinearWeeksToScheduleMap(state.startDateStr);
+        }
       }
 
       function normalizeMemberHistoryEntries(entries) {
@@ -3636,6 +3912,12 @@
       }
 
       function encodeShareState() {
+        syncConductorNameInputsFromDomIntoState();
+        if (state.startDateStr) {
+          flushLinearWeeksToScheduleMap(state.startDateStr);
+          pruneScheduleByWeekStartMap(156);
+        }
+        ensureScheduleMap();
         const payload = {
           weeks: state.weeks,
           nameEditWeek: state.nameEditWeek,
@@ -3643,6 +3925,7 @@
           startDateStr: state.startDateStr,
           conductors: state.conductors,
           dayAssignmentsByWeek: state.dayAssignmentsByWeek,
+          scheduleByWeekStart: state.scheduleByWeekStart,
           showVip: state.showVip,
           allianceMembers: state.allianceMembers,
           memberHistory: state.memberHistory,
@@ -3765,6 +4048,11 @@
           const idx = Number(saved.allianceFillConductorIdx);
           state.allianceFillConductorIdx = idx >= 0 && idx <= 6 ? idx : 0;
         }
+        mergeScheduleMapFromSaved(saved);
+        if (state.startDateStr) {
+          hydrateLinearWeeksFromScheduleMap(state.startDateStr);
+        }
+        clampNameEditWeekToVisibleSchedule();
       }
 
       function applySharedState(saved) {
@@ -3930,6 +4218,12 @@
           state.r4r5Members,
           state.allianceMembers,
         );
+        syncConductorNameInputsFromDomIntoState();
+        if (state.startDateStr) {
+          flushLinearWeeksToScheduleMap(state.startDateStr);
+          pruneScheduleByWeekStartMap(156);
+        }
+        ensureScheduleMap();
         return {
           weeks: state.weeks,
           nameEditWeek: state.nameEditWeek,
@@ -3937,6 +4231,7 @@
           startDateStr: state.startDateStr,
           conductors: state.conductors,
           dayAssignmentsByWeek: state.dayAssignmentsByWeek,
+          scheduleByWeekStart: state.scheduleByWeekStart,
           showVip: state.showVip,
           allianceMembers: state.allianceMembers,
           r4r5Members: state.r4r5Members,
@@ -3993,15 +4288,65 @@
             Number(btn.dataset.weeks) === state.weeks,
           );
         });
+        if (conductorWeekSelect) {
+          conductorWeekSelect.innerHTML = [0, 1, 2, 3]
+            .map(
+              (w) =>
+                `<option value="${w}">${escapeHtml(
+                  formatNameAssignmentWeekOptionLabel(w),
+                )}</option>`,
+            )
+            .join("");
+          conductorWeekSelectProgrammatic = true;
+          conductorWeekSelect.value = String(state.nameEditWeek);
+          conductorWeekSelectProgrammatic = false;
+          conductorWeekSelect.querySelectorAll("option").forEach((opt) => {
+            const v = Number(opt.value);
+            opt.disabled = Number.isFinite(v) && v >= state.weeks;
+          });
+        }
+      }
+
+      /**
+       * Keep name-edit row in range of visible calendar rows so day tags and inputs
+       * match the grid (e.g. weeks=1 must use row 0, not a hidden week 4 row).
+       */
+      function clampNameEditWeekToVisibleSchedule() {
+        const max = Math.max(0, Math.min(3, state.weeks - 1));
+        state.nameEditWeek = Math.max(0, Math.min(max, state.nameEditWeek));
       }
 
       function getConductorDays(conductorIdx) {
-        const weekDays =
-          state.dayAssignmentsByWeek[state.nameEditWeek] ||
-          [0, 1, 2, 3, 4, 5, 6];
+        const w = Math.max(0, Math.min(3, state.nameEditWeek));
+        const raw = state.dayAssignmentsByWeek[w];
+        const weekDays = normalizeDayAssignmentsWeekRow(
+          Array.isArray(raw) && raw.length === 7 ? raw : [],
+        );
         return weekDays
           .map((ci, d) => (ci === conductorIdx ? DAYS[d] : null))
           .filter(Boolean);
+      }
+
+      /**
+       * Copy visible conductor name inputs into state so keyed `flush` sees the
+       * same values the user typed (avoids losing edits when changing start date).
+       */
+      function syncConductorNameInputsFromDomIntoState() {
+        if (!conductorsList) return false;
+        const w = Math.max(0, Math.min(3, state.nameEditWeek));
+        const weekRow = state.conductorNamesByWeek[w];
+        if (!Array.isArray(weekRow) || weekRow.length !== 7) return false;
+        let dirty = false;
+        conductorsList.querySelectorAll(".conductor-name-input").forEach((inp) => {
+          const idx = Number(inp.dataset.idx);
+          if (!Number.isFinite(idx) || idx < 0 || idx > 6) return;
+          const v = inp.value.trim().slice(0, 40);
+          if (weekRow[idx] !== v) {
+            weekRow[idx] = v;
+            dirty = true;
+          }
+        });
+        return dirty;
       }
 
       /**
@@ -4302,14 +4647,15 @@
         }
       }
 
+      let conductorWeekSelectProgrammatic = false;
+
       function render() {
+        clampNameEditWeekToVisibleSchedule();
         renderWeekButtons();
         renderConductors();
         renderAllianceMembers();
         renderSchedule();
       }
-
-      let conductorWeekSelectProgrammatic = false;
 
       // Init
       loadState();
@@ -4457,9 +4803,9 @@
       document.querySelectorAll(".week-btn").forEach((btn) => {
         btn.addEventListener("click", () => {
           state.weeks = Number(btn.dataset.weeks);
+          clampNameEditWeekToVisibleSchedule();
           saveState();
-          renderWeekButtons();
-          renderSchedule();
+          render();
         });
       });
       // Name Assignment Week: only switches which stored week row the conductor name inputs edit.
@@ -4614,13 +4960,23 @@
       startDateInput.addEventListener("change", () => {
         if (!startDateInput.value) return;
         const picked = new Date(startDateInput.value + "T00:00:00");
-        const monday = getMondayOf(picked);
-        const newMondayStr = toDateStr(monday);
-        state.startDateStr = newMondayStr;
-        startDateInput.value = state.startDateStr;
+        if (!commitScheduleStartMonday(toDateStr(getMondayOf(picked)))) return;
         saveState();
         render();
       });
+
+      const startDatePrevWeek = document.getElementById("startDatePrevWeek");
+      const startDateNextWeek = document.getElementById("startDateNextWeek");
+      if (startDatePrevWeek) {
+        startDatePrevWeek.addEventListener("click", () => {
+          bumpScheduleStartByWeeks(-1);
+        });
+      }
+      if (startDateNextWeek) {
+        startDateNextWeek.addEventListener("click", () => {
+          bumpScheduleStartByWeeks(1);
+        });
+      }
 
       if (anchorScheduleToTodayButton) {
         anchorScheduleToTodayButton.addEventListener("click", () => {
@@ -4651,8 +5007,12 @@
         state.conductorNamesByWeek = Array.from({ length: 4 }, () =>
           Array(7).fill(""),
         );
+        state.scheduleByWeekStart = {};
         state.showVip = true;
         vipToggleInput.checked = true;
+        if (state.startDateStr) {
+          flushLinearWeeksToScheduleMap(state.startDateStr);
+        }
         saveState();
         render();
       });
@@ -4677,6 +5037,9 @@
             state.dayAssignmentsByWeek[w] = normalizeDayAssignmentsWeekRow(
               freshDayAssignmentsWeek(),
             );
+            if (state.startDateStr) {
+              persistWeekPackForLinearIndex(w, state.startDateStr);
+            }
           }
           saveState();
           render();
