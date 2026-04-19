@@ -1933,8 +1933,13 @@
             state.conductorNamesByWeek[w] = pack.names.map((n) =>
               String(n ?? "").trim().slice(0, 40),
             );
+            const rawDays =
+              pack.days ||
+              (Array.isArray(pack.dayAssignments) && pack.dayAssignments.length === 7
+                ? pack.dayAssignments
+                : null);
             state.dayAssignmentsByWeek[w] = normalizeDayAssignmentsWeekRow(
-              pack.days || [],
+              rawDays || [],
             );
           } else {
             state.conductorNamesByWeek[w] = Array(7).fill("");
@@ -1982,21 +1987,26 @@
       function mergeScheduleMapFromSaved(saved) {
         ensureScheduleMap();
         state.scheduleByWeekStart = {};
-        let merged = 0;
         if (saved.scheduleByWeekStart && typeof saved.scheduleByWeekStart === "object") {
           for (const [k, v] of Object.entries(saved.scheduleByWeekStart)) {
             if (!isMondayDateKey(k)) continue;
             if (!v || typeof v !== "object" || !Array.isArray(v.names) || v.names.length !== 7) {
               continue;
             }
+            const rawDays =
+              v.days ||
+              (Array.isArray(v.dayAssignments) && v.dayAssignments.length === 7
+                ? v.dayAssignments
+                : null);
             state.scheduleByWeekStart[k] = {
               names: v.names.map((n) => String(n ?? "").trim().slice(0, 40)),
-              days: normalizeDayAssignmentsWeekRow(v.days || []),
+              days: normalizeDayAssignmentsWeekRow(rawDays || []),
             };
-            merged++;
           }
         }
-        if (merged === 0 && state.startDateStr) {
+        /* Always stamp the visible window from linear rows: map may omit these Mondays
+           (e.g. only off-window keys), but hydrate would otherwise blank the grid. */
+        if (state.startDateStr) {
           flushLinearWeeksToScheduleMap(state.startDateStr);
         }
       }
