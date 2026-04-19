@@ -150,6 +150,43 @@
         color: var(--text);
       }
 
+      .start-date-step-wrap {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+      }
+
+      .start-date-step-wrap input[type="date"] {
+        flex: 1;
+        min-width: 0;
+      }
+
+      .start-date-step-btn {
+        cursor: pointer;
+        width: 40px;
+        height: 40px;
+        flex-shrink: 0;
+        border: 1px solid var(--line-soft);
+        border-radius: 999px;
+        background: rgba(12, 24, 37, 0.88);
+        color: var(--muted);
+        font: inherit;
+        font-size: 1.1rem;
+        font-weight: 700;
+        line-height: 1;
+        transition:
+          border-color 140ms ease,
+          background-color 140ms ease,
+          color 140ms ease;
+      }
+
+      .start-date-step-btn:hover,
+      .start-date-step-btn:focus-visible {
+        border-color: var(--accent-2);
+        color: var(--text);
+        outline: none;
+      }
+
       .conductor-row {
         display: flex;
         align-items: center;
@@ -1119,7 +1156,27 @@
             </div>
             <div class="field">
               <label for="startDateInput">Start date (snaps to Monday)</label>
-              <input id="startDateInput" type="date" class="lwst-cal-auto" />
+              <div class="start-date-step-wrap">
+                <button
+                  type="button"
+                  id="startDatePrevWeek"
+                  class="start-date-step-btn"
+                  aria-label="View previous week"
+                  title="Previous week"
+                >
+                  ←
+                </button>
+                <input id="startDateInput" type="date" class="lwst-cal-auto" />
+                <button
+                  type="button"
+                  id="startDateNextWeek"
+                  class="start-date-step-btn"
+                  aria-label="View next week"
+                  title="Next week"
+                >
+                  →
+                </button>
+              </div>
               <div
                 class="field"
                 style="
@@ -1944,6 +2001,45 @@
         }
       }
 
+      /**
+       * Flush the current window to `scheduleByWeekStart`, set `startDateStr` to
+       * the Monday of `newMondayStr`, hydrate rows, clamp name-edit week. Does not save or render.
+       * @returns {boolean} false if `newMondayStr` is not a valid date.
+       */
+      function commitScheduleStartMonday(newMondayStr) {
+        const picked = new Date(String(newMondayStr || "").trim() + "T00:00:00");
+        if (Number.isNaN(picked.getTime())) return false;
+        const monday = getMondayOf(picked);
+        const str = toDateStr(monday);
+        if (state.startDateStr) {
+          flushLinearWeeksToScheduleMap(state.startDateStr);
+        }
+        state.startDateStr = str;
+        if (startDateInput) startDateInput.value = state.startDateStr;
+        hydrateLinearWeeksFromScheduleMap(state.startDateStr);
+        state.nameEditWeek = Math.max(
+          0,
+          Math.min(state.weeks - 1, state.nameEditWeek),
+        );
+        return true;
+      }
+
+      /** Shift the schedule start by whole weeks (negative = earlier). */
+      function bumpScheduleStartByWeeks(deltaWeeks) {
+        if (!Number.isFinite(deltaWeeks) || deltaWeeks === 0) return;
+        let base = state.startDateStr;
+        if (!base) {
+          base = toDateStr(getMondayOf(getServerTodayDate()));
+        }
+        const d = new Date(base + "T00:00:00");
+        if (Number.isNaN(d.getTime())) return;
+        d.setDate(d.getDate() + 7 * deltaWeeks);
+        const newStr = toDateStr(getMondayOf(d));
+        if (!commitScheduleStartMonday(newStr)) return;
+        saveState();
+        render();
+      }
+
       function getDateTimePartsInTimeZone(date, timeZone) {
         const fmt = new Intl.DateTimeFormat("en-US", {
           timeZone,
@@ -2028,13 +2124,7 @@
         const anchorMon = new Date(todayMon);
         anchorMon.setDate(todayMon.getDate() - (w - 1) * 7);
         const newStr = toDateStr(anchorMon);
-        if (state.startDateStr) {
-          flushLinearWeeksToScheduleMap(state.startDateStr);
-        }
-        state.startDateStr = newStr;
-        if (startDateInput) startDateInput.value = state.startDateStr;
-        hydrateLinearWeeksFromScheduleMap(state.startDateStr);
-        state.nameEditWeek = Math.max(0, Math.min(state.weeks - 1, state.nameEditWeek));
+        commitScheduleStartMonday(newStr);
         saveState();
       }
 
@@ -4835,19 +4925,23 @@
         const picked = new Date(startDateInput.value + "T00:00:00");
         const monday = getMondayOf(picked);
         const newMondayStr = toDateStr(monday);
-        if (state.startDateStr) {
-          flushLinearWeeksToScheduleMap(state.startDateStr);
-        }
-        state.startDateStr = newMondayStr;
-        startDateInput.value = state.startDateStr;
-        hydrateLinearWeeksFromScheduleMap(state.startDateStr);
-        state.nameEditWeek = Math.max(
-          0,
-          Math.min(state.weeks - 1, state.nameEditWeek),
-        );
+        if (!commitScheduleStartMonday(newMondayStr)) return;
         saveState();
         render();
       });
+
+      const startDatePrevWeek = document.getElementById("startDatePrevWeek");
+      const startDateNextWeek = document.getElementById("startDateNextWeek");
+      if (startDatePrevWeek) {
+        startDatePrevWeek.addEventListener("click", () => {
+          bumpScheduleStartByWeeks(-1);
+        });
+      }
+      if (startDateNextWeek) {
+        startDateNextWeek.addEventListener("click", () => {
+          bumpScheduleStartByWeeks(1);
+        });
+      }
 
       if (anchorScheduleToTodayButton) {
         anchorScheduleToTodayButton.addEventListener("click", () => {
