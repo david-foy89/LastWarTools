@@ -150,43 +150,6 @@
         color: var(--text);
       }
 
-      .start-date-step-wrap {
-        display: flex;
-        align-items: center;
-        gap: 8px;
-      }
-
-      .start-date-step-wrap input[type="date"] {
-        flex: 1;
-        min-width: 0;
-      }
-
-      .start-date-step-btn {
-        cursor: pointer;
-        width: 40px;
-        height: 40px;
-        flex-shrink: 0;
-        border: 1px solid var(--line-soft);
-        border-radius: 999px;
-        background: rgba(12, 24, 37, 0.88);
-        color: var(--muted);
-        font: inherit;
-        font-size: 1.1rem;
-        font-weight: 700;
-        line-height: 1;
-        transition:
-          border-color 140ms ease,
-          background-color 140ms ease,
-          color 140ms ease;
-      }
-
-      .start-date-step-btn:hover,
-      .start-date-step-btn:focus-visible {
-        border-color: var(--accent-2);
-        color: var(--text);
-        outline: none;
-      }
-
       .conductor-row {
         display: flex;
         align-items: center;
@@ -1156,27 +1119,7 @@
             </div>
             <div class="field">
               <label for="startDateInput">Start date (snaps to Monday)</label>
-              <div class="start-date-step-wrap">
-                <button
-                  type="button"
-                  id="startDatePrevWeek"
-                  class="start-date-step-btn"
-                  aria-label="View previous week"
-                  title="Previous week"
-                >
-                  ←
-                </button>
-                <input id="startDateInput" type="date" class="lwst-cal-auto" />
-                <button
-                  type="button"
-                  id="startDateNextWeek"
-                  class="start-date-step-btn"
-                  aria-label="View next week"
-                  title="Next week"
-                >
-                  →
-                </button>
-              </div>
+              <input id="startDateInput" type="date" class="lwst-cal-auto" />
               <div
                 class="field"
                 style="
@@ -1655,8 +1598,6 @@
         allianceMemberSearch: "",
         allianceFillTarget: "conductor",
         allianceFillConductorIdx: 0,
-        /** Per-calendar-week schedule: key = Monday YYYY-MM-DD, value = { names, days }. */
-        scheduleByWeekStart: {},
       };
 
       const startDateInput = document.getElementById("startDateInput");
@@ -1809,6 +1750,52 @@
         return [-1, -1, -1, -1, -1, -1, -1];
       }
 
+      /**
+       * When the Monday start date moves by whole weeks, slide stored week rows so
+       * each calendar week keeps the same names/assignments (new slots get blanks).
+       */
+      function shiftWeekSlotDataByCalendarDelta(deltaWeeks) {
+        if (!Number.isFinite(deltaWeeks) || deltaWeeks === 0) return;
+        const oldNames = state.conductorNamesByWeek.map((row) =>
+          Array.isArray(row) ? [...row] : Array(7).fill(""),
+        );
+        const oldDays = state.dayAssignmentsByWeek.map((row) => [
+          ...normalizeDayAssignmentsWeekRow(row),
+        ]);
+        for (let r = 0; r < 4; r++) {
+          const src = r + deltaWeeks;
+          if (src >= 0 && src < 4) {
+            state.conductorNamesByWeek[r] = [...oldNames[src]];
+            state.dayAssignmentsByWeek[r] = normalizeDayAssignmentsWeekRow([
+              ...oldDays[src],
+            ]);
+          } else {
+            state.conductorNamesByWeek[r] = Array(7).fill("");
+            state.dayAssignmentsByWeek[r] = normalizeDayAssignmentsWeekRow(
+              freshBlankDayAssignmentsWeek(),
+            );
+          }
+        }
+      }
+
+      /** Keep member history week indices aligned with the same calendar rows. */
+      function shiftMemberHistoryWeekIndicesByCalendarDelta(deltaWeeks) {
+        if (!Number.isFinite(deltaWeeks) || deltaWeeks === 0) return;
+        state.memberHistory = state.memberHistory.map((entry) => {
+          if (
+            entry.role !== "conductor" ||
+            entry.weekIdx === null ||
+            entry.weekIdx === undefined
+          ) {
+            return entry;
+          }
+          const nw = entry.weekIdx - deltaWeeks;
+          const nextWeekIdx =
+            Number.isFinite(nw) && nw >= 0 && nw <= 3 ? nw : null;
+          return { ...entry, weekIdx: nextWeekIdx };
+        });
+      }
+
       /** True if this week row still looks like an untouched default row. */
       function isWeekRowEffectivelyDefault(weekIdx) {
         if (weekIdx < 0 || weekIdx > 3) return true;
@@ -1838,22 +1825,15 @@
             freshBlankDayAssignmentsWeek(),
           );
         }
-        if (state.startDateStr) {
-          for (let w = fromWeek; w < toWeekExclusive; w++) {
-            persistWeekPackForLinearIndex(w, state.startDateStr);
-          }
-        }
       }
 
       /** Move schedule start forward by whole weeks (keeps table dates aligned). */
       function advanceStartDateByWeeks(weekCount) {
         if (!weekCount || !state.startDateStr) return;
-        flushLinearWeeksToScheduleMap(state.startDateStr);
         const d = new Date(state.startDateStr + "T00:00:00");
         if (Number.isNaN(d.getTime())) return;
         d.setDate(d.getDate() + 7 * weekCount);
         state.startDateStr = toDateStr(getMondayOf(d));
-        hydrateLinearWeeksFromScheduleMap(state.startDateStr);
       }
 
       function getMondayOf(date) {
@@ -1870,184 +1850,6 @@
         const m = String(date.getMonth() + 1).padStart(2, "0");
         const d = String(date.getDate()).padStart(2, "0");
         return `${y}-${m}-${d}`;
-      }
-
-      function isMondayDateKey(str) {
-        return /^\d{4}-\d{2}-\d{2}$/.test(String(str || "").trim());
-      }
-
-      /** Monday date string for week slot `weekIdx` (0–3) relative to schedule start Monday. */
-      function getMondayKeyForWeekIndexFromStart(weekIdx, startStr) {
-        if (weekIdx < 0 || weekIdx > 3) return null;
-        const baseStr = String(startStr || "").trim();
-        if (!isMondayDateKey(baseStr)) return null;
-        const base = new Date(baseStr + "T00:00:00");
-        if (Number.isNaN(base.getTime())) return null;
-        const d = new Date(base);
-        d.setDate(base.getDate() + weekIdx * 7);
-        return toDateStr(d);
-      }
-
-      function ensureScheduleMap() {
-        if (!state.scheduleByWeekStart || typeof state.scheduleByWeekStart !== "object") {
-          state.scheduleByWeekStart = {};
-        }
-      }
-
-      /** Persist the four linear week rows under their calendar Monday keys (uses `startStr` as row 0 Monday). */
-      function flushLinearWeeksToScheduleMap(startStr) {
-        ensureScheduleMap();
-        const baseStr = String(startStr || "").trim();
-        if (!baseStr) return;
-        for (let w = 0; w < 4; w++) {
-          const key = getMondayKeyForWeekIndexFromStart(w, baseStr);
-          if (!key) continue;
-          const srcNames = state.conductorNamesByWeek[w] || [];
-          const names = [];
-          for (let i = 0; i < 7; i++) {
-            names.push(
-              typeof srcNames[i] === "string"
-                ? srcNames[i].slice(0, 40)
-                : String(srcNames[i] ?? "").slice(0, 40),
-            );
-          }
-          state.scheduleByWeekStart[key] = {
-            names,
-            days: normalizeDayAssignmentsWeekRow(
-              state.dayAssignmentsByWeek[w] || [],
-            ),
-          };
-        }
-      }
-
-      /** Load linear week rows 0–3 from `scheduleByWeekStart` for the given start Monday. */
-      function hydrateLinearWeeksFromScheduleMap(startStr) {
-        const baseStr = String(startStr || "").trim();
-        if (!baseStr) return;
-        ensureScheduleMap();
-        for (let w = 0; w < 4; w++) {
-          const key = getMondayKeyForWeekIndexFromStart(w, baseStr);
-          if (!key) continue;
-          const pack = state.scheduleByWeekStart[key];
-          if (pack && Array.isArray(pack.names) && pack.names.length === 7) {
-            state.conductorNamesByWeek[w] = pack.names.map((n) =>
-              String(n ?? "").trim().slice(0, 40),
-            );
-            const rawDays =
-              pack.days ||
-              (Array.isArray(pack.dayAssignments) && pack.dayAssignments.length === 7
-                ? pack.dayAssignments
-                : null);
-            state.dayAssignmentsByWeek[w] = normalizeDayAssignmentsWeekRow(
-              rawDays || [],
-            );
-          } else {
-            state.conductorNamesByWeek[w] = Array(7).fill("");
-            state.dayAssignmentsByWeek[w] = normalizeDayAssignmentsWeekRow(
-              freshBlankDayAssignmentsWeek(),
-            );
-          }
-        }
-      }
-
-      function persistWeekPackForLinearIndex(weekIdx, startStr) {
-        ensureScheduleMap();
-        const key = getMondayKeyForWeekIndexFromStart(
-          weekIdx,
-          startStr || state.startDateStr,
-        );
-        if (!key) return;
-        const srcNames = state.conductorNamesByWeek[weekIdx] || [];
-        const names = [];
-        for (let i = 0; i < 7; i++) {
-          names.push(
-            typeof srcNames[i] === "string" ? srcNames[i].slice(0, 40) : "",
-          );
-        }
-        state.scheduleByWeekStart[key] = {
-          names,
-          days: normalizeDayAssignmentsWeekRow(
-            state.dayAssignmentsByWeek[weekIdx] || [],
-          ),
-        };
-      }
-
-      function pruneScheduleByWeekStartMap(maxKeys) {
-        ensureScheduleMap();
-        const lim = maxKeys || 156;
-        const keys = Object.keys(state.scheduleByWeekStart)
-          .filter((k) => isMondayDateKey(k))
-          .sort();
-        if (keys.length <= lim) return;
-        for (let i = 0; i < keys.length - lim; i++) {
-          delete state.scheduleByWeekStart[keys[i]];
-        }
-      }
-
-      function mergeScheduleMapFromSaved(saved) {
-        ensureScheduleMap();
-        state.scheduleByWeekStart = {};
-        if (saved.scheduleByWeekStart && typeof saved.scheduleByWeekStart === "object") {
-          for (const [k, v] of Object.entries(saved.scheduleByWeekStart)) {
-            if (!isMondayDateKey(k)) continue;
-            if (!v || typeof v !== "object" || !Array.isArray(v.names) || v.names.length !== 7) {
-              continue;
-            }
-            const rawDays =
-              v.days ||
-              (Array.isArray(v.dayAssignments) && v.dayAssignments.length === 7
-                ? v.dayAssignments
-                : null);
-            state.scheduleByWeekStart[k] = {
-              names: v.names.map((n) => String(n ?? "").trim().slice(0, 40)),
-              days: normalizeDayAssignmentsWeekRow(rawDays || []),
-            };
-          }
-        }
-        /* Always stamp the visible window from linear rows: map may omit these Mondays
-           (e.g. only off-window keys), but hydrate would otherwise blank the grid. */
-        if (state.startDateStr) {
-          flushLinearWeeksToScheduleMap(state.startDateStr);
-        }
-      }
-
-      /**
-       * Flush the current window to `scheduleByWeekStart`, set `startDateStr` to
-       * the Monday of `newMondayStr`, hydrate rows, clamp name-edit week. Does not save or render.
-       * @returns {boolean} false if `newMondayStr` is not a valid date.
-       */
-      function commitScheduleStartMonday(newMondayStr) {
-        const picked = new Date(String(newMondayStr || "").trim() + "T00:00:00");
-        if (Number.isNaN(picked.getTime())) return false;
-        const monday = getMondayOf(picked);
-        const str = toDateStr(monday);
-        if (state.startDateStr) {
-          flushLinearWeeksToScheduleMap(state.startDateStr);
-        }
-        state.startDateStr = str;
-        if (startDateInput) startDateInput.value = state.startDateStr;
-        hydrateLinearWeeksFromScheduleMap(state.startDateStr);
-        state.nameEditWeek = Math.max(
-          0,
-          Math.min(state.weeks - 1, state.nameEditWeek),
-        );
-        return true;
-      }
-
-      /** Shift the schedule start by whole weeks (negative = earlier). */
-      function bumpScheduleStartByWeeks(deltaWeeks) {
-        if (!Number.isFinite(deltaWeeks) || deltaWeeks === 0) return;
-        let base = state.startDateStr;
-        if (!base) {
-          base = toDateStr(getMondayOf(getServerTodayDate()));
-        }
-        const d = new Date(base + "T00:00:00");
-        if (Number.isNaN(d.getTime())) return;
-        d.setDate(d.getDate() + 7 * deltaWeeks);
-        const newStr = toDateStr(getMondayOf(d));
-        if (!commitScheduleStartMonday(newStr)) return;
-        saveState();
-        render();
       }
 
       function getDateTimePartsInTimeZone(date, timeZone) {
@@ -2134,7 +1936,18 @@
         const anchorMon = new Date(todayMon);
         anchorMon.setDate(todayMon.getDate() - (w - 1) * 7);
         const newStr = toDateStr(anchorMon);
-        commitScheduleStartMonday(newStr);
+        if (state.startDateStr && newStr !== state.startDateStr) {
+          const oldMon = new Date(state.startDateStr + "T00:00:00");
+          const deltaMs = anchorMon.getTime() - oldMon.getTime();
+          const deltaWeeks = Math.round(deltaMs / (7 * 86400000));
+          if (deltaWeeks !== 0 && Number.isFinite(deltaWeeks)) {
+            shiftWeekSlotDataByCalendarDelta(deltaWeeks);
+            shiftMemberHistoryWeekIndicesByCalendarDelta(deltaWeeks);
+          }
+        }
+        state.startDateStr = newStr;
+        if (startDateInput) startDateInput.value = state.startDateStr;
+        state.nameEditWeek = Math.max(0, Math.min(state.weeks - 1, state.nameEditWeek));
         saveState();
       }
 
@@ -3916,11 +3729,6 @@
       }
 
       function encodeShareState() {
-        if (state.startDateStr) {
-          flushLinearWeeksToScheduleMap(state.startDateStr);
-          pruneScheduleByWeekStartMap(156);
-        }
-        ensureScheduleMap();
         const payload = {
           weeks: state.weeks,
           nameEditWeek: state.nameEditWeek,
@@ -3928,7 +3736,6 @@
           startDateStr: state.startDateStr,
           conductors: state.conductors,
           dayAssignmentsByWeek: state.dayAssignmentsByWeek,
-          scheduleByWeekStart: state.scheduleByWeekStart,
           showVip: state.showVip,
           allianceMembers: state.allianceMembers,
           memberHistory: state.memberHistory,
@@ -4050,10 +3857,6 @@
         if (Number.isFinite(Number(saved.allianceFillConductorIdx))) {
           const idx = Number(saved.allianceFillConductorIdx);
           state.allianceFillConductorIdx = idx >= 0 && idx <= 6 ? idx : 0;
-        }
-        mergeScheduleMapFromSaved(saved);
-        if (state.startDateStr) {
-          hydrateLinearWeeksFromScheduleMap(state.startDateStr);
         }
       }
 
@@ -4220,11 +4023,6 @@
           state.r4r5Members,
           state.allianceMembers,
         );
-        if (state.startDateStr) {
-          flushLinearWeeksToScheduleMap(state.startDateStr);
-          pruneScheduleByWeekStartMap(156);
-        }
-        ensureScheduleMap();
         return {
           weeks: state.weeks,
           nameEditWeek: state.nameEditWeek,
@@ -4232,7 +4030,6 @@
           startDateStr: state.startDateStr,
           conductors: state.conductors,
           dayAssignmentsByWeek: state.dayAssignmentsByWeek,
-          scheduleByWeekStart: state.scheduleByWeekStart,
           showVip: state.showVip,
           allianceMembers: state.allianceMembers,
           r4r5Members: state.r4r5Members,
@@ -4782,7 +4579,7 @@
         });
       });
       // Name Assignment Week: only switches which stored week row the conductor name inputs edit.
-      // Changing the start date (above) reloads rows from calendar-keyed storage so past weeks round-trip.
+      // Changing the start date (above) slides week data with the calendar.
       conductorWeekSelect.addEventListener("change", () => {
         if (conductorWeekSelectProgrammatic) return;
         const n = Number(conductorWeekSelect.value);
@@ -4935,23 +4732,25 @@
         const picked = new Date(startDateInput.value + "T00:00:00");
         const monday = getMondayOf(picked);
         const newMondayStr = toDateStr(monday);
-        if (!commitScheduleStartMonday(newMondayStr)) return;
+        const oldStr = state.startDateStr;
+        if (oldStr && newMondayStr !== oldStr) {
+          const oldMon = new Date(oldStr + "T00:00:00");
+          const deltaMs = monday.getTime() - oldMon.getTime();
+          const deltaWeeks = Math.round(deltaMs / (7 * 86400000));
+          if (deltaWeeks !== 0 && Number.isFinite(deltaWeeks)) {
+            shiftWeekSlotDataByCalendarDelta(deltaWeeks);
+            shiftMemberHistoryWeekIndicesByCalendarDelta(deltaWeeks);
+          }
+        }
+        state.startDateStr = newMondayStr;
+        startDateInput.value = state.startDateStr;
+        state.nameEditWeek = Math.max(
+          0,
+          Math.min(state.weeks - 1, state.nameEditWeek),
+        );
         saveState();
         render();
       });
-
-      const startDatePrevWeek = document.getElementById("startDatePrevWeek");
-      const startDateNextWeek = document.getElementById("startDateNextWeek");
-      if (startDatePrevWeek) {
-        startDatePrevWeek.addEventListener("click", () => {
-          bumpScheduleStartByWeeks(-1);
-        });
-      }
-      if (startDateNextWeek) {
-        startDateNextWeek.addEventListener("click", () => {
-          bumpScheduleStartByWeeks(1);
-        });
-      }
 
       if (anchorScheduleToTodayButton) {
         anchorScheduleToTodayButton.addEventListener("click", () => {
@@ -4982,12 +4781,8 @@
         state.conductorNamesByWeek = Array.from({ length: 4 }, () =>
           Array(7).fill(""),
         );
-        state.scheduleByWeekStart = {};
         state.showVip = true;
         vipToggleInput.checked = true;
-        if (state.startDateStr) {
-          flushLinearWeeksToScheduleMap(state.startDateStr);
-        }
         saveState();
         render();
       });
@@ -5012,9 +4807,6 @@
             state.dayAssignmentsByWeek[w] = normalizeDayAssignmentsWeekRow(
               freshDayAssignmentsWeek(),
             );
-            if (state.startDateStr) {
-              persistWeekPackForLinearIndex(w, state.startDateStr);
-            }
           }
           saveState();
           render();
