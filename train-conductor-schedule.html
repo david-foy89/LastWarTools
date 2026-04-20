@@ -1807,7 +1807,9 @@
       /** Move schedule start forward by whole weeks (keeps table dates aligned). */
       function advanceStartDateByWeeks(weekCount) {
         if (!weekCount || !state.startDateStr) return;
-        const d = new Date(state.startDateStr + "T00:00:00");
+        const anchor = mondayAnchorFromYmd(state.startDateStr);
+        if (!anchor) return;
+        const d = new Date(anchor + "T00:00:00");
         if (Number.isNaN(d.getTime())) return;
         d.setDate(d.getDate() + 7 * weekCount);
         commitScheduleStartMonday(toDateStr(getMondayOf(d)));
@@ -1827,6 +1829,15 @@
         const m = String(date.getMonth() + 1).padStart(2, "0");
         const d = String(date.getDate()).padStart(2, "0");
         return `${y}-${m}-${d}`;
+      }
+
+      /** Monday YYYY-MM-DD for the calendar week that contains this YYYY-MM-DD (grid row 0 anchor). */
+      function mondayAnchorFromYmd(ymd) {
+        const s = String(ymd || "").trim();
+        if (!/^\d{4}-\d{2}-\d{2}$/.test(s)) return "";
+        const picked = new Date(s + "T00:00:00");
+        if (Number.isNaN(picked.getTime())) return "";
+        return toDateStr(getMondayOf(picked));
       }
 
       /** Snap schedule start to the Monday of the given calendar date (YYYY-MM-DD). */
@@ -1856,7 +1867,8 @@
         if (!base) {
           base = toDateStr(getMondayOf(getServerTodayDate()));
         }
-        const d = new Date(base + "T00:00:00");
+        const anchor = mondayAnchorFromYmd(base) || base;
+        const d = new Date(anchor + "T00:00:00");
         if (Number.isNaN(d.getTime())) return;
         d.setDate(d.getDate() + 7 * deltaWeeks);
         if (!commitScheduleStartMonday(toDateStr(getMondayOf(d)))) return;
@@ -1872,7 +1884,11 @@
         if (!state.startDateStr) {
           return `Week ${weekIdx + 1}`;
         }
-        const base = new Date(state.startDateStr + "T00:00:00");
+        const anchor = mondayAnchorFromYmd(state.startDateStr);
+        if (!anchor) {
+          return `Week ${weekIdx + 1}`;
+        }
+        const base = new Date(anchor + "T00:00:00");
         if (Number.isNaN(base.getTime())) {
           return `Week ${weekIdx + 1}`;
         }
@@ -1953,7 +1969,9 @@
 
       function scheduleDayDiffFromStart() {
         if (!state.startDateStr) return null;
-        const start = new Date(state.startDateStr + "T00:00:00");
+        const anchor = mondayAnchorFromYmd(state.startDateStr);
+        if (!anchor) return null;
+        const start = new Date(anchor + "T00:00:00");
         const today = getServerTodayDate();
         const diffMs = today.getTime() - start.getTime();
         return Math.floor(diffMs / 86400000);
@@ -2116,7 +2134,9 @@
         if (weekIdx < 0 || weekIdx > 3) return null;
         const baseStr = String(startStr || "").trim();
         if (!isMondayDateKey(baseStr)) return null;
-        const base = new Date(baseStr + "T00:00:00");
+        const anchor = mondayAnchorFromYmd(baseStr);
+        if (!anchor) return null;
+        const base = new Date(anchor + "T00:00:00");
         if (Number.isNaN(base.getTime())) return null;
         const d = new Date(base);
         d.setDate(base.getDate() + weekIdx * 7);
@@ -2248,7 +2268,8 @@
               (Array.isArray(v.dayAssignments) && v.dayAssignments.length === 7
                 ? v.dayAssignments
                 : null);
-            state.scheduleByWeekStart[k] = {
+            const canonK = mondayAnchorFromYmd(k) || k;
+            state.scheduleByWeekStart[canonK] = {
               names: v.names.map((n) => String(n ?? "").trim().slice(0, 40)),
               days: normalizeDayAssignmentsWeekRow(rawDays || []),
             };
@@ -3216,8 +3237,9 @@
         });
 
         if (state.startDateStr) {
-          const startDate = new Date(state.startDateStr + "T00:00:00");
-          if (!isNaN(startDate.getTime())) {
+          const anchor = mondayAnchorFromYmd(state.startDateStr);
+          const startDate = anchor ? new Date(anchor + "T00:00:00") : null;
+          if (startDate && !isNaN(startDate.getTime())) {
             const today = getServerTodayDate();
             let lastScheduledDate = null;
 
@@ -3968,7 +3990,8 @@
           );
         }
         if (typeof saved.startDateStr === "string") {
-          state.startDateStr = saved.startDateStr;
+          const mon = mondayAnchorFromYmd(saved.startDateStr);
+          state.startDateStr = mon || String(saved.startDateStr).trim();
         }
         if (
           Array.isArray(saved.conductors) &&
@@ -4093,7 +4116,9 @@
 
       function getScheduleExportRows() {
         const rows = [];
-        const startDate = new Date(state.startDateStr + "T00:00:00");
+        const anchor = mondayAnchorFromYmd(state.startDateStr);
+        if (!anchor) return rows;
+        const startDate = new Date(anchor + "T00:00:00");
 
         for (let w = 0; w < state.weeks; w++) {
           const row = [];
@@ -4520,7 +4545,9 @@
       function renderSchedule() {
         if (!state.startDateStr) return;
 
-        const startDate = new Date(state.startDateStr + "T00:00:00");
+        const anchor = mondayAnchorFromYmd(state.startDateStr);
+        if (!anchor) return;
+        const startDate = new Date(anchor + "T00:00:00");
 
         // Header
         const headerCells = [];
@@ -4593,9 +4620,11 @@
         // Today banner
         if (todayFound) {
           const today = getServerTodayDate();
-          const diffMs =
-            today.getTime() -
-            new Date(state.startDateStr + "T00:00:00").getTime();
+          const anchorMs = new Date(
+            (mondayAnchorFromYmd(state.startDateStr) || state.startDateStr) +
+              "T00:00:00",
+          ).getTime();
+          const diffMs = today.getTime() - anchorMs;
           const dayDiff = Math.floor(diffMs / 86400000);
           const todayWeekIdx =
             dayDiff >= 0 && dayDiff < state.weeks * 7
@@ -4663,6 +4692,12 @@
 
       if (!state.startDateStr) {
         state.startDateStr = toDateStr(getMondayOf(getServerTodayDate()));
+      } else {
+        const anchored = mondayAnchorFromYmd(state.startDateStr);
+        if (anchored && anchored !== state.startDateStr) {
+          state.startDateStr = anchored;
+          hydrateLinearWeeksFromScheduleMap(state.startDateStr);
+        }
       }
       if (!loadedFromShareLink) {
         ensureStaleScheduleShowsToday();
