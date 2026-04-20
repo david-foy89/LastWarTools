@@ -2095,10 +2095,24 @@
         if (!Array.isArray(week) || week.length !== 7) {
           return [0, 1, 2, 3, 4, 5, 6];
         }
-        return week.map((v) => {
+        const row = week.map((v) => {
           const n = Number(v);
           return Number.isFinite(n) && n >= -1 && n <= 6 ? n : 0;
         });
+        /** Every day "unassigned" (-1) makes the grid show no chips; treat as corrupt and use Mon–Sun rotation. */
+        if (row.length === 7 && row.every((v) => v === -1)) {
+          return [0, 1, 2, 3, 4, 5, 6];
+        }
+        return row;
+      }
+
+      /** Coerce each stored week row to a valid 7-day assignment (fixes `[]` / all -1 from bad sync data). */
+      function repairStateDayAssignmentsByWeekIfNeeded() {
+        for (let w = 0; w < 4; w++) {
+          state.dayAssignmentsByWeek[w] = normalizeDayAssignmentsWeekRow(
+            state.dayAssignmentsByWeek[w],
+          );
+        }
       }
 
       /** Migrate legacy single-week row or load 4×7; share/save may omit new shape. */
@@ -2151,6 +2165,7 @@
 
       function flushLinearWeeksToScheduleMap(startStr) {
         ensureScheduleMap();
+        repairStateDayAssignmentsByWeekIfNeeded();
         const baseStr = String(startStr || "").trim();
         if (!baseStr) return;
         for (let w = 0; w < 4; w++) {
@@ -2254,25 +2269,60 @@
         }
       }
 
+      function weekPackNonEmptyNameCount(pack) {
+        if (!pack || typeof pack !== "object" || !Array.isArray(pack.names)) {
+          return 0;
+        }
+        let n = 0;
+        for (let i = 0; i < pack.names.length; i++) {
+          if (String(pack.names[i] ?? "").trim()) n += 1;
+        }
+        return n;
+      }
+
       function mergeScheduleMapFromSaved(saved) {
         ensureScheduleMap();
         state.scheduleByWeekStart = {};
         if (saved.scheduleByWeekStart && typeof saved.scheduleByWeekStart === "object") {
-          for (const [k, v] of Object.entries(saved.scheduleByWeekStart)) {
-            if (!isMondayDateKey(k)) continue;
-            if (!v || typeof v !== "object" || !Array.isArray(v.names) || v.names.length !== 7) {
-              continue;
-            }
+          const entries = Object.entries(saved.scheduleByWeekStart).filter(
+            ([k, v]) =>
+              isMondayDateKey(k) &&
+              v &&
+              typeof v === "object" &&
+              Array.isArray(v.names) &&
+              v.names.length === 7,
+          );
+          entries.sort(([ka], [kb]) => {
+            const ca = mondayAnchorFromYmd(ka) || ka;
+            const cb = mondayAnchorFromYmd(kb) || kb;
+            if (ca !== cb) return String(ca).localeCompare(String(cb));
+            const aExact = String(ka).trim() === ca ? 0 : 1;
+            const bExact = String(kb).trim() === cb ? 0 : 1;
+            if (aExact !== bExact) return aExact - bExact;
+            return String(ka).localeCompare(String(kb));
+          });
+          for (const [k, v] of entries) {
             const rawDays =
               v.days ||
               (Array.isArray(v.dayAssignments) && v.dayAssignments.length === 7
                 ? v.dayAssignments
                 : null);
             const canonK = mondayAnchorFromYmd(k) || k;
-            state.scheduleByWeekStart[canonK] = {
+            const mergedPack = {
               names: v.names.map((n) => String(n ?? "").trim().slice(0, 40)),
               days: normalizeDayAssignmentsWeekRow(rawDays || []),
             };
+            const exact = String(k).trim() === canonK;
+            const prev = state.scheduleByWeekStart[canonK];
+            if (!exact && prev) {
+              if (
+                weekPackNonEmptyNameCount(mergedPack) <=
+                weekPackNonEmptyNameCount(prev)
+              ) {
+                continue;
+              }
+            }
+            state.scheduleByWeekStart[canonK] = mergedPack;
           }
         }
         if (state.startDateStr) {
@@ -3256,9 +3306,9 @@
                   continue;
                 }
 
-                const weekDays =
-                  state.dayAssignmentsByWeek[weekIdx] ||
-                  [0, 1, 2, 3, 4, 5, 6];
+                const weekDays = normalizeDayAssignmentsWeekRow(
+                  state.dayAssignmentsByWeek[weekIdx],
+                );
                 for (let dayIdx = 0; dayIdx < 7; dayIdx++) {
                   if (weekDays[dayIdx] !== conductorIdx) {
                     continue;
@@ -4116,15 +4166,16 @@
 
       function getScheduleExportRows() {
         const rows = [];
+        repairStateDayAssignmentsByWeekIfNeeded();
         const anchor = mondayAnchorFromYmd(state.startDateStr);
         if (!anchor) return rows;
         const startDate = new Date(anchor + "T00:00:00");
 
         for (let w = 0; w < state.weeks; w++) {
           const row = [];
-          const weekDays = state.dayAssignmentsByWeek[w] || [
-            0, 1, 2, 3, 4, 5, 6,
-          ];
+          const weekDays = normalizeDayAssignmentsWeekRow(
+            state.dayAssignmentsByWeek[w],
+          );
           for (let d = 0; d < 7; d++) {
             const cellDate = new Date(startDate);
             cellDate.setDate(startDate.getDate() + w * 7 + d);
@@ -4544,6 +4595,7 @@
 
       function renderSchedule() {
         if (!state.startDateStr) return;
+        repairStateDayAssignmentsByWeekIfNeeded();
 
         const anchor = mondayAnchorFromYmd(state.startDateStr);
         if (!anchor) return;
@@ -4563,9 +4615,9 @@
 
         for (let w = 0; w < state.weeks; w++) {
           const cells = [];
-          const weekDays = state.dayAssignmentsByWeek[w] || [
-            0, 1, 2, 3, 4, 5, 6,
-          ];
+          const weekDays = normalizeDayAssignmentsWeekRow(
+            state.dayAssignmentsByWeek[w],
+          );
           for (let d = 0; d < 7; d++) {
             const cellDate = new Date(startDate);
             cellDate.setDate(startDate.getDate() + w * 7 + d);
