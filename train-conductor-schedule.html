@@ -1984,9 +1984,12 @@
         return "";
       }
 
-      /** Input value for the name-edit date: empty when unset so placeholders show. */
-      function getConductorNameInputValue(conductorIdx) {
-        let dk = getNameEditDateKey();
+      /** Date key backing the left-panel name field for this conductor slot. */
+      function getConductorNameInputDateKey(conductorIdx) {
+        let dk = getConductorNamePackDateKeyForSlot(
+          conductorIdx,
+          state.nameEditWeek,
+        );
         if (!dk) {
           dk = getConductorNameFillDateKey(conductorIdx);
         }
@@ -1994,12 +1997,40 @@
           const lk = String(lastConductorRosterDateKeyForPick).trim();
           if (isMondayDateKey(lk)) dk = lk;
         }
-        if (!dk) return "";
-        const row = getDateNamesRow(dk);
-        if (!row) return "";
-        const raw = row[conductorIdx];
-        if (conductorSlotIsUnset(raw, conductorIdx)) return "";
-        return String(raw).trim().slice(0, 40);
+        return dk;
+      }
+
+      /** Input value for the name-edit date: empty when unset so placeholders show. */
+      function getConductorNameInputValue(conductorIdx) {
+        const tryRead = (dk) => {
+          if (!dk) return "";
+          const row = getDateNamesRow(dk);
+          if (!row) return "";
+          const raw = row[conductorIdx];
+          if (conductorSlotIsUnset(raw, conductorIdx)) return "";
+          return String(raw).trim().slice(0, 40);
+        };
+        const slotDk = getCalendarDateKeyForConductorSlotInWeek(
+          conductorIdx,
+          state.nameEditWeek,
+        );
+        let v = tryRead(slotDk);
+        if (v) return v;
+        const nameEditDk = getNameEditDateKey();
+        if (nameEditDk && nameEditDk !== slotDk) {
+          v = tryRead(nameEditDk);
+          if (v) return v;
+        }
+        v = tryRead(getConductorNameFillDateKey(conductorIdx));
+        if (v) return v;
+        if (lastConductorRosterDateKeyForPick) {
+          const lk = String(lastConductorRosterDateKeyForPick).trim();
+          if (isMondayDateKey(lk)) {
+            v = tryRead(lk);
+            if (v) return v;
+          }
+        }
+        return "";
       }
 
       /** Default Mon–Sun assignment row for a fresh week. */
@@ -2346,6 +2377,41 @@
           return [0, 1, 2, 3, 4, 5, 6];
         }
         return row;
+      }
+
+      /**
+       * Calendar date (YYYY-MM-DD) in week row `weekIdx` for the column where
+       * `conductorIdx` is the assigned conductor, so roster names match schedule chips.
+       */
+      function getCalendarDateKeyForConductorSlotInWeek(conductorIdx, weekIdx) {
+        const ci = Number(conductorIdx);
+        if (!Number.isFinite(ci) || ci < 0 || ci > 6) return "";
+        const w = Math.max(0, Math.min(3, Number(weekIdx)));
+        const raw = state.dayAssignmentsByWeek[w];
+        const weekDays = normalizeDayAssignmentsWeekRow(
+          Array.isArray(raw) && raw.length === 7 ? raw : [],
+        );
+        for (let d = 0; d < 7; d++) {
+          if (weekDays[d] === ci) {
+            return getCalendarDateKeyForCell(state.startDateStr, w, d);
+          }
+        }
+        return "";
+      }
+
+      /**
+       * Date key whose `scheduleByCalendarDate` row backs this conductor slot for
+       * the given assignment week (falls back to the highlighted name-edit cell).
+       */
+      function getConductorNamePackDateKeyForSlot(conductorIdx, weekIdx) {
+        const dkSlot = getCalendarDateKeyForConductorSlotInWeek(
+          conductorIdx,
+          weekIdx,
+        );
+        if (dkSlot) return dkSlot;
+        const w = Math.max(0, Math.min(3, Number(weekIdx)));
+        const d = Math.max(0, Math.min(6, state.nameEditDay));
+        return getCalendarDateKeyForCell(state.startDateStr, w, d);
       }
 
       /** Coerce each stored week row to a valid 7-day assignment (fixes `[]` / all -1 from bad sync data). */
@@ -4297,11 +4363,15 @@
         } else {
           let dk = "";
           if (active?.classList?.contains("conductor-name-input")) {
+            const slotIdx = readConductorSlotIdxFromInputEl(active);
             dk =
               readConductorNameDateKeyFromInputEl(active) ||
-              getNameEditDateKey();
+              getConductorNamePackDateKeyForSlot(
+                Number.isFinite(slotIdx) ? slotIdx : idx,
+                state.nameEditWeek,
+              );
           } else {
-            dk = getNameEditDateKey();
+            dk = getConductorNamePackDateKeyForSlot(idx, state.nameEditWeek);
           }
           if (!dk) {
             dk = getConductorNameFillDateKey(idx);
@@ -4345,7 +4415,7 @@
           ? Math.max(0, Math.min(6, Number(state.allianceFillConductorIdx)))
           : 0;
 
-        let dk = getNameEditDateKey();
+        let dk = getConductorNamePackDateKeyForSlot(idx, state.nameEditWeek);
         if (!dk) {
           dk = getConductorNameFillDateKey(idx);
         }
@@ -4927,8 +4997,8 @@
                 class="conductor-name-input"
                 value="${escapeHtml(getConductorNameInputValue(i))}"
                 data-idx="${i}"
-                data-date-key="${escapeHtml(getNameEditDateKey())}"
-                name="lw-tc-name-${escapeHtml(getNameEditDateKey())}-c${i}"
+                data-date-key="${escapeHtml(getConductorNameInputDateKey(i))}"
+                name="lw-tc-name-${escapeHtml(getConductorNameInputDateKey(i))}-c${i}"
                 maxlength="40"
                 autocomplete="off"
                 data-lpignore="true"
