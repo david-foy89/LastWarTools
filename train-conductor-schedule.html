@@ -675,6 +675,7 @@
         border: 1px solid var(--line);
         border-radius: 10px;
         background: rgba(8, 16, 25, 0.45);
+        touch-action: manipulation;
       }
 
       .alliance-member-item {
@@ -703,6 +704,8 @@
         font-size: 0.84rem;
         cursor: pointer;
         padding: 0;
+        touch-action: manipulation;
+        -webkit-tap-highlight-color: rgba(77, 171, 247, 0.25);
       }
 
       .alliance-member-pick:hover,
@@ -1802,6 +1805,11 @@
       let pendingImportFileName = "";
       let editingAllianceMemberIdx = -1;
       let allianceMemberSearchSaveTimer = null;
+      /**
+       * Last roster date key matching the left “name assignment” panel; updated on
+       * render and focus so member picks work even without focusing a conductor input.
+       */
+      let lastConductorRosterDateKeyForPick = "";
 
       function conductorSlotIsUnset(raw, conductorIdx) {
         if (raw === undefined || raw === null) return true;
@@ -1834,6 +1842,19 @@
         return isMondayDateKey(s) ? s : "";
       }
 
+      /** `data-idx` on conductor inputs (dataset.idx is unreliable in some WebViews). */
+      function readConductorSlotIdxFromInputEl(inp) {
+        if (!inp || inp.nodeType !== 1) return NaN;
+        const raw =
+          typeof inp.getAttribute === "function"
+            ? inp.getAttribute("data-idx")
+            : "";
+        const n = Number(String(raw ?? "").trim());
+        if (Number.isFinite(n) && n >= 0 && n <= 6) return n;
+        const d = Number(inp.dataset?.idx);
+        return Number.isFinite(d) && d >= 0 && d <= 6 ? d : NaN;
+      }
+
       /** Calendar cell date (YYYY-MM-DD) for row `weekIdx`, column `dayIdx` (0 Mon … 6 Sun). */
       function getCalendarDateKeyForCell(startStr, weekIdx, dayIdx) {
         if (weekIdx < 0 || weekIdx > 3 || dayIdx < 0 || dayIdx > 6) return "";
@@ -1853,6 +1874,32 @@
           Math.max(0, Math.min(3, state.nameEditWeek)),
           Math.max(0, Math.min(6, state.nameEditDay)),
         );
+      }
+
+      /**
+       * Bad or non‑canonical `startDateStr` in storage breaks every roster date
+       * (`getNameEditDateKey` → ""), so picks never persist and inputs stay empty.
+       */
+      function normalizeScheduleStartDateInState() {
+        const raw = String(state.startDateStr || "").trim();
+        if (!raw || !isMondayDateKey(raw)) {
+          state.startDateStr = toDateStr(getMondayOf(getServerTodayDate()));
+          if (startDateInput) startDateInput.value = state.startDateStr;
+          hydrateDayAssignmentsFromWeekMap(state.startDateStr);
+          return;
+        }
+        const anchored = mondayAnchorFromYmd(raw);
+        if (!anchored) {
+          state.startDateStr = toDateStr(getMondayOf(getServerTodayDate()));
+          if (startDateInput) startDateInput.value = state.startDateStr;
+          hydrateDayAssignmentsFromWeekMap(state.startDateStr);
+          return;
+        }
+        if (anchored !== raw) {
+          state.startDateStr = anchored;
+          if (startDateInput) startDateInput.value = state.startDateStr;
+          hydrateDayAssignmentsFromWeekMap(state.startDateStr);
+        }
       }
 
       /** Map a calendar YYYY-MM-DD to visible grid indices, or null if not on the grid. */
@@ -1939,7 +1986,14 @@
 
       /** Input value for the name-edit date: empty when unset so placeholders show. */
       function getConductorNameInputValue(conductorIdx) {
-        const dk = getNameEditDateKey();
+        let dk = getNameEditDateKey();
+        if (!dk) {
+          dk = getConductorNameFillDateKey(conductorIdx);
+        }
+        if (!dk && lastConductorRosterDateKeyForPick) {
+          const lk = String(lastConductorRosterDateKeyForPick).trim();
+          if (isMondayDateKey(lk)) dk = lk;
+        }
         if (!dk) return "";
         const row = getDateNamesRow(dk);
         if (!row) return "";
@@ -2190,6 +2244,13 @@
           .replace(/</g, "&lt;")
           .replace(/>/g, "&gt;")
           .replace(/"/g, "&quot;");
+      }
+
+      /** Clicks on label text may use a Text node as `event.target` (no `.closest`). */
+      function eventTargetElement(event) {
+        const t = event && event.target;
+        if (!t) return null;
+        return t.nodeType === 1 ? t : t.parentElement || null;
       }
 
       function sanitizeMemberName(value) {
@@ -3425,6 +3486,30 @@
         );
       }
 
+      /** Read “Click fills” UI so picks use the slot/week the user actually chose. */
+      function syncAllianceFillTargetsFromDom() {
+        if (allianceFillTargetSelect) {
+          const v = allianceFillTargetSelect.value;
+          state.allianceFillTarget = v === "vip" ? "vip" : "conductor";
+        }
+        if (allianceFillConductorSelect) {
+          const idx = Number(allianceFillConductorSelect.value);
+          state.allianceFillConductorIdx = Number.isFinite(idx)
+            ? Math.max(0, Math.min(6, idx))
+            : 0;
+        }
+      }
+
+      /** Align roster date with the “Name assignment week” dropdown (calendar row). */
+      function syncNameAssignmentWeekFromDom() {
+        if (!conductorWeekSelect) return;
+        const n = Number(conductorWeekSelect.value);
+        if (Number.isFinite(n) && n >= 0 && n <= 3) {
+          state.nameEditWeek = n;
+        }
+        clampNameEditWeekToVisibleSchedule();
+      }
+
       function getFilteredAllianceMembers() {
         // Always filter from the visible search box when it exists. Relying only on
         // state breaks after cloud sync (loadState) or if activeElement checks miss
@@ -3621,7 +3706,12 @@
         if (trainAllianceMembersTotal) {
           trainAllianceMembersTotal.innerHTML = `Total alliance members: <strong>${memberTotal}</strong> <span class="train-alliance-total-cap">(max ${MAX_ALLIANCE_MEMBERS})</span>`;
         }
-        allianceFillTargetSelect.value = state.allianceFillTarget;
+        if (allianceFillTargetSelect) {
+          const tf =
+            state.allianceFillTarget === "vip" ? "vip" : "conductor";
+          state.allianceFillTarget = tf;
+          allianceFillTargetSelect.value = tf;
+        }
         // Keep search box and state in sync without clobbering an in-progress edit.
         if (allianceMemberSearchInput) {
           if (document.activeElement === allianceMemberSearchInput) {
@@ -4148,17 +4238,52 @@
         }
       }
 
+      /**
+       * Fallback date key: read `data-date-key` from the visible conductor row for `conductorIdx`.
+       */
+      function getConductorNameFillDateKey(conductorIdx) {
+        const i = Number(conductorIdx);
+        const idx =
+          Number.isFinite(i) && i >= 0 && i <= 6
+            ? i
+            : Math.max(
+                0,
+                Math.min(6, Number(state.allianceFillConductorIdx) || 0),
+              );
+        const rows = conductorsList?.querySelectorAll?.(
+          ".conductor-name-input",
+        );
+        const slotInput =
+          rows && rows.length > idx ? rows[idx] : null;
+        return (
+          readConductorNameDateKeyFromInputEl(slotInput) || getNameEditDateKey()
+        );
+      }
+
       function applyAllianceMemberToTarget(memberName) {
+        normalizeScheduleStartDateInState();
+
         const active = document.activeElement;
         let targetType = state.allianceFillTarget;
-        let idx = state.allianceFillConductorIdx;
+        let idx = Number(state.allianceFillConductorIdx);
 
         if (active?.classList?.contains("conductor-name-input")) {
           targetType = "conductor";
-          idx = Number(active.dataset.idx);
+          const ai = readConductorSlotIdxFromInputEl(active);
+          if (Number.isFinite(ai)) idx = ai;
         } else if (active?.classList?.contains("conductor-vip-input")) {
           targetType = "vip";
-          idx = Number(active.dataset.idx);
+          const ai = readConductorSlotIdxFromInputEl(active);
+          if (Number.isFinite(ai)) idx = ai;
+        } else {
+          syncAllianceFillTargetsFromDom();
+          syncNameAssignmentWeekFromDom();
+          targetType = state.allianceFillTarget;
+          idx = Number(state.allianceFillConductorIdx);
+        }
+
+        if (targetType !== "vip" && targetType !== "conductor") {
+          targetType = "conductor";
         }
 
         if (!Number.isFinite(idx) || idx < 0 || idx > 6) {
@@ -4170,44 +4295,74 @@
             normalizeVipGuardianValue(memberName);
           recordMemberHistory(memberName, "vip", idx);
         } else {
-          const dk =
-            active?.classList?.contains("conductor-name-input")
-              ? readConductorNameDateKeyFromInputEl(active) ||
-                getNameEditDateKey()
-              : getNameEditDateKey();
+          let dk = "";
+          if (active?.classList?.contains("conductor-name-input")) {
+            dk =
+              readConductorNameDateKeyFromInputEl(active) ||
+              getNameEditDateKey();
+          } else {
+            dk = getNameEditDateKey();
+          }
+          if (!dk) {
+            dk = getConductorNameFillDateKey(idx);
+          }
+          if (!dk && lastConductorRosterDateKeyForPick) {
+            const lk = String(lastConductorRosterDateKeyForPick).trim();
+            if (isMondayDateKey(lk)) dk = lk;
+          }
           const n = sanitizeMemberName(memberName).slice(0, 40);
           const pack = dk ? ensureDatePack(dk) : null;
           if (pack) {
             pack.names[idx] = n;
             pack.names = normalizeNames7(pack.names);
-          }
-          if (n) {
-            recordMemberHistory(memberName, "conductor", idx, state.nameEditWeek);
+            if (n) {
+              recordMemberHistory(
+                memberName,
+                "conductor",
+                idx,
+                state.nameEditWeek,
+              );
+            }
           }
         }
 
-        saveState();
+        // Render before saveState: getScheduleSnapshotForPersistence() calls
+        // syncConductorNameInputsFromDomIntoState(), which would copy stale input
+        // values from the DOM and overwrite the roster we just updated in memory.
         renderConductors();
         renderSchedule();
         renderAllianceMembers();
+        saveState();
       }
 
       function applyAllianceMemberAsConductor(memberName) {
         const name = sanitizeMemberName(memberName);
         if (!name) return;
-        const idx = Number.isFinite(Number(state.allianceFillConductorIdx))
+        syncAllianceFillTargetsFromDom();
+        syncNameAssignmentWeekFromDom();
+        normalizeScheduleStartDateInState();
+        let idx = Number.isFinite(Number(state.allianceFillConductorIdx))
           ? Math.max(0, Math.min(6, Number(state.allianceFillConductorIdx)))
           : 0;
-        const dk = getNameEditDateKey();
+
+        let dk = getNameEditDateKey();
+        if (!dk) {
+          dk = getConductorNameFillDateKey(idx);
+        }
+        if (!dk && lastConductorRosterDateKeyForPick) {
+          const lk = String(lastConductorRosterDateKeyForPick).trim();
+          if (isMondayDateKey(lk)) dk = lk;
+        }
+
         const pack = dk ? ensureDatePack(dk) : null;
         if (!pack) return;
         pack.names[idx] = name;
         pack.names = normalizeNames7(pack.names);
         recordMemberHistory(name, "conductor", idx, state.nameEditWeek);
-        saveState();
         renderConductors();
         renderSchedule();
         renderAllianceMembers();
+        saveState();
       }
 
       function hexToRgba(hex, alpha) {
@@ -4840,6 +4995,11 @@
             });
           });
 
+        const rosterKey = getNameEditDateKey();
+        if (rosterKey) {
+          lastConductorRosterDateKeyForPick = rosterKey;
+        }
+
         conductorsList
           .querySelectorAll(".conductor-vip-input")
           .forEach((inp) => {
@@ -5029,7 +5189,12 @@
 
       function render() {
         syncConductorNameInputsFromDomIntoState();
+        normalizeScheduleStartDateInState();
         clampNameEditWeekToVisibleSchedule();
+        const rosterKey = getNameEditDateKey();
+        if (rosterKey) {
+          lastConductorRosterDateKeyForPick = rosterKey;
+        }
         renderWeekButtons();
         renderConductors();
         renderAllianceMembers();
@@ -5237,7 +5402,8 @@
 
       if (scheduleBody) {
         scheduleBody.addEventListener("click", (event) => {
-          const td = event.target.closest("tr td");
+          const el = eventTargetElement(event);
+          const td = el && el.closest ? el.closest("tr td") : null;
           if (!td || !scheduleBody.contains(td)) return;
           const tr = td.closest("tr");
           if (!tr || tr.parentElement !== scheduleBody) return;
@@ -5491,7 +5657,7 @@
       conductorsList.addEventListener("focusin", (event) => {
         const target = event.target;
         if (target?.classList?.contains("conductor-name-input")) {
-          const idx = Number(target.dataset.idx);
+          const idx = readConductorSlotIdxFromInputEl(target);
           state.allianceFillTarget = "conductor";
           state.allianceFillConductorIdx = Number.isFinite(idx)
             ? Math.max(0, Math.min(6, idx))
@@ -5499,13 +5665,18 @@
           if (allianceFillTargetSelect) {
             allianceFillTargetSelect.value = "conductor";
           }
+          const dk =
+            readConductorNameDateKeyFromInputEl(target) || getNameEditDateKey();
+          if (dk) {
+            lastConductorRosterDateKeyForPick = dk;
+          }
           syncAllianceFillConductorOptions();
           saveState();
           return;
         }
 
         if (target?.classList?.contains("conductor-vip-input")) {
-          const idx = Number(target.dataset.idx);
+          const idx = readConductorSlotIdxFromInputEl(target);
           state.allianceFillTarget = "vip";
           state.allianceFillConductorIdx = Number.isFinite(idx)
             ? Math.max(0, Math.min(6, idx))
@@ -5660,15 +5831,21 @@
 
       if (allianceR4R5Group) {
         allianceR4R5Group.addEventListener("click", (event) => {
-          const pickBtn = event.target.closest("[data-name]");
+          const el = eventTargetElement(event);
+          if (!el) return;
+          const pickBtn = el.closest("[data-name]");
           if (pickBtn) {
-            const name = sanitizeMemberName(pickBtn.dataset.name);
+            const raw =
+              typeof pickBtn.getAttribute === "function"
+                ? pickBtn.getAttribute("data-name")
+                : "";
+            const name = sanitizeMemberName(raw || pickBtn.dataset?.name || "");
             if (name) {
               applyAllianceMemberAsConductor(name);
             }
             return;
           }
-          const clearR4R5Btn = event.target.closest("[data-r4r5-clear]");
+          const clearR4R5Btn = el.closest("[data-r4r5-clear]");
           if (!clearR4R5Btn) return;
           state.r4r5Members = [];
           saveState();
@@ -5677,7 +5854,9 @@
       }
 
       allianceMembersList.addEventListener("click", (event) => {
-        const toggleR4R5Btn = event.target.closest("[data-r4r5-toggle-idx]");
+        const el = eventTargetElement(event);
+        if (!el) return;
+        const toggleR4R5Btn = el.closest("[data-r4r5-toggle-idx]");
         if (toggleR4R5Btn) {
           const idx = Number(toggleR4R5Btn.dataset.r4r5ToggleIdx);
           if (
@@ -5707,7 +5886,7 @@
           return;
         }
 
-        const editBtn = event.target.closest("[data-edit-idx]");
+        const editBtn = el.closest("[data-edit-idx]");
         if (editBtn) {
           const idx = Number(editBtn.dataset.editIdx);
           if (
@@ -5721,7 +5900,7 @@
           return;
         }
 
-        const saveEditBtn = event.target.closest("[data-edit-save-idx]");
+        const saveEditBtn = el.closest("[data-edit-save-idx]");
         if (saveEditBtn) {
           const idx = Number(saveEditBtn.dataset.editSaveIdx);
           const input = allianceMembersList.querySelector(
@@ -5731,14 +5910,14 @@
           return;
         }
 
-        const cancelEditBtn = event.target.closest("[data-edit-cancel-idx]");
+        const cancelEditBtn = el.closest("[data-edit-cancel-idx]");
         if (cancelEditBtn) {
           editingAllianceMemberIdx = -1;
           renderAllianceMembers();
           return;
         }
 
-        const removeBtn = event.target.closest("[data-remove-idx]");
+        const removeBtn = el.closest("[data-remove-idx]");
         if (removeBtn) {
           const idx = Number(removeBtn.dataset.removeIdx);
           if (
@@ -5761,9 +5940,15 @@
           return;
         }
 
-        const pickBtn = event.target.closest("[data-name]");
-        if (pickBtn) {
-          const name = sanitizeMemberName(pickBtn.dataset.name);
+        const pickBtn = el.closest("[data-name]");
+        if (pickBtn && allianceMembersList.contains(pickBtn)) {
+          const raw =
+            typeof pickBtn.getAttribute === "function"
+              ? pickBtn.getAttribute("data-name")
+              : "";
+          const name = sanitizeMemberName(
+            raw || pickBtn.dataset?.name || "",
+          );
           if (name) {
             applyAllianceMemberToTarget(name);
           }
