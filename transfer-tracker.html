@@ -165,6 +165,33 @@
         line-height: 1.2;
         white-space: normal;
       }
+      .transfer-table .transfer-field-input {
+        width: 100%;
+        min-width: 0;
+        box-sizing: border-box;
+        margin: 0;
+        padding: 5px 6px;
+        font: inherit;
+        font-size: 0.9rem;
+        line-height: 1.2;
+        color: var(--text, #d9f0ff);
+        background: rgba(8, 16, 25, 0.5);
+        border: 1px solid var(--line-soft, rgba(30, 58, 77, 0.7));
+        border-radius: 6px;
+      }
+      .transfer-table .transfer-field-input:focus {
+        outline: 2px solid rgba(77, 171, 247, 0.35);
+        border-color: rgba(77, 171, 247, 0.5);
+        background: rgba(8, 20, 32, 0.7);
+      }
+      .transfer-table .transfer-field-input:disabled {
+        opacity: 0.65;
+        cursor: not-allowed;
+      }
+      .transfer-table .transfer-field-input--saving {
+        opacity: 0.7;
+        pointer-events: none;
+      }
 
       /*
         Top cards: parent grid rows (auto / 1fr / auto) + subgrid on each panel so left & right
@@ -617,7 +644,11 @@
         <h1>Transfer Tracker</h1>
         <div class="sub">
           Track members for transfer surge after Season 2. You can send a link
-          below or upload via excel
+          below or upload via Excel. In the table, you can
+          <strong>edit</strong> each row&rsquo;s
+          <strong>name</strong>, <strong>best / total power</strong> (millions),
+          and <strong>transfer status</strong>; your edit saves when you leave
+          the field.
         </div>
       </section>
       <div
@@ -802,6 +833,21 @@
               .replace(/</g, "&lt;")
               .replace(/>/g, "&gt;")
               .replace(/"/g, "&quot;");
+          }
+
+          function escapeAttr(v) {
+            return String(v ?? "")
+              .replace(/&/g, "&amp;")
+              .replace(/"/g, "&quot;")
+              .replace(/</g, "&lt;")
+              .replace(/[\r\n]/g, " ");
+          }
+
+          function stringForEditableField(row, field) {
+            if (field === "bestSquadPower" || field === "totalHeroPower") {
+              return formatMillions0000(row[field]);
+            }
+            return String(row[field] ?? "");
           }
 
           function findRowByDocId(id) {
@@ -1049,17 +1095,23 @@
             const isConfirmed = row.confirmed === true;
             const isDenied = row.denied === true;
             const infoText = String(row.additionalInfo ?? "").trim();
+            const canEdit = Boolean(db) && Boolean(docId);
+            const inDisabled = canEdit ? "" : " disabled";
+            const nVal = escapeAttr(stringForEditableField(row, "displayName"));
+            const bspVal = escapeAttr(stringForEditableField(row, "bestSquadPower"));
+            const thpVal = escapeAttr(stringForEditableField(row, "totalHeroPower"));
+            const tsVal = escapeAttr(stringForEditableField(row, "transferStatus"));
             const infoCellHtml = infoText
               ? `<button type="button" class="info-pop-btn action-button" data-doc-id="${escapeHtml(docId)}" style="padding:6px 10px;font-size:0.88rem;min-width:auto;" ${docId ? "" : "disabled"} title="View additional info">View</button>`
               : "";
             return `<tr>
-                      <td>${escapeHtml(row.displayName)}</td>
+                      <td><input type="text" class="transfer-field-input" data-doc-id="${escapeAttr(docId)}" data-field="displayName" value="${nVal}" maxlength="120" title="Name — save when you leave this field"${inDisabled} spellcheck="false" autocomplete="off" /></td>
                       <td>${escapeHtml(row.serverNumber)}</td>
                       <td>${escapeHtml(row.currentAlliance)}</td>
-                      <td>${escapeHtml(formatMillions0000(row.bestSquadPower))}</td>
-                      <td>${escapeHtml(formatMillions0000(row.totalHeroPower))}</td>
+                      <td><input type="text" class="transfer-field-input" data-doc-id="${escapeAttr(docId)}" data-field="bestSquadPower" value="${bspVal}" maxlength="32" inputmode="decimal" title="Best squad power (millions) — save when you leave this field"${inDisabled} /></td>
+                      <td><input type="text" class="transfer-field-input" data-doc-id="${escapeAttr(docId)}" data-field="totalHeroPower" value="${thpVal}" maxlength="32" inputmode="decimal" title="Total hero power (millions) — save when you leave this field"${inDisabled} /></td>
                       <td>${escapeHtml(row.allianceInterested)}</td>
-                      <td>${escapeHtml(row.transferStatus)}</td>
+                      <td><input type="text" class="transfer-field-input" data-doc-id="${escapeAttr(docId)}" data-field="transferStatus" value="${tsVal}" maxlength="200" title="Transfer status — save when you leave this field"${inDisabled} spellcheck="true" autocomplete="off" /></td>
                       <td>${infoCellHtml}</td>
                       <td style="text-align:center;vertical-align:middle;">
                         <div style="display:flex;flex-direction:column;align-items:center;gap:8px;">
@@ -1620,6 +1672,63 @@
                     (err && err.code ? String(err.code) + " — " : "") +
                     (err && err.message ? err.message : String(err)),
                 );
+              }
+            });
+            function normalizeFieldForFirestore(field, raw) {
+              const t = String(raw ?? "").trim();
+              if (field === "displayName" || field === "transferStatus") {
+                return t;
+              }
+              if (field === "bestSquadPower" || field === "totalHeroPower") {
+                if (!t) return "0.00";
+                return formatMillions0000(t);
+              }
+              return t;
+            }
+            function valueMatchesRow(row, field, normalized) {
+              if (!row) return false;
+              const cur = normalizeFieldForFirestore(
+                field,
+                stringForEditableField(row, field),
+              );
+              return cur === normalized;
+            }
+            tbody.addEventListener("focusout", async function (e) {
+              const el = e.target;
+              if (
+                !el ||
+                el.nodeType !== 1 ||
+                !el.classList.contains("transfer-field-input") ||
+                !db
+              )
+                return;
+              if (el.disabled) return;
+              const id = el.getAttribute("data-doc-id");
+              const field = el.getAttribute("data-field");
+              if (!id || !field) return;
+              const row = findRowByDocId(id);
+              if (!row) return;
+              const next = normalizeFieldForFirestore(field, el.value);
+              if (valueMatchesRow(row, field, next)) return;
+              if (field === "displayName" && !next) {
+                alert("Name cannot be empty. Restoring the previous value.");
+                el.value = stringForEditableField(row, "displayName");
+                return;
+              }
+              el.classList.add("transfer-field-input--saving");
+              try {
+                await updateDoc(doc(db, "transferSubmissions", id), {
+                  [field]: next,
+                });
+              } catch (err) {
+                el.value = stringForEditableField(row, field);
+                alert(
+                  "Could not save: " +
+                    (err && err.code ? String(err.code) + " — " : "") +
+                    (err && err.message ? err.message : String(err)),
+                );
+              } finally {
+                el.classList.remove("transfer-field-input--saving");
               }
             });
             tbody.addEventListener("click", async function (e) {
@@ -2422,19 +2531,25 @@
           <table class="transfer-table">
             <thead>
               <tr>
-                <th title="Display Name (Please use the same name)">Name</th>
+                <th title="Click the cell to edit. Saves to the database when you click away.">
+                  Name
+                </th>
                 <th title="Server Number">S#</th>
                 <th title="Current Alliance Name">Current alliance</th>
-                <th title="Best Squad Power with optimized setup (Ex: 23.6m)">
+                <th
+                  title="Edit in the cell; values are in millions (e.g. 23.6). Save on blur."
+                >
                   Best squad power
                 </th>
-                <th title="Total Hero Power (Ex: 105.6 million)">
+                <th
+                  title="Edit in the cell; values are in millions. Save on blur."
+                >
                   Total hero power
                 </th>
                 <th title="Which Alliance are you interested in joining?">
                   Interested alliance
                 </th>
-                <th title="If known, what is your transfer status?">
+                <th title="Click the cell to edit. Saves to the database when you click away.">
                   Transfer status
                 </th>
                 <th title="Additional Info you want considered?">Info</th>
