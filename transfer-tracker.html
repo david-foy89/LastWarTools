@@ -192,6 +192,10 @@
         opacity: 0.7;
         pointer-events: none;
       }
+      .transfer-table select.transfer-field-input {
+        min-height: 2.1em;
+        cursor: pointer;
+      }
 
       /*
         Top cards: parent grid rows (auto / 1fr / auto) + subgrid on each panel so left & right
@@ -647,8 +651,8 @@
           below or upload via Excel. In the table, you can
           <strong>edit</strong> each row&rsquo;s
           <strong>name</strong>, <strong>best / total power</strong> (millions),
-          and <strong>transfer status</strong>; your edit saves when you leave
-          the field.
+          and <strong>transfer status</strong> (Unknown / Gold / Purple / Blue /
+          White; saves when you change the menu).
         </div>
       </section>
       <div
@@ -843,9 +847,32 @@
               .replace(/[\r\n]/g, " ");
           }
 
+          const TRANSFER_STATUS_OPTIONS = [
+            { value: "unknown", label: "Unknown" },
+            { value: "gold", label: "Gold" },
+            { value: "purple", label: "Purple" },
+            { value: "blue", label: "Blue" },
+            { value: "white", label: "White" },
+          ];
+          const TRANSFER_STATUS_SET = new Set(
+            TRANSFER_STATUS_OPTIONS.map((o) => o.value),
+          );
+
+          function normalizeTransferStatus(raw) {
+            const t = String(raw ?? "")
+              .trim()
+              .toLowerCase();
+            if (!t || t === "unknown") return "unknown";
+            if (TRANSFER_STATUS_SET.has(t)) return t;
+            return "unknown";
+          }
+
           function stringForEditableField(row, field) {
             if (field === "bestSquadPower" || field === "totalHeroPower") {
               return formatMillions0000(row[field]);
+            }
+            if (field === "transferStatus") {
+              return normalizeTransferStatus(row && row.transferStatus);
             }
             return String(row[field] ?? "");
           }
@@ -1100,7 +1127,15 @@
             const nVal = escapeAttr(stringForEditableField(row, "displayName"));
             const bspVal = escapeAttr(stringForEditableField(row, "bestSquadPower"));
             const thpVal = escapeAttr(stringForEditableField(row, "totalHeroPower"));
-            const tsVal = escapeAttr(stringForEditableField(row, "transferStatus"));
+            const tsSelected = normalizeTransferStatus(row.transferStatus);
+            let tsSelect = `<select class="transfer-field-input" data-doc-id="${escapeAttr(docId)}" data-field="transferStatus" title="Transfer status — saves when you pick a value"${inDisabled}>`;
+            TRANSFER_STATUS_OPTIONS.forEach((opt) => {
+              const sel = opt.value === tsSelected ? " selected" : "";
+              tsSelect += `<option value="${escapeAttr(opt.value)}"${sel}>${escapeHtml(
+                opt.label,
+              )}</option>`;
+            });
+            tsSelect += "</select>";
             const infoCellHtml = infoText
               ? `<button type="button" class="info-pop-btn action-button" data-doc-id="${escapeHtml(docId)}" style="padding:6px 10px;font-size:0.88rem;min-width:auto;" ${docId ? "" : "disabled"} title="View additional info">View</button>`
               : "";
@@ -1111,7 +1146,7 @@
                       <td><input type="text" class="transfer-field-input" data-doc-id="${escapeAttr(docId)}" data-field="bestSquadPower" value="${bspVal}" maxlength="32" inputmode="decimal" title="Best squad power (millions) — save when you leave this field"${inDisabled} /></td>
                       <td><input type="text" class="transfer-field-input" data-doc-id="${escapeAttr(docId)}" data-field="totalHeroPower" value="${thpVal}" maxlength="32" inputmode="decimal" title="Total hero power (millions) — save when you leave this field"${inDisabled} /></td>
                       <td>${escapeHtml(row.allianceInterested)}</td>
-                      <td><input type="text" class="transfer-field-input" data-doc-id="${escapeAttr(docId)}" data-field="transferStatus" value="${tsVal}" maxlength="200" title="Transfer status — save when you leave this field"${inDisabled} spellcheck="true" autocomplete="off" /></td>
+                      <td>${tsSelect}</td>
                       <td>${infoCellHtml}</td>
                       <td style="text-align:center;vertical-align:middle;">
                         <div style="display:flex;flex-direction:column;align-items:center;gap:8px;">
@@ -1676,8 +1711,11 @@
             });
             function normalizeFieldForFirestore(field, raw) {
               const t = String(raw ?? "").trim();
-              if (field === "displayName" || field === "transferStatus") {
+              if (field === "displayName") {
                 return t;
+              }
+              if (field === "transferStatus") {
+                return normalizeTransferStatus(raw);
               }
               if (field === "bestSquadPower" || field === "totalHeroPower") {
                 if (!t) return "0.00";
@@ -1693,8 +1731,7 @@
               );
               return cur === normalized;
             }
-            tbody.addEventListener("focusout", async function (e) {
-              const el = e.target;
+            async function saveTransferFieldIfChanged(el) {
               if (
                 !el ||
                 el.nodeType !== 1 ||
@@ -1729,6 +1766,19 @@
                 );
               } finally {
                 el.classList.remove("transfer-field-input--saving");
+              }
+            }
+            tbody.addEventListener("change", function (e) {
+              const el = e.target;
+              if (el && el.classList && el.classList.contains("transfer-field-input") && el.tagName === "SELECT" && el.getAttribute("data-field") === "transferStatus") {
+                void saveTransferFieldIfChanged(el);
+              }
+            });
+            tbody.addEventListener("focusout", function (e) {
+              const el = e.target;
+              if (el && el.tagName === "SELECT") return;
+              if (el && el.classList && el.classList.contains("transfer-field-input")) {
+                void saveTransferFieldIfChanged(el);
               }
             });
             tbody.addEventListener("click", async function (e) {
@@ -2254,15 +2304,17 @@
                           "alliance interested",
                         ]) || "",
                       ).trim(),
-                      transferStatus: String(
-                        getRowValueCI(row, [
-                          "If Known, What is Your Status?",
-                          "If known, what is your transfer status?",
-                          "transferStatus",
-                          "transfer status",
-                          "status",
-                        ]) || "",
-                      ).trim(),
+                      transferStatus: normalizeTransferStatus(
+                        String(
+                          getRowValueCI(row, [
+                            "If Known, What is Your Status?",
+                            "If known, what is your transfer status?",
+                            "transferStatus",
+                            "transfer status",
+                            "status",
+                          ]) || "",
+                        ).trim(),
+                      ),
                       additionalInfo: String(
                         getRowValueCI(row, [
                           "Additional Info",
@@ -2549,7 +2601,9 @@
                 <th title="Which Alliance are you interested in joining?">
                   Interested alliance
                 </th>
-                <th title="Click the cell to edit. Saves to the database when you click away.">
+                <th
+                  title="Unknown, Gold, Purple, Blue, or White. Change the menu to save."
+                >
                   Transfer status
                 </th>
                 <th title="Additional Info you want considered?">Info</th>
