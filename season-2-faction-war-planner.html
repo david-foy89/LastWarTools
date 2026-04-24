@@ -1,0 +1,1064 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Season 2 Faction War Planner - Last War Tools</title>
+    <meta
+      name="description"
+      content="Place server numbers, alliance tags, and usernames on the Season 2 capitol (Nuclear Furnace) map for Faction War planning. Drag labels and save locally in your browser."
+    />
+    <link
+      rel="canonical"
+      href="https://lastwarsurvivaltools.com/season-2-faction-war-planner.html"
+    />
+    <meta property="og:type" content="website" />
+    <meta property="og:title" content="Season 2 Faction War Planner - Last War Tools" />
+    <meta
+      property="og:description"
+      content="Place server numbers, alliance tags, and usernames on the capitol map. Drag labels, zoom, and save your plan in the browser."
+    />
+    <meta
+      property="og:url"
+      content="https://lastwarsurvivaltools.com/season-2-faction-war-planner.html"
+    />
+    <meta
+      property="og:image"
+      content="https://lastwarsurvivaltools.com/media/season-2-faction-war-capitol.png"
+    />
+    <link rel="stylesheet" href="google-translate-toolbar-hide.css" />
+    <link rel="stylesheet" href="last-war-furnace-upgrade-calculator.css" />
+    <script src="page-nav-dropdown.js" defer></script>
+    <style>
+      .fwplanner-wrap {
+        display: grid;
+        grid-template-columns: 1fr minmax(160px, 220px);
+        gap: 2vw;
+        margin-top: 8px;
+        align-items: start;
+        overflow-x: hidden;
+      }
+      @media (max-width: 900px) {
+        .fwplanner-wrap {
+          grid-template-columns: 1fr;
+        }
+        .fwplanner-panel {
+          max-width: none;
+        }
+      }
+      .fwplanner-panel {
+        background: linear-gradient(180deg, var(--panel) 0%, var(--panel-2) 100%);
+        border: 1px solid var(--line-soft);
+        border-radius: 12px;
+        padding: 15px;
+        max-width: 220px;
+        min-width: 0;
+        position: sticky;
+        top: 8px;
+        max-height: none;
+        overflow-x: visible;
+        overflow-y: visible;
+      }
+      .fwplanner-panel h2 {
+        font-size: 0.85rem;
+        text-transform: uppercase;
+        letter-spacing: 0.06em;
+        color: var(--accent, #4dabf7);
+        margin: 0 0 12px;
+        font-weight: 700;
+      }
+      .fwplanner-field {
+        margin-bottom: 10px;
+      }
+      .fwplanner-field label {
+        display: block;
+        font-size: 0.78rem;
+        color: rgba(217, 240, 255, 0.7);
+        margin-bottom: 4px;
+      }
+      .fwplanner-field input[type="text"],
+      .fwplanner-field select {
+        width: 100%;
+        box-sizing: border-box;
+        padding: 8px 10px;
+        background: rgba(8, 16, 25, 0.7);
+        border: 1px solid var(--line, #1e3a4d);
+        border-radius: 8px;
+        color: var(--text, #d9f0ff);
+        font: inherit;
+        font-size: 0.9rem;
+      }
+      .fwplanner-hint {
+        font-size: 0.75rem;
+        line-height: 1.4;
+        color: rgba(217, 240, 255, 0.6);
+        margin: 0 0 10px;
+      }
+      .fwplanner-btn-row {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 8px;
+        margin-top: 10px;
+      }
+      .action-button--small {
+        padding: 6px 12px;
+        font-size: 0.82rem;
+      }
+      .fwplanner-marker-list {
+        border: 1px solid var(--line-soft, rgba(30, 58, 77, 0.6));
+        border-radius: 8px;
+        margin-top: 8px;
+        font-size: 0.8rem;
+      }
+      .fwplanner-marker-row {
+        display: grid;
+        grid-template-columns: 1fr auto;
+        gap: 6px;
+        align-items: start;
+        padding: 6px 8px;
+        border-bottom: 1px solid var(--line-soft, rgba(30, 58, 77, 0.4));
+      }
+      .fwplanner-marker-row:last-child {
+        border-bottom: none;
+      }
+      .fwplanner-marker-text {
+        word-break: break-word;
+        min-width: 0;
+        color: rgba(217, 240, 255, 0.9);
+      }
+      .fwplanner-tag {
+        display: inline-block;
+        font-size: 0.64rem;
+        text-transform: uppercase;
+        padding: 1px 5px;
+        border-radius: 4px;
+        background: rgba(77, 171, 247, 0.15);
+        color: #74c0fc;
+        margin-bottom: 2px;
+        letter-spacing: 0.04em;
+      }
+      .fwplanner-canvas-outer {
+        background: linear-gradient(180deg, var(--panel) 0%, var(--panel-2) 100%);
+        border: 1px solid var(--line-soft);
+        border-radius: 12px;
+        padding: 10px;
+        min-height: 0;
+        min-width: 0;
+        overflow: visible;
+      }
+      .fwplanner-viewport {
+        position: relative;
+        box-sizing: border-box;
+        width: 100%;
+        min-height: 0;
+        /* Image sets height; grows the column so no inner scroll at 100% (pins may extend into page) */
+        overflow: visible;
+        border: 1px solid var(--line, #1e3a4d);
+        border-radius: 8px;
+        background: #0a1218;
+        -webkit-overflow-scrolling: touch;
+        touch-action: auto;
+      }
+      .fwplanner-viewport.fwplanner-viewport--pannable {
+        overflow: auto;
+        /* Cap only when zoomed: pan inside the view */
+        max-height: min(78vh, 900px);
+      }
+      .fwplanner-stage {
+        position: relative;
+        display: block;
+        line-height: 0;
+        width: 100%;
+      }
+      #fwplannerPins {
+        position: absolute;
+        left: 0;
+        top: 0;
+        width: 100%;
+        height: 100%;
+        pointer-events: none;
+      }
+      #fwplannerPins .fwplanner-pin {
+        pointer-events: auto;
+      }
+      .fwplanner-map-img {
+        display: block;
+        width: 100%;
+        min-width: 0;
+        max-width: 100%;
+        height: auto;
+        margin: 0;
+        user-select: none;
+        pointer-events: auto;
+        -webkit-user-drag: none;
+      }
+      .fwplanner-pin {
+        position: absolute;
+        left: calc(var(--x, 50) * 1%);
+        top: calc(var(--y, 50) * 1%);
+        transform: translate(-50%, -100%);
+        padding: 3px 8px 4px;
+        border-radius: 6px;
+        font-size: var(--fs, 0.8rem);
+        font-weight: 600;
+        line-height: 1.2;
+        max-width: min(200px, 40vw);
+        word-break: break-word;
+        box-shadow: 0 2px 10px rgba(0, 0, 0, 0.5);
+        border: 1px solid rgba(255, 255, 255, 0.18);
+        cursor: grab;
+        z-index: 2;
+        touch-action: none;
+      }
+      .fwplanner-pin:active {
+        cursor: grabbing;
+        z-index: 10;
+      }
+      .fwplanner-pin.is-server {
+        background: rgba(25, 50, 80, 0.95);
+        color: #7dd3fc;
+        border-color: rgba(125, 211, 252, 0.45);
+      }
+      .fwplanner-pin.is-alliance {
+        background: rgba(60, 32, 70, 0.95);
+        color: #eebefa;
+        border-color: rgba(238, 190, 250, 0.45);
+      }
+      .fwplanner-pin.is-username {
+        background: rgba(20, 55, 40, 0.95);
+        color: #8ce99a;
+        border-color: rgba(140, 233, 154, 0.45);
+      }
+      .fwplanner-pin-tail {
+        position: absolute;
+        left: 50%;
+        bottom: 0;
+        width: 0;
+        height: 0;
+        border-left: 5px solid transparent;
+        border-right: 5px solid transparent;
+        border-top: 6px solid rgba(0, 0, 0, 0.35);
+        transform: translate(-50%, 100%);
+      }
+      .fwplanner-zoom {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        margin-top: 6px;
+        font-size: 0.8rem;
+        color: rgba(217, 240, 255, 0.75);
+      }
+      .fwplanner-zoom input[type="range"] {
+        flex: 1;
+        min-width: 0;
+        accent-color: var(--accent, #4dabf7);
+      }
+      .fwplanner-legend {
+        font-size: 0.72rem;
+        color: rgba(217, 240, 255, 0.55);
+        margin-top: 4px;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="page">
+      <div class="page-top-stack">
+        <aside class="account-promo-strip" aria-label="Optional account">
+          <p class="account-promo-strip__text">
+            <strong>No account required.</strong> This planner saves to your
+            device (local storage).
+          </p>
+          <div class="account-promo-actions">
+            <a href="account.html" class="action-button">Create account</a>
+            <a href="account.html" class="action-button action-button--quiet">Sign in</a>
+          </div>
+        </aside>
+        <div class="page-top-controls">
+          <div class="logo-control">
+            <a href="index.html" aria-label="Go to homepage">
+              <img src="media/lwst.png" alt="LWST logo" class="site-logo" />
+            </a>
+          </div>
+          <div class="language-control">
+            <label for="languageSelect">Language</label>
+            <select id="languageSelect"></select>
+          </div>
+        </div>
+      </div>
+      <div id="google_translate_element" class="hidden-translate"></div>
+
+      <nav class="page-nav" aria-label="Calculator pages">
+        <a href="hq-upgrade-calculator.html" class="page-link">HQ Upgrade</a>
+        <details class="page-nav-dropdown" name="alliance-nav">
+          <summary class="page-link page-nav-dropdown-toggle">Alliance Tools</summary>
+          <div class="page-nav-dropdown-menu">
+            <a href="train-conductor-schedule.html" class="page-link">Train Conductor</a>
+            <a href="transfer-tracker.html" class="page-link">Transfer Tracker</a>
+            <a href="verus-tracker.html" class="page-link">Versus Tracker</a>
+            <a href="ds-tracker.html" class="page-link">Desert Storm Tracker/Planner</a>
+            <a href="server-search.html" class="page-link">Server Search</a>
+            <a href="alliance-hive.html" class="page-link">Hive Builder</a>
+          </div>
+        </details>
+        <details class="page-nav-dropdown" name="troop-nav">
+          <summary class="page-link page-nav-dropdown-toggle">Troop Tools</summary>
+          <div class="page-nav-dropdown-menu">
+            <a href="t10-troops-calculator.html" class="page-link">T10 Troops</a>
+            <a href="t11-troops-calculator.html" class="page-link">T11 Troops</a>
+          </div>
+        </details>
+        <details class="page-nav-dropdown" name="season-nav">
+          <summary class="page-link page-nav-dropdown-toggle">Season 1 Tools</summary>
+          <div class="page-nav-dropdown-menu">
+            <a href="virus-research-institute-calculator.html" class="page-link"
+              >Virus Research Institute</a
+            >
+            <a href="season-1-squad-base-calculator.html" class="page-link">Season 1 Squad Base</a>
+            <a href="season-1-interactive-map.html" class="page-link">Interactive Map</a>
+          </div>
+        </details>
+        <details class="page-nav-dropdown active" name="season-nav">
+          <summary class="page-link page-nav-dropdown-toggle">Season 2 Tools</summary>
+          <div class="page-nav-dropdown-menu">
+            <a href="last-war-furnace-upgrade-calculator.html" class="page-link"
+              >Furnace Calculator</a
+            >
+            <a href="season-2-tank-center-calculator.html" class="page-link">Season 2 Squad Base</a>
+            <a href="season-2-interactive-map.html" class="page-link">Interactive Map</a>
+            <a
+              href="season-2-faction-war-planner.html"
+              class="page-link active"
+              >Faction War Planner</a
+            >
+            <a href="season-2-supplies-checklist.html" class="page-link">Supplies Checklist</a>
+            <a href="rare-soil-war-tracker.html" class="page-link">Rare Soil War Tracker</a>
+          </div>
+        </details>
+        <details class="page-nav-dropdown" name="season-nav">
+          <summary class="page-link page-nav-dropdown-toggle">Season 3 Tools</summary>
+          <div class="page-nav-dropdown-menu">
+            <a href="curse-research-lab-calculator.html" class="page-link">Curse Research Lab</a>
+            <a href="altar-calculator.html" class="page-link">Altar</a>
+            <a href="protectors-field-calculator.html" class="page-link">Protector's Field</a>
+            <a href="season-3-interactive-map.html" class="page-link">Interactive Map</a>
+            <a href="spice-war-tracker.html" class="page-link">Spice War Tracker</a>
+          </div>
+        </details>
+        <details class="page-nav-dropdown" name="season-nav">
+          <summary class="page-link page-nav-dropdown-toggle">Season 4 Tools</summary>
+          <div class="page-nav-dropdown-menu">
+            <a href="optoelectronic-lab-calculator.html" class="page-link">Optoelectronic Lab</a>
+            <a href="protectors-field-s4-calculator.html" class="page-link">Protector's Field S4</a>
+            <a href="lighthouse-s4-calculator.html" class="page-link">Lighthouse S4</a>
+            <a href="season-4-interactive-map.html" class="page-link">Interactive Map</a>
+            <a href="copper-war-tracker.html" class="page-link">Copper War Tracker</a>
+          </div>
+        </details>
+        <details class="page-nav-dropdown" name="season-nav">
+          <summary class="page-link page-nav-dropdown-toggle">Season 5 Tools</summary>
+          <div class="page-nav-dropdown-menu">
+            <a href="caffeine-institute-calculator.html" class="page-link">Caffeine Institute</a>
+            <a href="protectors-field-s5-calculator.html" class="page-link">Protector's Field S5</a>
+            <a href="season-5-squad-base-calculator.html" class="page-link">Season 5 Tanker Bar</a>
+            <a href="season-5-interactive-map.html" class="page-link">Interactive Map</a>
+          </div>
+        </details>
+      </nav>
+
+      <div class="container">
+        <h1>Season 2 Faction War Planner</h1>
+        <p style="color: rgba(217, 240, 255, 0.7); margin-bottom: 20px; max-width: 72ch">
+          Mark the
+          <strong>Nuclear Furnace</strong> battlefield: add server numbers, alliance tags, or
+          usernames, drag them on the capitol view, and zoom the map. Your layout is stored in this
+          browser.
+        </p>
+
+        <div class="fwplanner-wrap">
+          <div class="fwplanner-canvas-outer">
+            <div class="fwplanner-zoom">
+              <span>Zoom</span>
+              <input
+                type="range"
+                id="fwplannerZoom"
+                min="50"
+                max="200"
+                value="100"
+                step="5"
+                aria-label="Map zoom"
+              />
+              <span id="fwplannerZoomVal">100%</span>
+            </div>
+            <p class="fwplanner-legend" style="margin: 0 0 6px 0">
+              Map: Season 2 capitol (Nuclear Furnace). Coordinates are saved as a percentage of image
+              size so labels stay aligned when the window is resized.
+            </p>
+            <div
+              class="fwplanner-viewport"
+              id="fwplannerViewport"
+              role="region"
+              aria-label="Capitol map; click to place a label"
+            >
+              <div class="fwplanner-stage" id="fwplannerStage" data-place-mode="0">
+                <img
+                  class="fwplanner-map-img"
+                  id="fwplannerImg"
+                  src="media/season-2-faction-war-capitol.png"
+                  alt="Top-down view of the Nuclear Furnace, shields, and surrounding terrain in Last War: Survival"
+                  width="1200"
+                  height="800"
+                  draggable="false"
+                />
+                <div id="fwplannerPins" aria-label="Map labels"></div>
+              </div>
+            </div>
+          </div>
+
+          <aside class="fwplanner-panel sidebar" aria-label="Placing controls">
+            <h2>Add labels</h2>
+            <p class="fwplanner-hint">
+              Enter text, choose a label type, then
+              <strong>click the map</strong> where you want the pin (or use “Place in center”). Drag
+              pins to adjust.
+            </p>
+            <div class="fwplanner-field">
+              <label for="fwplannerText">Text (server, tag, or name)</label>
+              <input
+                type="text"
+                id="fwplannerText"
+                maxlength="80"
+                placeholder="e.g. #1004 · [AB] · PlayerName"
+                autocomplete="off"
+              />
+            </div>
+            <div class="fwplanner-field">
+              <label for="fwplannerKind">Label type</label>
+              <select id="fwplannerKind">
+                <option value="username">Username</option>
+                <option value="server" selected>Server</option>
+                <option value="alliance">Alliance</option>
+              </select>
+            </div>
+            <div class="fwplanner-field">
+              <label for="fwplannerSize">Text size on map</label>
+              <select id="fwplannerSize">
+                <option value="0.72">Small</option>
+                <option value="0.8" selected>Normal</option>
+                <option value="0.92">Large</option>
+                <option value="1.05">Extra large</option>
+              </select>
+            </div>
+            <div class="fwplanner-btn-row">
+              <button type="button" class="action-button" id="fwplannerModeBtn">
+                Click map to place next
+              </button>
+            </div>
+            <div class="fwplanner-btn-row">
+              <button type="button" class="action-button action-button--small" id="fwplannerCenterBtn">
+                Place in center
+              </button>
+            </div>
+            <div class="fwplanner-btn-row">
+              <button
+                type="button"
+                class="action-button action-button--small action-button--quiet"
+                id="fwplannerClearBtn"
+              >
+                Clear all labels
+              </button>
+            </div>
+            <div class="fwplanner-btn-row">
+              <button
+                type="button"
+                class="action-button action-button--small"
+                id="fwplannerExportPngBtn"
+              >
+                Export as PNG
+              </button>
+            </div>
+            <h2 style="margin-top: 16px">Placed labels</h2>
+            <div class="fwplanner-marker-list" id="fwplannerList" role="list"></div>
+            <p class="fwplanner-legend" id="fwplannerStatus" aria-live="polite"></p>
+          </aside>
+        </div>
+      </div>
+    </div>
+
+    <script>
+      (function () {
+        const STORAGE_KEY = "lwst-s2-faction-war-planner-v1";
+        /** At slider "100%", image width = this % of the stage; keep 100 to avoid scroll at default zoom. */
+        const ZOOM_BASE_PCT = 100;
+        const state = { markers: [], nextId: 1, placeMode: false, scale: 1 };
+
+        const $ = (id) => document.getElementById(id);
+        const viewport = $("fwplannerViewport");
+        const stage = $("fwplannerStage");
+        const pins = $("fwplannerPins");
+        const img = $("fwplannerImg");
+        const textInput = $("fwplannerText");
+        const kindSel = $("fwplannerKind");
+        const sizeSel = $("fwplannerSize");
+        const zoom = $("fwplannerZoom");
+        const zoomVal = $("fwplannerZoomVal");
+        const list = $("fwplannerList");
+        const statusEl = $("fwplannerStatus");
+        const modeBtn = $("fwplannerModeBtn");
+
+        function setStatus(t) {
+          if (statusEl) statusEl.textContent = t || "";
+        }
+
+        function save() {
+          try {
+            localStorage.setItem(
+              STORAGE_KEY,
+              JSON.stringify({ markers: state.markers, nextId: state.nextId }),
+            );
+            setStatus("Saved in this browser.");
+            window.setTimeout(function () {
+              if (statusEl && statusEl.textContent === "Saved in this browser.") {
+                setStatus("");
+              }
+            }, 2000);
+          } catch (e) {
+            setStatus("Could not save (storage may be full or blocked).");
+          }
+        }
+
+        function load() {
+          try {
+            const raw = localStorage.getItem(STORAGE_KEY);
+            if (!raw) return;
+            const data = JSON.parse(raw);
+            if (Array.isArray(data.markers)) {
+              state.markers = data.markers.filter(function (m) {
+                return (
+                  m &&
+                  typeof m.id === "number" &&
+                  typeof m.text === "string" &&
+                  m.text.trim() &&
+                  typeof m.x === "number" &&
+                  typeof m.y === "number" &&
+                  m.x >= 0 &&
+                  m.x <= 100 &&
+                  m.y >= 0 &&
+                  m.y <= 100
+                );
+              });
+            }
+            if (Number.isFinite(data.nextId) && data.nextId > state.nextId) {
+              state.nextId = data.nextId;
+            }
+          } catch (e) {
+            /* ignore */
+          }
+        }
+
+        function classForKind(k) {
+          if (k === "alliance") return "is-alliance";
+          if (k === "username") return "is-username";
+          return "is-server";
+        }
+
+        function labelForKind(k) {
+          if (k === "alliance") return "Alliance";
+          if (k === "username") return "Username";
+          return "Server";
+        }
+
+        function kindColorsForExport(k) {
+          if (k === "alliance") {
+            return {
+              fill: "rgb(60, 32, 70)",
+              text: "#eebefa",
+              border: "rgba(238, 190, 250, 0.55)",
+              tail: "rgb(20, 12, 24)",
+            };
+          }
+          if (k === "username") {
+            return {
+              fill: "rgb(20, 55, 40)",
+              text: "#8ce99a",
+              border: "rgba(140, 233, 154, 0.55)",
+              tail: "rgb(10, 20, 14)",
+            };
+          }
+          return {
+            fill: "rgb(25, 50, 80)",
+            text: "#7dd3fc",
+            border: "rgba(125, 211, 252, 0.5)",
+            tail: "rgb(8, 18, 30)",
+          };
+        }
+
+        function roundRectPath(ctx, x, y, w, h, r) {
+          const d = Math.min(r, w / 2, h / 2);
+          ctx.beginPath();
+          ctx.moveTo(x + d, y);
+          ctx.arcTo(x + w, y, x + w, y + h, d);
+          ctx.arcTo(x + w, y + h, x, y + h, d);
+          ctx.arcTo(x, y + h, x, y, d);
+          ctx.arcTo(x, y, x + w, y, d);
+          ctx.closePath();
+        }
+
+        function breakStringToWidth(ctx, str, maxW) {
+          const out = [];
+          if (!str) return out;
+          var chunk = "";
+          for (var c = 0; c < str.length; c++) {
+            const next = chunk + str[c];
+            if (ctx.measureText(next).width > maxW && chunk) {
+              out.push(chunk);
+              chunk = str[c];
+            } else {
+              chunk = next;
+            }
+          }
+          if (chunk) out.push(chunk);
+          return out;
+        }
+
+        function buildLinesForExport(ctx, text, maxW) {
+          if (maxW < 2) {
+            return [((text || "").trim() || "—").slice(0, 1)];
+          }
+          const t = (text || "").trim() || "—";
+          if (ctx.measureText(t).width <= maxW) {
+            return [t];
+          }
+          const words = t.split(/\s+/).filter(Boolean);
+          const lines = [];
+          var current = "";
+          for (var i = 0; i < words.length; i++) {
+            const w = words[i];
+            if (ctx.measureText(w).width > maxW) {
+              if (current) {
+                lines.push(current);
+                current = "";
+              }
+              const parts = breakStringToWidth(ctx, w, maxW);
+              for (var j = 0; j < parts.length; j++) {
+                lines.push(parts[j]);
+              }
+              continue;
+            }
+            const next = current ? current + " " + w : w;
+            if (ctx.measureText(next).width > maxW) {
+              if (current) {
+                lines.push(current);
+              }
+              current = w;
+            } else {
+              current = next;
+            }
+          }
+          if (current) {
+            lines.push(current);
+          }
+          return lines;
+        }
+
+        function exportToPng() {
+          if (!img.complete || img.naturalWidth < 1) {
+            setStatus("Map image is not ready yet—try again in a moment.");
+            return;
+          }
+          const W = img.naturalWidth;
+          const H = img.naturalHeight;
+          const c = document.createElement("canvas");
+          c.width = W;
+          c.height = H;
+          const xctx = c.getContext("2d");
+          if (!xctx) {
+            setStatus("Could not create image for export.");
+            return;
+          }
+          try {
+            xctx.drawImage(img, 0, 0, W, H);
+          } catch (e) {
+            setStatus("Export failed (image may be tainted or blocked).");
+            return;
+          }
+          const refW = 1200;
+          const scaleW = W / refW;
+          const padX = Math.max(2, 8 * scaleW);
+          const padY1 = Math.max(2, 3 * scaleW);
+          const padY2 = Math.max(2, 4 * scaleW);
+          const rRad = Math.max(3, 6 * scaleW);
+          const maxTextW = Math.min(200 * scaleW, 0.4 * W);
+          const tailW = 5 * scaleW;
+          const tailH = 6 * scaleW;
+          state.markers.forEach(function (m) {
+            const colors = kindColorsForExport(m.kind);
+            const fontSizePx = Math.max(8, (m.sizeRem || 0.8) * 0.02 * W);
+            xctx.font = "600 " + fontSizePx + 'px -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif';
+            xctx.textBaseline = "top";
+            const lines = buildLinesForExport(
+              xctx,
+              m.text,
+              maxTextW - (padX * 2),
+            );
+            var lineH = fontSizePx * 1.2;
+            var textH = lines.length * lineH;
+            const boxW = Math.min(
+              maxTextW,
+              lines.reduce(
+                function (a, l) {
+                  return Math.max(a, xctx.measureText(l).width);
+                },
+                0,
+              ) +
+                padX * 2,
+            );
+            const boxH = textH + padY1 + padY2;
+            const ax = (m.x / 100) * W;
+            const ay = (m.y / 100) * H;
+            const bx = ax - boxW / 2;
+            const by = ay - boxH - tailH;
+            xctx.save();
+            xctx.fillStyle = colors.fill;
+            xctx.strokeStyle = colors.border;
+            xctx.lineWidth = Math.max(0.5, 1 * scaleW);
+            xctx.shadowColor = "rgba(0,0,0,0.45)";
+            xctx.shadowBlur = 3 * scaleW;
+            xctx.shadowOffsetX = 0;
+            xctx.shadowOffsetY = 2 * scaleW;
+            roundRectPath(xctx, bx, by, boxW, boxH, rRad);
+            xctx.fill();
+            xctx.shadowColor = "transparent";
+            xctx.stroke();
+            xctx.beginPath();
+            xctx.moveTo(ax - tailW, ay - tailH);
+            xctx.lineTo(ax, ay);
+            xctx.lineTo(ax + tailW, ay - tailH);
+            xctx.closePath();
+            xctx.fillStyle = colors.tail;
+            xctx.fill();
+            xctx.fillStyle = colors.text;
+            lines.forEach(function (line, j) {
+              const ty = by + padY1 + j * lineH;
+              const tw = xctx.measureText(line).width;
+              xctx.fillText(line, bx + (boxW - tw) / 2, ty);
+            });
+            xctx.restore();
+          });
+          c.toBlob(
+            function (blob) {
+              if (!blob) {
+                setStatus("Could not build PNG (browser blocked blob).");
+                return;
+              }
+              const a = document.createElement("a");
+              const d = new Date();
+              const stamp =
+                d.getFullYear() +
+                "-" +
+                String(d.getMonth() + 1).padStart(2, "0") +
+                "-" +
+                String(d.getDate()).padStart(2, "0");
+              a.href = URL.createObjectURL(blob);
+              a.download = "last-war-s2-capitol-planner-" + stamp + ".png";
+              a.click();
+              window.setTimeout(function () {
+                URL.revokeObjectURL(a.href);
+              }, 3000);
+              setStatus("PNG download started.");
+              window.setTimeout(function () {
+                if (statusEl && statusEl.textContent === "PNG download started.") {
+                  setStatus("");
+                }
+              }, 2500);
+            },
+            "image/png",
+            0.92,
+          );
+        }
+
+        /* Grow the map frame (padding) so pin labels that extend past the image do not need an inner scroll at 100% zoom. */
+        function sizeViewportToPins() {
+          if (!viewport || !stage) return;
+          viewport.style.paddingTop = "";
+          viewport.style.paddingRight = "";
+          viewport.style.paddingBottom = "";
+          viewport.style.paddingLeft = "";
+          if (!state.markers.length) return;
+          const srect = stage.getBoundingClientRect();
+          if (srect.width < 1 || srect.height < 1) return;
+          const pinEls = pins.querySelectorAll(".fwplanner-pin");
+          if (!pinEls.length) return;
+          var minX = 0;
+          var maxX = srect.width;
+          var minY = 0;
+          var maxY = srect.height;
+          pinEls.forEach(function (el) {
+            const r = el.getBoundingClientRect();
+            const left = r.left - srect.left;
+            const right = r.right - srect.left;
+            const top = r.top - srect.top;
+            const bottom = r.bottom - srect.top;
+            if (left < minX) minX = left;
+            if (right > maxX) maxX = right;
+            if (top < minY) minY = top;
+            if (bottom > maxY) maxY = bottom;
+          });
+          const pad = 4;
+          if (minX < 0) viewport.style.paddingLeft = -minX + pad + "px";
+          if (maxX > srect.width) {
+            viewport.style.paddingRight = maxX - srect.width + pad + "px";
+          }
+          if (minY < 0) viewport.style.paddingTop = -minY + pad + "px";
+          if (maxY > srect.height) {
+            viewport.style.paddingBottom = maxY - srect.height + pad + "px";
+          }
+        }
+
+        function scheduleMapFit() {
+          window.requestAnimationFrame(function () {
+            sizeViewportToPins();
+          });
+        }
+
+        function render() {
+          pins.innerHTML = "";
+          state.markers.forEach(function (m) {
+            const el = document.createElement("div");
+            el.className = "fwplanner-pin " + classForKind(m.kind);
+            el.dataset.id = String(m.id);
+            el.style.setProperty("--x", String(m.x));
+            el.style.setProperty("--y", String(m.y));
+            el.style.setProperty("--fs", (m.sizeRem || 0.8) + "rem");
+            el.textContent = m.text;
+            const tail = document.createElement("div");
+            tail.className = "fwplanner-pin-tail";
+            el.appendChild(tail);
+            el.setAttribute("role", "listitem");
+            el.title = "Drag to move. " + m.text;
+            el.addEventListener("pointerdown", onPinPointerDown);
+            pins.appendChild(el);
+          });
+
+          list.innerHTML = "";
+          if (!state.markers.length) {
+            const empty = document.createElement("p");
+            empty.className = "fwplanner-legend";
+            empty.style.padding = "10px 8px";
+            empty.textContent = "No labels yet. Add text and click the map.";
+            list.appendChild(empty);
+            scheduleMapFit();
+            return;
+          }
+          state.markers.forEach(function (m) {
+            const row = document.createElement("div");
+            row.className = "fwplanner-marker-row";
+            const col = document.createElement("div");
+            const tag = document.createElement("div");
+            tag.className = "fwplanner-tag";
+            tag.textContent = labelForKind(m.kind);
+            const t = document.createElement("div");
+            t.className = "fwplanner-marker-text";
+            t.textContent = m.text;
+            col.appendChild(tag);
+            col.appendChild(t);
+            const del = document.createElement("button");
+            del.type = "button";
+            del.className = "action-button action-button--small";
+            del.textContent = "×";
+            del.setAttribute("aria-label", "Remove " + m.text);
+            del.dataset.id = String(m.id);
+            del.addEventListener("click", function () {
+              state.markers = state.markers.filter(function (x) {
+                return x.id !== m.id;
+              });
+              save();
+              render();
+            });
+            row.appendChild(col);
+            row.appendChild(del);
+            list.appendChild(row);
+          });
+          scheduleMapFit();
+        }
+
+        var drag = null;
+        function onPinPointerDown(ev) {
+          const el = ev.currentTarget;
+          const id = Number(el.dataset.id);
+          const m = state.markers.find(function (x) {
+            return x.id === id;
+          });
+          if (!m) return;
+          el.setPointerCapture(ev.pointerId);
+          drag = {
+            id: id,
+            el: el,
+            startX: m.x,
+            startY: m.y,
+            px0: ev.clientX,
+            py0: ev.clientY,
+            imgW: img.getBoundingClientRect().width,
+            imgH: img.getBoundingClientRect().height,
+          };
+          ev.preventDefault();
+        }
+
+        function onPointerMove(ev) {
+          if (!drag) return;
+          const m = state.markers.find(function (x) {
+            return x.id === drag.id;
+          });
+          if (!m) return;
+          const rect = img.getBoundingClientRect();
+          const w = rect.width;
+          const h = rect.height;
+          if (w < 1 || h < 1) return;
+          const dx = ((ev.clientX - drag.px0) / w) * 100;
+          const dy = ((ev.clientY - drag.py0) / h) * 100;
+          m.x = Math.max(0, Math.min(100, drag.startX + dx));
+          m.y = Math.max(0, Math.min(100, drag.startY + dy));
+          drag.el.style.setProperty("--x", String(m.x));
+          drag.el.style.setProperty("--y", String(m.y));
+        }
+
+        function onPointerUp(ev) {
+          if (drag && drag.el) {
+            try {
+              drag.el.releasePointerCapture(ev.pointerId);
+            } catch (e) {
+              /* */
+            }
+          }
+          if (drag) {
+            save();
+            drag = null;
+            scheduleMapFit();
+          }
+        }
+
+        function addMarker(x, y) {
+          const t = (textInput.value || "").trim().slice(0, 80);
+          if (!t) {
+            setStatus("Type something to place first.");
+            return;
+          }
+          const m = {
+            id: state.nextId++,
+            text: t,
+            kind: kindSel.value,
+            x: x,
+            y: y,
+            sizeRem: parseFloat(sizeSel.value) || 0.8,
+          };
+          state.markers.push(m);
+          save();
+          render();
+        }
+
+        function onStageClick(ev) {
+          if (ev.target.closest(".fwplanner-pin")) return;
+          if (!state.placeMode) return;
+          const imgRect = img.getBoundingClientRect();
+          if (!imgRect.width || !imgRect.height) return;
+          if (
+            ev.clientX < imgRect.left ||
+            ev.clientX > imgRect.right ||
+            ev.clientY < imgRect.top ||
+            ev.clientY > imgRect.bottom
+          ) {
+            return;
+          }
+          const x = ((ev.clientX - imgRect.left) / imgRect.width) * 100;
+          const y = ((ev.clientY - imgRect.top) / imgRect.height) * 100;
+          addMarker(x, y);
+          setPlaceMode(false);
+        }
+
+        function setPlaceMode(on) {
+          state.placeMode = !!on;
+          stage.dataset.placeMode = state.placeMode ? "1" : "0";
+          if (state.placeMode) {
+            viewport.classList.add("is-place-mode");
+            modeBtn.textContent = "Cancel place mode";
+            setStatus("Click on the image to place your label.");
+            stage.style.cursor = "crosshair";
+          } else {
+            viewport.classList.remove("is-place-mode");
+            modeBtn.textContent = "Click map to place next";
+            setStatus("");
+            stage.style.cursor = "";
+          }
+        }
+
+        function applyZoom() {
+          const v = Number(zoom.value);
+          const s = Number.isFinite(v) ? Math.max(0.5, Math.min(2, v / 100)) : 1;
+          state.scale = s;
+          img.style.width = Math.round(s * ZOOM_BASE_PCT) + "%";
+          if (zoomVal) zoomVal.textContent = Math.round(s * 100) + "%";
+          if (viewport) {
+            const pannable = Math.abs(s - 1) > 0.0001;
+            viewport.classList.toggle("fwplanner-viewport--pannable", pannable);
+            if (pannable) {
+              viewport.style.paddingTop = "";
+              viewport.style.paddingRight = "";
+              viewport.style.paddingBottom = "";
+              viewport.style.paddingLeft = "";
+            } else {
+              scheduleMapFit();
+            }
+          }
+        }
+
+        modeBtn.addEventListener("click", function () {
+          setPlaceMode(!state.placeMode);
+        });
+        stage.addEventListener("click", onStageClick);
+        document.addEventListener("pointermove", onPointerMove);
+        document.addEventListener("pointerup", onPointerUp);
+        document.addEventListener("pointercancel", onPointerUp);
+
+        $("fwplannerCenterBtn").addEventListener("click", function () {
+          addMarker(50, 50);
+        });
+
+        $("fwplannerClearBtn").addEventListener("click", function () {
+          if (!state.markers.length) return;
+          if (!window.confirm("Remove all labels?")) return;
+          state.markers = [];
+          save();
+          render();
+        });
+
+        $("fwplannerExportPngBtn").addEventListener("click", function () {
+          exportToPng();
+        });
+
+        zoom.addEventListener("input", function () {
+          applyZoom();
+        });
+        new ResizeObserver(function () {
+          applyZoom();
+        }).observe(viewport);
+
+        load();
+        render();
+        applyZoom();
+
+        img.addEventListener("load", function () {
+          applyZoom();
+          scheduleMapFit();
+        });
+      })();
+    </script>
+    <script>
+      (function () {
+        const sel = document.getElementById("languageSelect");
+        if (sel) {
+          sel.innerHTML =
+            '<option value="en">English</option><option value="es">Español</option><option value="fr">Français</option><option value="de">Deutsch</option><option value="pt">Português</option><option value="ru">Русский</option><option value="ja">日本語</option><option value="zh">中文</option>';
+        }
+      })();
+    </script>
+  </body>
+</html>
