@@ -171,7 +171,10 @@
     </div>
     <script type="module">
       import { initializeApp } from "https://www.gstatic.com/firebasejs/9.22.2/firebase-app.js";
-      import { doc, setDoc } from "https://www.gstatic.com/firebasejs/9.22.2/firebase-firestore.js";
+      import {
+        collection,
+        addDoc,
+      } from "https://www.gstatic.com/firebasejs/9.22.2/firebase-firestore.js";
       import { getSharedFirestore } from "./firestore-db.js";
 
       function firebaseConfigOk(cfg) {
@@ -216,8 +219,8 @@
           const app = initializeApp(firebaseConfig);
           const db = getSharedFirestore(app);
           window._firebaseDb = db;
-          window._firebaseDoc = doc;
-          window._firebaseSetDoc = setDoc;
+          window._firebaseCollection = collection;
+          window._firebaseAddDoc = addDoc;
         } else {
           window._firebaseInitFailed = true;
           const banner = document.getElementById("firebaseConfigBanner");
@@ -295,8 +298,8 @@
                 }
                 if (
                   window._firebaseDb &&
-                  window._firebaseDoc &&
-                  window._firebaseSetDoc
+                  window._firebaseCollection &&
+                  window._firebaseAddDoc
                 ) {
                   resolve();
                   return;
@@ -310,13 +313,20 @@
               });
             await waitForFirebase();
             const db = window._firebaseDb;
-            const docFn = window._firebaseDoc;
-            const setDocFn = window._firebaseSetDoc;
-            await setDocFn(docFn(db, "transferSubmissions", id), data);
-            localStorage.setItem(
-              "transferSubmission_" + id,
-              JSON.stringify(data),
+            const colFn = window._firebaseCollection;
+            const addDocFn = window._firebaseAddDoc;
+            const ref = await addDocFn(
+              colFn(db, "transferSubmissions"),
+              data,
             );
+            try {
+              localStorage.setItem(
+                "transferSubmission_" + id,
+                JSON.stringify({ ...data, _firestoreDocId: ref.id }),
+              );
+            } catch {
+              /* ignore quota / private mode */
+            }
             document.getElementById("submitResult").innerHTML =
               '<span style="color:var(--ok);font-weight:700;">Thank you! Your info has been submitted and will appear in the tracker.</span>';
             this.reset();
