@@ -748,8 +748,9 @@
               </div>
               <p class="leadership-live-share-hint">
                 Same list until you click Change link — then share the new URL
-                with your team. Submit links for this list include the list id
-                automatically.
+                with your team. The link includes both <code>list</code> and
+                <code>tracker</code> so teammates load the same board and rows.
+                Submit links for this list include the list id automatically.
               </p>
             </div>
           </div>
@@ -911,7 +912,6 @@
             }
           }
 
-          const currentListId = getCurrentListId();
           const TRANSFER_TRACKER_ID_STORAGE_KEY =
             "lastWarTransferTrackerIdV1";
 
@@ -974,6 +974,13 @@
               setPersistedTransferTrackerId(fromUrl);
               return fromUrl;
             }
+            // Leadership URLs must include tracker=…; never guess from localStorage
+            // or a new random id — that would point at the wrong Firestore path and
+            // show an empty list while the real data stays under the organizer's tracker.
+            const listInUrl = getCurrentListId();
+            if (listInUrl) {
+              return "";
+            }
             const fromStore = getPersistedTransferTrackerId();
             if (fromStore && fromStore.length >= 12) {
               syncTransferTrackerInUrl(fromStore);
@@ -986,6 +993,35 @@
           }
 
           const currentTrackerId = resolveTransferTrackerId();
+
+          function hasValidTransferTrackerId() {
+            const tid = normalizeTransferTrackerId(currentTrackerId);
+            return Boolean(tid && tid.length >= 12);
+          }
+
+          /** list= in URL but tracker missing/invalid — never offer share/create UI. */
+          function isLeadershipUrlIncomplete() {
+            return Boolean(getCurrentListId()) && !hasValidTransferTrackerId();
+          }
+
+          function refreshLeadershipUiGate() {
+            const btn = document.getElementById("generateLeadershipLinkBtn");
+            if (btn) {
+              if (isLeadershipUrlIncomplete()) {
+                btn.disabled = true;
+                btn.title =
+                  "This URL has list= but no valid tracker= (incomplete leadership link). Get the full Leadership live link from the organizer — it must include both parameters.";
+              } else if (!hasValidTransferTrackerId()) {
+                btn.disabled = true;
+                btn.title =
+                  "No valid tracker id for this board. Reload Transfer Tracker so tracker=… appears in the address bar.";
+              } else {
+                btn.disabled = false;
+                btn.removeAttribute("title");
+              }
+            }
+            updateLeadershipLivePanel();
+          }
 
           function transferSubmissionsCollection(db, trackerId) {
             const tid = normalizeTransferTrackerId(trackerId);
@@ -1034,25 +1070,43 @@
           function buildLeadershipTrackerUrl(listId) {
             const id = normalizeLeadershipListId(listId);
             if (!id) return "";
+            if (!hasValidTransferTrackerId()) return "";
             const u = new URL(window.location.href);
             u.search = "";
             u.searchParams.set("list", id);
-            if (currentTrackerId) {
-              u.searchParams.set("tracker", currentTrackerId);
-            }
+            u.searchParams.set(
+              "tracker",
+              normalizeTransferTrackerId(currentTrackerId),
+            );
             return u.href;
           }
 
+          function syncLeadershipListAndTrackerInUrl(listId) {
+            const lid = normalizeLeadershipListId(listId);
+            const tid = normalizeTransferTrackerId(currentTrackerId);
+            if (!lid || !tid || tid.length < 12) return;
+            try {
+              const u = new URL(window.location.href);
+              u.searchParams.set("list", lid);
+              u.searchParams.set("tracker", tid);
+              history.replaceState(null, "", u.pathname + u.search + u.hash);
+            } catch {
+              /* ignore */
+            }
+          }
+
           function getLeadershipListIdForPanel() {
-            if (currentListId) return currentListId;
+            const fromUrl = getCurrentListId();
+            if (fromUrl) return fromUrl;
             return getPersistedLeadershipListId();
           }
 
           function canChangeLeadershipLink() {
             if (!db) return false;
             const p = getPersistedLeadershipListId();
-            if (!currentListId) return Boolean(p);
-            return Boolean(p && currentListId === p);
+            const urlList = getCurrentListId();
+            if (!urlList) return Boolean(p);
+            return Boolean(p && urlList === p);
           }
 
           function updateLeadershipLivePanel() {
@@ -1070,21 +1124,39 @@
               if (changeBtn) changeBtn.style.display = "none";
               return;
             }
+            if (listId && !hasValidTransferTrackerId()) {
+              panel.classList.add("is-hidden");
+              input.value = "";
+              input.placeholder =
+                "Incomplete link: add tracker=… from the organizer's full Leadership live URL.";
+              if (changeBtn) changeBtn.style.display = "none";
+              return;
+            }
+            const shareUrl = buildLeadershipTrackerUrl(listId);
+            if (!shareUrl) {
+              panel.classList.add("is-hidden");
+              input.value = "";
+              input.placeholder =
+                "Cannot build share URL (missing tracker). Reload or use the organizer’s full link.";
+              if (changeBtn) changeBtn.style.display = "none";
+              return;
+            }
             panel.classList.remove("is-hidden");
             input.placeholder = "";
-            input.value = buildLeadershipTrackerUrl(listId);
+            input.value = shareUrl;
             if (changeBtn) {
               changeBtn.style.display = canChangeLeadershipLink() ? "" : "none";
             }
           }
 
           function isRowInCurrentList(row) {
-            if (!currentListId) return true;
+            const activeList = getCurrentListId();
+            if (!activeList) return true;
             if (!row || typeof row !== "object") return false;
             const rowListId = String(row.listId || "")
               .trim()
               .toLowerCase();
-            return rowListId === currentListId;
+            return rowListId === activeList;
           }
 
           function copyTextWithFallback(text) {
@@ -1926,6 +1998,19 @@
             if (!tbody) return;
             attachRowActionHandlersOnce(tbody);
 
+            const tidResolved = normalizeTransferTrackerId(currentTrackerId);
+            if (!tidResolved || tidResolved.length < 12) {
+              lastTransferRows = [];
+              const countEl = document.getElementById("transferFilterCount");
+              if (countEl) countEl.textContent = "";
+              const listOnly = getCurrentListId();
+              const inner = listOnly
+                ? "<strong>Leadership link incomplete.</strong> The address bar must include both <code>list=…</code> and <code>tracker=…</code>. Copy the full <strong>Leadership live link</strong> from the organizer&rsquo;s Transfer Tracker."
+                : "<strong>Transfer board is not ready.</strong> <code>tracker=…</code> is missing from the URL. Reload the page or open Transfer Tracker again from your site.";
+              tbody.innerHTML = `<tr><td colspan="9" style="text-align:center;color:var(--warn);">${inner}</td></tr>`;
+              return;
+            }
+
             function showSnapshotError(err) {
               const code = err && err.code ? String(err.code) : "";
               const projectId =
@@ -1982,11 +2067,13 @@
                 window.location.href,
               );
               submitUrl.searchParams.set("id", id);
-              if (currentTrackerId) {
-                submitUrl.searchParams.set("tracker", currentTrackerId);
+              const tInvite = normalizeTransferTrackerId(currentTrackerId);
+              if (tInvite && tInvite.length >= 12) {
+                submitUrl.searchParams.set("tracker", tInvite);
               }
-              if (currentListId) {
-                submitUrl.searchParams.set("list", currentListId);
+              const listForSubmit = getCurrentListId();
+              if (listForSubmit) {
+                submitUrl.searchParams.set("list", listForSubmit);
               }
               const url = submitUrl.href;
               renderCopyableLink(
@@ -2013,9 +2100,21 @@
             generateLeadershipLinkBtn.addEventListener(
               "click",
               async function () {
-                // If already inside a shared leadership list, just re-share that live URL.
-                if (currentListId) {
-                  updateLeadershipLivePanel();
+                if (isLeadershipUrlIncomplete()) {
+                  alert(
+                    "This page URL has list=… but is missing a valid tracker=… (incomplete leadership link).\n\nYou cannot create or copy a leadership URL from here. Ask the organizer for the full “Leadership live link” from their Transfer Tracker — it must include both list and tracker.",
+                  );
+                  return;
+                }
+                if (!hasValidTransferTrackerId()) {
+                  alert(
+                    "No valid board id (tracker) for this session. Reload Transfer Tracker so tracker=… appears in the address bar, then try again.",
+                  );
+                  return;
+                }
+                // If already inside a shared leadership list (URL or this browser), re-share.
+                if (getCurrentListId() || getPersistedLeadershipListId()) {
+                  refreshLeadershipUiGate();
                   const lr = document.getElementById("leadershipLinkResult");
                   if (lr) lr.innerHTML = "";
                   return;
@@ -2058,7 +2157,8 @@
                   }
 
                   setPersistedLeadershipListId(listId);
-                  updateLeadershipLivePanel();
+                  syncLeadershipListAndTrackerInUrl(listId);
+                  refreshLeadershipUiGate();
                   const lr = document.getElementById("leadershipLinkResult");
                   if (lr) lr.innerHTML = "";
 
@@ -2071,9 +2171,9 @@
                     );
                   }
                 } finally {
-                  generateLeadershipLinkBtn.disabled = false;
                   generateLeadershipLinkBtn.textContent =
                     prevText || "Leadership Link";
+                  refreshLeadershipUiGate();
                 }
               },
             );
@@ -2092,6 +2192,7 @@
             leadershipLiveShareCopyBtn.addEventListener(
               "click",
               async function () {
+                if (!hasValidTransferTrackerId()) return;
                 const listId = getLeadershipListIdForPanel();
                 const url = buildLeadershipTrackerUrl(listId);
                 if (!url) return;
@@ -2114,7 +2215,7 @@
               async function () {
                 if (!db || !canChangeLeadershipLink()) return;
                 const oldId =
-                  normalizeLeadershipListId(currentListId) ||
+                  normalizeLeadershipListId(getCurrentListId()) ||
                   getPersistedLeadershipListId();
                 if (!oldId) return;
                 const newId = generateId(14);
@@ -2145,13 +2246,13 @@
                   }
                   setPersistedLeadershipListId(newId);
                   if (
-                    currentListId &&
-                    normalizeLeadershipListId(currentListId) === oldId
+                    getCurrentListId() &&
+                    normalizeLeadershipListId(getCurrentListId()) === oldId
                   ) {
                     window.location.href = buildLeadershipTrackerUrl(newId);
                     return;
                   }
-                  updateLeadershipLivePanel();
+                  refreshLeadershipUiGate();
                   if (fail > 0) {
                     alert(
                       "New link is ready, but some rows could not be updated.\n\nUpdated: " +
@@ -2169,7 +2270,7 @@
             );
           }
 
-          updateLeadershipLivePanel();
+          refreshLeadershipUiGate();
 
           // Additional info modal handlers
           (function () {
@@ -2455,8 +2556,9 @@
                     payload.totalHeroPower = formatMillions0000(
                       payload.totalHeroPower,
                     );
-                    if (currentListId) {
-                      payload.listId = currentListId;
+                    const importList = getCurrentListId();
+                    if (importList) {
+                      payload.listId = importList;
                     }
                     const docRef = await addDoc(
                       transferSubmissionsCollection(db, currentTrackerId),
