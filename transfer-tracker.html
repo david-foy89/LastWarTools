@@ -647,9 +647,11 @@
       <section class="hero">
         <h1>Transfer Tracker</h1>
         <div class="sub">
-          Track members for transfer surge after Season 2. You can send a link
-          below or upload via Excel. In the table, you can
-          <strong>edit</strong> each row&rsquo;s
+          Track members for transfer surge after Season 2. Each board is tied to
+          the <code>tracker=…</code> id in your page URL (bookmark it). Invite
+          links you generate include that id so submissions stay on your board
+          only. You can send a link below or upload via Excel. In the table, you
+          can <strong>edit</strong> each row&rsquo;s
           <strong>name</strong>, <strong>best / total power</strong> (millions),
           and <strong>transfer status</strong> (Unknown / Gold / Purple / Blue /
           White; saves when you change the menu).
@@ -847,6 +849,14 @@
               .replace(/[\r\n]/g, " ");
           }
 
+          function generateId(len = 12) {
+            const chars = "abcdefghijklmnopqrstuvwxyz0123456789";
+            let out = "";
+            for (let i = 0; i < len; ++i)
+              out += chars[Math.floor(Math.random() * chars.length)];
+            return out;
+          }
+
           const TRANSFER_STATUS_OPTIONS = [
             { value: "unknown", label: "Unknown" },
             { value: "gold", label: "Gold" },
@@ -902,6 +912,91 @@
           }
 
           const currentListId = getCurrentListId();
+          const TRANSFER_TRACKER_ID_STORAGE_KEY =
+            "lastWarTransferTrackerIdV1";
+
+          function normalizeTransferTrackerId(raw) {
+            try {
+              return String(raw || "")
+                .trim()
+                .toLowerCase()
+                .replace(/[^a-z0-9_-]/g, "");
+            } catch {
+              return "";
+            }
+          }
+
+          function getTransferTrackerIdFromUrl() {
+            try {
+              const params = new URLSearchParams(window.location.search);
+              return normalizeTransferTrackerId(params.get("tracker"));
+            } catch {
+              return "";
+            }
+          }
+
+          function getPersistedTransferTrackerId() {
+            try {
+              return normalizeTransferTrackerId(
+                localStorage.getItem(TRANSFER_TRACKER_ID_STORAGE_KEY),
+              );
+            } catch {
+              return "";
+            }
+          }
+
+          function setPersistedTransferTrackerId(tid) {
+            const s = normalizeTransferTrackerId(tid);
+            if (!s) return;
+            try {
+              localStorage.setItem(TRANSFER_TRACKER_ID_STORAGE_KEY, s);
+            } catch {
+              /* ignore */
+            }
+          }
+
+          function syncTransferTrackerInUrl(tid) {
+            const id = normalizeTransferTrackerId(tid);
+            if (!id) return;
+            try {
+              const u = new URL(window.location.href);
+              u.searchParams.set("tracker", id);
+              history.replaceState(null, "", u.pathname + u.search + u.hash);
+            } catch {
+              /* ignore */
+            }
+          }
+
+          function resolveTransferTrackerId() {
+            let fromUrl = getTransferTrackerIdFromUrl();
+            if (fromUrl && fromUrl.length < 12) fromUrl = "";
+            if (fromUrl) {
+              setPersistedTransferTrackerId(fromUrl);
+              return fromUrl;
+            }
+            const fromStore = getPersistedTransferTrackerId();
+            if (fromStore && fromStore.length >= 12) {
+              syncTransferTrackerInUrl(fromStore);
+              return fromStore;
+            }
+            const fresh = generateId(16);
+            setPersistedTransferTrackerId(fresh);
+            syncTransferTrackerInUrl(fresh);
+            return fresh;
+          }
+
+          const currentTrackerId = resolveTransferTrackerId();
+
+          function transferSubmissionsCollection(db, trackerId) {
+            const tid = normalizeTransferTrackerId(trackerId);
+            return collection(db, "transferTrackers", tid, "submissions");
+          }
+
+          function transferSubmissionDoc(db, trackerId, docId) {
+            const tid = normalizeTransferTrackerId(trackerId);
+            return doc(db, "transferTrackers", tid, "submissions", docId);
+          }
+
           const LEADERSHIP_LIST_STORAGE_KEY =
             "lastWarTransferLeadershipListIdV1";
 
@@ -942,6 +1037,9 @@
             const u = new URL(window.location.href);
             u.search = "";
             u.searchParams.set("list", id);
+            if (currentTrackerId) {
+              u.searchParams.set("tracker", currentTrackerId);
+            }
             return u.href;
           }
 
@@ -1277,7 +1375,9 @@
             let fail = 0;
             await runWithConcurrency(ids, concurrency, async (id, i) => {
               try {
-                await deleteDoc(doc(db, "transferSubmissions", id));
+                await deleteDoc(
+                  transferSubmissionDoc(db, currentTrackerId, id),
+                );
                 ok++;
               } catch (_) {
                 fail++;
@@ -1690,13 +1790,19 @@
               if (isDeniedCb) applyDeniedStyle(next);
               try {
                 if (isConfirmedCb) {
-                  await updateDoc(doc(db, "transferSubmissions", id), {
-                    confirmed: next,
-                  });
+                  await updateDoc(
+                    transferSubmissionDoc(db, currentTrackerId, id),
+                    {
+                      confirmed: next,
+                    },
+                  );
                 } else if (isDeniedCb) {
-                  await updateDoc(doc(db, "transferSubmissions", id), {
-                    denied: next,
-                  });
+                  await updateDoc(
+                    transferSubmissionDoc(db, currentTrackerId, id),
+                    {
+                      denied: next,
+                    },
+                  );
                 }
               } catch (err) {
                 cb.checked = !next;
@@ -1754,9 +1860,12 @@
               }
               el.classList.add("transfer-field-input--saving");
               try {
-                await updateDoc(doc(db, "transferSubmissions", id), {
-                  [field]: next,
-                });
+                await updateDoc(
+                  transferSubmissionDoc(db, currentTrackerId, id),
+                  {
+                    [field]: next,
+                  },
+                );
               } catch (err) {
                 el.value = stringForEditableField(row, field);
                 alert(
@@ -1798,7 +1907,9 @@
               );
               if (!yes) return;
               try {
-                await deleteDoc(doc(db, "transferSubmissions", id));
+                await deleteDoc(
+                  transferSubmissionDoc(db, currentTrackerId, id),
+                );
               } catch (err) {
                 alert(
                   "Could not delete: " +
@@ -1834,11 +1945,11 @@
               const pidLabel = escapeHtml(projectId || "your Firebase project");
               const hint =
                 code === "permission-denied"
-                  ? `<strong>Firestore blocked this read</strong> (<code>permission-denied</code>).<br /><br />• <strong>Rules:</strong> <a href="${rulesHref}" target="_blank" rel="noopener noreferrer">Firestore → Rules</a> for <code>${pidLabel}</code> — must allow <code>transferSubmissions</code> (see repo <code>firestore.rules</code>), then <strong>Publish</strong>.<br />• <strong>App Check:</strong> If Firestore is <em>Enforced</em>, open <a href="${appCheckHref}" target="_blank" rel="noopener noreferrer">App Check</a> and turn enforcement off for testing, or register the debug token shown in the console on localhost.`
+                  ? `<strong>Firestore blocked this read</strong> (<code>permission-denied</code>).<br /><br />• <strong>Rules:</strong> <a href="${rulesHref}" target="_blank" rel="noopener noreferrer">Firestore → Rules</a> for <code>${pidLabel}</code> — must allow <code>transferTrackers/&lt;id&gt;/submissions</code> (see repo <code>firestore.rules</code>), then <strong>Publish</strong>.<br />• <strong>App Check:</strong> If Firestore is <em>Enforced</em>, open <a href="${appCheckHref}" target="_blank" rel="noopener noreferrer">App Check</a> and turn enforcement off for testing, or register the debug token shown in the console on localhost.`
                   : code === "failed-precondition"
                     ? "Firestore needs a composite index. Check the browser console for a create-index link."
                     : "Check Firestore rules, API key restrictions, and the browser console.";
-              console.error("transferSubmissions listener:", err);
+              console.error("transferTrackers/.../submissions listener:", err);
               lastTransferRows = [];
               const countEl = document.getElementById("transferFilterCount");
               if (countEl) countEl.textContent = "";
@@ -1847,7 +1958,7 @@
 
             // No orderBy — avoids index requirements; sort client-side in applyRowsToTable.
             onSnapshot(
-              query(collection(db, "transferSubmissions")),
+              query(transferSubmissionsCollection(db, currentTrackerId)),
               (snapshot) => {
                 const rows = [];
                 snapshot.forEach((docSnap) => {
@@ -1861,14 +1972,6 @@
             );
           }
 
-          function generateId(len = 12) {
-            const chars = "abcdefghijklmnopqrstuvwxyz0123456789";
-            let out = "";
-            for (let i = 0; i < len; ++i)
-              out += chars[Math.floor(Math.random() * chars.length)];
-            return out;
-          }
-
           document
             .getElementById("generateLinkForm")
             .addEventListener("submit", function (e) {
@@ -1879,6 +1982,9 @@
                 window.location.href,
               );
               submitUrl.searchParams.set("id", id);
+              if (currentTrackerId) {
+                submitUrl.searchParams.set("tracker", currentTrackerId);
+              }
               if (currentListId) {
                 submitUrl.searchParams.set("list", currentListId);
               }
@@ -1939,9 +2045,12 @@
                     const id = String(row._docId || "");
                     if (!id) continue;
                     try {
-                      await updateDoc(doc(db, "transferSubmissions", id), {
-                        listId: listId,
-                      });
+                      await updateDoc(
+                        transferSubmissionDoc(db, currentTrackerId, id),
+                        {
+                          listId: listId,
+                        },
+                      );
                       ok++;
                     } catch {
                       fail++;
@@ -2023,9 +2132,12 @@
                     const docId = String(row._docId || "");
                     if (!docId) continue;
                     try {
-                      await updateDoc(doc(db, "transferSubmissions", docId), {
-                        listId: newId,
-                      });
+                      await updateDoc(
+                        transferSubmissionDoc(db, currentTrackerId, docId),
+                        {
+                          listId: newId,
+                        },
+                      );
                       ok++;
                     } catch {
                       fail++;
@@ -2347,7 +2459,7 @@
                       payload.listId = currentListId;
                     }
                     const docRef = await addDoc(
-                      collection(db, "transferSubmissions"),
+                      transferSubmissionsCollection(db, currentTrackerId),
                       payload,
                     );
                     success++;

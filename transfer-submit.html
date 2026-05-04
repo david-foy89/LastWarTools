@@ -246,15 +246,27 @@
         const raw = String(params.get("list") || "").trim().toLowerCase();
         return raw.replace(/[^a-z0-9_-]/g, "");
       }
+      function getTrackerId() {
+        const params = new URLSearchParams(window.location.search);
+        const raw = String(params.get("tracker") || "").trim().toLowerCase();
+        const id = raw.replace(/[^a-z0-9_-]/g, "");
+        return id.length >= 12 ? id : "";
+      }
       document
         .getElementById("transferSubmitForm")
         .addEventListener("submit", async function (e) {
           e.preventDefault();
           const id = getId();
           const listId = getListId();
+          const trackerId = getTrackerId();
           if (!id) {
             document.getElementById("submitResult").textContent =
               "Invalid or missing link ID.";
+            return;
+          }
+          if (!trackerId) {
+            document.getElementById("submitResult").innerHTML =
+              '<span style="color:var(--warn);"><strong>Invalid or missing tracker id.</strong> Open the invite link from Transfer Tracker (it must include <code>tracker=…</code> in the URL). Ask your alliance lead to generate a new link if yours is incomplete.</span>';
             return;
           }
           function formatMillions0000(v) {
@@ -316,7 +328,7 @@
             const colFn = window._firebaseCollection;
             const addDocFn = window._firebaseAddDoc;
             const ref = await addDocFn(
-              colFn(db, "transferSubmissions"),
+              colFn(db, "transferTrackers", trackerId, "submissions"),
               data,
             );
             try {

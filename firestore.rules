@@ -5,13 +5,21 @@ service cloud.firestore {
     // =============================================================================
     // SECTION: Transfer Tracker & Transfer Submit
     // Pages: transfer-tracker.html, transfer-submit.html
-    // Actions: public read; anyone can create/update/delete rows (shared board).
-    // Code: collection "transferSubmissions" — listener, setDoc, updateDoc, deleteDoc.
+    // Data path: transferTrackers/{trackerId}/submissions/{docId}
+    // trackerId is a long random string in the page URL (?tracker=…). Anyone who
+    // knows that id can read/write that board (no Firebase Auth on these pages).
     // =============================================================================
+    match /transferTrackers/{tid}/submissions/{docId} {
+      allow read, create, update, delete: if tid is string
+        && tid.size() >= 12
+        && tid.size() <= 80
+        && tid.matches('^[a-z0-9_-]+$');
+    }
+
+    // Legacy flat collection (pre–per-tracker boards). Closed by default; export in
+    // Console if you still have rows here, then republish rules without this block.
     match /transferSubmissions/{docId} {
-      allow read: if true;
-      allow create, update: if true;
-      allow delete: if true;
+      allow read, create, update, delete: if false;
     }
 
     // =============================================================================
