@@ -967,10 +967,25 @@
             }
           }
 
+          const LEADERSHIP_LIST_STORAGE_KEY =
+            "lastWarTransferLeadershipListIdV1";
+
+          function clearPersistedLeadershipListId() {
+            try {
+              localStorage.removeItem(LEADERSHIP_LIST_STORAGE_KEY);
+            } catch {
+              /* ignore */
+            }
+          }
+
           function resolveTransferTrackerId() {
             let fromUrl = getTransferTrackerIdFromUrl();
             if (fromUrl && fromUrl.length < 12) fromUrl = "";
             if (fromUrl) {
+              const prevTid = getPersistedTransferTrackerId();
+              if (prevTid && prevTid !== fromUrl) {
+                clearPersistedLeadershipListId();
+              }
               setPersistedTransferTrackerId(fromUrl);
               return fromUrl;
             }
@@ -987,6 +1002,7 @@
               return fromStore;
             }
             const fresh = generateId(16);
+            clearPersistedLeadershipListId();
             setPersistedTransferTrackerId(fresh);
             syncTransferTrackerInUrl(fresh);
             return fresh;
@@ -1032,9 +1048,6 @@
             const tid = normalizeTransferTrackerId(trackerId);
             return doc(db, "transferTrackers", tid, "submissions", docId);
           }
-
-          const LEADERSHIP_LIST_STORAGE_KEY =
-            "lastWarTransferLeadershipListIdV1";
 
           function normalizeLeadershipListId(raw) {
             try {
@@ -1098,7 +1111,19 @@
           function getLeadershipListIdForPanel() {
             const fromUrl = getCurrentListId();
             if (fromUrl) return fromUrl;
-            return getPersistedLeadershipListId();
+            const p = getPersistedLeadershipListId();
+            if (!p || !hasValidTransferTrackerId()) return "";
+            const rows = lastTransferRows || [];
+            for (let i = 0; i < rows.length; i++) {
+              const r = rows[i];
+              if (
+                r &&
+                normalizeLeadershipListId(r.listId) === p
+              ) {
+                return p;
+              }
+            }
+            return "";
           }
 
           function canChangeLeadershipLink() {
@@ -1137,7 +1162,7 @@
               panel.classList.add("is-hidden");
               input.value = "";
               input.placeholder =
-                "Cannot build share URL (missing tracker). Reload or use the organizer’s full link.";
+                "Cannot build share URL (missing tracker). Reload or use the organizer's full link.";
               if (changeBtn) changeBtn.style.display = "none";
               return;
             }
@@ -1153,10 +1178,10 @@
             const activeList = getCurrentListId();
             if (!activeList) return true;
             if (!row || typeof row !== "object") return false;
-            const rowListId = String(row.listId || "")
-              .trim()
-              .toLowerCase();
-            return rowListId === activeList;
+            return (
+              normalizeLeadershipListId(row.listId) ===
+              normalizeLeadershipListId(activeList)
+            );
           }
 
           function copyTextWithFallback(text) {
@@ -2039,6 +2064,7 @@
               const countEl = document.getElementById("transferFilterCount");
               if (countEl) countEl.textContent = "";
               tbody.innerHTML = `<tr><td colspan="9" style="text-align:center;color:var(--warn);">${hint}<br /><span style="font-size:0.85rem;color:var(--muted);">${escapeHtml(code || "unknown error")}</span></td></tr>`;
+              refreshLeadershipUiGate();
             }
 
             // No orderBy — avoids index requirements; sort client-side in applyRowsToTable.
@@ -2052,6 +2078,7 @@
                 });
                 lastTransferRows = rows;
                 refreshTransferTable();
+                refreshLeadershipUiGate();
               },
               showSnapshotError,
             );
@@ -2112,8 +2139,8 @@
                   );
                   return;
                 }
-                // If already inside a shared leadership list (URL or this browser), re-share.
-                if (getCurrentListId() || getPersistedLeadershipListId()) {
+                // If already viewing a leadership list (URL or rows on this tracker match persisted list).
+                if (getLeadershipListIdForPanel()) {
                   refreshLeadershipUiGate();
                   const lr = document.getElementById("leadershipLinkResult");
                   if (lr) lr.innerHTML = "";
