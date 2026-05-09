@@ -17,7 +17,8 @@
     <style>
       /* Keep table from widening due to long imported text */
       .transfer-table-container {
-        overflow-x: hidden;
+        overflow-x: auto;
+        -webkit-overflow-scrolling: touch;
       }
       .transfer-table {
         table-layout: fixed;
@@ -427,6 +428,20 @@
 
       /* Filter bar responsive layout */
       @media (max-width: 720px) {
+        .hero h1 {
+          font-size: 1.5rem;
+          line-height: 1.2;
+        }
+        .hero .sub {
+          font-size: 0.92rem;
+          line-height: 1.4;
+        }
+        #transferFilterBar {
+          padding: 12px 12px !important;
+        }
+        #transferFilterControls {
+          gap: 10px !important;
+        }
         #transferFilterBar label[for] {
           display: none;
         }
@@ -440,8 +455,46 @@
           flex: 1 1 48% !important;
           min-width: 0 !important;
         }
+        #transferFilterBar .action-button {
+          min-height: 2.5rem;
+        }
+        #transferFilterToggleBtn {
+          min-height: 2.3rem;
+          padding: 6px 10px;
+          font-size: 0.88rem;
+        }
         #transferFilterCount {
           flex-basis: 100% !important;
+        }
+        .transfer-table-container {
+          overflow-x: auto;
+          border: 1px solid var(--line-soft);
+          border-radius: 12px;
+          background: rgba(8, 16, 25, 0.35);
+          box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.04);
+        }
+        .transfer-table {
+          min-width: 860px;
+        }
+      }
+
+      @media (max-width: 560px) {
+        .transfer-top-card {
+          padding: 14px 12px 12px;
+          border-radius: 12px;
+        }
+        .transfer-top-card__intro h2 {
+          font-size: 1rem;
+        }
+        .transfer-top-card__desc {
+          font-size: 0.9rem;
+        }
+        .leadership-live-share-row .action-button {
+          flex: 1 1 calc(50% - 4px);
+        }
+        .leadership-live-share-input {
+          flex: 1 1 100%;
+          font-size: 0.82rem;
         }
       }
 
