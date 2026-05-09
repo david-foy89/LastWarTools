@@ -1322,6 +1322,9 @@
             const nVal = escapeAttr(stringForEditableField(row, "displayName"));
             const bspVal = escapeAttr(stringForEditableField(row, "bestSquadPower"));
             const thpVal = escapeAttr(stringForEditableField(row, "totalHeroPower"));
+            const confirmedAllianceTagVal = escapeAttr(
+              stringForEditableField(row, "confirmedAllianceTag"),
+            );
             const tsSelected = normalizeTransferStatus(row.transferStatus);
             let tsSelect = `<select class="transfer-field-input" data-doc-id="${escapeAttr(docId)}" data-field="transferStatus" title="Transfer status — saves when you pick a value"${inDisabled}>`;
             TRANSFER_STATUS_OPTIONS.forEach((opt) => {
@@ -1347,7 +1350,10 @@
                         <div style="display:flex;flex-direction:column;align-items:center;gap:8px;">
                           <button type="button" class="delete-transfer-btn action-button" data-doc-id="${escapeHtml(docId)}" style="padding:6px 10px;font-size:0.88rem;background:linear-gradient(180deg,#5a2a2a,#3d1c1c);border:1px solid #8a4040;color:#f0d0d0;" ${docId ? "" : "disabled"} title="Remove this row from Firestore (you will confirm Yes/No)">Delete</button>
                           <label style="display:flex;flex-direction:column;align-items:center;gap:4px;font-size:0.88rem;cursor:pointer;margin:0;${isConfirmed ? "color:var(--ok);font-weight:600;" : "color:var(--text);"}">
-                            <input type="checkbox" class="confirmed-transfer-cb" data-doc-id="${escapeHtml(docId)}" ${isConfirmed ? "checked" : ""} ${docId ? "" : "disabled"} title="Mark this player as confirmed" aria-label="Confirmed" style="${isConfirmed ? "accent-color:var(--ok);" : ""}" />
+                            <div style="display:flex;align-items:center;gap:6px;">
+                              <input type="checkbox" class="confirmed-transfer-cb" data-doc-id="${escapeHtml(docId)}" ${isConfirmed ? "checked" : ""} ${docId ? "" : "disabled"} title="Mark this player as confirmed" aria-label="Confirmed" style="${isConfirmed ? "accent-color:var(--ok);" : ""}" />
+                              <input type="text" class="transfer-field-input" data-doc-id="${escapeAttr(docId)}" data-field="confirmedAllianceTag" value="${confirmedAllianceTagVal}" maxlength="4" title="Alliance tag (up to 4 letters) — save when you leave this field" aria-label="Confirmed alliance tag" placeholder="TAG" ${inDisabled} spellcheck="false" autocomplete="off" style="width:56px;min-width:56px;text-transform:uppercase;text-align:center;padding:4px 6px;" />
+                            </div>
                             <span>Confirmed</span>
                           </label>
                           <label style="display:flex;flex-direction:column;align-items:center;gap:4px;font-size:0.88rem;cursor:pointer;margin:0;${isDenied ? "color:var(--warn);font-weight:600;" : "color:var(--text);"}">
@@ -1425,6 +1431,7 @@
               "Total Hero Power": formatMillions0000(r.totalHeroPower ?? ""),
               "Which Alliance": String(r.allianceInterested ?? ""),
               "Transfer Status": String(r.transferStatus ?? ""),
+              "Confirmed Alliance Tag": String(r.confirmedAllianceTag ?? ""),
               "Additional Info": String(r.additionalInfo ?? ""),
               Confirmed: r.confirmed === true ? "Yes" : "No",
               Denied: r.denied === true ? "Yes" : "No",
@@ -1603,6 +1610,7 @@
               row.totalHeroPower,
               row.allianceInterested,
               row.transferStatus,
+              row.confirmedAllianceTag,
               row.additionalInfo,
               row.linkId,
             ];
@@ -1917,6 +1925,9 @@
               if (field === "displayName") {
                 return t;
               }
+              if (field === "confirmedAllianceTag") {
+                return t.replace(/[^a-z]/gi, "").toUpperCase().slice(0, 4);
+              }
               if (field === "transferStatus") {
                 return normalizeTransferStatus(raw);
               }
@@ -1949,6 +1960,9 @@
               const row = findRowByDocId(id);
               if (!row) return;
               const next = normalizeFieldForFirestore(field, el.value);
+              if (field === "confirmedAllianceTag") {
+                el.value = next;
+              }
               if (valueMatchesRow(row, field, next)) return;
               if (field === "displayName" && !next) {
                 alert("Name cannot be empty. Restoring the previous value.");
@@ -2858,7 +2872,7 @@
                       margin-top: 4px;
                     "
                   >
-                    Delete · Confirmed · Denied
+                    Delete · Confirmed + Tag · Denied
                   </div>
                 </th>
               </tr>
