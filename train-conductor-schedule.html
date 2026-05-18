@@ -2115,20 +2115,21 @@
       }
 
       /** Refresh one roster row from state without re-building the whole list. */
-      function updateConductorRowInputsInDom(conductorIdx) {
+      function updateConductorRowInputsInDom(conductorIdx, opts) {
         if (!conductorsList) return;
         const i = Number(conductorIdx);
         if (!Number.isFinite(i) || i < 0 || i > 6) return;
+        const force = Boolean(opts && opts.force);
         const nameInp = conductorsList.querySelector(
           `.conductor-name-input[data-idx="${i}"]`,
         );
         const vipInp = conductorsList.querySelector(
           `.conductor-vip-input[data-idx="${i}"]`,
         );
-        if (nameInp && document.activeElement !== nameInp) {
+        if (nameInp && (force || document.activeElement !== nameInp)) {
           nameInp.value = getConductorNameInputValue(i);
         }
-        if (vipInp && document.activeElement !== vipInp) {
+        if (vipInp && (force || document.activeElement !== vipInp)) {
           vipInp.value = getConductorVipInputValue(i);
         }
       }
@@ -3699,16 +3700,41 @@
         );
       }
 
+      /** VIP vs conductor from Click fills dropdown (selected option, not stale .value). */
+      function readAllianceFillTargetTypeFromDom() {
+        if (!allianceFillTargetSelect) {
+          return "conductor";
+        }
+        const sel = allianceFillTargetSelect;
+        const opt =
+          sel.selectedIndex >= 0 && sel.options[sel.selectedIndex]
+            ? sel.options[sel.selectedIndex]
+            : null;
+        if (opt) {
+          const v = String(opt.value || "")
+            .trim()
+            .toLowerCase();
+          if (v === "vip") {
+            return "vip";
+          }
+        }
+        const v = String(sel.value || "")
+          .trim()
+          .toLowerCase();
+        return v === "vip" ? "vip" : "conductor";
+      }
+
       /** Read Click fills dropdowns into state (authoritative for member picks). */
       function readAllianceFillFromDom() {
-        let targetType = "conductor";
-        if (allianceFillTargetSelect) {
-          const v = String(allianceFillTargetSelect.value || "").trim();
-          targetType = v === "vip" ? "vip" : "conductor";
-        }
+        const targetType = readAllianceFillTargetTypeFromDom();
         let idx = 0;
         if (allianceFillConductorSelect) {
-          const n = Number(allianceFillConductorSelect.value);
+          const sel = allianceFillConductorSelect;
+          const opt =
+            sel.selectedIndex >= 0 && sel.options[sel.selectedIndex]
+              ? sel.options[sel.selectedIndex]
+              : null;
+          const n = Number(opt ? opt.value : sel.value);
           if (Number.isFinite(n) && n >= 0 && n <= 6) {
             idx = n;
           }
@@ -3724,14 +3750,12 @@
       }
 
       /**
-       * Resolve fill target + slot for an alliance member pick. Dropdowns win for
-       * VIP vs conductor; a focused roster field only adjusts the slot when it
-       * matches that same fill type.
+       * Resolve fill target + slot for an alliance member pick. Target type always
+       * comes from the Click fills dropdown; never from which roster field is focused.
        */
-      function getAllianceFillTargetsForMemberPick(fillSnapshot) {
-        const fill = fillSnapshot || readAllianceFillFromDom();
-        let targetType = fill.targetType;
-        let idx = fill.idx;
+      function getAllianceFillTargetsForMemberPick() {
+        const { targetType, idx: domIdx } = readAllianceFillFromDom();
+        let idx = domIdx;
         const active = document.activeElement;
 
         if (targetType === "vip") {
@@ -3744,9 +3768,6 @@
           if (Number.isFinite(ai)) idx = ai;
         }
 
-        if (targetType !== "vip" && targetType !== "conductor") {
-          targetType = "conductor";
-        }
         if (!Number.isFinite(idx) || idx < 0 || idx > 6) {
           idx = 0;
         }
@@ -4623,14 +4644,12 @@
         saveState();
       }
 
-      function applyAllianceMemberToTarget(memberName, fillSnapshot) {
+      function applyAllianceMemberToTarget(memberName) {
         normalizeScheduleStartDateInState();
 
         syncNameAssignmentWeekFromDom();
 
-        const { targetType, idx } = getAllianceFillTargetsForMemberPick(
-          fillSnapshot,
-        );
+        const { targetType, idx } = getAllianceFillTargetsForMemberPick();
 
         if (allianceFillTargetSelect) {
           allianceFillTargetSelect.value = targetType;
@@ -4669,7 +4688,7 @@
 
         const fillTargetType = targetType;
         const fillIdx = idx;
-        updateConductorRowInputsInDom(idx);
+        updateConductorRowInputsInDom(idx, { force: true });
         renderSchedule();
         flushRosterFieldPersist();
         refocusRosterFillField(fillTargetType, fillIdx);
@@ -5125,7 +5144,7 @@
         conductorsList
           .querySelectorAll(".conductor-name-input")
           .forEach((inp) => {
-            const idx = Number(inp.dataset.idx);
+            const idx = readConductorSlotIdxFromInputEl(inp);
             if (!Number.isFinite(idx) || idx < 0 || idx > 6) return;
             const v = inp.value.trim().slice(0, 40);
             const before = getConductorNameInputValue(idx);
@@ -6105,15 +6124,26 @@
         importAllianceMembersFromFile(file);
       });
 
-      allianceFillTargetSelect.addEventListener("change", () => {
+      function onAllianceFillUiChanged() {
         syncAllianceFillTargetsFromDom();
         saveState();
-      });
+      }
 
-      allianceFillConductorSelect.addEventListener("change", () => {
-        syncAllianceFillTargetsFromDom();
-        saveState();
-      });
+      if (allianceFillTargetSelect) {
+        allianceFillTargetSelect.addEventListener("change", onAllianceFillUiChanged);
+        allianceFillTargetSelect.addEventListener("input", onAllianceFillUiChanged);
+      }
+
+      if (allianceFillConductorSelect) {
+        allianceFillConductorSelect.addEventListener(
+          "change",
+          onAllianceFillUiChanged,
+        );
+        allianceFillConductorSelect.addEventListener(
+          "input",
+          onAllianceFillUiChanged,
+        );
+      }
 
       allianceMemberSearchInput.addEventListener("input", () => {
         const normalized = normalizeAllianceMemberSearchValue(
@@ -6189,25 +6219,15 @@
         });
       }
 
-      let allianceMemberPickHandled = false;
-
       allianceMembersList.addEventListener(
         "mousedown",
         (event) => {
           const el = eventTargetElement(event);
           if (!el) return;
           const pickBtn = el.closest("[data-name]");
-          if (!pickBtn || !allianceMembersList.contains(pickBtn)) return;
-          const fillSnapshot = readAllianceFillFromDom();
-          event.preventDefault();
-          const raw =
-            typeof pickBtn.getAttribute === "function"
-              ? pickBtn.getAttribute("data-name")
-              : "";
-          const name = sanitizeMemberName(raw || pickBtn.dataset?.name || "");
-          if (!name) return;
-          allianceMemberPickHandled = true;
-          applyAllianceMemberToTarget(name, fillSnapshot);
+          if (pickBtn && allianceMembersList.contains(pickBtn)) {
+            event.preventDefault();
+          }
         },
         true,
       );
@@ -6301,10 +6321,6 @@
 
         const pickBtn = el.closest("[data-name]");
         if (pickBtn && allianceMembersList.contains(pickBtn)) {
-          if (allianceMemberPickHandled) {
-            allianceMemberPickHandled = false;
-            return;
-          }
           const raw =
             typeof pickBtn.getAttribute === "function"
               ? pickBtn.getAttribute("data-name")
