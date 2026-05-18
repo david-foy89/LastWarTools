@@ -1813,6 +1813,7 @@
        * render and focus so member picks work even without focusing a conductor input.
        */
       let lastConductorRosterDateKeyForPick = "";
+      let rosterPersistTimer = null;
 
       function conductorSlotIsUnset(raw, conductorIdx) {
         if (raw === undefined || raw === null) return true;
@@ -4472,6 +4473,103 @@
         );
       }
 
+      function captureRosterFieldFocus() {
+        const active = document.activeElement;
+        if (
+          active?.classList?.contains("conductor-name-input") ||
+          active?.classList?.contains("conductor-vip-input")
+        ) {
+          return {
+            kind: active.classList.contains("conductor-vip-input")
+              ? "vip"
+              : "name",
+            idx: Number(active.dataset.idx),
+            start: active.selectionStart,
+            end: active.selectionEnd,
+          };
+        }
+        return null;
+      }
+
+      function restoreRosterFieldFocus(snapshot) {
+        if (!snapshot || !conductorsList) return;
+        if (!Number.isFinite(snapshot.idx) || snapshot.idx < 0 || snapshot.idx > 6) {
+          return;
+        }
+        const cls =
+          snapshot.kind === "vip"
+            ? "conductor-vip-input"
+            : "conductor-name-input";
+        const inp = conductorsList.querySelector(
+          `.${cls}[data-idx="${snapshot.idx}"]`,
+        );
+        if (!inp) return;
+        inp.focus();
+        try {
+          const len = inp.value.length;
+          const start = Number.isFinite(snapshot.start)
+            ? snapshot.start
+            : len;
+          const end = Number.isFinite(snapshot.end) ? snapshot.end : len;
+          inp.setSelectionRange(
+            Math.min(start, len),
+            Math.min(end, len),
+          );
+        } catch {
+          /* ignore */
+        }
+      }
+
+      function refocusRosterFillField(targetType, idx) {
+        const i = Number(idx);
+        if (!Number.isFinite(i) || i < 0 || i > 6) return;
+        restoreRosterFieldFocus({
+          kind: targetType === "vip" ? "vip" : "name",
+          idx: i,
+          start: null,
+          end: null,
+        });
+        const cls =
+          targetType === "vip"
+            ? "conductor-vip-input"
+            : "conductor-name-input";
+        const inp = conductorsList?.querySelector(
+          `.${cls}[data-idx="${i}"]`,
+        );
+        if (!inp) return;
+        try {
+          const len = inp.value.length;
+          inp.setSelectionRange(len, len);
+        } catch {
+          /* ignore */
+        }
+      }
+
+      /** Live calendar update while typing; debounced save so focus is not lost. */
+      function scheduleRosterFieldLiveUpdate() {
+        renderSchedule();
+      }
+
+      function scheduleRosterFieldPersist() {
+        scheduleRosterFieldLiveUpdate();
+        if (rosterPersistTimer) {
+          clearTimeout(rosterPersistTimer);
+        }
+        rosterPersistTimer = setTimeout(() => {
+          rosterPersistTimer = null;
+          saveState();
+          renderAllianceMembers();
+        }, 450);
+      }
+
+      function flushRosterFieldPersist() {
+        if (rosterPersistTimer) {
+          clearTimeout(rosterPersistTimer);
+          rosterPersistTimer = null;
+        }
+        saveState();
+      }
+
       function applyAllianceMemberToTarget(memberName) {
         normalizeScheduleStartDateInState();
 
@@ -4486,8 +4584,10 @@
           targetType = "vip";
           const ai = readConductorSlotIdxFromInputEl(active);
           if (Number.isFinite(ai)) idx = ai;
-        } else if (active?.classList?.contains("conductor-name-input")) {
-          targetType = "conductor";
+        } else if (
+          active?.classList?.contains("conductor-name-input") &&
+          targetType === "conductor"
+        ) {
           const ai = readConductorSlotIdxFromInputEl(active);
           if (Number.isFinite(ai)) idx = ai;
         }
@@ -4520,10 +4620,13 @@
           }
         }
 
+        const fillTargetType = targetType;
+        const fillIdx = idx;
         updateConductorRowInputsInDom(idx);
         renderSchedule();
-        renderAllianceMembers();
-        saveState();
+        flushRosterFieldPersist();
+        refocusRosterFillField(fillTargetType, fillIdx);
+        window.setTimeout(() => renderAllianceMembers(), 0);
       }
 
       function applyAllianceMemberAsConductor(memberName) {
@@ -5080,6 +5183,7 @@
       }
 
       function renderConductors() {
+        const focusSnap = captureRosterFieldFocus();
         conductorsList.innerHTML = state.conductors
           .map((c, i) => {
             const assignedDays = getConductorDays(i);
@@ -5153,9 +5257,7 @@
               const idx = Number(inp.dataset.idx);
               if (!Number.isFinite(idx) || idx < 0 || idx > 6) return;
               setConductorNameForWeekSlot(idx, state.nameEditWeek, inp.value);
-              saveState();
-              renderSchedule();
-              renderAllianceMembers();
+              scheduleRosterFieldPersist();
             });
 
             inp.addEventListener("change", () => {
@@ -5168,9 +5270,13 @@
                   idx,
                   state.nameEditWeek,
                 );
-                saveState();
               }
+              flushRosterFieldPersist();
               renderAllianceMembers();
+            });
+
+            inp.addEventListener("blur", () => {
+              flushRosterFieldPersist();
             });
           });
 
@@ -5190,21 +5296,25 @@
                 state.nameEditWeek,
                 inp.value,
               );
-              saveState();
-              renderSchedule();
-              renderAllianceMembers();
+              scheduleRosterFieldPersist();
             });
 
             inp.addEventListener("change", () => {
               const idx = Number(inp.dataset.idx);
-              const name = sanitizeMemberName(inp.value);
+              const name = normalizeVipGuardianValue(inp.value);
               if (name) {
                 recordMemberHistory(name, "vip", idx, state.nameEditWeek);
-                saveState();
               }
+              flushRosterFieldPersist();
               renderAllianceMembers();
             });
+
+            inp.addEventListener("blur", () => {
+              flushRosterFieldPersist();
+            });
           });
+
+        restoreRosterFieldFocus(focusSnap);
       }
 
       function renderSchedule() {
@@ -5856,8 +5966,11 @@
           if (dk) {
             lastConductorRosterDateKeyForPick = dk;
           }
-          syncAllianceFillConductorOptions();
-          saveState();
+          if (allianceFillConductorSelect) {
+            allianceFillConductorSelect.value = String(
+              state.allianceFillConductorIdx,
+            );
+          }
           return;
         }
 
@@ -5875,8 +5988,11 @@
           if (dk) {
             lastConductorRosterDateKeyForPick = dk;
           }
-          syncAllianceFillConductorOptions();
-          saveState();
+          if (allianceFillConductorSelect) {
+            allianceFillConductorSelect.value = String(
+              state.allianceFillConductorIdx,
+            );
+          }
         }
       });
 
@@ -6043,6 +6159,19 @@
           renderAllianceMembers();
         });
       }
+
+      allianceMembersList.addEventListener(
+        "mousedown",
+        (event) => {
+          const el = eventTargetElement(event);
+          if (!el) return;
+          const pickBtn = el.closest("[data-name]");
+          if (pickBtn && allianceMembersList.contains(pickBtn)) {
+            event.preventDefault();
+          }
+        },
+        true,
+      );
 
       allianceMembersList.addEventListener("click", (event) => {
         const el = eventTargetElement(event);
