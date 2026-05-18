@@ -3702,7 +3702,7 @@
       /** Read “Click fills” UI so picks use the slot/week the user actually chose. */
       function syncAllianceFillTargetsFromDom() {
         if (allianceFillTargetSelect) {
-          const v = allianceFillTargetSelect.value;
+          const v = String(allianceFillTargetSelect.value || "").trim();
           state.allianceFillTarget = v === "vip" ? "vip" : "conductor";
         }
         if (allianceFillConductorSelect) {
@@ -3710,6 +3710,49 @@
           state.allianceFillConductorIdx = Number.isFinite(idx)
             ? Math.max(0, Math.min(6, idx))
             : 0;
+        }
+      }
+
+      /**
+       * Resolve fill target + slot for an alliance member pick. The Click fills
+       * dropdowns are authoritative for VIP vs conductor and for conductor slot;
+       * focusing a name field must not override VIP selected in the dropdown.
+       */
+      function getAllianceFillTargetsForMemberPick() {
+        syncAllianceFillTargetsFromDom();
+        let targetType = state.allianceFillTarget;
+        let idx = Number(state.allianceFillConductorIdx);
+        const active = document.activeElement;
+
+        if (active?.classList?.contains("conductor-vip-input")) {
+          targetType = "vip";
+          const ai = readConductorSlotIdxFromInputEl(active);
+          if (Number.isFinite(ai)) idx = ai;
+        } else if (
+          active?.classList?.contains("conductor-name-input") &&
+          targetType === "conductor"
+        ) {
+          const ai = readConductorSlotIdxFromInputEl(active);
+          if (Number.isFinite(ai)) idx = ai;
+        }
+
+        if (targetType !== "vip" && targetType !== "conductor") {
+          targetType = "conductor";
+        }
+        if (!Number.isFinite(idx) || idx < 0 || idx > 6) {
+          idx = 0;
+        }
+        return { targetType, idx };
+      }
+
+      function syncAllianceFillConductorIdxFromRosterInput(inputEl) {
+        const idx = readConductorSlotIdxFromInputEl(inputEl);
+        if (!Number.isFinite(idx)) return;
+        state.allianceFillConductorIdx = Math.max(0, Math.min(6, idx));
+        if (allianceFillConductorSelect) {
+          allianceFillConductorSelect.value = String(
+            state.allianceFillConductorIdx,
+          );
         }
       }
 
@@ -4573,34 +4616,15 @@
       function applyAllianceMemberToTarget(memberName) {
         normalizeScheduleStartDateInState();
 
-        syncAllianceFillTargetsFromDom();
         syncNameAssignmentWeekFromDom();
 
-        const active = document.activeElement;
-        let targetType = state.allianceFillTarget;
-        let idx = Number(state.allianceFillConductorIdx);
+        const { targetType, idx } = getAllianceFillTargetsForMemberPick();
 
-        if (active?.classList?.contains("conductor-vip-input")) {
-          targetType = "vip";
-          const ai = readConductorSlotIdxFromInputEl(active);
-          if (Number.isFinite(ai)) idx = ai;
-        } else if (
-          active?.classList?.contains("conductor-name-input") &&
-          targetType === "conductor"
-        ) {
-          const ai = readConductorSlotIdxFromInputEl(active);
-          if (Number.isFinite(ai)) idx = ai;
-        }
-
-        if (targetType !== "vip" && targetType !== "conductor") {
-          targetType = "conductor";
-        }
-
-        if (!Number.isFinite(idx) || idx < 0 || idx > 6) {
-          idx = 0;
-        }
-
+        state.allianceFillTarget = targetType;
         state.allianceFillConductorIdx = idx;
+        if (allianceFillTargetSelect) {
+          allianceFillTargetSelect.value = targetType;
+        }
         if (allianceFillConductorSelect) {
           allianceFillConductorSelect.value = String(idx);
         }
@@ -5953,45 +5977,25 @@
       conductorsList.addEventListener("focusin", (event) => {
         const target = event.target;
         if (target?.classList?.contains("conductor-name-input")) {
-          const idx = readConductorSlotIdxFromInputEl(target);
-          state.allianceFillTarget = "conductor";
-          state.allianceFillConductorIdx = Number.isFinite(idx)
-            ? Math.max(0, Math.min(6, idx))
-            : 0;
-          if (allianceFillTargetSelect) {
-            allianceFillTargetSelect.value = "conductor";
-          }
+          syncAllianceFillConductorIdxFromRosterInput(target);
           const dk =
             readConductorNameDateKeyFromInputEl(target) || getNameEditDateKey();
           if (dk) {
             lastConductorRosterDateKeyForPick = dk;
-          }
-          if (allianceFillConductorSelect) {
-            allianceFillConductorSelect.value = String(
-              state.allianceFillConductorIdx,
-            );
           }
           return;
         }
 
         if (target?.classList?.contains("conductor-vip-input")) {
-          const idx = readConductorSlotIdxFromInputEl(target);
           state.allianceFillTarget = "vip";
-          state.allianceFillConductorIdx = Number.isFinite(idx)
-            ? Math.max(0, Math.min(6, idx))
-            : 0;
           if (allianceFillTargetSelect) {
             allianceFillTargetSelect.value = "vip";
           }
+          syncAllianceFillConductorIdxFromRosterInput(target);
           const dk =
             readConductorNameDateKeyFromInputEl(target) || getNameEditDateKey();
           if (dk) {
             lastConductorRosterDateKeyForPick = dk;
-          }
-          if (allianceFillConductorSelect) {
-            allianceFillConductorSelect.value = String(
-              state.allianceFillConductorIdx,
-            );
           }
         }
       });
@@ -6073,16 +6077,12 @@
       });
 
       allianceFillTargetSelect.addEventListener("change", () => {
-        state.allianceFillTarget =
-          allianceFillTargetSelect.value === "vip" ? "vip" : "conductor";
+        syncAllianceFillTargetsFromDom();
         saveState();
       });
 
       allianceFillConductorSelect.addEventListener("change", () => {
-        const idx = Number(allianceFillConductorSelect.value);
-        state.allianceFillConductorIdx = Number.isFinite(idx)
-          ? Math.max(0, Math.min(6, idx))
-          : 0;
+        syncAllianceFillTargetsFromDom();
         saveState();
       });
 
