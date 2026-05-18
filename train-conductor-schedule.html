@@ -1469,7 +1469,7 @@
               <div class="alliance-members-target-row">
                 <select
                   id="allianceFillTargetSelect"
-                  aria-label="Auto fill target"
+                  aria-label="Click fill target"
                 >
                   <option value="conductor">Conductor Name</option>
                   <option value="vip">VIP/Guardian</option>
@@ -1928,6 +1928,15 @@
         return out;
       }
 
+      function normalizeVip7(arr) {
+        const out = [];
+        for (let i = 0; i < 7; i++) {
+          const v = Array.isArray(arr) ? arr[i] : "";
+          out.push(normalizeVipGuardianValue(v));
+        }
+        return out;
+      }
+
       function getDateNamesRow(dateKey) {
         const dk = String(dateKey || "").trim();
         if (!isMondayDateKey(dk)) return null;
@@ -1937,18 +1946,36 @@
         return normalizeNames7(p.names);
       }
 
+      function getDateVipRow(dateKey) {
+        const dk = String(dateKey || "").trim();
+        if (!isMondayDateKey(dk)) return null;
+        ensureScheduleByCalendarDate();
+        const p = state.scheduleByCalendarDate[dk];
+        if (!p || typeof p !== "object" || !Array.isArray(p.vip)) return null;
+        return normalizeVip7(p.vip);
+      }
+
       function ensureDatePack(dateKey) {
         const dk = String(dateKey || "").trim();
         if (!isMondayDateKey(dk)) return null;
         ensureScheduleByCalendarDate();
         if (!state.scheduleByCalendarDate[dk]) {
-          state.scheduleByCalendarDate[dk] = { names: Array(7).fill("") };
+          state.scheduleByCalendarDate[dk] = {
+            names: Array(7).fill(""),
+            vip: Array(7).fill(""),
+          };
         }
         if (!Array.isArray(state.scheduleByCalendarDate[dk].names)) {
           state.scheduleByCalendarDate[dk].names = Array(7).fill("");
         }
+        if (!Array.isArray(state.scheduleByCalendarDate[dk].vip)) {
+          state.scheduleByCalendarDate[dk].vip = Array(7).fill("");
+        }
         state.scheduleByCalendarDate[dk].names = normalizeNames7(
           state.scheduleByCalendarDate[dk].names,
+        );
+        state.scheduleByCalendarDate[dk].vip = normalizeVip7(
+          state.scheduleByCalendarDate[dk].vip,
         );
         return state.scheduleByCalendarDate[dk];
       }
@@ -2034,6 +2061,83 @@
           }
         }
         return "";
+      }
+
+      /** VIP/Guardian for one roster slot on a specific calendar date. */
+      function getConductorVipForCell(weekIdx, dayIdx, conductorIdx) {
+        const dk = getCalendarDateKeyForCell(
+          state.startDateStr,
+          weekIdx,
+          dayIdx,
+        );
+        if (!dk) return "";
+        const row = getDateVipRow(dk);
+        if (!row) return "";
+        return String(row[conductorIdx] ?? "").trim();
+      }
+
+      /** Input value for VIP on the name-edit week (empty when unset). */
+      function getConductorVipInputValue(conductorIdx) {
+        const tryRead = (dk) => {
+          if (!dk) return "";
+          const row = getDateVipRow(dk);
+          if (!row) return "";
+          return String(row[conductorIdx] ?? "").trim();
+        };
+        const slotDk = getCalendarDateKeyForConductorSlotInWeek(
+          conductorIdx,
+          state.nameEditWeek,
+        );
+        let v = tryRead(slotDk);
+        if (v) return v;
+        const nameEditDk = getNameEditDateKey();
+        if (nameEditDk && nameEditDk !== slotDk) {
+          v = tryRead(nameEditDk);
+          if (v) return v;
+        }
+        v = tryRead(getConductorNameInputDateKey(conductorIdx));
+        if (v) return v;
+        if (lastConductorRosterDateKeyForPick) {
+          const lk = String(lastConductorRosterDateKeyForPick).trim();
+          if (isMondayDateKey(lk)) {
+            v = tryRead(lk);
+            if (v) return v;
+          }
+        }
+        return "";
+      }
+
+      /**
+       * One-time: legacy global `conductors[].vipGuardian` → week-0 date pack only
+       * so VIP does not appear on every visible week.
+       */
+      function migrateLegacyConductorVipToCalendarPacks() {
+        if (!state.startDateStr) return;
+        for (let i = 0; i < state.conductors.length; i++) {
+          const legacy = normalizeVipGuardianValue(
+            state.conductors[i].vipGuardian,
+          );
+          if (!legacy) continue;
+          let hasPerDateVip = false;
+          for (const dk of Object.keys(state.scheduleByCalendarDate)) {
+            const row = getDateVipRow(dk);
+            if (row && normalizeVipGuardianValue(row[i])) {
+              hasPerDateVip = true;
+              break;
+            }
+          }
+          if (hasPerDateVip) {
+            state.conductors[i].vipGuardian = "";
+            continue;
+          }
+          const dk = getConductorNamePackDateKeyForSlot(i, 0);
+          if (!dk) continue;
+          const pack = ensureDatePack(dk);
+          if (!pack) continue;
+          pack.vip[i] = legacy;
+          pack.vip = normalizeVip7(pack.vip);
+          state.conductors[i].vipGuardian = "";
+        }
       }
 
       /** Default Mon–Sun assignment row for a fresh week. */
@@ -2507,7 +2611,11 @@
           if (!isMondayDateKey(k)) continue;
           const dk = String(k).trim();
           if (!v || typeof v !== "object" || !Array.isArray(v.names)) continue;
-          ensureDatePack(dk).names = normalizeNames7(v.names);
+          const pack = ensureDatePack(dk);
+          pack.names = normalizeNames7(v.names);
+          if (Array.isArray(v.vip)) {
+            pack.vip = normalizeVip7(v.vip);
+          }
         }
       }
 
@@ -3629,7 +3737,9 @@
         });
 
         for (let i = 0; i < state.conductors.length; i++) {
-          const vipName = state.conductors[i].vipGuardian || "";
+          const dk = getConductorNamePackDateKeyForSlot(i, state.nameEditWeek);
+          const row = dk ? getDateVipRow(dk) : null;
+          const vipName = row ? row[i] : "";
           if (normalizeMemberName(vipName) === normalizedName) {
             result.isCurrentVipGuardian = true;
           }
@@ -4332,23 +4442,21 @@
       function applyAllianceMemberToTarget(memberName) {
         normalizeScheduleStartDateInState();
 
+        syncAllianceFillTargetsFromDom();
+        syncNameAssignmentWeekFromDom();
+
         const active = document.activeElement;
         let targetType = state.allianceFillTarget;
         let idx = Number(state.allianceFillConductorIdx);
 
-        if (active?.classList?.contains("conductor-name-input")) {
-          targetType = "conductor";
-          const ai = readConductorSlotIdxFromInputEl(active);
-          if (Number.isFinite(ai)) idx = ai;
-        } else if (active?.classList?.contains("conductor-vip-input")) {
+        if (active?.classList?.contains("conductor-vip-input")) {
           targetType = "vip";
           const ai = readConductorSlotIdxFromInputEl(active);
           if (Number.isFinite(ai)) idx = ai;
-        } else {
-          syncAllianceFillTargetsFromDom();
-          syncNameAssignmentWeekFromDom();
-          targetType = state.allianceFillTarget;
-          idx = Number(state.allianceFillConductorIdx);
+        } else if (active?.classList?.contains("conductor-name-input")) {
+          targetType = "conductor";
+          const ai = readConductorSlotIdxFromInputEl(active);
+          if (Number.isFinite(ai)) idx = ai;
         }
 
         if (targetType !== "vip" && targetType !== "conductor") {
@@ -4360,9 +4468,27 @@
         }
 
         if (targetType === "vip") {
-          state.conductors[idx].vipGuardian =
-            normalizeVipGuardianValue(memberName);
-          recordMemberHistory(memberName, "vip", idx);
+          let dk = "";
+          if (active?.classList?.contains("conductor-vip-input")) {
+            const slotIdx = readConductorSlotIdxFromInputEl(active);
+            dk =
+              readConductorNameDateKeyFromInputEl(active) ||
+              getConductorNamePackDateKeyForSlot(
+                Number.isFinite(slotIdx) ? slotIdx : idx,
+                state.nameEditWeek,
+              );
+          } else {
+            dk = getConductorNamePackDateKeyForSlot(idx, state.nameEditWeek);
+          }
+          if (!dk) {
+            dk = getConductorNameFillDateKey(idx);
+          }
+          const pack = dk ? ensureDatePack(dk) : null;
+          if (pack) {
+            pack.vip[idx] = normalizeVipGuardianValue(memberName);
+            pack.vip = normalizeVip7(pack.vip);
+            recordMemberHistory(memberName, "vip", idx, state.nameEditWeek);
+          }
         } else {
           let dk = "";
           if (active?.classList?.contains("conductor-name-input")) {
@@ -4574,6 +4700,7 @@
           state.allianceFillConductorIdx = idx >= 0 && idx <= 6 ? idx : 0;
         }
         mergeScheduleMapFromSaved(saved, legacyConductorNamesByWeek);
+        migrateLegacyConductorVipToCalendarPacks();
         clampNameEditWeekToVisibleSchedule();
       }
 
@@ -4641,7 +4768,7 @@
               if (state.showVip) {
                 const vipLabel =
                   withR4R5Crown(
-                    state.conductors[conductorIdx].vipGuardian?.trim(),
+                    getConductorVipForCell(w, d, conductorIdx),
                   ) || "VIP/Guardian";
                 cellText += ` - ${vipLabel}`;
               }
@@ -4879,6 +5006,25 @@
               dirty = true;
             }
           });
+        if (state.showVip) {
+          conductorsList
+            .querySelectorAll(".conductor-vip-input")
+            .forEach((inp) => {
+              const idx = Number(inp.dataset.idx);
+              if (!Number.isFinite(idx) || idx < 0 || idx > 6) return;
+              const dk =
+                readConductorNameDateKeyFromInputEl(inp) ||
+                getConductorNamePackDateKeyForSlot(idx, state.nameEditWeek);
+              const pack = dk ? ensureDatePack(dk) : null;
+              if (!pack) return;
+              const v = normalizeVipGuardianValue(inp.value);
+              if (pack.vip[idx] !== v) {
+                pack.vip[idx] = v;
+                pack.vip = normalizeVip7(pack.vip);
+                dirty = true;
+              }
+            });
+        }
         return dirty;
       }
 
@@ -4931,9 +5077,19 @@
               ) {
                 return;
               }
+              const dk =
+                readConductorNameDateKeyFromInputEl(inp) ||
+                getCalendarDateKeyForCell(
+                  state.startDateStr,
+                  nameEditWeekBeforeLoad,
+                  nameEditDayBeforeLoad,
+                );
+              const pack = dk ? ensureDatePack(dk) : null;
+              if (!pack) return;
               const v = normalizeVipGuardianValue(inp.value);
-              if (state.conductors[idx].vipGuardian !== v) {
-                state.conductors[idx].vipGuardian = v;
+              if (pack.vip[idx] !== v) {
+                pack.vip[idx] = v;
+                pack.vip = normalizeVip7(pack.vip);
                 dirty = true;
               }
             });
@@ -4969,8 +5125,9 @@
               ? `<input
               type="text"
               class="conductor-vip-input"
-              value="${escapeHtml(c.vipGuardian || "")}"
+              value="${escapeHtml(getConductorVipInputValue(i))}"
               data-idx="${i}"
+              data-date-key="${escapeHtml(getConductorNameInputDateKey(i))}"
               maxlength="50"
               placeholder="VIP/Guardian"
               aria-label="Conductor ${i + 1} VIP/Guardian"
@@ -5078,9 +5235,14 @@
           .forEach((inp) => {
             inp.addEventListener("input", () => {
               const idx = Number(inp.dataset.idx);
-              state.conductors[idx].vipGuardian = normalizeVipGuardianValue(
-                inp.value,
-              );
+              if (!Number.isFinite(idx) || idx < 0 || idx > 6) return;
+              const dk =
+                readConductorNameDateKeyFromInputEl(inp) ||
+                getConductorNamePackDateKeyForSlot(idx, state.nameEditWeek);
+              const pack = dk ? ensureDatePack(dk) : null;
+              if (!pack) return;
+              pack.vip[idx] = normalizeVipGuardianValue(inp.value);
+              pack.vip = normalizeVip7(pack.vip);
               saveState();
               renderSchedule();
               renderAllianceMembers();
@@ -5090,7 +5252,7 @@
               const idx = Number(inp.dataset.idx);
               const name = sanitizeMemberName(inp.value);
               if (name) {
-                recordMemberHistory(name, "vip", idx);
+                recordMemberHistory(name, "vip", idx, state.nameEditWeek);
                 saveState();
               }
               renderAllianceMembers();
@@ -5169,11 +5331,10 @@
               conductorIdx >= 0 &&
               conductorIdx < state.conductors.length
             ) {
-              const vipLabel =
-                withR4R5Crown(
-                  state.conductors[conductorIdx].vipGuardian?.trim(),
-                ) || "VIP/Guardian";
-              vipHtml = `<span class="vip-badge">${escapeHtml(vipLabel)}</span>`;
+              const vipRaw = getConductorVipForCell(w, d, conductorIdx);
+              if (vipRaw) {
+                vipHtml = `<span class="vip-badge">${escapeHtml(withR4R5Crown(vipRaw))}</span>`;
+              }
             }
             cells.push(
               `<td class="${todayClass}${nameEditClass}"${cellKeyAttr} title="Edit conductor names for this calendar date">
@@ -5231,9 +5392,14 @@
             );
             let todayVipHtml = "";
             if (state.showVip) {
-              const vipLabel =
-                withR4R5Crown(c.vipGuardian?.trim()) || "VIP/Guardian";
-              todayVipHtml = `<span class="vip-badge">${escapeHtml(vipLabel)}</span>`;
+              const vipRaw = getConductorVipForCell(
+                todayWeekIdx,
+                todayColIdx,
+                todayConduectorIdx,
+              );
+              if (vipRaw) {
+                todayVipHtml = `<span class="vip-badge">${escapeHtml(withR4R5Crown(vipRaw))}</span>`;
+              }
             }
             bannerChip = `<span class="conductor-chip${phClass}" style="color:${escapeHtml(c.color)};border-color:${escapeHtml(c.color)};">${escapeHtml(displayName)}</span>${todayVipHtml}<span class="today-banner-date">${escapeHtml(todayLabel)}</span>`;
           }
@@ -5756,6 +5922,11 @@
             : 0;
           if (allianceFillTargetSelect) {
             allianceFillTargetSelect.value = "vip";
+          }
+          const dk =
+            readConductorNameDateKeyFromInputEl(target) || getNameEditDateKey();
+          if (dk) {
+            lastConductorRosterDateKeyForPick = dk;
           }
           syncAllianceFillConductorOptions();
           saveState();
