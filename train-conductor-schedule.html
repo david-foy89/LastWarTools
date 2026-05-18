@@ -2030,37 +2030,17 @@
         return dk;
       }
 
-      /** Input value for the name-edit date: empty when unset so placeholders show. */
+      /** Input value for the name-edit week (empty when unset so placeholders show). */
       function getConductorNameInputValue(conductorIdx) {
-        const tryRead = (dk) => {
-          if (!dk) return "";
-          const row = getDateNamesRow(dk);
-          if (!row) return "";
-          const raw = row[conductorIdx];
-          if (conductorSlotIsUnset(raw, conductorIdx)) return "";
-          return String(raw).trim().slice(0, 40);
-        };
-        const slotDk = getCalendarDateKeyForConductorSlotInWeek(
-          conductorIdx,
-          state.nameEditWeek,
-        );
-        let v = tryRead(slotDk);
-        if (v) return v;
-        const nameEditDk = getNameEditDateKey();
-        if (nameEditDk && nameEditDk !== slotDk) {
-          v = tryRead(nameEditDk);
-          if (v) return v;
-        }
-        v = tryRead(getConductorNameFillDateKey(conductorIdx));
-        if (v) return v;
-        if (lastConductorRosterDateKeyForPick) {
-          const lk = String(lastConductorRosterDateKeyForPick).trim();
-          if (isMondayDateKey(lk)) {
-            v = tryRead(lk);
-            if (v) return v;
-          }
-        }
-        return "";
+        const ci = Number(conductorIdx);
+        if (!Number.isFinite(ci) || ci < 0 || ci > 6) return "";
+        const dk = getConductorNamePackDateKeyForSlot(ci, state.nameEditWeek);
+        if (!dk) return "";
+        const row = getDateNamesRow(dk);
+        if (!row) return "";
+        const raw = row[ci];
+        if (conductorSlotIsUnset(raw, ci)) return "";
+        return String(raw).trim().slice(0, 40);
       }
 
       /**
@@ -2109,6 +2089,47 @@
           }
         }
         return wrote;
+      }
+
+      /** Writes conductor name for one slot on its assignment date in that week. */
+      function setConductorNameForWeekSlot(conductorIdx, weekIdx, value) {
+        const ci = Number(conductorIdx);
+        if (!Number.isFinite(ci) || ci < 0 || ci > 6) return false;
+        if (!state.startDateStr) return false;
+        const w = Math.max(0, Math.min(3, Number(weekIdx)));
+        const n = sanitizeMemberName(value).slice(0, 40);
+        let dk = getConductorNamePackDateKeyForSlot(ci, w);
+        if (!dk) {
+          dk = getConductorNameFillDateKey(ci);
+        }
+        if (!dk && lastConductorRosterDateKeyForPick) {
+          const lk = String(lastConductorRosterDateKeyForPick).trim();
+          if (isMondayDateKey(lk)) dk = lk;
+        }
+        const pack = dk ? ensureDatePack(dk) : null;
+        if (!pack) return false;
+        pack.names[ci] = n;
+        pack.names = normalizeNames7(pack.names);
+        return true;
+      }
+
+      /** Refresh one roster row from state without re-building the whole list. */
+      function updateConductorRowInputsInDom(conductorIdx) {
+        if (!conductorsList) return;
+        const i = Number(conductorIdx);
+        if (!Number.isFinite(i) || i < 0 || i > 6) return;
+        const nameInp = conductorsList.querySelector(
+          `.conductor-name-input[data-idx="${i}"]`,
+        );
+        const vipInp = conductorsList.querySelector(
+          `.conductor-vip-input[data-idx="${i}"]`,
+        );
+        if (nameInp && document.activeElement !== nameInp) {
+          nameInp.value = getConductorNameInputValue(i);
+        }
+        if (vipInp && document.activeElement !== vipInp) {
+          vipInp.value = getConductorVipInputValue(i);
+        }
       }
 
       /** VIP/Guardian shown on a schedule cell (per week + conductor slot). */
@@ -2521,13 +2542,17 @@
        * the given assignment week (falls back to the highlighted name-edit cell).
        */
       function getConductorNamePackDateKeyForSlot(conductorIdx, weekIdx) {
+        const ci = Number(conductorIdx);
         const dkSlot = getCalendarDateKeyForConductorSlotInWeek(
           conductorIdx,
           weekIdx,
         );
         if (dkSlot) return dkSlot;
         const w = Math.max(0, Math.min(3, Number(weekIdx)));
-        const d = Math.max(0, Math.min(6, state.nameEditDay));
+        const d =
+          Number.isFinite(ci) && ci >= 0 && ci <= 6
+            ? ci
+            : Math.max(0, Math.min(6, state.nameEditDay));
         return getCalendarDateKeyForCell(state.startDateStr, w, d);
       }
 
@@ -4475,52 +4500,27 @@
           idx = 0;
         }
 
+        state.allianceFillConductorIdx = idx;
+        if (allianceFillConductorSelect) {
+          allianceFillConductorSelect.value = String(idx);
+        }
+
         if (targetType === "vip") {
           if (
             setConductorVipForWeekSlot(idx, state.nameEditWeek, memberName)
           ) {
             recordMemberHistory(memberName, "vip", idx, state.nameEditWeek);
           }
-        } else {
-          let dk = "";
-          if (active?.classList?.contains("conductor-name-input")) {
-            const slotIdx = readConductorSlotIdxFromInputEl(active);
-            dk =
-              readConductorNameDateKeyFromInputEl(active) ||
-              getConductorNamePackDateKeyForSlot(
-                Number.isFinite(slotIdx) ? slotIdx : idx,
-                state.nameEditWeek,
-              );
-          } else {
-            dk = getConductorNamePackDateKeyForSlot(idx, state.nameEditWeek);
-          }
-          if (!dk) {
-            dk = getConductorNameFillDateKey(idx);
-          }
-          if (!dk && lastConductorRosterDateKeyForPick) {
-            const lk = String(lastConductorRosterDateKeyForPick).trim();
-            if (isMondayDateKey(lk)) dk = lk;
-          }
-          const n = sanitizeMemberName(memberName).slice(0, 40);
-          const pack = dk ? ensureDatePack(dk) : null;
-          if (pack) {
-            pack.names[idx] = n;
-            pack.names = normalizeNames7(pack.names);
-            if (n) {
-              recordMemberHistory(
-                memberName,
-                "conductor",
-                idx,
-                state.nameEditWeek,
-              );
-            }
+        } else if (
+          setConductorNameForWeekSlot(idx, state.nameEditWeek, memberName)
+        ) {
+          const n = sanitizeMemberName(memberName);
+          if (n) {
+            recordMemberHistory(memberName, "conductor", idx, state.nameEditWeek);
           }
         }
 
-        // Render before saveState: getScheduleSnapshotForPersistence() calls
-        // syncConductorNameInputsFromDomIntoState(), which would copy stale input
-        // values from the DOM and overwrite the roster we just updated in memory.
-        renderConductors();
+        updateConductorRowInputsInDom(idx);
         renderSchedule();
         renderAllianceMembers();
         saveState();
@@ -4536,21 +4536,11 @@
           ? Math.max(0, Math.min(6, Number(state.allianceFillConductorIdx)))
           : 0;
 
-        let dk = getConductorNamePackDateKeyForSlot(idx, state.nameEditWeek);
-        if (!dk) {
-          dk = getConductorNameFillDateKey(idx);
+        if (!setConductorNameForWeekSlot(idx, state.nameEditWeek, name)) {
+          return;
         }
-        if (!dk && lastConductorRosterDateKeyForPick) {
-          const lk = String(lastConductorRosterDateKeyForPick).trim();
-          if (isMondayDateKey(lk)) dk = lk;
-        }
-
-        const pack = dk ? ensureDatePack(dk) : null;
-        if (!pack) return;
-        pack.names[idx] = name;
-        pack.names = normalizeNames7(pack.names);
         recordMemberHistory(name, "conductor", idx, state.nameEditWeek);
-        renderConductors();
+        updateConductorRowInputsInDom(idx);
         renderSchedule();
         renderAllianceMembers();
         saveState();
@@ -4987,14 +4977,10 @@
           .forEach((inp) => {
             const idx = Number(inp.dataset.idx);
             if (!Number.isFinite(idx) || idx < 0 || idx > 6) return;
-            const dk =
-              readConductorNameDateKeyFromInputEl(inp) || getNameEditDateKey();
-            const pack = dk ? ensureDatePack(dk) : null;
-            if (!pack) return;
             const v = inp.value.trim().slice(0, 40);
-            if (pack.names[idx] !== v) {
-              pack.names[idx] = v;
-              pack.names = normalizeNames7(pack.names);
+            const before = getConductorNameInputValue(idx);
+            if (before !== v) {
+              setConductorNameForWeekSlot(idx, state.nameEditWeek, v);
               dirty = true;
             }
           });
@@ -5036,19 +5022,14 @@
           .forEach((inp) => {
             const idx = Number(inp.dataset.idx);
             if (!Number.isFinite(idx) || idx < 0 || idx > 6) return;
-            const dk =
-              readConductorNameDateKeyFromInputEl(inp) ||
-              getCalendarDateKeyForCell(
-                state.startDateStr,
-                nameEditWeekBeforeLoad,
-                nameEditDayBeforeLoad,
-              );
-            const pack = dk ? ensureDatePack(dk) : null;
-            if (!pack) return;
             const v = inp.value.trim().slice(0, 40);
-            if (pack.names[idx] !== v) {
-              pack.names[idx] = v;
-              pack.names = normalizeNames7(pack.names);
+            const before = getConductorNameInputValue(idx);
+            if (before !== v) {
+              setConductorNameForWeekSlot(
+                idx,
+                nameEditWeekBeforeLoad,
+                v,
+              );
               dirty = true;
             }
           });
@@ -5168,23 +5149,10 @@
         conductorsList
           .querySelectorAll(".conductor-name-input")
           .forEach((inp) => {
-            inp.readOnly = true;
-            inp.addEventListener(
-              "focus",
-              () => {
-                inp.readOnly = false;
-              },
-              { once: true },
-            );
             inp.addEventListener("input", () => {
               const idx = Number(inp.dataset.idx);
-              const dk =
-                readConductorNameDateKeyFromInputEl(inp) || getNameEditDateKey();
               if (!Number.isFinite(idx) || idx < 0 || idx > 6) return;
-              const pack = dk ? ensureDatePack(dk) : null;
-              if (!pack) return;
-              pack.names[idx] = inp.value.trim().slice(0, 40);
-              pack.names = normalizeNames7(pack.names);
+              setConductorNameForWeekSlot(idx, state.nameEditWeek, inp.value);
               saveState();
               renderSchedule();
               renderAllianceMembers();
