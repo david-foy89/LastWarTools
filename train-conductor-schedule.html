@@ -2063,48 +2063,62 @@
         return "";
       }
 
-      /** VIP/Guardian for one roster slot on a specific calendar date. */
+      /**
+       * VIP/Guardian for one conductor slot in an assignment week (not global).
+       * Reads the slot’s assigned day first, then any day in that week row.
+       */
+      function getConductorVipForWeekSlot(conductorIdx, weekIdx) {
+        const ci = Number(conductorIdx);
+        if (!Number.isFinite(ci) || ci < 0 || ci > 6) return "";
+        const w = Math.max(0, Math.min(3, Number(weekIdx)));
+        const readSlot = (dk) => {
+          if (!dk) return "";
+          const row = getDateVipRow(dk);
+          if (!row) return "";
+          return String(row[ci] ?? "").trim();
+        };
+        const primaryDk = getConductorNamePackDateKeyForSlot(ci, w);
+        let v = readSlot(primaryDk);
+        if (v) return v;
+        for (let d = 0; d < 7; d++) {
+          const dk = getCalendarDateKeyForCell(state.startDateStr, w, d);
+          if (!dk || dk === primaryDk) continue;
+          v = readSlot(dk);
+          if (v) return v;
+        }
+        return "";
+      }
+
+      /** Writes VIP for one slot across all dates in the assignment week (same week only). */
+      function setConductorVipForWeekSlot(conductorIdx, weekIdx, value) {
+        const ci = Number(conductorIdx);
+        if (!Number.isFinite(ci) || ci < 0 || ci > 6) return false;
+        if (!state.startDateStr) return false;
+        const w = Math.max(0, Math.min(3, Number(weekIdx)));
+        const v = normalizeVipGuardianValue(value);
+        let wrote = false;
+        for (let d = 0; d < 7; d++) {
+          const dk = getCalendarDateKeyForCell(state.startDateStr, w, d);
+          if (!dk) continue;
+          const pack = ensureDatePack(dk);
+          if (!pack) continue;
+          if (pack.vip[ci] !== v) {
+            pack.vip[ci] = v;
+            pack.vip = normalizeVip7(pack.vip);
+            wrote = true;
+          }
+        }
+        return wrote;
+      }
+
+      /** VIP/Guardian shown on a schedule cell (per week + conductor slot). */
       function getConductorVipForCell(weekIdx, dayIdx, conductorIdx) {
-        const dk = getCalendarDateKeyForCell(
-          state.startDateStr,
-          weekIdx,
-          dayIdx,
-        );
-        if (!dk) return "";
-        const row = getDateVipRow(dk);
-        if (!row) return "";
-        return String(row[conductorIdx] ?? "").trim();
+        return getConductorVipForWeekSlot(conductorIdx, weekIdx);
       }
 
       /** Input value for VIP on the name-edit week (empty when unset). */
       function getConductorVipInputValue(conductorIdx) {
-        const tryRead = (dk) => {
-          if (!dk) return "";
-          const row = getDateVipRow(dk);
-          if (!row) return "";
-          return String(row[conductorIdx] ?? "").trim();
-        };
-        const slotDk = getCalendarDateKeyForConductorSlotInWeek(
-          conductorIdx,
-          state.nameEditWeek,
-        );
-        let v = tryRead(slotDk);
-        if (v) return v;
-        const nameEditDk = getNameEditDateKey();
-        if (nameEditDk && nameEditDk !== slotDk) {
-          v = tryRead(nameEditDk);
-          if (v) return v;
-        }
-        v = tryRead(getConductorNameInputDateKey(conductorIdx));
-        if (v) return v;
-        if (lastConductorRosterDateKeyForPick) {
-          const lk = String(lastConductorRosterDateKeyForPick).trim();
-          if (isMondayDateKey(lk)) {
-            v = tryRead(lk);
-            if (v) return v;
-          }
-        }
-        return "";
+        return getConductorVipForWeekSlot(conductorIdx, state.nameEditWeek);
       }
 
       /**
@@ -2130,13 +2144,9 @@
             state.conductors[i].vipGuardian = "";
             continue;
           }
-          const dk = getConductorNamePackDateKeyForSlot(i, 0);
-          if (!dk) continue;
-          const pack = ensureDatePack(dk);
-          if (!pack) continue;
-          pack.vip[i] = legacy;
-          pack.vip = normalizeVip7(pack.vip);
-          state.conductors[i].vipGuardian = "";
+          if (setConductorVipForWeekSlot(i, 0, legacy)) {
+            state.conductors[i].vipGuardian = "";
+          }
         }
       }
 
@@ -3737,9 +3747,7 @@
         });
 
         for (let i = 0; i < state.conductors.length; i++) {
-          const dk = getConductorNamePackDateKeyForSlot(i, state.nameEditWeek);
-          const row = dk ? getDateVipRow(dk) : null;
-          const vipName = row ? row[i] : "";
+          const vipName = getConductorVipForWeekSlot(i, state.nameEditWeek);
           if (normalizeMemberName(vipName) === normalizedName) {
             result.isCurrentVipGuardian = true;
           }
@@ -4468,25 +4476,9 @@
         }
 
         if (targetType === "vip") {
-          let dk = "";
-          if (active?.classList?.contains("conductor-vip-input")) {
-            const slotIdx = readConductorSlotIdxFromInputEl(active);
-            dk =
-              readConductorNameDateKeyFromInputEl(active) ||
-              getConductorNamePackDateKeyForSlot(
-                Number.isFinite(slotIdx) ? slotIdx : idx,
-                state.nameEditWeek,
-              );
-          } else {
-            dk = getConductorNamePackDateKeyForSlot(idx, state.nameEditWeek);
-          }
-          if (!dk) {
-            dk = getConductorNameFillDateKey(idx);
-          }
-          const pack = dk ? ensureDatePack(dk) : null;
-          if (pack) {
-            pack.vip[idx] = normalizeVipGuardianValue(memberName);
-            pack.vip = normalizeVip7(pack.vip);
+          if (
+            setConductorVipForWeekSlot(idx, state.nameEditWeek, memberName)
+          ) {
             recordMemberHistory(memberName, "vip", idx, state.nameEditWeek);
           }
         } else {
@@ -5012,15 +5004,10 @@
             .forEach((inp) => {
               const idx = Number(inp.dataset.idx);
               if (!Number.isFinite(idx) || idx < 0 || idx > 6) return;
-              const dk =
-                readConductorNameDateKeyFromInputEl(inp) ||
-                getConductorNamePackDateKeyForSlot(idx, state.nameEditWeek);
-              const pack = dk ? ensureDatePack(dk) : null;
-              if (!pack) return;
               const v = normalizeVipGuardianValue(inp.value);
-              if (pack.vip[idx] !== v) {
-                pack.vip[idx] = v;
-                pack.vip = normalizeVip7(pack.vip);
+              const before = getConductorVipForWeekSlot(idx, state.nameEditWeek);
+              if (before !== v) {
+                setConductorVipForWeekSlot(idx, state.nameEditWeek, v);
                 dirty = true;
               }
             });
@@ -5077,19 +5064,13 @@
               ) {
                 return;
               }
-              const dk =
-                readConductorNameDateKeyFromInputEl(inp) ||
-                getCalendarDateKeyForCell(
-                  state.startDateStr,
-                  nameEditWeekBeforeLoad,
-                  nameEditDayBeforeLoad,
-                );
-              const pack = dk ? ensureDatePack(dk) : null;
-              if (!pack) return;
               const v = normalizeVipGuardianValue(inp.value);
-              if (pack.vip[idx] !== v) {
-                pack.vip[idx] = v;
-                pack.vip = normalizeVip7(pack.vip);
+              const before = getConductorVipForWeekSlot(
+                idx,
+                nameEditWeekBeforeLoad,
+              );
+              if (before !== v) {
+                setConductorVipForWeekSlot(idx, nameEditWeekBeforeLoad, v);
                 dirty = true;
               }
             });
@@ -5236,13 +5217,11 @@
             inp.addEventListener("input", () => {
               const idx = Number(inp.dataset.idx);
               if (!Number.isFinite(idx) || idx < 0 || idx > 6) return;
-              const dk =
-                readConductorNameDateKeyFromInputEl(inp) ||
-                getConductorNamePackDateKeyForSlot(idx, state.nameEditWeek);
-              const pack = dk ? ensureDatePack(dk) : null;
-              if (!pack) return;
-              pack.vip[idx] = normalizeVipGuardianValue(inp.value);
-              pack.vip = normalizeVip7(pack.vip);
+              setConductorVipForWeekSlot(
+                idx,
+                state.nameEditWeek,
+                inp.value,
+              );
               saveState();
               renderSchedule();
               renderAllianceMembers();
