@@ -189,7 +189,7 @@
             >
           </div>
         </details>
-        <details class="page-nav-dropdown active" name="season-nav">
+        <details class="page-nav-dropdown" name="season-nav">
           <summary class="page-link page-nav-dropdown-toggle">
             Season 5 Tools
           </summary>
@@ -200,25 +200,28 @@
             <a href="protectors-field-s5-calculator.html" class="page-link"
               >Protector's Field S5</a
             >
-            <a
-              href="season-6-squad-base-calculator.html"
-              class="page-link active"
-              >Season 6 Squad Base</a
+            <a href="season-5-squad-base-calculator.html" class="page-link"
+              >Season 5 Tanker Bar</a
             >
             <a href="season-5-interactive-map.html" class="page-link"
               >Interactive Map</a
             >
           </div>
         </details>
-        <details class="page-nav-dropdown" name="season-nav">
+        <details class="page-nav-dropdown active" name="season-nav">
           <summary class="page-link page-nav-dropdown-toggle">
             Season 6 Tools
           </summary>
           <div class="page-nav-dropdown-menu">
-                        <a href="fungus-institute-calculator.html" class="page-link"
+            <a
+              href="season-6-squad-base-calculator.html"
+              class="page-link active"
+              >Season 6 Squad Base</a
+            >
+            <a href="fungus-institute-calculator.html" class="page-link"
               >Fungus Institute</a
             >
-<a href="season-6-interactive-map.html" class="page-link"
+            <a href="season-6-interactive-map.html" class="page-link"
               >Interactive Map</a
             >
           </div>
@@ -228,9 +231,10 @@
       <section class="hero">
         <h1>Bear Totem Calculator (Season 6)</h1>
         <div class="sub">
-          Choose your current Bear Totem level and enter your current spore.
-          The calculator shows how much spore you still need for the next level
-          and when your Spore Factories will cover the gap.
+          Choose your current Bear Totem level and enter your current Spore.
+          The calculator shows how much Spore you still need for the next level
+          and when your Spore Factories will cover the gap. Boosts tank hero
+          damage during Season 6.
         </div>
       </section>
 
@@ -302,7 +306,7 @@
             </div>
             <div class="tile">
               <div class="tile-key">Spore Required (total)</div>
-              <div class="tile-value" id="requiredValue">4,300</div>
+              <div class="tile-value" id="requiredValue">2,420,000</div>
             </div>
             <div class="tile">
               <div class="tile-key">Current Spore</div>
@@ -310,7 +314,7 @@
             </div>
             <div class="tile">
               <div class="tile-key">Still Needed</div>
-              <div class="tile-value warn" id="deficitValue">4,300</div>
+              <div class="tile-value warn" id="deficitValue">2,420,000</div>
             </div>
             <div class="tile">
               <div class="tile-key">Estimated Time</div>
@@ -330,6 +334,14 @@
             <div class="row">
               <div class="row-key">Upgrade Path</div>
               <div class="row-value" id="pathValue">Level 1 -> Level 2</div>
+            </div>
+            <div class="row">
+              <div class="row-key">Current Tank Hero Damage</div>
+              <div class="row-value" id="currentDamageValue">0.5%</div>
+            </div>
+            <div class="row">
+              <div class="row-key">Target Tank Hero Damage</div>
+              <div class="row-value" id="targetDamageValue">1%</div>
             </div>
             <div class="row">
               <div class="row-key">Status</div>
@@ -1055,7 +1067,7 @@
         costLevelSelect.innerHTML = bearTotemCosts
           .map(
             (row) =>
-              `<option value="${row.level}">Level ${row.level} - ${formatResource(row.spore)}</option>`,
+              `<option value="${row.level}">Level ${row.level} - ${formatResource(row.spore)} Spore (${row.tankDamage}% dmg)</option>`,
           )
           .join("");
       }
@@ -1198,29 +1210,29 @@
         }
 
         const allianceTechPct = Number(allianceTechSelect.value || 0);
-        let requiredCoffee = 0;
+        let requiredSpore = 0;
         for (let lvl = currentLevel + 1; lvl <= targetLevel; lvl += 1) {
           const row = bearTotemCosts.find((r) => r.level === lvl);
           if (!row) continue;
-          requiredCoffee += Math.max(
+          requiredSpore += Math.max(
             0,
             Math.round(row.spore * (1 - allianceTechPct / 100)),
           );
         }
-        const remainingCoffee = Math.max(0, requiredCoffee - currentSpore);
-        const ready = remainingCoffee === 0;
+        const remainingSpore = Math.max(0, requiredSpore - currentSpore);
+        const ready = remainingSpore === 0;
         const totalOutputPerHour = getTotalMineOutput();
         const estimatedHours = ready
           ? 0
           : totalOutputPerHour > 0
-            ? remainingCoffee / totalOutputPerHour
+            ? remainingSpore / totalOutputPerHour
             : Infinity;
         const selectedTimeZone = timeZoneSelect.value;
 
         nextLevelValue.textContent = `Lv ${targetLevel}`;
-        requiredValue.textContent = formatResource(requiredCoffee);
+        requiredValue.textContent = formatResource(requiredSpore);
         ownedValue.textContent = formatResource(currentSpore);
-        deficitValue.textContent = formatResource(remainingCoffee);
+        deficitValue.textContent = formatResource(remainingSpore);
         deficitValue.className = `tile-value ${ready ? "ok" : "warn"}`;
         etaValue.textContent = formatTimeFromHours(estimatedHours);
         etaValue.className = `tile-value ${ready ? "ok" : totalOutputPerHour > 0 ? "" : "warn"}`;
@@ -1237,6 +1249,16 @@
           : "Need more Spore";
         mineRateValue.textContent = `${formatResource(totalOutputPerHour)}/hr`;
         timeZoneValue.textContent = selectedTimeZone;
+        const currentRow = bearTotemCosts.find((r) => r.level === currentLevel);
+        const targetRow = bearTotemCosts.find((r) => r.level === targetLevel);
+        const currentDamageEl = document.getElementById("currentDamageValue");
+        const targetDamageEl = document.getElementById("targetDamageValue");
+        if (currentDamageEl) {
+          currentDamageEl.textContent = currentRow ? `${currentRow.tankDamage}%` : "-";
+        }
+        if (targetDamageEl) {
+          targetDamageEl.textContent = targetRow ? `${targetRow.tankDamage}%` : "-";
+        }
         costLevelSelect.value = String(nextUpgrade.level);
         updateCurrentTimeDisplay();
 
@@ -1275,7 +1297,7 @@
         class="support-link"
         target="_blank"
         rel="noopener noreferrer"
-        >Buy Me a Spore</a
+        >Buy Me a Coffee</a
       >
     </div>
   </body>
