@@ -14,6 +14,7 @@
         window.__lwApplyFirebaseAppCheckDebug();
       }
     </script>
+    <script src="live-share-id.js"></script>
     <!-- Firebase Live Sync Scripts -->
     <script src="https://www.gstatic.com/firebasejs/10.12.5/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.12.5/firebase-app-check-compat.js"></script>
@@ -1491,7 +1492,6 @@
         hadError: false,
         enabled: false,
       };
-      const LIVE_SHARE_ID_STORAGE_KEY = "lastWarSeason1MapLiveShareIdV1";
 
       function firebaseConfigOk(cfg) {
         if (!cfg || typeof cfg !== "object") return false;
@@ -1734,44 +1734,21 @@
       function isLiveSyncActive() {
         return liveSyncState.enabled && isLiveSyncConfigured();
       }
+      const lwShare = window.__lwLiveShareId;
       function sanitizeShareId(raw) {
-        const value = String(raw || "").trim();
-        return /^[a-zA-Z0-9_-]{6,64}$/.test(value) ? value : null;
+        return lwShare.sanitizeShareId(raw);
       }
       function createShareId() {
-        return `${Date.now().toString(36)}${Math.random().toString(36).slice(2, 8)}`;
+        return lwShare.createShareId();
       }
       function getPersistedMapLiveShareId() {
-        try {
-          return sanitizeShareId(localStorage.getItem(LIVE_SHARE_ID_STORAGE_KEY));
-        } catch {
-          return null;
-        }
+        return lwShare.getPersistedLiveShareId();
       }
       function setPersistedMapLiveShareId(id) {
-        const s = sanitizeShareId(String(id || ""));
-        if (!s) return;
-        try {
-          localStorage.setItem(LIVE_SHARE_ID_STORAGE_KEY, s);
-        } catch {
-          /* ignore */
-        }
+        lwShare.setPersistedLiveShareId(id);
       }
-      /**
-       * Reuse a stored room id or create and persist one. Does not replace an
-       * in-memory id already set (e.g. from ?shareId=).
-       */
       function ensureHostMapShareId() {
-        if (liveSyncState.shareId) return liveSyncState.shareId;
-        const p = getPersistedMapLiveShareId();
-        if (p) {
-          liveSyncState.shareId = p;
-          return p;
-        }
-        const id = createShareId();
-        setPersistedMapLiveShareId(id);
-        liveSyncState.shareId = id;
-        return id;
+        return lwShare.ensureUserShareId(liveSyncState);
       }
       function updateMapLiveSharePanel() {
         const panel = document.getElementById("mapLiveSharePanel");

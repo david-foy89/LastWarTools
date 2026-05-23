@@ -57,6 +57,7 @@
         window.__lwApplyFirebaseAppCheckDebug();
       }
     </script>
+    <script src="live-share-id.js"></script>
     <script src="page-nav-dropdown.js" defer></script>
     <style>
       .checklist-layout {
@@ -709,7 +710,7 @@
             >
           </div>
         </details>
-        <details class="page-nav-dropdown active" name="season-nav">
+        <details class="page-nav-dropdown" name="season-nav">
           <summary class="page-link page-nav-dropdown-toggle">
             Season 2 Tools
           </summary>
@@ -726,7 +727,7 @@
             <a href="season-2-faction-war-planner.html" class="page-link"
               >Faction War Planner</a
             >
-            <a href="season-3-desert-artifacts-checklist.html" class="page-link"
+            <a href="season-2-supplies-checklist.html" class="page-link"
               >Supplies Checklist</a
             >
             <a href="rare-soil-war-tracker.html" class="page-link"
@@ -1016,7 +1017,6 @@
     <script>
       const DATA_URL = "season3_artifacts_api.json";
       const STORAGE_KEY = "lastWarSeason3DesertArtifactsChecklistV1";
-      const LIVE_SHARE_ID_STORAGE_KEY = "lastWarSeason3DesertArtifactsLiveShareIdV1";
       const LIVE_SYNC = {
         // Live sync DB URL can come from:
         // 1) ?db=..., 2) localStorage "lastWarLiveSyncDbUrl", 3) window.LWST_LIVE_SYNC_DB_URL,
@@ -1469,50 +1469,21 @@
         }
       }
 
+      const lwShare = window.__lwLiveShareId;
       function sanitizeShareId(raw) {
-        const value = String(raw || "").trim();
-        return /^[a-zA-Z0-9_-]{6,64}$/.test(value) ? value : null;
+        return lwShare.sanitizeShareId(raw);
       }
-
       function createShareId() {
-        return `${Date.now().toString(36)}${Math.random().toString(36).slice(2, 8)}`;
+        return lwShare.createShareId();
       }
-
       function getPersistedLiveShareId() {
-        try {
-          return sanitizeShareId(
-            localStorage.getItem(LIVE_SHARE_ID_STORAGE_KEY),
-          );
-        } catch {
-          return null;
-        }
+        return lwShare.getPersistedLiveShareId();
       }
-
       function setPersistedLiveShareId(id) {
-        const s = sanitizeShareId(String(id || ""));
-        if (!s) return;
-        try {
-          localStorage.setItem(LIVE_SHARE_ID_STORAGE_KEY, s);
-        } catch {
-          /* ignore */
-        }
+        lwShare.setPersistedLiveShareId(id);
       }
-
-      /**
-       * Reuse a stored room id or create and persist one. Does not replace an
-       * in-memory id already set (e.g. from ?shareId=).
-       */
       function ensureHostShareId() {
-        if (liveSyncState.shareId) return liveSyncState.shareId;
-        const p = getPersistedLiveShareId();
-        if (p) {
-          liveSyncState.shareId = p;
-          return p;
-        }
-        const id = createShareId();
-        setPersistedLiveShareId(id);
-        liveSyncState.shareId = id;
-        return id;
+        return lwShare.ensureUserShareId(liveSyncState);
       }
 
       function updateLiveSharePanel() {

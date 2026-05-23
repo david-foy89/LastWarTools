@@ -65,6 +65,7 @@
         window.__lwApplyFirebaseAppCheckDebug();
       }
     </script>
+    <script src="live-share-id.js"></script>
     <link rel="preconnect" href="https://www.google.com" crossorigin />
     <link rel="preconnect" href="https://www.gstatic.com" crossorigin />
     <script src="last-war-calendar.js"></script>
@@ -1147,7 +1148,6 @@
           defaultDatabaseUrl:
             "https://lastwartools-c12c8-default-rtdb.firebaseio.com/",
         };
-        const RS_LIVE_SHARE_ID_STORAGE_KEY = "rareSoilWarLiveShareIdV1";
         const rsLiveState = {
           clientId:
             "rs-" +
@@ -1179,12 +1179,10 @@
           isShareGuest: false,
         };
 
+        const lwShare = window.__lwLiveShareId;
         function sanitizeShareId(raw) {
-          const value = String(raw || "").trim();
-          return /^[a-zA-Z0-9_-]{6,64}$/.test(value) ? value : null;
+          return lwShare.sanitizeShareId(raw);
         }
-
-        /** Valid `?shareId=` on the current URL (state may be null after toggling live off). */
         function resolveShareIdFromUrl() {
           try {
             return sanitizeShareId(
@@ -1194,43 +1192,17 @@
             return null;
           }
         }
-
         function createShareId() {
-          return (
-            Date.now().toString(36) + Math.random().toString(36).slice(2, 8)
-          );
+          return lwShare.createShareId();
         }
-
         function getPersistedRsLiveShareId() {
-          try {
-            return sanitizeShareId(
-              localStorage.getItem(RS_LIVE_SHARE_ID_STORAGE_KEY),
-            );
-          } catch (_) {
-            return null;
-          }
+          return lwShare.getPersistedLiveShareId();
         }
-
         function setPersistedRsLiveShareId(id) {
-          var s = sanitizeShareId(String(id || ""));
-          if (!s) return;
-          try {
-            localStorage.setItem(RS_LIVE_SHARE_ID_STORAGE_KEY, s);
-          } catch (_) {}
+          lwShare.setPersistedLiveShareId(id);
         }
-
-        /** Stable host room id (localStorage) unless ?shareId= already set in memory. */
         function ensureRsHostShareId() {
-          if (rsLiveState.shareId) return rsLiveState.shareId;
-          var p = getPersistedRsLiveShareId();
-          if (p) {
-            rsLiveState.shareId = p;
-            return p;
-          }
-          var id = createShareId();
-          setPersistedRsLiveShareId(id);
-          rsLiveState.shareId = id;
-          return id;
+          return lwShare.ensureUserShareId(rsLiveState);
         }
 
         function updateRsLiveSharePanel() {
