@@ -41,6 +41,12 @@
         ".read": true,
         ".write": true
       }
+    },
+    "season6-map": {
+      "$shareId": {
+        ".read": true,
+        ".write": true
+      }
     }
   }
 }

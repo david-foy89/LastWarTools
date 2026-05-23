@@ -3,7 +3,7 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Season 1 Interactive Map - Last War Tools</title>
+    <title>Season 6 Interactive Map - Last War Tools</title>
     <script src="firebase-config.example.js"></script>
     <script src="firebase-config.js"></script>
     <script>
@@ -20,26 +20,26 @@
     <script src="https://www.gstatic.com/firebasejs/10.12.5/firebase-database-compat.js"></script>
     <meta
       name="description"
-      content="Interactive alliance map planning tool for Season 1 - The Crimson Plague. Manage cities, strongholds, and coordinate territories with real-time visualization and import/export functionality."
+      content="Interactive alliance map planning tool for Season 6 Shadow Rainforest. Plan fishing grounds, altars, Ancestral Temple conquests, and alliance territories with real-time visualization and import/export functionality."
     />
     <link
       rel="canonical"
-      href="https://lastwarsurvivaltools.com/season-1-interactive-map.html"
+      href="https://lastwarsurvivaltools.com/season-6-interactive-map.html"
     />
 
     <!-- Open Graph Tags -->
     <meta property="og:type" content="website" />
     <meta
       property="og:title"
-      content="Season 1 Interactive Map - Last War Tools"
+      content="Season 6 Interactive Map - Last War Tools"
     />
     <meta
       property="og:description"
-      content="Plan your Season 1 alliance strategy with our interactive map tool. Manage territories and coordinate with allies."
+      content="Plan your Season 6 Shadow Rainforest alliance strategy with our interactive map tool. Manage fishing grounds, altars, influence points, and coordinate with allies."
     />
     <meta
       property="og:url"
-      content="https://lastwarsurvivaltools.com/season-1-interactive-map.html"
+      content="https://lastwarsurvivaltools.com/season-6-interactive-map.html"
     />
     <meta
       property="og:image"
@@ -50,11 +50,11 @@
     <meta name="twitter:card" content="summary_large_image" />
     <meta
       name="twitter:title"
-      content="Season 1 Interactive Map - Last War Tools"
+      content="Season 6 Interactive Map - Last War Tools"
     />
     <meta
       name="twitter:description"
-      content="Interactive alliance map planning for Season 1 - The Crimson Plague"
+      content="Interactive alliance map planning for Season 6 Shadow Rainforest"
     />
 
     <!-- JSON-LD Structured Data -->
@@ -62,9 +62,9 @@
       {
         "@context": "https://schema.org",
         "@type": "WebPage",
-        "name": "Season 1 Interactive Map",
-        "description": "Interactive alliance map planning tool for Season 1",
-        "url": "https://lastwarsurvivaltools.com/season-1-interactive-map.html",
+        "name": "Season 6 Interactive Map",
+        "description": "Interactive alliance map planning tool for Season 6 Shadow Rainforest",
+        "url": "https://lastwarsurvivaltools.com/season-6-interactive-map.html",
         "image": "https://lastwarsurvivaltools.com/media/lwst.png"
       }
     </script>
@@ -91,10 +91,10 @@
         border: 1px solid var(--line-soft);
         border-radius: 16px;
         box-shadow: 0 18px 50px rgba(0, 0, 0, 0.24);
-        padding: 0;
+        padding: 15px;
         position: relative;
-        overflow: visible;
-        max-height: none;
+        overflow: auto;
+        max-height: min(1600px, calc(100vh - 72px));
       }
 
       #mapCanvas {
@@ -360,7 +360,7 @@
         padding: 10px;
         margin-bottom: 10px;
         font-size: 0.85rem;
-        overflow: hidden;
+        overflow: visible;
         min-width: 0;
       }
 
@@ -731,14 +731,6 @@
     </style>
   </head>
   <body>
-    <div
-      id="allianceDebugPanel"
-      hidden
-      aria-hidden="true"
-      style="position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip: rect(0, 0, 0, 0); border: 0"
-    >
-      <span id="allianceDebugContent"></span>
-    </div>
     <div class="page">
       <div class="page-top-stack">
         <aside class="account-promo-strip" aria-label="Optional account">
@@ -804,7 +796,7 @@
             >
           </div>
         </details>
-        <details class="page-nav-dropdown active" name="season-nav">
+        <details class="page-nav-dropdown" name="season-nav">
           <summary class="page-link page-nav-dropdown-toggle">
             Season 1 Tools
           </summary>
@@ -815,7 +807,7 @@
             <a href="season-1-squad-base-calculator.html" class="page-link"
               >Season 1 Squad Base</a
             >
-            <a href="season-1-interactive-map.html" class="page-link active"
+            <a href="season-1-interactive-map.html" class="page-link"
               >Interactive Map</a
             >
           </div>
@@ -906,7 +898,7 @@
             >
           </div>
         </details>
-        <details class="page-nav-dropdown" name="season-nav">
+        <details class="page-nav-dropdown active" name="season-nav">
           <summary class="page-link page-nav-dropdown-toggle">
             Season 6 Tools
           </summary>
@@ -914,7 +906,7 @@
                         <a href="fungus-institute-calculator.html" class="page-link"
               >Fungus Institute</a
             >
-<a href="season-6-interactive-map.html" class="page-link"
+<a href="season-6-interactive-map.html" class="page-link active"
               >Interactive Map</a
             >
           </div>
@@ -922,16 +914,17 @@
       </nav>
 
       <div class="container">
-        <h1>Season 1 Interactive Map - The Crimson Plague</h1>
+        <h1>Season 6 Interactive Map - Shadow Rainforest</h1>
         <p style="color: rgba(217, 240, 255, 0.7); margin-bottom: 20px">
-          Plan your alliance strategy with real-time territory management.
-          Create alliances, assign territories, and coordinate with your team.
+          Plan your alliance strategy on the Shadow Rainforest mega map. Assign
+          fishing grounds, cities, altars, and the Ancestral Temple. Track
+          influence points and coordinate with your team.
         </p>
 
         <div class="top-stats-bar">
           <div class="top-stat">
             <div class="top-stat-label">Total Areas</div>
-            <div class="top-stat-value" id="topStatTotalAreas">386</div>
+            <div class="top-stat-value" id="topStatTotalAreas">2165</div>
           </div>
           <div class="top-stat">
             <div class="top-stat-label">Active Alliances</div>
@@ -1020,7 +1013,7 @@
 
         <div class="map-container" id="mapTabPanel">
           <div class="map-canvas-wrapper" id="mapCanvasWrapper">
-            <canvas id="mapCanvas" width="2400" height="2100"></canvas>
+            <canvas id="mapCanvas" width="1000" height="1000"></canvas>
             <div class="map-tooltip" id="mapTooltip"></div>
           </div>
 
@@ -1076,7 +1069,7 @@
               <div class="stats-panel">
                 <div class="stats-row">
                   <span class="stat-label">Total Areas:</span>
-                  <span class="stat-value" id="statTotalAreas">386</span>
+                  <span class="stat-value" id="statTotalAreas">2165</span>
                 </div>
                 <div class="stats-row">
                   <span class="stat-label">Assigned:</span>
@@ -1113,7 +1106,7 @@
               <div class="stats-panel" id="selectedAreaPanel">
                 <div class="area-detail-hint">
                   Click any square on the map to inspect its level, buff, and
-                  influence points.
+                  resource yields.
                 </div>
               </div>
             </div>
@@ -1162,7 +1155,12 @@
                   <span>Show Area Labels</span>
                 </label>
                 <label class="toggle-item">
-                  <input type="checkbox" id="showGrid" onchange="renderMap()" />
+                  <input
+                    type="checkbox"
+                    id="showGrid"
+                    checked
+                    onchange="renderMap()"
+                  />
                   <span>Show Grid</span>
                 </label>
                 <label class="toggle-item">
@@ -1182,22 +1180,34 @@
               <div class="sidebar-title">Area Types</div>
               <div class="legend-grid">
                 <div class="legend-item">
-                  <span>Stronghold</span>
+                  <span>Fishing Ground</span>
                 </div>
                 <div class="legend-item">
-                  <span>Brewery</span>
+                  <span>Deepwood / Wetland Sanctuary</span>
                 </div>
                 <div class="legend-item">
-                  <span>Fog Shroud</span>
+                  <span>Deepwood / Wetland Village</span>
                 </div>
                 <div class="legend-item">
-                  <span>Theme Park</span>
+                  <span>Deepwood / Wetland Barracks</span>
                 </div>
                 <div class="legend-item">
-                  <span>Art Gallery</span>
+                  <span>Deepwood / Wetland Assembly</span>
                 </div>
                 <div class="legend-item">
-                  <span>Stadium</span>
+                  <span>Trade Post</span>
+                </div>
+                <div class="legend-item">
+                  <span>Warzone Outpost</span>
+                </div>
+                <div class="legend-item">
+                  <span>Console</span>
+                </div>
+                <div class="legend-item">
+                  <span>Ancestral Temple</span>
+                </div>
+                <div class="legend-item">
+                  <span>Altars</span>
                 </div>
               </div>
             </div>
@@ -1457,7 +1467,7 @@
     <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
 
     <script src="page-nav-dropdown.js"></script>
-    <script src="season-1-territories.js"></script>
+    <script src="season-6-territories.js"></script>
     <script src="interactive-map-tabs.js"></script>
     <script src="interactive-strategy-pins.js"></script>
     <!-- Firebase Live Sync Logic -->
@@ -1471,7 +1481,7 @@
         pollMs: 1200,
         enableAnonymousAuth: false,
       };
-      const MAP_LIVE_LOG = "[Season 1 Map]";
+      const MAP_LIVE_LOG = "[Season 6 Map]";
       const liveSyncState = {
         clientId: `${Math.random().toString(36).slice(2, 10)}-${Date.now()}`,
         shareId: null,
@@ -1485,7 +1495,7 @@
         hadError: false,
         enabled: false,
       };
-      const LIVE_SHARE_ID_STORAGE_KEY = "lastWarSeason1MapLiveShareIdV1";
+      const LIVE_SHARE_ID_STORAGE_KEY = "lastWarSeason6MapLiveShareIdV1";
 
       function firebaseConfigOk(cfg) {
         if (!cfg || typeof cfg !== "object") return false;
@@ -1534,8 +1544,8 @@
           const raw = String(window.__FIREBASE_APPCHECK_SITE_KEY__ || "").trim();
           if (!raw) return false;
           if (!plausibleAppCheckSiteKey(raw)) {
-            if (!window.__lwMapS1BadAppCheckKeyWarned) {
-              window.__lwMapS1BadAppCheckKeyWarned = true;
+            if (!window.__lwMapS5BadAppCheckKeyWarned) {
+              window.__lwMapS5BadAppCheckKeyWarned = true;
               console.warn(
                 `${MAP_LIVE_LOG} __FIREBASE_APPCHECK_SITE_KEY__ must be the short reCAPTCHA Enterprise key from Firebase → App Check.`,
               );
@@ -1788,7 +1798,7 @@
       }
       function getLiveEndpoint(shareId) {
         const base = liveSyncState.dbUrl.replace(/\/$/, "");
-        return `${base}/season1-map/${encodeURIComponent(shareId)}.json`;
+        return `${base}/season6-map/${encodeURIComponent(shareId)}.json`;
       }
       function buildLiveShareUrl(shareId) {
         const url = new URL(window.location.href);
@@ -1900,7 +1910,7 @@
 
         const attachListener = () => {
           liveSyncState.firebaseRef = liveSyncState.firebaseDb.ref(
-            `season1-map/${shareId}`,
+            `season6-map/${shareId}`,
           );
           liveSyncState.firebaseValueHandler = (snapshot) => {
             const payload = snapshot.val();
@@ -2048,7 +2058,7 @@
             await pushLiveMapState();
             url = buildLiveShareUrl(shareId);
           } catch (e) {
-            console.warn("[Season 1 Map] copy live link:", e);
+            console.warn("[Season 6 Map] copy live link:", e);
             setStatus(
               "Could not prepare live link. Check the browser console.",
               true,
@@ -2201,7 +2211,7 @@
       });
       // Call pushLiveMapState() after any local map change to sync
       function syncLocalMapChanges() {
-        if (isLiveSyncActive()) void pushLiveMapState();
+        if (isLiveSyncActive()) pushLiveMapState();
       }
       // Example: after alliance/territory/pin changes, call syncLocalMapChanges()
       // (You may need to add this call in your addAlliance, removeAlliance, assignTerritory, etc.)
@@ -2234,7 +2244,6 @@
                 url.match(/\.json($|\?)/i)
               ) {
                 const json = await resp.json();
-                // Import as JSON plan
                 document.getElementById("importText").value = JSON.stringify(
                   json,
                   null,
@@ -2245,10 +2254,8 @@
                 contentType.includes("sheet") ||
                 url.match(/\.(xlsx|xls|csv)($|\?)/i)
               ) {
-                // Excel file
                 const blob = await resp.blob();
                 const file = new File([blob], "import.xlsx");
-                // Simulate file input for Excel
                 const fakeEvent = { target: { files: [file] } };
                 handleExcelImport(fakeEvent);
                 statusDiv.textContent = "Excel file loaded.";
@@ -2256,10 +2263,8 @@
                 contentType.startsWith("image/") ||
                 url.match(/\.(png|jpg|jpeg)($|\?)/i)
               ) {
-                // Image file
                 const blob = await resp.blob();
                 const file = new File([blob], "import.png");
-                // Simulate file input for screenshot
                 const fakeEvent = { target: { files: [file] } };
                 handleScreenshotImport(fakeEvent);
                 statusDiv.textContent = "Image loaded.";
@@ -2605,6 +2610,143 @@
         };
         reader.readAsDataURL(file);
       }
+      // Excel import handler for Import Plan modal
+      function handleExcelImport(event) {
+        const file = event.target.files[0];
+        if (!file) return;
+        if (!window.XLSX) {
+          alert("Excel library is still loading. Please wait and try again.");
+          return;
+        }
+        const reader = new FileReader();
+        reader.onload = function (e) {
+          try {
+            const data = new Uint8Array(e.target.result);
+            const workbook = XLSX.read(data, { type: "array" });
+            // Try to find a sheet with alliances and one with territories
+            let alliances = [];
+            let territories = {};
+            // Alliances sheet: columns Alliance, Color (optional)
+            if (workbook.SheetNames.includes("Alliances")) {
+              const alliancesSheet = XLSX.utils.sheet_to_json(
+                workbook.Sheets["Alliances"],
+              );
+              alliances = alliancesSheet
+                .map((row, i) => ({
+                  tag: String(row.Alliance || "").toUpperCase(),
+                  color: row.Color || undefined,
+                }))
+                .filter((a) => a.tag);
+            }
+            // Territories sheet: columns AreaIndex, Alliance
+            if (workbook.SheetNames.includes("Territories")) {
+              const territoriesSheet = XLSX.utils.sheet_to_json(
+                workbook.Sheets["Territories"],
+              );
+              territoriesSheet.forEach((row) => {
+                if (row.AreaIndex && row.Alliance) {
+                  territories[String(row.AreaIndex)] = String(
+                    row.Alliance,
+                  ).toUpperCase();
+                }
+              });
+            }
+            if (!alliances.length || !Object.keys(territories).length) {
+              alert(
+                'Excel file must have "Alliances" and "Territories" sheets with proper columns.',
+              );
+              return;
+            }
+            // Update state and UI
+            state.alliances = alliances;
+            state.territories = territories;
+            state.selectedAlliance = null;
+            state.strategyPins = [];
+            state.selectedPinId = null;
+            syncSharedAllianceTagsFromState();
+            closeImportModal();
+            updateUI();
+            renderMap();
+            if (
+              window.LWStrategyPins &&
+              typeof window.LWStrategyPins.updatePinsList === "function"
+            ) {
+              window.LWStrategyPins.updatePinsList();
+            }
+            if (typeof saveInteractiveMapTabs === "function") {
+              saveInteractiveMapTabs();
+            }
+          } catch (err) {
+            alert("Failed to import Excel: " + err.message);
+          }
+        };
+        reader.readAsArrayBuffer(file);
+      }
+      // Sidebar hide/show toggle
+      document.addEventListener("DOMContentLoaded", function () {
+        const hideSidebarBtn = document.getElementById("hideSidebarBtn");
+        const sidebar = hideSidebarBtn && hideSidebarBtn.closest(".sidebar");
+        const mapCanvasWrapper = document.getElementById("mapCanvasWrapper");
+        const mapContainer = document.getElementById("mapTabPanel");
+        if (hideSidebarBtn && sidebar && mapCanvasWrapper && mapContainer) {
+          // Store original grid template for restoration
+          const originalGrid =
+            mapContainer.style.gridTemplateColumns ||
+            window.getComputedStyle(mapContainer).gridTemplateColumns;
+          hideSidebarBtn.addEventListener("click", function () {
+            if (sidebar.style.display === "none") {
+              sidebar.style.display = "block";
+              hideSidebarBtn.textContent = "Hide";
+              // Restore map container grid
+              mapContainer.style.gridTemplateColumns = originalGrid;
+              // Restore mapCanvasWrapper width if changed
+              mapCanvasWrapper.style.width = "";
+              mapCanvasWrapper.style.flex = "";
+              const showBtn = document.getElementById("showSidebarBtn");
+              if (showBtn) showBtn.remove();
+              // Update map size
+              updateCanvasDisplay();
+              renderMap();
+            } else {
+              sidebar.style.display = "none";
+              // Expand map to fill area
+              mapContainer.style.gridTemplateColumns = "1fr";
+              mapCanvasWrapper.style.width = "100%";
+              mapCanvasWrapper.style.flex = "1 1 100%";
+              // Add a show button at the top right inside map-container
+              let showBtn = document.getElementById("showSidebarBtn");
+              if (!showBtn) {
+                showBtn = document.createElement("button");
+                showBtn.id = "showSidebarBtn";
+                showBtn.className = "btn-small";
+                showBtn.textContent = "Show";
+                showBtn.style.position = "absolute";
+                showBtn.style.top = "16px";
+                showBtn.style.right = "16px";
+                showBtn.style.transform = "none";
+                showBtn.style.zIndex = 2000;
+                // Place the button relative to the map-container
+                mapContainer.style.position = "relative";
+                mapContainer.appendChild(showBtn);
+                // Restore mapCanvasWrapper to full width
+                mapCanvasWrapper.style.width = "100%";
+                showBtn.addEventListener("click", function () {
+                  sidebar.style.display = "block";
+                  hideSidebarBtn.textContent = "Hide";
+                  mapContainer.style.gridTemplateColumns = originalGrid;
+                  mapCanvasWrapper.style.width = "";
+                  mapCanvasWrapper.style.flex = "";
+                  showBtn.remove();
+                  updateCanvasDisplay();
+                  renderMap();
+                });
+              }
+              updateCanvasDisplay();
+              renderMap();
+            }
+          });
+        }
+      });
       // Initialize map data
       const state = {
         alliances: [],
@@ -2635,16 +2777,7 @@
           visited: new Set(),
           justPainted: false,
         },
-        areaTypes: {
-          SH: { name: "Stronghold", count: 305 },
-          B: { name: "Brewery", count: 24 },
-          FSA: { name: "Fog Shroud Alley", count: 20 },
-          TP: { name: "Theme Park", count: 16 },
-          AG: { name: "Art Gallery", count: 12 },
-          S: { name: "Stadium", count: 2 },
-          RS: { name: "Royal Stadium", count: 3 },
-          HN: { name: "House of Nobles", count: 3 },
-        },
+        areaTypes: {},
         strategyPins: [],
         selectedPinId: null,
         pinPlacementMode: false,
@@ -2654,26 +2787,28 @@
       const mapCanvasWrapper = document.getElementById("mapCanvasWrapper");
       const mapTooltip = document.getElementById("mapTooltip");
       const ctx = canvas.getContext("2d");
-      const MAP_SIZE = 1000;
-      const CURRENT_SEASON = 1;
+      const CURRENT_SEASON = 6;
       const MAX_ALLIANCES = 12;
       const SHARED_ALLIANCE_TAGS_KEY = "lwst-shared-alliance-tags-v1";
       const AREA_ABBREVIATIONS = {
-        Stronghold: "SH",
-        Village: "V",
-        Town: "T",
-        Factory: "F",
-        Brewery: "B",
-        "Fog Shroud Alley": "FSA",
-        "Theme Park": "TP",
-        "Art Gallery": "AG",
-        Stadium: "S",
-        "Royal Stadium": "RS",
-        "House of Nobles": "HN",
-        "Train Station": "TS",
-        "Launch Site": "LS",
-        "War Palace": "WP",
-        "Royal Palace": "RP",
+        "Fishing Ground": "FG",
+        "Wetland Sanctuary": "WS",
+        "Deepwood Sanctuary": "DS",
+        "Wetland Village": "WV",
+        "Deepwood Village": "DV",
+        "Wetland Barracks": "WB",
+        "Deepwood Barracks": "DB",
+        "Wetland Assembly": "WA",
+        "Deepwood Assembly": "DA",
+        "Trade Post": "TP",
+        "Warzone Outpost": "WO",
+        Console: "C",
+        "Ancestral Temple": "AT",
+        "Snake Altar": "SA",
+        "Echo Altar": "EA",
+        "Gust Altar": "GA",
+        "Feather Altar": "FA",
+        "Treehaven Altar": "TA",
       };
 
       const BUFF_LABELS = {
@@ -2686,6 +2821,7 @@
         construction: "Construction Speed",
         healing: "Healing Speed",
         march: "March Speed",
+        "march speed": "March Speed",
       };
 
       // Alliance colors
@@ -2802,38 +2938,20 @@
       }
 
       function loadAllianceTagsForSeason() {
-        const debugPanel = document.getElementById("allianceDebugPanel");
-        const debugContent = document.getElementById("allianceDebugContent");
-        const raw = getSharedAllianceTags();
-        const filtered = raw
+        const sharedTags = getSharedAllianceTags()
           .filter((entry) => entry.firstSeason <= CURRENT_SEASON)
           .sort(
             (a, b) =>
               a.firstSeason - b.firstSeason || a.tag.localeCompare(b.tag),
           )
           .slice(0, MAX_ALLIANCES);
-        state.alliances = filtered.map((entry, index) => ({
+
+        state.alliances = sharedTags.map((entry, index) => ({
           tag: entry.tag,
+          color: entry.color || allianceColors[index % allianceColors.length],
+          cities: 0,
+          strongholds: 0,
         }));
-        // Only show debug panel if a special flag is set
-        if (window.SHOW_ALLIANCE_DEBUG_PANEL && debugPanel && debugContent) {
-          debugPanel.removeAttribute("hidden");
-          debugPanel.setAttribute("aria-hidden", "false");
-          debugPanel.style.cssText =
-            "display:block;position:fixed;bottom:12px;right:12px;max-width:420px;z-index:10000;background:#222;color:#fff;padding:12px;border-radius:10px;border:2px solid #e74c3c;font-size:0.9em;word-break:break-all;white-space:pre-wrap;";
-          debugContent.textContent =
-            "Raw from localStorage:\n" +
-            JSON.stringify(raw, null, 2) +
-            "\n\nFiltered (firstSeason <= " +
-            CURRENT_SEASON +
-            "):\n" +
-            JSON.stringify(filtered, null, 2);
-        } else if (debugPanel) {
-          debugPanel.setAttribute("hidden", "");
-          debugPanel.setAttribute("aria-hidden", "true");
-          debugPanel.style.cssText =
-            "position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip:rect(0,0,0,0);border:0";
-        }
       }
 
       function syncSharedAllianceTagsFromState() {
@@ -2887,7 +3005,6 @@
         input.value = "";
         updateUI();
         renderMap();
-        if (typeof syncLocalMapChanges === "function") syncLocalMapChanges();
       }
 
       function removeAlliance(tag) {
@@ -2906,7 +3023,6 @@
 
         updateUI();
         renderMap();
-        if (typeof syncLocalMapChanges === "function") syncLocalMapChanges();
       }
 
       function selectAlliance(tag) {
@@ -2919,7 +3035,7 @@
         allianceList.innerHTML = state.alliances
           .map(
             (alliance) => `
-                <div class="alliance-item ${state.selectedAlliance === alliance.tag ? "selected" : ""}"
+                <div class="alliance-item ${state.selectedAlliance === alliance.tag ? "selected" : ""}" 
                      onclick="selectAlliance('${alliance.tag}')">
                     <div style="display: flex; align-items: center; gap: 8px; flex: 1;">
                         <div class="alliance-color" style="background: ${alliance.color};"></div>
@@ -2936,7 +3052,7 @@
 
         // Update stats
         const assignedCount = Object.keys(state.territories).length;
-        document.getElementById("statTotalAreas").textContent = "386";
+        document.getElementById("statTotalAreas").textContent = mapAreas.length;
         document.getElementById("statAssigned").textContent = assignedCount;
         document.getElementById("statAlliances").textContent =
           state.alliances.length;
@@ -2944,7 +3060,8 @@
           state.selectedAlliance || "None";
 
         // Update top stats
-        document.getElementById("topStatTotalAreas").textContent = "386";
+        document.getElementById("topStatTotalAreas").textContent =
+          mapAreas.length;
         document.getElementById("topStatAlliances").textContent =
           state.alliances.length;
         document.getElementById("topStatAssigned").textContent = assignedCount;
@@ -2968,6 +3085,26 @@
         return `${label} +${buff.percentage}%`;
       }
 
+      function formatResources(resources) {
+        if (!resources || Object.keys(resources).length === 0) {
+          return "N/A";
+        }
+
+        const resourceLabels = {
+          crystalGold: "Crystal Gold",
+          influence: "Influence",
+        };
+
+        const entries = Object.entries(resources)
+          .filter(([, value]) => typeof value === "number" && value > 0)
+          .map(([key, value]) => {
+            const label = resourceLabels[key] || key;
+            return `${label}: ${value.toLocaleString()}`;
+          });
+
+        return entries.length ? entries.join(" | ") : "N/A";
+      }
+
       function updateSelectedAreaInfo() {
         const panel = document.getElementById("selectedAreaPanel");
         if (!panel) {
@@ -2977,7 +3114,7 @@
         if (!state.selectedAreaId) {
           panel.innerHTML = `
             <div class="area-detail-hint">
-              Click any square on the map to inspect its level, buff, and influence points.
+              Click any square on the map to inspect its level, buff, and resource yields.
             </div>
           `;
           return;
@@ -2994,7 +3131,7 @@
         }
 
         const owner = state.territories[area.id] || "Unassigned";
-        const influence = area.resources?.influence ?? 0;
+        const resourceSummary = formatResources(area.resources);
 
         panel.innerHTML = `
           <div class="stats-row">
@@ -3014,8 +3151,8 @@
             <span class="area-detail-value">${formatBuff(area.buff)}</span>
           </div>
           <div class="stats-row">
-            <span class="stat-label">Influence:</span>
-            <span class="area-detail-value">${influence.toLocaleString()}</span>
+            <span class="stat-label">Resources:</span>
+            <span class="area-detail-value">${resourceSummary}</span>
           </div>
           <div class="stats-row">
             <span class="stat-label">Owner:</span>
@@ -3037,12 +3174,12 @@
         if (!mapTooltip || !area) return;
 
         const owner = state.territories[area.id] || "Unassigned";
-        const influence = area.resources?.influence ?? 0;
+        const resourceSummary = formatResources(area.resources);
 
         mapTooltip.innerHTML = `
           <div class="map-tooltip-title">${area.name} (Lv. ${area.level})</div>
           <div>Buff: ${formatBuff(area.buff)}</div>
-          <div>Influence: ${influence.toLocaleString()}</div>
+          <div>Resources: ${resourceSummary}</div>
           <div>Owner: ${owner}</div>
         `;
 
@@ -3057,7 +3194,7 @@
         mapTooltip.classList.add("show");
       }
 
-      const mapAreas = (window.SEASON_1_TERRITORIES || []).map((area) => ({
+      const mapAreas = (window.SEASON_6_TERRITORIES || []).map((area) => ({
         id: area.id,
         name: area.name,
         abbreviation: getAreaAbbreviation(area.name),
@@ -3068,18 +3205,40 @@
         coordinates: area.coordinates,
       }));
 
+      const MAP_SIZE = mapAreas.reduce((size, area) => {
+        const maxX = area.coordinates.x + area.coordinates.width;
+        const maxY = area.coordinates.y + area.coordinates.height;
+        return Math.max(size, maxX, maxY);
+      }, 1000);
+      const MAX_CANVAS_DIMENSION = 4096;
+
       function renderMap() {
         const dpr = window.devicePixelRatio || 1;
-        const cssWidth = state.view.displayWidth || MAP_SIZE;
-        const renderScale = Math.max((cssWidth / MAP_SIZE) * dpr, 1);
+        const fallbackWidth =
+          mapCanvasWrapper.clientWidth > 0
+            ? mapCanvasWrapper.clientWidth
+            : MAP_SIZE;
+        const cssWidth =
+          state.view.displayWidth || Math.min(MAP_SIZE, fallbackWidth);
+        const desiredPixelWidth = cssWidth * dpr;
+        const maxScale = MAX_CANVAS_DIMENSION / MAP_SIZE;
+        const renderScale = Math.max(
+          Math.min(desiredPixelWidth / MAP_SIZE, maxScale),
+          0.5,
+        );
 
         canvas.width = Math.round(MAP_SIZE * renderScale);
         canvas.height = Math.round(MAP_SIZE * renderScale);
         ctx.setTransform(renderScale, 0, 0, renderScale, 0, 0);
         ctx.clearRect(0, 0, MAP_SIZE, MAP_SIZE);
 
-        ctx.fillStyle = "rgb(20, 20, 25)";
-        ctx.fillRect(0, 0, MAP_SIZE, MAP_SIZE);
+        // Always fill canvas with dark background before drawing
+        ctx.save();
+        ctx.setTransform(1, 0, 0, 1, 0, 0);
+        ctx.globalAlpha = 1.0;
+        ctx.fillStyle = "#0a1420";
+        ctx.fillRect(0, 0, canvas.width, canvas.height);
+        ctx.restore();
 
         // Dynamically scale text size if sidebar is hidden (map expanded) and with zoom
         let fontScale = 1;
@@ -3094,17 +3253,29 @@
             ? mapTextPxForInteractiveMap(state, MAP_SIZE, base * fontScale)
             : Math.max(5, Math.round(base * fontScale));
 
+        if (!mapAreas.length) {
+          ctx.fillStyle = "rgba(255, 107, 107, 0.95)";
+          ctx.textAlign = "center";
+          ctx.textBaseline = "middle";
+          ctx.font = `bold ${mapPx(28)}px monospace`;
+          ctx.fillText(
+            "Season 6 map data not loaded",
+            MAP_SIZE / 2,
+            MAP_SIZE / 2 - 20,
+          );
+          ctx.fillStyle = "rgba(217, 240, 255, 0.9)";
+          ctx.font = `${mapPx(18)}px monospace`;
+          ctx.fillText(
+            "Reload page (Ctrl+F5)",
+            MAP_SIZE / 2,
+            MAP_SIZE / 2 + 20,
+          );
+          return;
+        }
+
         const showGrid = document.getElementById("showGrid").checked;
         const showLabels = document.getElementById("showLabels").checked;
         const showCities = document.getElementById("showCities").checked;
-
-        // Always fill canvas with dark background before drawing
-        ctx.save();
-        ctx.setTransform(1, 0, 0, 1, 0, 0);
-        ctx.globalAlpha = 1.0;
-        ctx.fillStyle = "#0a1420";
-        ctx.fillRect(0, 0, canvas.width, canvas.height);
-        ctx.restore();
 
         // Draw territories
         mapAreas.forEach((area) => {
@@ -3115,7 +3286,7 @@
 
           const alliance = state.territories[area.id];
           const isCapitol = area.isCapitol;
-          const isStronghold = area.name === "Stronghold";
+          const isStronghold = area.name === "Fishing Ground";
 
           if (alliance) {
             const allianceObj = state.alliances.find((a) => a.tag === alliance);
@@ -3125,7 +3296,7 @@
             ctx.fillStyle = "rgba(255, 215, 0, 0.1)";
             ctx.globalAlpha = 1.0;
           } else {
-            ctx.fillStyle = "rgba(217, 240, 255, 0.16)";
+            ctx.fillStyle = "rgba(217, 240, 255, 0.24)";
             ctx.globalAlpha = 1.0;
           }
 
@@ -3141,9 +3312,7 @@
               ? "rgba(255, 255, 255, 0.3)"
               : "rgba(43, 61, 81, 0.95)";
           ctx.lineWidth = isCapitol ? 2.5 : alliance ? 2 : 0.75;
-          if (showGrid || alliance || isCapitol) {
-            ctx.strokeRect(x + 1, y + 1, w - 2, h - 2);
-          }
+          ctx.strokeRect(x + 1, y + 1, w - 2, h - 2);
 
           if (state.selectedAreaId === area.id) {
             ctx.strokeStyle = "rgba(116, 192, 252, 0.95)";
@@ -3170,10 +3339,15 @@
             ctx.textAlign = "center";
             ctx.textBaseline = "middle";
             ctx.font = `bold ${mapPx(10)}px monospace`;
-            ctx.fillText("ROYAL", x + w / 2, y + h / 2 - 13);
-            ctx.fillText("PALACE", x + w / 2, y + h / 2);
+            const nameParts = area.name.toUpperCase().split(" ");
+            if (nameParts.length > 1) {
+              ctx.fillText(nameParts[0], x + w / 2, y + h / 2 - 13);
+              ctx.fillText(nameParts.slice(1).join(" "), x + w / 2, y + h / 2);
+            } else {
+              ctx.fillText(area.name.toUpperCase(), x + w / 2, y + h / 2 - 6);
+            }
             ctx.font = `${mapPx(9)}px monospace`;
-            ctx.fillText("LV. 7", x + w / 2, y + h / 2 + 13);
+            ctx.fillText(`LV. ${area.level}`, x + w / 2, y + h / 2 + 13);
           } else if (showCities && (!isStronghold || showLabels)) {
             const labelColor = alliance
               ? "rgba(255,255,255,0.95)"
@@ -3245,14 +3419,12 @@
         if (mode === "assign") {
           if (current === state.selectedAlliance) return false;
           state.territories[territory] = state.selectedAlliance;
-          if (typeof syncLocalMapChanges === "function") syncLocalMapChanges();
           return true;
         }
 
         if (mode === "erase") {
           if (current !== state.selectedAlliance) return false;
           delete state.territories[territory];
-          if (typeof syncLocalMapChanges === "function") syncLocalMapChanges();
           return true;
         }
 
@@ -3292,7 +3464,6 @@
 
         updateUI();
         renderMap();
-        if (typeof syncLocalMapChanges === "function") syncLocalMapChanges();
       }
 
       function paintAt(clientX, clientY) {
@@ -3310,7 +3481,6 @@
           state.paint.justPainted = true;
           updateUI();
           renderMap();
-          if (typeof syncLocalMapChanges === "function") syncLocalMapChanges();
         }
       }
 
@@ -3356,7 +3526,6 @@
 
         updateUI();
         renderMap();
-        if (typeof syncLocalMapChanges === "function") syncLocalMapChanges();
       });
 
       canvas.addEventListener("mousedown", (e) => {
@@ -3518,7 +3687,6 @@
           state.territories = {};
           updateUI();
           renderMap();
-          if (typeof syncLocalMapChanges === "function") syncLocalMapChanges();
         }
       }
 
@@ -3542,7 +3710,7 @@
       }
 
       function getExportFileName() {
-        return `season-1-map-${new Date().toISOString().split("T")[0]}`;
+        return `season-6-map-${new Date().toISOString().split("T")[0]}`;
       }
 
       function exportAsJSON() {
@@ -3594,7 +3762,7 @@
           // Sheet 3: Metadata
           const metaData = [
             { Key: "Export Date", Value: new Date().toLocaleString() },
-            { Key: "Total Areas", Value: 386 },
+            { Key: "Total Areas", Value: mapAreas.length },
             { Key: "Assigned Areas", Value: territoriesData.length },
             { Key: "Total Alliances", Value: data.alliances.length },
           ];
@@ -3794,7 +3962,7 @@
       loadAllianceTagsForSeason();
       // Initial render (multi-tab map slots)
       initInteractiveMapTabs({
-        storageKey: "lwst-interactive-map-tabs-s1-v1",
+        storageKey: "lwst-interactive-map-tabs-s5-v1",
         state: state,
         mapCanvasWrapper: mapCanvasWrapper,
         loadAllianceTagsForSeason: loadAllianceTagsForSeason,
@@ -3821,7 +3989,6 @@
         loadAllianceTagsForSeason();
         updateUI();
         renderMap();
-        if (typeof syncLocalMapChanges === "function") syncLocalMapChanges();
       };
       const origRemoveAlliance = removeAlliance;
       window.removeAlliance = function (tag) {
@@ -3829,7 +3996,6 @@
         loadAllianceTagsForSeason();
         updateUI();
         renderMap();
-        if (typeof syncLocalMapChanges === "function") syncLocalMapChanges();
       };
 
       if (typeof LWStrategyPinsInit === "function") {
@@ -3840,72 +4006,6 @@
           renderMap: renderMap,
         });
       }
-
-      // Sidebar hide/show toggle
-      document.addEventListener("DOMContentLoaded", function () {
-        const hideSidebarBtn = document.getElementById("hideSidebarBtn");
-        const sidebar = hideSidebarBtn && hideSidebarBtn.closest(".sidebar");
-        const mapCanvasWrapper = document.getElementById("mapCanvasWrapper");
-        const mapContainer = document.getElementById("mapTabPanel");
-        if (hideSidebarBtn && sidebar && mapCanvasWrapper && mapContainer) {
-          // Store original grid template for restoration
-          const originalGrid =
-            mapContainer.style.gridTemplateColumns ||
-            window.getComputedStyle(mapContainer).gridTemplateColumns;
-          hideSidebarBtn.addEventListener("click", function () {
-            if (sidebar.style.display === "none") {
-              sidebar.style.display = "block";
-              hideSidebarBtn.textContent = "Hide";
-              // Restore map container grid
-              mapContainer.style.gridTemplateColumns = originalGrid;
-              // Restore mapCanvasWrapper width if changed
-              mapCanvasWrapper.style.width = "";
-              mapCanvasWrapper.style.flex = "";
-              const showBtn = document.getElementById("showSidebarBtn");
-              if (showBtn) showBtn.remove();
-              // Update map size
-              updateCanvasDisplay();
-              renderMap();
-            } else {
-              sidebar.style.display = "none";
-              // Expand map to fill area
-              mapContainer.style.gridTemplateColumns = "1fr";
-              mapCanvasWrapper.style.width = "100%";
-              mapCanvasWrapper.style.flex = "1 1 100%";
-              // Add a show button at the top right inside map-container
-              let showBtn = document.getElementById("showSidebarBtn");
-              if (!showBtn) {
-                showBtn = document.createElement("button");
-                showBtn.id = "showSidebarBtn";
-                showBtn.className = "btn-small";
-                showBtn.textContent = "Show";
-                showBtn.style.position = "absolute";
-                showBtn.style.top = "16px";
-                showBtn.style.right = "16px";
-                showBtn.style.transform = "none";
-                showBtn.style.zIndex = 2000;
-                // Place the button relative to the map-container
-                mapContainer.style.position = "relative";
-                mapContainer.appendChild(showBtn);
-                // Restore mapCanvasWrapper to full width
-                mapCanvasWrapper.style.width = "100%";
-                showBtn.addEventListener("click", function () {
-                  sidebar.style.display = "block";
-                  hideSidebarBtn.textContent = "Hide";
-                  mapContainer.style.gridTemplateColumns = originalGrid;
-                  mapCanvasWrapper.style.width = "";
-                  mapCanvasWrapper.style.flex = "";
-                  showBtn.remove();
-                  updateCanvasDisplay();
-                  renderMap();
-                });
-              }
-              updateCanvasDisplay();
-              renderMap();
-            }
-          });
-        }
-      });
 
       // Handle window resize
       window.addEventListener("resize", () => {
