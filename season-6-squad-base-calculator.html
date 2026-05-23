@@ -1,0 +1,1282 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Last War Season 6 Squad Base Calculator</title>
+    <meta
+      name="description"
+      content="Estimate Season 6 Squad Base spore requirements, remaining cost, and ready time using Spore Factory output and reduction settings."
+    />
+    <link
+      rel="canonical"
+      href="https://lastwarsurvivaltools.com/season-6-squad-base-calculator.html"
+    />
+    <meta property="og:type" content="website" />
+    <meta property="og:title" content="Last War Season 6 Squad Base Calculator" />
+    <meta
+      property="og:description"
+      content="Estimate Season 6 Squad Base spore requirements, remaining cost, and ready time using Spore Factory output and reduction settings."
+    />
+    <meta
+      property="og:url"
+      content="https://lastwarsurvivaltools.com/season-6-squad-base-calculator.html"
+    />
+    <meta
+      property="og:image"
+      content="https://lastwarsurvivaltools.com/media/lwst.png"
+    />
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:title" content="Last War Season 6 Squad Base Calculator" />
+    <meta
+      name="twitter:description"
+      content="Estimate Season 6 Squad Base spore requirements, remaining cost, and ready time using Spore Factory output and reduction settings."
+    />
+    <meta
+      name="twitter:image"
+      content="https://lastwarsurvivaltools.com/media/lwst.png"
+    />
+    <script type="application/ld+json">
+      {
+        "@context": "https://schema.org",
+        "@type": "WebPage",
+        "name": "Last War Season 6 Squad Base Calculator",
+        "description": "Estimate Season 6 Squad Base spore requirements, remaining cost, and ready time using Spore Factory output and reduction settings.",
+        "url": "https://lastwarsurvivaltools.com/season-6-squad-base-calculator.html"
+      }
+    </script>
+    <link rel="stylesheet" href="google-translate-toolbar-hide.css" />
+    <link rel="stylesheet" href="last-war-furnace-upgrade-calculator.css" />
+    <script src="page-nav-dropdown.js" defer></script>
+  </head>
+  <body>
+    <div class="page">
+      <div class="page-top-stack">
+        <aside class="account-promo-strip" aria-label="Optional account">
+          <p class="account-promo-strip__text">
+            <strong>No account required.</strong> Every calculator works in your browser without signing up.
+            Create a free account only if you want to sync saved data across devices.
+          </p>
+          <div class="account-promo-actions">
+            <a href="account.html" class="action-button">Create account</a>
+            <a href="account.html" class="action-button action-button--quiet">Sign in</a>
+          </div>
+        </aside>
+        <div class="page-top-controls">
+          <div class="logo-control">
+            <a href="index.html" aria-label="Go to homepage">
+              <img src="media/lwst.png" alt="LWST logo" class="site-logo" />
+            </a>
+          </div>
+          <div class="language-control">
+            <label for="languageSelect">Language</label>
+            <select id="languageSelect"></select>
+          </div>
+        </div>
+      </div>
+      <div id="google_translate_element" class="hidden-translate"></div>
+
+      <nav class="page-nav" aria-label="Calculator pages">
+        <a href="hq-upgrade-calculator.html" class="page-link">HQ Upgrade</a>
+        <details class="page-nav-dropdown" name="alliance-nav">
+          <summary class="page-link page-nav-dropdown-toggle">
+            Alliance Tools
+          </summary>
+          <div class="page-nav-dropdown-menu">
+            <a href="train-conductor-schedule.html" class="page-link"
+              >Train Conductor</a
+            >
+            <a href="transfer-tracker.html" class="page-link">Transfer Tracker</a>
+            <a href="verus-tracker.html" class="page-link">Versus Tracker</a>
+            <a href="ds-tracker.html" class="page-link">Desert Storm Tracker/Planner</a>
+            <a href="server-search.html" class="page-link">Server Search</a>
+            <a href="alliance-hive.html" class="page-link">Hive Builder</a>
+          </div>
+        </details>
+        <details class="page-nav-dropdown" name="troop-nav">
+          <summary class="page-link page-nav-dropdown-toggle">
+            Troop Tools
+          </summary>
+          <div class="page-nav-dropdown-menu">
+            <a href="t10-troops-calculator.html" class="page-link"
+              >T10 Troops</a
+            >
+            <a href="t11-troops-calculator.html" class="page-link"
+              >T11 Troops</a
+            >
+          </div>
+        </details>
+        <details class="page-nav-dropdown" name="season-nav">
+          <summary class="page-link page-nav-dropdown-toggle">
+            Season 1 Tools
+          </summary>
+          <div class="page-nav-dropdown-menu">
+            <a href="virus-research-institute-calculator.html" class="page-link"
+              >Virus Research Institute</a
+            >
+            <a href="season-1-squad-base-calculator.html" class="page-link"
+              >Season 1 Squad Base</a
+            >
+            <a href="season-1-interactive-map.html" class="page-link"
+              >Interactive Map</a
+            >
+          </div>
+        </details>
+        <details class="page-nav-dropdown" name="season-nav">
+          <summary class="page-link page-nav-dropdown-toggle">
+            Season 2 Tools
+          </summary>
+          <div class="page-nav-dropdown-menu">
+            <a href="last-war-furnace-upgrade-calculator.html" class="page-link"
+              >Furnace Calculator</a
+            >
+            <a href="season-2-tank-center-calculator.html" class="page-link"
+              >Season 2 Squad Base</a
+            >
+            <a href="season-2-interactive-map.html" class="page-link"
+              >Interactive Map</a
+            >
+            <a href="season-2-faction-war-planner.html" class="page-link"
+              >Faction War Planner</a
+            >
+            <a href="season-2-supplies-checklist.html" class="page-link"
+              >Supplies Checklist</a
+            >
+            <a href="rare-soil-war-tracker.html" class="page-link"
+              >Rare Soil War Tracker</a
+            >
+          </div>
+        </details>
+        <details class="page-nav-dropdown" name="season-nav">
+          <summary class="page-link page-nav-dropdown-toggle">
+            Season 3 Tools
+          </summary>
+          <div class="page-nav-dropdown-menu">
+            <a href="curse-research-lab-calculator.html" class="page-link"
+              >Curse Research Lab</a
+            >
+            <a href="altar-calculator.html" class="page-link">Altar</a>
+            <a href="protectors-field-calculator.html" class="page-link"
+              >Protector's Field</a
+            >
+            <a href="season-3-interactive-map.html" class="page-link"
+              >Interactive Map</a
+            >
+            <a href="spice-war-tracker.html" class="page-link"
+              >Spice War Tracker</a
+            >
+          </div>
+        </details>
+        <details class="page-nav-dropdown" name="season-nav">
+          <summary class="page-link page-nav-dropdown-toggle">
+            Season 4 Tools
+          </summary>
+          <div class="page-nav-dropdown-menu">
+            <a href="optoelectronic-lab-calculator.html" class="page-link"
+              >Optoelectronic Lab</a
+            >
+            <a href="protectors-field-s4-calculator.html" class="page-link"
+              >Protector's Field S4</a
+            >
+            <a href="lighthouse-s4-calculator.html" class="page-link"
+              >Lighthouse S4</a
+            >
+            <a href="season-4-interactive-map.html" class="page-link"
+              >Interactive Map</a
+            >
+            <a href="copper-war-tracker.html" class="page-link"
+              >Copper War Tracker</a
+            >
+          </div>
+        </details>
+        <details class="page-nav-dropdown active" name="season-nav">
+          <summary class="page-link page-nav-dropdown-toggle">
+            Season 5 Tools
+          </summary>
+          <div class="page-nav-dropdown-menu">
+            <a href="caffeine-institute-calculator.html" class="page-link"
+              >Caffeine Institute</a
+            >
+            <a href="protectors-field-s5-calculator.html" class="page-link"
+              >Protector's Field S5</a
+            >
+            <a
+              href="season-6-squad-base-calculator.html"
+              class="page-link active"
+              >Season 6 Squad Base</a
+            >
+            <a href="season-5-interactive-map.html" class="page-link"
+              >Interactive Map</a
+            >
+          </div>
+        </details>
+        <details class="page-nav-dropdown" name="season-nav">
+          <summary class="page-link page-nav-dropdown-toggle">
+            Season 6 Tools
+          </summary>
+          <div class="page-nav-dropdown-menu">
+                        <a href="fungus-institute-calculator.html" class="page-link"
+              >Fungus Institute</a
+            >
+<a href="season-6-interactive-map.html" class="page-link"
+              >Interactive Map</a
+            >
+          </div>
+        </details>
+      </nav>
+
+      <section class="hero">
+        <h1>Bear Totem Calculator (Season 6)</h1>
+        <div class="sub">
+          Choose your current Bear Totem level and enter your current spore.
+          The calculator shows how much spore you still need for the next level
+          and when your Spore Factories will cover the gap.
+        </div>
+      </section>
+
+      <section class="layout">
+        <div class="card">
+          <div class="field-group">
+            <h2 class="card-title">Quick Start</h2>
+            <ol class="helper-list">
+              <li>
+                Set your current Bear Totem level and target level (single step
+                or multi-level totals).
+              </li>
+              <li>
+                Enter current Spore and apply any reduction bonus you use.
+              </li>
+              <li>
+                Set Spore Factory levels and timezone to estimate your
+                ready-at time.
+              </li>
+            </ol>
+          </div>
+
+          <h2 class="card-title">Inputs</h2>
+          <div class="field">
+            <label for="currentLevel">Current Bear Totem Level</label>
+            <select id="currentLevel"></select>
+          </div>
+          <div class="field">
+            <label for="targetLevel">Target level (upgrade to)</label>
+            <select id="targetLevel"></select>
+          </div>
+          <div class="field">
+            <label for="currentSpore">Current Spore</label>
+            <input
+              id="currentSpore"
+              type="number"
+              min="0"
+              step="1"
+              value="0"
+            />
+          </div>
+          <div class="field">
+            <label for="allianceTechSelect"
+              >Reduced RSS required for building construction</label
+            >
+            <select id="allianceTechSelect"></select>
+          </div>
+          <div class="field">
+            <label for="timeZoneSelect">Timezone</label>
+            <select id="timeZoneSelect"></select>
+          </div>
+
+          <div class="field-group">
+            <h2 class="card-title">Spore Factories</h2>
+            <div class="mine-list" id="mineList"></div>
+            <div class="mine-total">
+              <div class="mine-total-key">Total Spore Output Per Hour</div>
+              <div class="mine-total-value" id="totalMineOutput">0</div>
+            </div>
+          </div>
+        </div>
+
+        <div class="card">
+          <h2 class="card-title">Next Upgrade</h2>
+          <div class="summary">
+            <div class="tile">
+              <div class="tile-key">Target level</div>
+              <div class="tile-value" id="nextLevelValue">Lv 2</div>
+            </div>
+            <div class="tile">
+              <div class="tile-key">Spore Required (total)</div>
+              <div class="tile-value" id="requiredValue">4,300</div>
+            </div>
+            <div class="tile">
+              <div class="tile-key">Current Spore</div>
+              <div class="tile-value" id="ownedValue">0</div>
+            </div>
+            <div class="tile">
+              <div class="tile-key">Still Needed</div>
+              <div class="tile-value warn" id="deficitValue">4,300</div>
+            </div>
+            <div class="tile">
+              <div class="tile-key">Estimated Time</div>
+              <div class="tile-value" id="etaValue">No output</div>
+            </div>
+            <div class="tile">
+              <div class="tile-key">Current Time</div>
+              <div class="tile-value" id="currentTimeValue">-</div>
+            </div>
+            <div class="tile tile-full">
+              <div class="tile-key">Upgrade Ready At</div>
+              <div class="tile-value" id="readyAtValue">No output</div>
+            </div>
+          </div>
+
+          <div class="details">
+            <div class="row">
+              <div class="row-key">Upgrade Path</div>
+              <div class="row-value" id="pathValue">Level 1 -> Level 2</div>
+            </div>
+            <div class="row">
+              <div class="row-key">Status</div>
+              <div class="row-value" id="statusValue">Need more Spore</div>
+            </div>
+            <div class="row">
+              <div class="row-key">Spore Factory Output Used</div>
+              <div class="row-value" id="mineRateValue">0/hr</div>
+            </div>
+            <div class="row">
+              <div class="row-key">Timezone Used</div>
+              <div class="row-value" id="timeZoneValue">Local</div>
+            </div>
+          </div>
+
+          <div class="table-wrap">
+            <label for="costLevelSelect">Level / Spore / Tank Hero Damage</label>
+            <select id="costLevelSelect"></select>
+          </div>
+        </div>
+      </section>
+    </div>
+
+    <script>
+      const bearTotemCosts =       [
+              {
+                      "level": 1,
+                      "spore": 0,
+                      "time": "0",
+                      "seasonXp": 40500,
+                      "power": 300,
+                      "tankDamage": 0.5
+              },
+              {
+                      "level": 2,
+                      "spore": 2420000,
+                      "time": "00:18:45",
+                      "seasonXp": 46600,
+                      "power": 600,
+                      "tankDamage": 1
+              },
+              {
+                      "level": 3,
+                      "spore": 2540000,
+                      "time": "00:28:08",
+                      "seasonXp": 53000,
+                      "power": 900,
+                      "tankDamage": 1.5
+              },
+              {
+                      "level": 4,
+                      "spore": 2650000,
+                      "time": "00:42:12",
+                      "seasonXp": 61600,
+                      "power": 1300,
+                      "tankDamage": 2
+              },
+              {
+                      "level": 5,
+                      "spore": 2770000,
+                      "time": "01:03:17",
+                      "seasonXp": 70800,
+                      "power": 1800,
+                      "tankDamage": 2.5
+              },
+              {
+                      "level": 6,
+                      "spore": 2880000,
+                      "time": "01:34:56",
+                      "seasonXp": 81500,
+                      "power": 2500,
+                      "tankDamage": 3
+              },
+              {
+                      "level": 7,
+                      "spore": 3000000,
+                      "time": "02:22:23",
+                      "seasonXp": 93700,
+                      "power": 3400,
+                      "tankDamage": 3.5
+              },
+              {
+                      "level": 8,
+                      "spore": 3110000,
+                      "time": "03:33:35",
+                      "seasonXp": 107700,
+                      "power": 4600,
+                      "tankDamage": 4
+              },
+              {
+                      "level": 9,
+                      "spore": 3230000,
+                      "time": "05:20:22",
+                      "seasonXp": 123900,
+                      "power": 6100,
+                      "tankDamage": 4.5
+              },
+              {
+                      "level": 10,
+                      "spore": 3350000,
+                      "time": "08:00:33",
+                      "seasonXp": 142500,
+                      "power": 8000,
+                      "tankDamage": 5
+              },
+              {
+                      "level": 11,
+                      "spore": 3460000,
+                      "time": "08:48:36",
+                      "seasonXp": 156700,
+                      "power": 10100,
+                      "tankDamage": 5.5
+              },
+              {
+                      "level": 12,
+                      "spore": 3580000,
+                      "time": "09:41:28",
+                      "seasonXp": 172400,
+                      "power": 12400,
+                      "tankDamage": 6
+              },
+              {
+                      "level": 13,
+                      "spore": 3690000,
+                      "time": "10:39:37",
+                      "seasonXp": 189600,
+                      "power": 15000,
+                      "tankDamage": 6.5
+              },
+              {
+                      "level": 14,
+                      "spore": 3810000,
+                      "time": "11:43:34",
+                      "seasonXp": 208600,
+                      "power": 17900,
+                      "tankDamage": 7
+              },
+              {
+                      "level": 15,
+                      "spore": 3920000,
+                      "time": "12:53:56",
+                      "seasonXp": 229500,
+                      "power": 21100,
+                      "tankDamage": 7.5
+              },
+              {
+                      "level": 16,
+                      "spore": 4040000,
+                      "time": "14:11:19",
+                      "seasonXp": 252400,
+                      "power": 24500,
+                      "tankDamage": 8
+              },
+              {
+                      "level": 17,
+                      "spore": 4150000,
+                      "time": "15:36:27",
+                      "seasonXp": 0,
+                      "power": 28100,
+                      "tankDamage": 8.5
+              },
+              {
+                      "level": 18,
+                      "spore": 4270000,
+                      "time": "17:10:06",
+                      "seasonXp": 0,
+                      "power": 31900,
+                      "tankDamage": 9
+              },
+              {
+                      "level": 19,
+                      "spore": 4380000,
+                      "time": "18:53:06",
+                      "seasonXp": 0,
+                      "power": 35900,
+                      "tankDamage": 9.5
+              },
+              {
+                      "level": 20,
+                      "spore": 4500000,
+                      "time": "20:46:25",
+                      "seasonXp": 0,
+                      "power": 40100,
+                      "tankDamage": 10
+              },
+              {
+                      "level": 21,
+                      "spore": 0,
+                      "time": "22:51:03",
+                      "seasonXp": 0,
+                      "power": 44600,
+                      "tankDamage": 10.5
+              },
+              {
+                      "level": 22,
+                      "spore": 0,
+                      "time": "1d 01:08:09",
+                      "seasonXp": 0,
+                      "power": 49300,
+                      "tankDamage": 11
+              },
+              {
+                      "level": 23,
+                      "spore": 0,
+                      "time": "1d 03:38:58",
+                      "seasonXp": 0,
+                      "power": 54300,
+                      "tankDamage": 11.5
+              },
+              {
+                      "level": 24,
+                      "spore": 0,
+                      "time": "1d 06:24:52",
+                      "seasonXp": 0,
+                      "power": 59600,
+                      "tankDamage": 12
+              },
+              {
+                      "level": 25,
+                      "spore": 0,
+                      "time": "1d 09:27:21",
+                      "seasonXp": 0,
+                      "power": 65200,
+                      "tankDamage": 12.5
+              },
+              {
+                      "level": 26,
+                      "spore": 0,
+                      "time": "1d 12:48:05",
+                      "seasonXp": 0,
+                      "power": 71100,
+                      "tankDamage": 13
+              },
+              {
+                      "level": 27,
+                      "spore": 0,
+                      "time": "1d 16:28:54",
+                      "seasonXp": 0,
+                      "power": 77400,
+                      "tankDamage": 13.5
+              },
+              {
+                      "level": 28,
+                      "spore": 0,
+                      "time": "1d 20:31:47",
+                      "seasonXp": 0,
+                      "power": 84000,
+                      "tankDamage": 14
+              },
+              {
+                      "level": 29,
+                      "spore": 0,
+                      "time": "2d 00:58:58",
+                      "seasonXp": 0,
+                      "power": 91000,
+                      "tankDamage": 14.5
+              },
+              {
+                      "level": 30,
+                      "spore": 0,
+                      "time": "2d 05:52:51",
+                      "seasonXp": 0,
+                      "power": 98400,
+                      "tankDamage": 15
+              }
+      ];
+
+      const sporeFactoryOutputs =       [
+              {
+                      "level": 1,
+                      "output": 720
+              },
+              {
+                      "level": 2,
+                      "output": 1440
+              },
+              {
+                      "level": 3,
+                      "output": 2160
+              },
+              {
+                      "level": 4,
+                      "output": 2880
+              },
+              {
+                      "level": 5,
+                      "output": 3600
+              },
+              {
+                      "level": 6,
+                      "output": 4320
+              },
+              {
+                      "level": 7,
+                      "output": 5040
+              },
+              {
+                      "level": 8,
+                      "output": 5760
+              },
+              {
+                      "level": 9,
+                      "output": 6480
+              },
+              {
+                      "level": 10,
+                      "output": 7200
+              },
+              {
+                      "level": 11,
+                      "output": 7920
+              },
+              {
+                      "level": 12,
+                      "output": 8640
+              },
+              {
+                      "level": 13,
+                      "output": 9360
+              },
+              {
+                      "level": 14,
+                      "output": 10080
+              },
+              {
+                      "level": 15,
+                      "output": 10800
+              },
+              {
+                      "level": 16,
+                      "output": 11520
+              },
+              {
+                      "level": 17,
+                      "output": 12240
+              },
+              {
+                      "level": 18,
+                      "output": 12960
+              },
+              {
+                      "level": 19,
+                      "output": 13680
+              },
+              {
+                      "level": 20,
+                      "output": 14400
+              },
+              {
+                      "level": 21,
+                      "output": 15120
+              },
+              {
+                      "level": 22,
+                      "output": 15840
+              },
+              {
+                      "level": 23,
+                      "output": 16560
+              },
+              {
+                      "level": 24,
+                      "output": 17280
+              },
+              {
+                      "level": 25,
+                      "output": 18000
+              },
+              {
+                      "level": 26,
+                      "output": 18720
+              },
+              {
+                      "level": 27,
+                      "output": 19440
+              },
+              {
+                      "level": 28,
+                      "output": 20160
+              },
+              {
+                      "level": 29,
+                      "output": 20880
+              },
+              {
+                      "level": 30,
+                      "output": 21600
+              }
+      ];
+
+      const currentLevelInput = document.getElementById("currentLevel");
+      const targetLevelInput = document.getElementById("targetLevel");
+      const currentSporeInput = document.getElementById("currentSpore");
+      const nextLevelValue = document.getElementById("nextLevelValue");
+      const requiredValue = document.getElementById("requiredValue");
+      const ownedValue = document.getElementById("ownedValue");
+      const deficitValue = document.getElementById("deficitValue");
+      const etaValue = document.getElementById("etaValue");
+      const readyAtValue = document.getElementById("readyAtValue");
+      const pathValue = document.getElementById("pathValue");
+      const statusValue = document.getElementById("statusValue");
+      const mineRateValue = document.getElementById("mineRateValue");
+      const timeZoneValue = document.getElementById("timeZoneValue");
+      const currentTimeValue = document.getElementById("currentTimeValue");
+      const costLevelSelect = document.getElementById("costLevelSelect");
+      const mineList = document.getElementById("mineList");
+      const totalMineOutput = document.getElementById("totalMineOutput");
+      const timeZoneSelect = document.getElementById("timeZoneSelect");
+      const allianceTechSelect = document.getElementById("allianceTechSelect");
+      const languageSelect = document.getElementById("languageSelect");
+      const STORAGE_KEY = "lastWarSeason6SquadBaseCalcStateV1";
+      let preferredLanguage = "en";
+
+      const languageOptions = [
+        { code: "en", label: "English" },
+        { code: "es", label: "Spanish" },
+        { code: "fr", label: "French" },
+        { code: "de", label: "German" },
+        { code: "it", label: "Italian" },
+        { code: "pt", label: "Portuguese" },
+        { code: "ru", label: "Russian" },
+        { code: "uk", label: "Ukrainian" },
+        { code: "pl", label: "Polish" },
+        { code: "tr", label: "Turkish" },
+        { code: "ar", label: "Arabic" },
+        { code: "fa", label: "Persian" },
+        { code: "he", label: "Hebrew" },
+        { code: "hi", label: "Hindi" },
+        { code: "bn", label: "Bengali" },
+        { code: "ur", label: "Urdu" },
+        { code: "th", label: "Thai" },
+        { code: "vi", label: "Vietnamese" },
+        { code: "id", label: "Indonesian" },
+        { code: "ms", label: "Malay" },
+        { code: "fil", label: "Filipino" },
+        { code: "ja", label: "Japanese" },
+        { code: "ko", label: "Korean" },
+        { code: "zh-CN", label: "Chinese (Simplified)" },
+        { code: "zh-TW", label: "Chinese (Traditional)" },
+        { code: "el", label: "Greek" },
+        { code: "nl", label: "Dutch" },
+        { code: "sv", label: "Swedish" },
+        { code: "da", label: "Danish" },
+        { code: "fi", label: "Finnish" },
+        { code: "no", label: "Norwegian" },
+        { code: "cs", label: "Czech" },
+        { code: "ro", label: "Romanian" },
+        { code: "hu", label: "Hungarian" },
+        { code: "sk", label: "Slovak" },
+        { code: "bg", label: "Bulgarian" },
+        { code: "hr", label: "Croatian" },
+        { code: "sr", label: "Serbian" },
+        { code: "sl", label: "Slovenian" },
+        { code: "lt", label: "Lithuanian" },
+        { code: "lv", label: "Latvian" },
+        { code: "et", label: "Estonian" },
+      ];
+
+      const commonTimeZones = [
+        "UTC",
+        "America/New_York",
+        "America/Chicago",
+        "America/Denver",
+        "America/Los_Angeles",
+        "America/Phoenix",
+        "America/Toronto",
+        "America/Sao_Paulo",
+        "Europe/London",
+        "Europe/Paris",
+        "Europe/Berlin",
+        "Europe/Athens",
+        "Africa/Johannesburg",
+        "Asia/Dubai",
+        "Asia/Kolkata",
+        "Asia/Singapore",
+        "Asia/Shanghai",
+        "Asia/Tokyo",
+        "Australia/Perth",
+        "Australia/Sydney",
+        "Pacific/Auckland",
+      ];
+
+      function formatResource(value) {
+        return Math.round(Number(value) || 0).toLocaleString();
+      }
+
+      function formatTimeFromHours(hours) {
+        if (!Number.isFinite(hours)) {
+          return "No output";
+        }
+
+        if (hours <= 0) {
+          return "Ready now";
+        }
+
+        const totalMinutes = Math.round(hours * 60);
+        const days = Math.floor(totalMinutes / 1440);
+        const remainingMinutes = totalMinutes % 1440;
+        const wholeHours = Math.floor(remainingMinutes / 60);
+        const minutes = remainingMinutes % 60;
+
+        if (days > 0) {
+          return `${days}d ${wholeHours}h`;
+        }
+        if (wholeHours > 0) {
+          return `${wholeHours}h ${minutes}m`;
+        }
+        return `${minutes}m`;
+      }
+
+      function formatReadyAt(hours, timeZone) {
+        if (!Number.isFinite(hours)) {
+          return "No output";
+        }
+
+        if (hours <= 0) {
+          return "Now";
+        }
+
+        const targetDate = new Date(Date.now() + hours * 3600 * 1000);
+        return new Intl.DateTimeFormat(undefined, {
+          timeZone,
+          month: "short",
+          day: "numeric",
+          hour: "numeric",
+          minute: "2-digit",
+          hour12: true,
+        }).format(targetDate);
+      }
+
+      function formatCurrentTime(timeZone) {
+        return new Intl.DateTimeFormat(undefined, {
+          timeZone,
+          month: "short",
+          day: "numeric",
+          hour: "numeric",
+          minute: "2-digit",
+          second: "2-digit",
+          hour12: true,
+        }).format(new Date());
+      }
+
+      function updateCurrentTimeDisplay() {
+        const selectedTimeZone = timeZoneSelect.value || "UTC";
+        try {
+          currentTimeValue.textContent = formatCurrentTime(selectedTimeZone);
+        } catch {
+          currentTimeValue.textContent = "Unavailable";
+        }
+      }
+
+      function buildTimeZoneOptions() {
+        const detectedTimeZone =
+          Intl.DateTimeFormat().resolvedOptions().timeZone || "UTC";
+        const zoneList = commonTimeZones.includes(detectedTimeZone)
+          ? commonTimeZones
+          : [detectedTimeZone, ...commonTimeZones];
+
+        timeZoneSelect.innerHTML = zoneList
+          .map((zone) => `<option value="${zone}">${zone}</option>`)
+          .join("");
+        timeZoneSelect.value = detectedTimeZone;
+      }
+
+      function buildLanguageOptions() {
+        languageSelect.innerHTML = languageOptions
+          .map((lang) => `<option value="${lang.code}">${lang.label}</option>`)
+          .join("");
+        languageSelect.value = preferredLanguage;
+      }
+
+      function applyGoogleLanguage(languageCode, retries = 25) {
+        const combo = document.querySelector(".goog-te-combo");
+        if (!combo) {
+          if (retries > 0) {
+            setTimeout(
+              () => applyGoogleLanguage(languageCode, retries - 1),
+              200,
+            );
+          }
+          return;
+        }
+
+        combo.value = languageCode;
+        combo.dispatchEvent(new Event("change"));
+      }
+
+      function loadGoogleTranslateScript() {
+        if (window.google && window.google.translate) {
+          window.googleTranslateElementInit();
+          return;
+        }
+
+        const script = document.createElement("script");
+        script.src =
+          "https://translate.google.com/translate_a/element.js?cb=googleTranslateElementInit";
+        script.async = true;
+        document.body.appendChild(script);
+      }
+
+      window.googleTranslateElementInit =
+        function googleTranslateElementInit() {
+          new window.google.translate.TranslateElement(
+            {
+              pageLanguage: "en",
+              autoDisplay: false,
+            },
+            "google_translate_element",
+          );
+
+          applyGoogleLanguage(preferredLanguage);
+        };
+
+      function getBearTotemMaxLevel() {
+        return bearTotemCosts[bearTotemCosts.length - 1].level;
+      }
+
+      function buildLevelOptions() {
+        currentLevelInput.innerHTML = "";
+        for (let level = 1; level <= bearTotemCosts.length; level += 1) {
+          const option = new Option(`Level ${level}`, String(level));
+          currentLevelInput.appendChild(option);
+        }
+        currentLevelInput.value = "1";
+      }
+
+      function syncTargetLevelSelect() {
+        const current = Number(currentLevelInput.value || 1);
+        const maxLevel = getBearTotemMaxLevel();
+        const prevTarget = Number(targetLevelInput.value);
+        targetLevelInput.innerHTML = "";
+        for (let lvl = current + 1; lvl <= maxLevel; lvl += 1) {
+          targetLevelInput.appendChild(new Option(`Level ${lvl}`, String(lvl)));
+        }
+        if (targetLevelInput.options.length === 0) return;
+        const validPrev =
+          Number.isFinite(prevTarget) &&
+          prevTarget > current &&
+          prevTarget <= maxLevel;
+        targetLevelInput.value = String(validPrev ? prevTarget : current + 1);
+      }
+
+      function buildAllianceTechOptions() {
+        allianceTechSelect.innerHTML = Array.from(
+          { length: 201 },
+          (_, index) => {
+            const pct = (index * 0.5).toFixed(1);
+            return `<option value="${pct}">${pct}%</option>`;
+          },
+        ).join("");
+        allianceTechSelect.value = "0.0";
+      }
+
+      function buildMineSelectors() {
+        const options = sporeFactoryOutputs
+          .map(
+            (row) => `<option value="${row.level}">Level ${row.level}</option>`,
+          )
+          .join("");
+
+        mineList.innerHTML = Array.from(
+          { length: 5 },
+          (_, index) => `
+        <div class="mine-row">
+          <div>
+            <label for="mineLevel${index + 1}">Spore Factory ${index + 1}</label>
+            <select id="mineLevel${index + 1}" data-mine-index="${index + 1}">
+              <option value="0">Not set</option>
+              ${options}
+            </select>
+          </div>
+          <div class="mine-output" id="mineOutput${index + 1}">0/hr</div>
+        </div>
+      `,
+        ).join("");
+
+        Array.from(mineList.querySelectorAll("select")).forEach((select) => {
+          select.addEventListener("change", updateMineOutput);
+        });
+      }
+
+      function getMineOutputForLevel(level) {
+        return (
+          sporeFactoryOutputs.find((row) => row.level === level)?.output || 0
+        );
+      }
+
+      function updateMineOutput() {
+        let totalOutput = 0;
+
+        for (let index = 1; index <= 5; index += 1) {
+          const select = document.getElementById(`mineLevel${index}`);
+          const outputBox = document.getElementById(`mineOutput${index}`);
+          const level = Number(select.value);
+          const output = getMineOutputForLevel(level);
+          totalOutput += output;
+          outputBox.textContent = `${formatResource(output)}/hr`;
+        }
+
+        totalMineOutput.textContent = `${formatResource(totalOutput)}/hr`;
+        updateCalculator();
+      }
+
+      function getTotalMineOutput() {
+        let totalOutput = 0;
+        for (let index = 1; index <= 5; index += 1) {
+          const select = document.getElementById(`mineLevel${index}`);
+          totalOutput += getMineOutputForLevel(Number(select.value));
+        }
+        return totalOutput;
+      }
+
+      function getMineLevelsSignature() {
+        const levels = [];
+        for (let index = 1; index <= 5; index += 1) {
+          const select = document.getElementById(`mineLevel${index}`);
+          levels.push(Number(select?.value || 0));
+        }
+        return levels.join(",");
+      }
+
+      function buildTable() {
+        costLevelSelect.innerHTML = bearTotemCosts
+          .map(
+            (row) =>
+              `<option value="${row.level}">Level ${row.level} - ${formatResource(row.spore)}</option>`,
+          )
+          .join("");
+      }
+
+      function saveState() {
+        try {
+          const mineLevels = [];
+          for (let index = 1; index <= 5; index += 1) {
+            const select = document.getElementById(`mineLevel${index}`);
+            mineLevels.push(Number(select?.value || 0));
+          }
+
+          const state = {
+            currentLevel: Number(currentLevelInput.value || 1),
+            currentSpore: Number(currentSporeInput.value || 0),
+            timeZone: timeZoneSelect.value,
+            allianceTech: Number(allianceTechSelect.value || 0),
+            language: languageSelect.value,
+            mineLevels,
+          };
+
+          localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
+        } catch {
+          // Ignore storage errors (private mode / disabled storage)
+        }
+      }
+
+      function loadSavedState() {
+        try {
+          const raw = localStorage.getItem(STORAGE_KEY);
+          if (!raw) return;
+
+          const state = JSON.parse(raw);
+
+          if (
+            state.currentLevel &&
+            currentLevelInput.querySelector(
+              `option[value="${state.currentLevel}"]`,
+            )
+          ) {
+            currentLevelInput.value = String(state.currentLevel);
+          }
+
+          syncTargetLevelSelect();
+          if (
+            Number.isFinite(Number(state.targetLevel)) &&
+            targetLevelInput.querySelector(
+              `option[value="${state.targetLevel}"]`,
+            )
+          ) {
+            targetLevelInput.value = String(state.targetLevel);
+          }
+
+          if (Number.isFinite(Number(state.currentSpore))) {
+            currentSporeInput.value = String(
+              Math.max(0, Number(state.currentSpore)),
+            );
+          }
+
+          if (state.timeZone) {
+            if (
+              !timeZoneSelect.querySelector(`option[value="${state.timeZone}"]`)
+            ) {
+              timeZoneSelect.appendChild(
+                new Option(state.timeZone, state.timeZone),
+              );
+            }
+            timeZoneSelect.value = state.timeZone;
+          }
+
+          if (
+            state.language &&
+            languageOptions.some((lang) => lang.code === state.language)
+          ) {
+            preferredLanguage = state.language;
+            languageSelect.value = state.language;
+          }
+
+          if (Number.isFinite(Number(state.allianceTech))) {
+            const savedTech = Number(state.allianceTech).toFixed(1);
+            if (
+              allianceTechSelect.querySelector(`option[value="${savedTech}"]`)
+            ) {
+              allianceTechSelect.value = savedTech;
+            }
+          }
+
+          if (Array.isArray(state.mineLevels)) {
+            for (let index = 1; index <= 5; index += 1) {
+              const savedLevel = Number(state.mineLevels[index - 1] || 0);
+              const select = document.getElementById(`mineLevel${index}`);
+              if (
+                select &&
+                select.querySelector(`option[value="${savedLevel}"]`)
+              ) {
+                select.value = String(savedLevel);
+              }
+            }
+          }
+
+        } catch {
+          // Ignore malformed or inaccessible stored state
+        }
+      }
+
+      function updateCalculator() {
+        const maxLevel = getBearTotemMaxLevel();
+        syncTargetLevelSelect();
+        const currentLevel = Number(currentLevelInput.value || 1);
+        const targetLevel =
+          targetLevelInput.options.length === 0
+            ? currentLevel
+            : Number(targetLevelInput.value || currentLevel + 1);
+        const currentSpore = Math.max(
+          0,
+          Number(currentSporeInput.value) || 0,
+        );
+        const nextUpgrade = bearTotemCosts.find(
+          (row) => row.level === currentLevel + 1,
+        );
+
+        if (!nextUpgrade || currentLevel >= maxLevel) {
+          nextLevelValue.textContent = "Max";
+          requiredValue.textContent = "0";
+          ownedValue.textContent = formatResource(currentSpore);
+          deficitValue.textContent = "0";
+          deficitValue.className = "tile-value ok";
+          etaValue.textContent = "-";
+          readyAtValue.textContent = "-";
+          pathValue.textContent = "Maximum configured level reached";
+          statusValue.textContent = "No higher level in this table";
+          mineRateValue.textContent = `${formatResource(getTotalMineOutput())}/hr`;
+          timeZoneValue.textContent = timeZoneSelect.value;
+          costLevelSelect.value = String(
+            bearTotemCosts[bearTotemCosts.length - 1].level,
+          );
+          updateCurrentTimeDisplay();
+          saveState();
+          return;
+        }
+
+        const allianceTechPct = Number(allianceTechSelect.value || 0);
+        let requiredCoffee = 0;
+        for (let lvl = currentLevel + 1; lvl <= targetLevel; lvl += 1) {
+          const row = bearTotemCosts.find((r) => r.level === lvl);
+          if (!row) continue;
+          requiredCoffee += Math.max(
+            0,
+            Math.round(row.spore * (1 - allianceTechPct / 100)),
+          );
+        }
+        const remainingCoffee = Math.max(0, requiredCoffee - currentSpore);
+        const ready = remainingCoffee === 0;
+        const totalOutputPerHour = getTotalMineOutput();
+        const estimatedHours = ready
+          ? 0
+          : totalOutputPerHour > 0
+            ? remainingCoffee / totalOutputPerHour
+            : Infinity;
+        const selectedTimeZone = timeZoneSelect.value;
+
+        nextLevelValue.textContent = `Lv ${targetLevel}`;
+        requiredValue.textContent = formatResource(requiredCoffee);
+        ownedValue.textContent = formatResource(currentSpore);
+        deficitValue.textContent = formatResource(remainingCoffee);
+        deficitValue.className = `tile-value ${ready ? "ok" : "warn"}`;
+        etaValue.textContent = formatTimeFromHours(estimatedHours);
+        etaValue.className = `tile-value ${ready ? "ok" : totalOutputPerHour > 0 ? "" : "warn"}`;
+        readyAtValue.textContent = ready
+          ? "Now"
+          : formatReadyAt(estimatedHours, selectedTimeZone);
+        readyAtValue.className = `tile-value ${ready ? "ok" : totalOutputPerHour > 0 ? "" : "warn"}`;
+        pathValue.textContent =
+          targetLevel <= currentLevel + 1
+            ? `Level ${currentLevel} -> Level ${targetLevel}`
+            : `Level ${currentLevel} -> Level ${targetLevel} (${targetLevel - currentLevel} upgrades)`;
+        statusValue.textContent = ready
+          ? "You already have enough spore"
+          : "Need more Spore";
+        mineRateValue.textContent = `${formatResource(totalOutputPerHour)}/hr`;
+        timeZoneValue.textContent = selectedTimeZone;
+        costLevelSelect.value = String(nextUpgrade.level);
+        updateCurrentTimeDisplay();
+
+        saveState();
+      }
+
+      buildLevelOptions();
+      buildTimeZoneOptions();
+      buildLanguageOptions();
+      buildAllianceTechOptions();
+      buildMineSelectors();
+      loadSavedState();
+      buildLanguageOptions();
+      buildTable();
+      updateCalculator();
+      updateMineOutput();
+      updateCurrentTimeDisplay();
+      loadGoogleTranslateScript();
+      setInterval(updateCurrentTimeDisplay, 1000);
+
+      currentLevelInput.addEventListener("change", updateCalculator);
+      targetLevelInput.addEventListener("change", updateCalculator);
+      currentSporeInput.addEventListener("input", updateCalculator);
+      timeZoneSelect.addEventListener("change", updateCalculator);
+      allianceTechSelect.addEventListener("change", updateMineOutput);
+      languageSelect.addEventListener("change", () => {
+        preferredLanguage = languageSelect.value;
+        applyGoogleLanguage(preferredLanguage);
+        saveState();
+      });
+    </script>
+
+    <div class="support-bar">
+      <a
+        href="https://buymeacoffee.com/dkfoy56w"
+        class="support-link"
+        target="_blank"
+        rel="noopener noreferrer"
+        >Buy Me a Spore</a
+      >
+    </div>
+  </body>
+</html>
