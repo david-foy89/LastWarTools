@@ -1000,7 +1000,9 @@
               the new URL.
             </p>
           </div>
-          <div class="checklist-root" id="checklistRoot"></div>
+          <div class="checklist-root" id="checklistRoot">
+            <p class="empty-state">Loading artifacts...</p>
+          </div>
           <div class="status-pill is-hidden" id="statusPill" aria-hidden="true">
             Loading artifacts...
           </div>
@@ -1994,7 +1996,7 @@
 
         summaryTiles.innerHTML = `
           <div class="tile">
-            <div class="tile-key">Total Supplies</div>
+            <div class="tile-key">Total Artifacts</div>
             <div class="tile-value">${formatNumber(total)}</div>
           </div>
           <div class="tile">
@@ -2173,7 +2175,7 @@
                 `;
               })
               .join("")
-          : `<div class="empty-state">No supplies match the current filters for Level ${level}.</div>`;
+          : `<div class="empty-state">No artifacts match the current filters for Level ${level}.</div>`;
 
         checklistRoot.innerHTML = `
           <section class="level-card${isComplete ? " is-complete" : ""}">
@@ -2396,7 +2398,7 @@
         };
         const count = validCompleted.size;
         shareBannerText.textContent = `${count.toLocaleString()} completed ${
-          count === 1 ? "supply" : "supplies"
+          count === 1 ? "artifact" : "artifacts"
         } shared with you. Load them into your checklist?`;
         shareBanner.classList.remove("is-hidden");
       }
@@ -2479,7 +2481,7 @@
           summaryTiles.innerHTML = "";
           levelProgressList.innerHTML = "";
           setStatus(
-            `Failed to load supplies (${escapeHtml(error.message)})`,
+            `Failed to load artifacts (${escapeHtml(error.message)})`,
             true,
           );
         }
