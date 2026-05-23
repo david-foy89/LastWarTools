@@ -30,6 +30,12 @@
         ".write": true
       }
     },
+    "season3-desert-artifacts": {
+      "$shareId": {
+        ".read": true,
+        ".write": true
+      }
+    },
     "season4-map": {
       "$shareId": {
         ".read": true,

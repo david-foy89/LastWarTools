@@ -3,34 +3,34 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Season 2 Supplies Checklist</title>
+    <title>Season 3 Desert Artifacts Checklist</title>
     <meta
       name="description"
-      content="Track every Season 2 scattered supply by level and coordinate, and save your completed checklist progress locally."
+      content="Track every Season 3 desert artifact by level and coordinate, and save your completed checklist progress locally."
     />
     <link
       rel="canonical"
-      href="https://lastwarsurvivaltools.com/season-2-supplies-checklist.html"
+      href="https://lastwarsurvivaltools.com/season-3-desert-artifacts-checklist.html"
     />
     <meta property="og:type" content="website" />
-    <meta property="og:title" content="Season 2 Supplies Checklist" />
+    <meta property="og:title" content="Season 3 Desert Artifacts Checklist" />
     <meta
       property="og:description"
-      content="Track every Season 2 scattered supply by level and coordinate, and save your completed checklist progress locally."
+      content="Track every Season 3 desert artifact by level and coordinate, and save your completed checklist progress locally."
     />
     <meta
       property="og:url"
-      content="https://lastwarsurvivaltools.com/season-2-supplies-checklist.html"
+      content="https://lastwarsurvivaltools.com/season-3-desert-artifacts-checklist.html"
     />
     <meta
       property="og:image"
       content="https://lastwarsurvivaltools.com/media/lwst.png"
     />
     <meta name="twitter:card" content="summary_large_image" />
-    <meta name="twitter:title" content="Season 2 Supplies Checklist" />
+    <meta name="twitter:title" content="Season 3 Desert Artifacts Checklist" />
     <meta
       name="twitter:description"
-      content="Track every Season 2 scattered supply by level and coordinate, and save your completed checklist progress locally."
+      content="Track every Season 3 desert artifact by level and coordinate, and save your completed checklist progress locally."
     />
     <meta
       name="twitter:image"
@@ -40,9 +40,9 @@
       {
         "@context": "https://schema.org",
         "@type": "WebPage",
-        "name": "Season 2 Supplies Checklist",
-        "description": "Track every Season 2 scattered supply by level and coordinate, and save your completed checklist progress locally.",
-        "url": "https://lastwarsurvivaltools.com/season-2-supplies-checklist.html"
+        "name": "Season 3 Desert Artifacts Checklist",
+        "description": "Track every Season 3 desert artifact by level and coordinate, and save your completed checklist progress locally.",
+        "url": "https://lastwarsurvivaltools.com/season-3-desert-artifacts-checklist.html"
       }
     </script>
     <link rel="stylesheet" href="google-translate-toolbar-hide.css" />
@@ -726,7 +726,7 @@
             <a href="season-2-faction-war-planner.html" class="page-link"
               >Faction War Planner</a
             >
-            <a href="season-2-supplies-checklist.html" class="page-link"
+            <a href="season-3-desert-artifacts-checklist.html" class="page-link"
               >Supplies Checklist</a
             >
             <a href="rare-soil-war-tracker.html" class="page-link"
@@ -734,7 +734,7 @@
             >
           </div>
         </details>
-        <details class="page-nav-dropdown" name="season-nav">
+        <details class="page-nav-dropdown active" name="season-nav">
           <summary class="page-link page-nav-dropdown-toggle">
             Season 3 Tools
           </summary>
@@ -746,7 +746,7 @@
             <a href="protectors-field-calculator.html" class="page-link"
               >Protector's Field</a
             >
-            <a href="season-3-desert-artifacts-checklist.html" class="page-link"
+            <a href="season-3-desert-artifacts-checklist.html" class="page-link active"
               >Desert Artifacts</a
             >
             <a href="season-3-interactive-map.html" class="page-link"
@@ -817,11 +817,12 @@
       </nav>
 
       <section class="hero">
-        <h1>Season 2 Supplies Checklist</h1>
+        <h1>Season 3 Desert Artifacts Checklist</h1>
         <div class="sub">
-          Track every scattered supply from Season 2 by level and coordinate.
-          Your completed checks are saved locally in this browser so you can
-          work through the list over multiple sessions.
+          Track every desert artifact from Season 3 by level and coordinate.
+          Greenify tiles on the world map to reveal artifacts, then mark them
+          off here as you collect rewards. Progress is saved locally in this
+          browser.
         </div>
       </section>
 
@@ -877,7 +878,7 @@
             </div>
             <label class="toggle-row" for="hideCompletedInput">
               <input id="hideCompletedInput" type="checkbox" />
-              Hide completed supplies
+              Hide completed artifacts
             </label>
           </div>
 
@@ -1001,7 +1002,7 @@
           </div>
           <div class="checklist-root" id="checklistRoot"></div>
           <div class="status-pill is-hidden" id="statusPill" aria-hidden="true">
-            Loading supplies...
+            Loading artifacts...
           </div>
         </div>
       </section>
@@ -1011,9 +1012,9 @@
     <script src="https://www.gstatic.com/firebasejs/10.12.5/firebase-app-check-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.12.5/firebase-database-compat.js"></script>
     <script>
-      const DATA_URL = "season2_supplies_api.json";
-      const STORAGE_KEY = "lastWarSeason2SuppliesChecklistV1";
-      const LIVE_SHARE_ID_STORAGE_KEY = "lastWarSeason2SuppliesLiveShareIdV1";
+      const DATA_URL = "season3_artifacts_api.json";
+      const STORAGE_KEY = "lastWarSeason3DesertArtifactsChecklistV1";
+      const LIVE_SHARE_ID_STORAGE_KEY = "lastWarSeason3DesertArtifactsLiveShareIdV1";
       const LIVE_SYNC = {
         // Live sync DB URL can come from:
         // 1) ?db=..., 2) localStorage "lastWarLiveSyncDbUrl", 3) window.LWST_LIVE_SYNC_DB_URL,
@@ -1134,7 +1135,7 @@
             if (!window.__s2SuppliesBadAppCheckKeyWarned) {
               window.__s2SuppliesBadAppCheckKeyWarned = true;
               console.warn(
-                "[Season 2 Supplies] __FIREBASE_APPCHECK_SITE_KEY__ must be the short reCAPTCHA Enterprise key from Firebase → App Check.",
+                "[Season 3 Desert Artifacts] __FIREBASE_APPCHECK_SITE_KEY__ must be the short reCAPTCHA Enterprise key from Firebase → App Check.",
               );
             }
             return false;
@@ -1195,7 +1196,7 @@
           firebase.appCheck(app).activate(new Prov(key), true);
           app._s2SuppliesAppCheckActivated = true;
         } catch (e) {
-          console.warn("[Season 2 Supplies] App Check activate:", e);
+          console.warn("[Season 3 Desert Artifacts] App Check activate:", e);
         }
       }
 
@@ -1235,13 +1236,13 @@
           if (typeof ac.getToken !== "function") return Promise.resolve();
           const tokenPromise = ac.getToken(false).then(
             () => {},
-            (err) => console.warn("[Season 2 Supplies] App Check getToken:", err),
+            (err) => console.warn("[Season 3 Desert Artifacts] App Check getToken:", err),
           );
           const stallMs = 12000;
           const stallPromise = new Promise((resolve) => {
             setTimeout(() => {
               console.warn(
-                "[Season 2 Supplies] App Check getToken still pending — opening RTDB anyway. If sync fails, check App Check domain registration or use ?rsLiveDbOnly=1 when RTDB enforcement is Off/Monitor.",
+                "[Season 3 Desert Artifacts] App Check getToken still pending — opening RTDB anyway. If sync fails, check App Check domain registration or use ?rsLiveDbOnly=1 when RTDB enforcement is Off/Monitor.",
               );
               resolve();
             }, stallMs);
@@ -1253,7 +1254,7 @@
             },
           );
         } catch (e) {
-          console.warn("[Season 2 Supplies] App Check getToken:", e);
+          console.warn("[Season 3 Desert Artifacts] App Check getToken:", e);
           return Promise.resolve();
         }
       }
@@ -1532,7 +1533,7 @@
 
       function getLiveEndpoint(shareId) {
         const base = liveSyncState.dbUrl.replace(/\/$/, "");
-        return `${base}/season2-supplies/${encodeURIComponent(shareId)}.json`;
+        return `${base}/season3-desert-artifacts/${encodeURIComponent(shareId)}.json`;
       }
 
       function buildLiveShareUrl(shareId) {
@@ -1644,7 +1645,7 @@
                 appName,
               );
           } catch (initErr) {
-            console.error("[Season 2 Supplies] Firebase initializeApp failed:", initErr);
+            console.error("[Season 3 Desert Artifacts] Firebase initializeApp failed:", initErr);
             setStatus(
               "Firebase init failed — check database URL matches firebase-config.",
               true,
@@ -1727,7 +1728,7 @@
 
         const attachListener = () => {
           liveSyncState.firebaseRef = liveSyncState.firebaseDb.ref(
-            `season2-supplies/${shareId}`,
+            `season3-desert-artifacts/${shareId}`,
           );
 
           liveSyncState.firebaseValueHandler = (snapshot) => {
@@ -1763,7 +1764,7 @@
           await ensureFirebaseDbReady();
           attachListener();
         } catch (e) {
-          console.warn("[Season 2 Supplies] startLiveSync:", e);
+          console.warn("[Season 3 Desert Artifacts] startLiveSync:", e);
           stopLiveSyncPolling();
           setStatus(
             "Live sync could not start. Check firebase-config.js, App Check domain, and browser console.",
@@ -2047,7 +2048,7 @@
         if (state.selectedLevel === "all") {
           const levels = getAllLevels();
           if (levels.length === 0) {
-            checklistRoot.innerHTML = `<div class="empty-state">No supplies are available.</div>`;
+            checklistRoot.innerHTML = `<div class="empty-state">No artifacts are available.</div>`;
             return;
           }
 
@@ -2123,13 +2124,13 @@
             .join("");
 
           if (!checklistRoot.innerHTML.trim()) {
-            checklistRoot.innerHTML = `<div class="empty-state">No supplies match the current filters.</div>`;
+            checklistRoot.innerHTML = `<div class="empty-state">No artifacts match the current filters.</div>`;
           }
           return;
         }
 
         if (state.selectedLevel === null) {
-          checklistRoot.innerHTML = `<div class="empty-state">No supplies are available.</div>`;
+          checklistRoot.innerHTML = `<div class="empty-state">No artifacts are available.</div>`;
           return;
         }
 
@@ -2212,7 +2213,7 @@
             `<div class="fuzzy-hint">No exact matches &mdash; showing the ${visibleSupplies.length} closest coordinates to your search.</div>`,
           );
         }
-        setStatus(`${formatNumber(state.supplies.length)} supplies loaded`);
+        setStatus(`${formatNumber(state.supplies.length)} artifacts loaded`);
         updateLiveSharePanel();
       }
 
@@ -2345,7 +2346,7 @@
             updateLiveSharePanel();
           })
           .catch((err) => {
-            console.warn("[Season 2 Supplies] initLiveSyncFromUrl:", err);
+            console.warn("[Season 3 Desert Artifacts] initLiveSyncFromUrl:", err);
             updateLiveSharePanel();
           });
       }
@@ -2371,7 +2372,7 @@
             updateLiveSharePanel();
           })
           .catch((err) => {
-            console.warn("[Season 2 Supplies] initPersistedHostLiveSync:", err);
+            console.warn("[Season 3 Desert Artifacts] initPersistedHostLiveSync:", err);
             updateLiveSharePanel();
           });
       }
@@ -2449,7 +2450,7 @@
       }
 
       async function loadSupplies() {
-        setStatus("Loading supplies...");
+        setStatus("Loading artifacts...");
         try {
           const response = await fetch(DATA_URL, { cache: "no-store" });
           if (!response.ok) {
@@ -2472,7 +2473,7 @@
         } catch (error) {
           checklistRoot.innerHTML = `
             <div class="empty-state">
-              Unable to load the Season 2 supplies data right now. Try refreshing the page.
+              Unable to load the Season 3 desert artifacts data right now. Try refreshing the page.
             </div>
           `;
           summaryTiles.innerHTML = "";
@@ -2576,7 +2577,7 @@
             await pushLiveState();
             url = buildLiveShareUrl(shareId);
           } catch (e) {
-            console.warn("[Season 2 Supplies] copy share link:", e);
+            console.warn("[Season 3 Desert Artifacts] copy share link:", e);
             setStatus(
               "Could not prepare live link. Check the browser console.",
               true,
@@ -2619,7 +2620,7 @@
           updateLiveSharePanel();
           setStatus("New live link is ready — share it with your team.");
         } catch (e) {
-          console.warn("[Season 2 Supplies] change live link:", e);
+          console.warn("[Season 3 Desert Artifacts] change live link:", e);
           setStatus(
             "Could not switch to a new link. Check the browser console.",
             true,
@@ -2649,7 +2650,7 @@
         });
         const a = document.createElement("a");
         a.href = URL.createObjectURL(blob);
-        a.download = "season2-supplies-checklist.csv";
+        a.download = "season3-desert-artifacts-checklist.csv";
         a.click();
         URL.revokeObjectURL(a.href);
       });
@@ -2684,7 +2685,7 @@
           });
           const a = document.createElement("a");
           a.href = canvas.toDataURL("image/png");
-          a.download = "season2-supplies-checklist.png";
+          a.download = "season3-desert-artifacts-checklist.png";
           a.click();
         } catch {
           setStatus("PNG export failed. Try a different browser.", true);
@@ -2758,7 +2759,7 @@
         try {
           await startLiveSync(sid);
         } catch (e) {
-          console.warn("[Season 2 Supplies] liveSyncEnabledInput:", e);
+          console.warn("[Season 3 Desert Artifacts] liveSyncEnabledInput:", e);
           liveSyncEnabledInput.checked = false;
           liveSyncState.enabled = false;
           localStorage.setItem("lastWarLiveSyncEnabled", "0");
