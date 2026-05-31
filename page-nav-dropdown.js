@@ -279,6 +279,7 @@
       ensureLink(menu, 'transfer-tracker.html', 'Transfer Tracker');
       ensureLink(menu, 'verus-tracker.html', 'Versus Tracker');
       ensureLink(menu, 'ds-tracker.html', 'Desert Storm Tracker/Planner');
+      ensureLink(menu, 'warzone-planner.html', 'Warzone Planner');
       ensureLink(menu, 'alliance-hive.html', 'Hive Builder');
     });
   }

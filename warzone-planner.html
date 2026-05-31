@@ -3,28 +3,28 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Season 2 Faction War Planner - Last War Tools</title>
+    <title>Warzone Planner - Last War Tools</title>
     <meta
       name="description"
-      content="Place server numbers, alliance tags, and usernames on the Season 2 capitol (Nuclear Furnace) map for Faction War planning. Drag labels and save locally in your browser."
+      content="Place server numbers, alliance tags, and usernames on the Warzone capitol map with Giant Cannons. Drag labels and save locally in your browser."
     />
     <link
       rel="canonical"
-      href="https://lastwarsurvivaltools.com/season-2-faction-war-planner.html"
+      href="https://lastwarsurvivaltools.com/warzone-planner.html"
     />
     <meta property="og:type" content="website" />
-    <meta property="og:title" content="Season 2 Faction War Planner - Last War Tools" />
+    <meta property="og:title" content="Warzone Planner - Last War Tools" />
     <meta
       property="og:description"
-      content="Place server numbers, alliance tags, and usernames on the capitol map. Drag labels, zoom, and save your plan in the browser."
+      content="Place server numbers, alliance tags, and usernames on the Warzone capitol and cannon map. Drag labels, zoom, and save your plan in the browser."
     />
     <meta
       property="og:url"
-      content="https://lastwarsurvivaltools.com/season-2-faction-war-planner.html"
+      content="https://lastwarsurvivaltools.com/warzone-planner.html"
     />
     <meta
       property="og:image"
-      content="https://lastwarsurvivaltools.com/media/season-2-faction-war-capitol.png"
+      content="https://lastwarsurvivaltools.com/media/warzone-capitol.png"
     />
     <link rel="stylesheet" href="google-translate-toolbar-hide.css" />
     <link rel="stylesheet" href="last-war-furnace-upgrade-calculator.css" />
@@ -258,6 +258,16 @@
         color: rgba(217, 240, 255, 0.55);
         margin-top: 4px;
       }
+      .fwplanner-preset-row {
+        display: grid;
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+        gap: 6px;
+        margin-top: 6px;
+      }
+      .fwplanner-preset-row .action-button--small {
+        padding: 6px 6px;
+        font-size: 0.72rem;
+      }
     </style>
   </head>
   <body>
@@ -289,7 +299,7 @@
 
       <nav class="page-nav" aria-label="Calculator pages">
         <a href="hq-upgrade-calculator.html" class="page-link">HQ Upgrade</a>
-        <details class="page-nav-dropdown" name="alliance-nav">
+        <details class="page-nav-dropdown active" name="alliance-nav">
           <summary class="page-link page-nav-dropdown-toggle">Alliance Tools</summary>
           <div class="page-nav-dropdown-menu">
             <a href="train-conductor-schedule.html" class="page-link">Train Conductor</a>
@@ -297,7 +307,7 @@
             <a href="verus-tracker.html" class="page-link">Versus Tracker</a>
             <a href="ds-tracker.html" class="page-link">Desert Storm Tracker/Planner</a>
             <a href="server-search.html" class="page-link">Server Search</a>
-            <a href="warzone-planner.html" class="page-link">Warzone Planner</a>
+            <a href="warzone-planner.html" class="page-link active">Warzone Planner</a>
             <a href="alliance-hive.html" class="page-link">Hive Builder</a>
           </div>
         </details>
@@ -318,7 +328,7 @@
             <a href="season-1-interactive-map.html" class="page-link">Interactive Map</a>
           </div>
         </details>
-        <details class="page-nav-dropdown active" name="season-nav">
+        <details class="page-nav-dropdown" name="season-nav">
           <summary class="page-link page-nav-dropdown-toggle">Season 2 Tools</summary>
           <div class="page-nav-dropdown-menu">
             <a href="last-war-furnace-upgrade-calculator.html" class="page-link"
@@ -326,9 +336,7 @@
             >
             <a href="season-2-tank-center-calculator.html" class="page-link">Season 2 Squad Base</a>
             <a href="season-2-interactive-map.html" class="page-link">Interactive Map</a>
-            <a
-              href="season-2-faction-war-planner.html"
-              class="page-link active"
+            <a href="season-2-faction-war-planner.html" class="page-link"
               >Faction War Planner</a
             >
             <a href="season-2-supplies-checklist.html" class="page-link">Supplies Checklist</a>
@@ -384,12 +392,12 @@
       </nav>
 
       <div class="container">
-        <h1>Season 2 Faction War Planner</h1>
+        <h1>Warzone Planner</h1>
         <p style="color: rgba(217, 240, 255, 0.7); margin-bottom: 20px; max-width: 72ch">
-          Mark the
-          <strong>Nuclear Furnace</strong> battlefield: add server numbers, alliance tags, or
-          usernames, drag them on the capitol view, and zoom the map. Your layout is stored in this
-          browser.
+          Plan the <strong>Warzone capitol</strong> layout: mark the Capitol and
+          <strong>Giant Cannons</strong> (N, E, W, S) with server numbers, alliance tags, or
+          player names. Drag labels on the map, use quick-place spots for each structure, and zoom
+          as needed. Your layout is stored in this browser.
         </p>
 
         <div class="fwplanner-wrap">
@@ -408,23 +416,23 @@
               <span id="fwplannerZoomVal">100%</span>
             </div>
             <p class="fwplanner-legend" style="margin: 0 0 6px 0">
-              Map: Season 2 capitol (Nuclear Furnace). Coordinates are saved as a percentage of image
+              Map: Warzone capitol with Giant Cannons. Coordinates are saved as a percentage of image
               size so labels stay aligned when the window is resized.
             </p>
             <div
               class="fwplanner-viewport"
               id="fwplannerViewport"
               role="region"
-              aria-label="Capitol map; click to place a label"
+              aria-label="Warzone capitol map; click to place a label"
             >
               <div class="fwplanner-stage" id="fwplannerStage" data-place-mode="0">
                 <img
                   class="fwplanner-map-img"
                   id="fwplannerImg"
-                  src="media/season-2-faction-war-capitol.png"
-                  alt="Top-down view of the Nuclear Furnace, shields, and surrounding terrain in Last War: Survival"
-                  width="1200"
-                  height="800"
+                  src="media/warzone-capitol.png"
+                  alt="Top-down view of the Warzone Capitol and four Giant Cannons with shields in Last War: Survival"
+                  width="840"
+                  height="617"
                   draggable="false"
                 />
                 <div id="fwplannerPins" aria-label="Map labels"></div>
@@ -476,6 +484,32 @@
                 Place in center
               </button>
             </div>
+            <h2 style="margin-top: 14px">Quick place</h2>
+            <p class="fwplanner-hint">
+              Enter text above, then tap a structure to drop a label on that spot.
+            </p>
+            <div class="fwplanner-preset-row" id="fwplannerPresets">
+              <button type="button" class="action-button action-button--small" data-preset="north">
+                Cannon N
+              </button>
+              <button type="button" class="action-button action-button--small" data-preset="east">
+                Cannon E
+              </button>
+              <button type="button" class="action-button action-button--small" data-preset="west">
+                Cannon W
+              </button>
+              <button type="button" class="action-button action-button--small" data-preset="south">
+                Cannon S
+              </button>
+              <button
+                type="button"
+                class="action-button action-button--small"
+                data-preset="capitol"
+                style="grid-column: span 3"
+              >
+                Capitol
+              </button>
+            </div>
             <div class="fwplanner-btn-row">
               <button
                 type="button"
@@ -504,7 +538,15 @@
 
     <script>
       (function () {
-        const STORAGE_KEY = "lwst-s2-faction-war-planner-v1";
+        const STORAGE_KEY = "lwst-warzone-planner-v1";
+        /** Percent positions tuned for media/warzone-capitol.png (840×617). */
+        const STRUCTURE_PRESETS = {
+          capitol: { x: 50, y: 45, label: "Capitol" },
+          north: { x: 26, y: 24, label: "Giant Cannon [N]" },
+          east: { x: 74, y: 24, label: "Giant Cannon [E]" },
+          west: { x: 26, y: 76, label: "Giant Cannon [W]" },
+          south: { x: 74, y: 76, label: "Giant Cannon [S]" },
+        };
         /** At slider "100%", image width = this % of the stage; keep 100 to avoid scroll at default zoom. */
         const ZOOM_BASE_PCT = 100;
         const state = { markers: [], nextId: 1, placeMode: false, scale: 1 };
@@ -699,7 +741,7 @@
             setStatus("Export failed (image may be tainted or blocked).");
             return;
           }
-          const refW = 1200;
+          const refW = 840;
           const scaleW = W / refW;
           const padX = Math.max(2, 8 * scaleW);
           const padY1 = Math.max(2, 3 * scaleW);
@@ -777,7 +819,7 @@
                 "-" +
                 String(d.getDate()).padStart(2, "0");
               a.href = URL.createObjectURL(blob);
-              a.download = "last-war-s2-capitol-planner-" + stamp + ".png";
+              a.download = "last-war-warzone-planner-" + stamp + ".png";
               a.click();
               window.setTimeout(function () {
                 URL.revokeObjectURL(a.href);
@@ -1037,8 +1079,21 @@
         document.addEventListener("pointercancel", onPointerUp);
 
         $("fwplannerCenterBtn").addEventListener("click", function () {
-          addMarker(50, 50);
+          addMarker(50, 45);
         });
+
+        const presetsEl = $("fwplannerPresets");
+        if (presetsEl) {
+          presetsEl.addEventListener("click", function (ev) {
+            const btn = ev.target.closest("[data-preset]");
+            if (!btn || !presetsEl.contains(btn)) return;
+            const key = btn.getAttribute("data-preset");
+            const spot = STRUCTURE_PRESETS[key];
+            if (!spot) return;
+            addMarker(spot.x, spot.y);
+            setStatus("Placed at " + spot.label + ".");
+          });
+        }
 
         $("fwplannerClearBtn").addEventListener("click", function () {
           if (!state.markers.length) return;
