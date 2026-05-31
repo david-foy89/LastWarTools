@@ -1849,6 +1849,8 @@
        */
       let lastConductorRosterDateKeyForPick = "";
       let rosterPersistTimer = null;
+      /** Frozen Click fills dropdowns when pointerdown starts on a member pick. */
+      let allianceFillSnapshotForPick = null;
 
       function conductorSlotIsUnset(raw, conductorIdx) {
         if (raw === undefined || raw === null) return true;
@@ -2068,6 +2070,59 @@
        */
       function getConductorSlotCalendarDateKey(conductorIdx, weekIdx) {
         return getCalendarDateKeyForConductorSlotInWeek(conductorIdx, weekIdx);
+      }
+
+      /**
+       * Date used when a member name is clicked from the list: that conductor’s
+       * assigned day in the week, or the highlighted schedule cell if unassigned.
+       */
+      function getConductorClickFillDateKey(conductorIdx, weekIdx) {
+        const ci = Number(conductorIdx);
+        if (!Number.isFinite(ci) || ci < 0 || ci > 6) return "";
+        if (!state.startDateStr) return "";
+        const w = Math.max(0, Math.min(3, Number(weekIdx)));
+        const slotDk = getCalendarDateKeyForConductorSlotInWeek(ci, w);
+        if (slotDk) return slotDk;
+        const editW = Math.max(0, Math.min(3, state.nameEditWeek));
+        if (w === editW) {
+          const editDk = getNameEditDateKey();
+          if (editDk) return editDk;
+        }
+        return getCalendarDateKeyForCell(
+          state.startDateStr,
+          w,
+          Math.max(0, Math.min(6, state.nameEditDay)),
+        );
+      }
+
+      function setConductorNameOnDateKey(conductorIdx, dateKey, value) {
+        const ci = Number(conductorIdx);
+        const dk = String(dateKey || "").trim();
+        if (!Number.isFinite(ci) || ci < 0 || ci > 6 || !isMondayDateKey(dk)) {
+          return false;
+        }
+        const n = sanitizeStoredConductorName(sanitizeMemberName(value), ci);
+        const pack = ensureDatePack(dk);
+        if (!pack) return false;
+        if (pack.names[ci] === n) return false;
+        pack.names[ci] = n;
+        pack.names = normalizeNames7(pack.names);
+        return true;
+      }
+
+      function setConductorVipOnDateKey(conductorIdx, dateKey, value) {
+        const ci = Number(conductorIdx);
+        const dk = String(dateKey || "").trim();
+        if (!Number.isFinite(ci) || ci < 0 || ci > 6 || !isMondayDateKey(dk)) {
+          return false;
+        }
+        const v = normalizeVipGuardianValue(value);
+        const pack = ensureDatePack(dk);
+        if (!pack) return false;
+        if (pack.vip[ci] === v) return false;
+        pack.vip[ci] = v;
+        pack.vip = normalizeVip7(pack.vip);
+        return true;
       }
 
       /** Date key backing the left-panel name field for this conductor slot. */
@@ -3893,7 +3948,25 @@
        * dropdowns (not from focus, which is lost when clicking the member list).
        */
       function getAllianceFillTargetsForMemberPick() {
+        if (
+          allianceFillSnapshotForPick &&
+          (allianceFillSnapshotForPick.targetType === "vip" ||
+            allianceFillSnapshotForPick.targetType === "conductor") &&
+          Number.isFinite(allianceFillSnapshotForPick.idx) &&
+          allianceFillSnapshotForPick.idx >= 0 &&
+          allianceFillSnapshotForPick.idx <= 6
+        ) {
+          const snap = allianceFillSnapshotForPick;
+          allianceFillSnapshotForPick = null;
+          state.allianceFillTarget = snap.targetType;
+          state.allianceFillConductorIdx = snap.idx;
+          return { targetType: snap.targetType, idx: snap.idx };
+        }
         return readAllianceFillFromDom();
+      }
+
+      function captureAllianceFillSnapshotForPick() {
+        allianceFillSnapshotForPick = readAllianceFillFromDom();
       }
 
       function syncAllianceFillConductorIdxFromRosterInput(inputEl) {
@@ -4876,7 +4949,6 @@
 
       function applyAllianceMemberToTarget(memberName) {
         normalizeScheduleStartDateInState();
-
         syncNameAssignmentWeekFromDom();
 
         const { targetType, idx } = getAllianceFillTargetsForMemberPick();
@@ -4887,38 +4959,85 @@
         if (allianceFillConductorSelect) {
           allianceFillConductorSelect.value = String(idx);
         }
+        state.allianceFillTarget = targetType;
+        state.allianceFillConductorIdx = idx;
+
+        const weekIdx = Math.max(0, Math.min(3, state.nameEditWeek));
+        const fillDateKey = getConductorClickFillDateKey(idx, weekIdx);
+        if (!fillDateKey) {
+          setAllianceImportStatus(
+            "Click a day on the schedule (or assign this conductor to a day in Name assignment week) before using Click fills.",
+          );
+          return;
+        }
+
+        if (targetType === "vip") {
+          ensureVipRosterVisible();
+        }
 
         let filled = false;
+        let displayValue = "";
         if (targetType === "vip") {
           const vipName = normalizeVipGuardianValue(memberName);
-          if (vipName && state.startDateStr) {
-            ensureVipRosterVisible();
-            setConductorVipForWeekSlot(idx, state.nameEditWeek, vipName);
-            recordMemberHistory(vipName, "vip", idx, state.nameEditWeek);
-            filled = true;
+          if (!vipName) {
+            setAllianceImportStatus("That member name is empty.");
+            return;
           }
-        } else if (
-          setConductorNameForWeekSlot(idx, state.nameEditWeek, memberName)
-        ) {
-          const n = sanitizeMemberName(memberName);
-          if (n) {
-            recordMemberHistory(memberName, "conductor", idx, state.nameEditWeek);
+          const vipRow = getDateVipRow(fillDateKey);
+          const alreadySet =
+            vipRow && normalizeVipGuardianValue(vipRow[idx]) === vipName;
+          if (setConductorVipOnDateKey(idx, fillDateKey, vipName) || alreadySet) {
+            recordMemberHistory(vipName, "vip", idx, weekIdx);
             filled = true;
+            displayValue = vipName;
+          }
+        } else {
+          const n = sanitizeMemberName(memberName);
+          if (!n) {
+            setAllianceImportStatus("That member name is empty.");
+            return;
+          }
+          const nameRow = getDateNamesRow(fillDateKey);
+          const stored = nameRow
+            ? sanitizeStoredConductorName(nameRow[idx], idx)
+            : "";
+          const alreadySet = stored === sanitizeStoredConductorName(n, idx);
+          if (setConductorNameOnDateKey(idx, fillDateKey, n) || alreadySet) {
+            recordMemberHistory(n, "conductor", idx, weekIdx);
+            filled = true;
+            displayValue = sanitizeStoredConductorName(n, idx);
           }
         }
 
         if (!filled) {
+          setAllianceImportStatus(
+            "Could not fill — try clicking the schedule day first, then pick the member again.",
+          );
           return;
         }
 
-        updateConductorRowInputsInDom(idx, { force: true });
+        const inp = getRosterFillInputEl(targetType, idx);
+        if (inp) {
+          inp.setAttribute("data-date-key", fillDateKey);
+          inp.value = displayValue;
+        } else if (targetType === "vip") {
+          renderConductors();
+          const retryInp = getRosterFillInputEl("vip", idx);
+          if (retryInp) {
+            retryInp.setAttribute("data-date-key", fillDateKey);
+            retryInp.value = displayValue;
+          }
+        }
+
         renderSchedule();
-        flushRosterFieldPersist();
+        saveState();
+        setAllianceImportStatus(
+          targetType === "vip"
+            ? `Filled VIP/Guardian for Conductor ${idx + 1} (${fillDateKey}).`
+            : `Filled conductor name for Conductor ${idx + 1} (${fillDateKey}).`,
+        );
         window.requestAnimationFrame(() => {
           focusRosterFillTarget({ scroll: false, highlight: true });
-          if (editingAllianceMemberIdx < 0) {
-            renderAllianceMembers();
-          }
         });
       }
 
@@ -6430,13 +6549,16 @@
       }
 
       allianceMembersList.addEventListener(
-        "mousedown",
+        "pointerdown",
         (event) => {
           const el = eventTargetElement(event);
           if (!el) return;
-          const pickBtn = el.closest("[data-name]");
+          const pickBtn = el.closest(".alliance-member-pick[data-name]");
           if (pickBtn && allianceMembersList.contains(pickBtn)) {
-            event.preventDefault();
+            captureAllianceFillSnapshotForPick();
+            if (event.button === 0) {
+              event.preventDefault();
+            }
           }
         },
         true,
@@ -6532,7 +6654,7 @@
           return;
         }
 
-        const pickBtn = el.closest("[data-name]");
+        const pickBtn = el.closest(".alliance-member-pick[data-name]");
         if (pickBtn && allianceMembersList.contains(pickBtn)) {
           const raw =
             typeof pickBtn.getAttribute === "function"
