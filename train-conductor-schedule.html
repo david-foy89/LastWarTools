@@ -1277,7 +1277,11 @@
                 <option value="3">Week 4</option>
               </select>
             </div>
-            <div id="conductorsList" style="display: grid; gap: 10px"></div>
+            <div
+              id="conductorsList"
+              style="display: grid; gap: 10px"
+              autocomplete="off"
+            ></div>
           </div>
 
           <div class="field-group">
@@ -1851,7 +1855,17 @@
         if (typeof raw !== "string") return true;
         const t = raw.trim();
         if (t === "") return true;
-        return t === DEFAULT_NAMES[conductorIdx];
+        const ci = Number(conductorIdx);
+        if (Number.isFinite(ci) && ci >= 0 && ci < DEFAULT_NAMES.length) {
+          if (t === DEFAULT_NAMES[ci]) return true;
+        }
+        return /^Conductor\s+[1-7]$/i.test(t);
+      }
+
+      /** Never persist placeholder/default labels as saved schedule names. */
+      function sanitizeStoredConductorName(raw, conductorIdx) {
+        if (conductorSlotIsUnset(raw, conductorIdx)) return "";
+        return String(raw).trim().slice(0, 40);
       }
 
       function ensureScheduleByCalendarDate() {
@@ -2038,69 +2052,55 @@
         dayIdx,
         conductorIdx,
       ) {
-        const custom = getConductorNameForCell(weekIdx, dayIdx, conductorIdx);
-        if (custom) return custom;
-        if (conductorIdx >= 0 && conductorIdx < DEFAULT_NAMES.length) {
-          return DEFAULT_NAMES[conductorIdx];
-        }
-        return "";
+        return getConductorNameForCell(weekIdx, dayIdx, conductorIdx);
       }
 
       /**
-       * Calendar date (YYYY-MM-DD) for the highlighted schedule cell — all roster
-       * inputs read/write `names[slot]` / `vip[slot]` on this date only.
+       * Calendar date for one conductor slot in an assignment week (the day they
+       * work per `dayAssignmentsByWeek`). Roster fields never share another date.
        */
-      function getActiveConductorEditDateKey(weekIdx) {
-        const w = Number.isFinite(Number(weekIdx))
-          ? Math.max(0, Math.min(3, Number(weekIdx)))
-          : Math.max(0, Math.min(3, state.nameEditWeek));
-        return getCalendarDateKeyForCell(
-          state.startDateStr,
-          w,
-          Math.max(0, Math.min(6, state.nameEditDay)),
-        );
+      function getConductorSlotCalendarDateKey(conductorIdx, weekIdx) {
+        return getCalendarDateKeyForConductorSlotInWeek(conductorIdx, weekIdx);
       }
 
       /** Date key backing the left-panel name field for this conductor slot. */
       function getConductorNameInputDateKey(conductorIdx) {
-        const dk = getActiveConductorEditDateKey(state.nameEditWeek);
-        if (dk) return dk;
-        return getConductorNamePackDateKeyForSlot(
-          conductorIdx,
-          state.nameEditWeek,
+        return (
+          getConductorSlotCalendarDateKey(
+            conductorIdx,
+            state.nameEditWeek,
+          ) || ""
         );
       }
 
-      /** Input value for the highlighted calendar date (empty when unset). */
+      /** Input value for this slot’s calendar day only (empty when unset). */
       function getConductorNameInputValue(conductorIdx) {
         const ci = Number(conductorIdx);
         if (!Number.isFinite(ci) || ci < 0 || ci > 6) return "";
-        const dk = getActiveConductorEditDateKey(state.nameEditWeek);
+        const dk = getConductorSlotCalendarDateKey(ci, state.nameEditWeek);
         if (!dk) return "";
         const row = getDateNamesRow(dk);
         if (!row) return "";
-        const raw = row[ci];
-        if (conductorSlotIsUnset(raw, ci)) return "";
-        return String(raw).trim().slice(0, 40);
+        return sanitizeStoredConductorName(row[ci], ci);
       }
 
-      /** VIP/Guardian for one conductor slot on the active edit calendar date. */
+      /** VIP/Guardian for one conductor on that slot’s calendar day only. */
       function getConductorVipForWeekSlot(conductorIdx, weekIdx) {
         const ci = Number(conductorIdx);
         if (!Number.isFinite(ci) || ci < 0 || ci > 6) return "";
-        const dk = getActiveConductorEditDateKey(weekIdx);
+        const dk = getConductorSlotCalendarDateKey(ci, weekIdx);
         if (!dk) return "";
         const row = getDateVipRow(dk);
         if (!row) return "";
         return String(row[ci] ?? "").trim();
       }
 
-      /** Writes VIP for one slot on the active edit calendar date only. */
+      /** Writes VIP on that slot’s calendar day only (never other dates). */
       function setConductorVipForWeekSlot(conductorIdx, weekIdx, value) {
         const ci = Number(conductorIdx);
         if (!Number.isFinite(ci) || ci < 0 || ci > 6) return false;
         if (!state.startDateStr) return false;
-        const dk = getActiveConductorEditDateKey(weekIdx);
+        const dk = getConductorSlotCalendarDateKey(ci, weekIdx);
         if (!dk) return false;
         const v = normalizeVipGuardianValue(value);
         const pack = ensureDatePack(dk);
@@ -2111,14 +2111,17 @@
         return true;
       }
 
-      /** Writes conductor name for one slot on the active edit calendar date only. */
+      /** Writes conductor name on that slot’s calendar day only (never other dates). */
       function setConductorNameForWeekSlot(conductorIdx, weekIdx, value) {
         const ci = Number(conductorIdx);
         if (!Number.isFinite(ci) || ci < 0 || ci > 6) return false;
         if (!state.startDateStr) return false;
-        const dk = getActiveConductorEditDateKey(weekIdx);
+        const dk = getConductorSlotCalendarDateKey(ci, weekIdx);
         if (!dk) return false;
-        const n = sanitizeMemberName(value).slice(0, 40);
+        const n = sanitizeStoredConductorName(
+          sanitizeMemberName(value),
+          ci,
+        );
         const pack = ensureDatePack(dk);
         if (!pack) return false;
         if (pack.names[ci] === n) return false;
@@ -2569,23 +2572,9 @@
         return "";
       }
 
-      /**
-       * Date key whose `scheduleByCalendarDate` row backs this conductor slot for
-       * the given assignment week (falls back to the highlighted name-edit cell).
-       */
+      /** @deprecated alias */
       function getConductorNamePackDateKeyForSlot(conductorIdx, weekIdx) {
-        const ci = Number(conductorIdx);
-        const dkSlot = getCalendarDateKeyForConductorSlotInWeek(
-          conductorIdx,
-          weekIdx,
-        );
-        if (dkSlot) return dkSlot;
-        const w = Math.max(0, Math.min(3, Number(weekIdx)));
-        const d =
-          Number.isFinite(ci) && ci >= 0 && ci <= 6
-            ? ci
-            : Math.max(0, Math.min(6, state.nameEditDay));
-        return getCalendarDateKeyForCell(state.startDateStr, w, d);
+        return getConductorSlotCalendarDateKey(conductorIdx, weekIdx);
       }
 
       /** Coerce each stored week row to a valid 7-day assignment (fixes `[]` / all -1 from bad sync data). */
@@ -2679,66 +2668,43 @@
           const dk = String(k).trim();
           if (!v || typeof v !== "object" || !Array.isArray(v.names)) continue;
           const pack = ensureDatePack(dk);
-          pack.names = normalizeNames7(v.names);
+          pack.names = normalizeNames7(
+            v.names.map((n, i) => sanitizeStoredConductorName(n, i)),
+          );
           if (Array.isArray(v.vip)) {
             pack.vip = normalizeVip7(v.vip);
           }
         }
       }
 
-      /** Copy legacy Monday-key week packs into per-date name rows (same names on each day of that week). */
-      function migrateLegacyWeekMapsIntoCalendarDateNames(startStr) {
+      /** Strip legacy saves that duplicated one week row onto every day. */
+      function scrubDuplicatedWeekNameRowsFromCalendarDates(startStr) {
         const baseStr = String(startStr || "").trim();
         if (!baseStr) return;
         ensureScheduleByCalendarDate();
-        ensureScheduleMap();
         for (let w = 0; w < 4; w++) {
-          const monKey = getMondayKeyForWeekIndexFromStart(w, baseStr);
-          if (!monKey) continue;
-          const pack = state.scheduleByWeekStart[monKey];
-          if (
-            !pack ||
-            typeof pack !== "object" ||
-            !Array.isArray(pack.names) ||
-            weekPackNonEmptyNameCount(pack) === 0
-          ) {
+          const refDk = getCalendarDateKeyForCell(baseStr, w, 0);
+          if (!refDk) continue;
+          const refRow = getDateNamesRow(refDk);
+          if (!refRow || weekPackNonEmptyNameCount({ names: refRow }) === 0) {
             continue;
           }
-          const nam = normalizeNames7(pack.names);
-          for (let d = 0; d < 7; d++) {
+          const refSig = refRow.join("\u0001");
+          let dupCount = 0;
+          for (let d = 1; d < 7; d++) {
             const dk = getCalendarDateKeyForCell(baseStr, w, d);
             if (!dk) continue;
-            const existing = getDateNamesRow(dk);
-            if (existing && weekPackNonEmptyNameCount({ names: existing }) > 0) {
-              continue;
-            }
-            ensureDatePack(dk).names = [...nam];
+            const row = getDateNamesRow(dk);
+            if (row && row.join("\u0001") === refSig) dupCount += 1;
           }
-        }
-      }
-
-      /** Old saves stored one name row per week index; fan out onto each calendar date in that row. */
-      function migrateSavedConductorNamesByWeekIntoCalendar(
-        startStr,
-        rows4x7,
-      ) {
-        if (!Array.isArray(rows4x7) || rows4x7.length !== 4) return;
-        const baseStr = String(startStr || "").trim();
-        if (!baseStr) return;
-        for (let w = 0; w < 4; w++) {
-          const row = rows4x7[w];
-          if (!Array.isArray(row) || weekPackNonEmptyNameCount({ names: row }) === 0) {
-            continue;
-          }
-          const nam = normalizeNames7(row);
-          for (let d = 0; d < 7; d++) {
+          if (dupCount < 6) continue;
+          for (let d = 1; d < 7; d++) {
             const dk = getCalendarDateKeyForCell(baseStr, w, d);
             if (!dk) continue;
-            const existing = getDateNamesRow(dk);
-            if (existing && weekPackNonEmptyNameCount({ names: existing }) > 0) {
-              continue;
-            }
-            ensureDatePack(dk).names = [...nam];
+            const pack = state.scheduleByCalendarDate[dk];
+            if (!pack || !Array.isArray(pack.names)) continue;
+            pack.names = Array(7).fill("");
+            pack.names = normalizeNames7(pack.names);
           }
         }
       }
@@ -2840,20 +2806,7 @@
           }
         }
         if (state.startDateStr) {
-          migrateLegacyWeekMapsIntoCalendarDateNames(state.startDateStr);
-          if (
-            legacyConductorNamesByWeek &&
-            Array.isArray(legacyConductorNamesByWeek) &&
-            legacyConductorNamesByWeek.length === 4 &&
-            legacyConductorNamesByWeek.every(
-              (week) => Array.isArray(week) && week.length === 7,
-            )
-          ) {
-            migrateSavedConductorNamesByWeekIntoCalendar(
-              state.startDateStr,
-              legacyConductorNamesByWeek,
-            );
-          }
+          scrubDuplicatedWeekNameRowsFromCalendarDates(state.startDateStr);
           hydrateDayAssignmentsFromWeekMap(state.startDateStr);
         }
       }
@@ -5034,6 +4987,9 @@
         }
         mergeScheduleMapFromSaved(saved, legacyConductorNamesByWeek);
         migrateLegacyConductorVipToCalendarPacks();
+        if (state.startDateStr) {
+          scrubDuplicatedWeekNameRowsFromCalendarDates(state.startDateStr);
+        }
         clampNameEditWeekToVisibleSchedule();
       }
 
@@ -5330,7 +5286,7 @@
             const idx = readConductorSlotIdxFromInputEl(inp);
             const dk = readConductorNameDateKeyFromInputEl(inp);
             if (!Number.isFinite(idx) || idx < 0 || idx > 6 || !dk) return;
-            const n = sanitizeMemberName(inp.value).slice(0, 40);
+            const n = sanitizeStoredConductorName(inp.value, idx);
             const pack = ensureDatePack(dk);
             if (!pack) return;
             if (pack.names[idx] !== n) {
@@ -5448,10 +5404,13 @@
                 name="lw-tc-name-${escapeHtml(getConductorNameInputDateKey(i))}-c${i}"
                 maxlength="40"
                 autocomplete="off"
+                autocorrect="off"
+                autocapitalize="off"
+                spellcheck="false"
                 data-lpignore="true"
                 data-1p-ignore="true"
                 data-form-type="other"
-                placeholder="Conductor ${i + 1}"
+                placeholder="Name for ${escapeHtml(assignedDays[0] || "assigned day")}"
                 aria-label="Conductor ${i + 1} name"
               />
               ${vipInputHtml}
@@ -5593,14 +5552,12 @@
             if (conductorIdx >= 0 && conductorIdx < state.conductors.length) {
               const c = state.conductors[conductorIdx];
               const chipBg = hexToRgba(c.color, 0.18);
-              const rawRow = cellKey ? getDateNamesRow(cellKey) : null;
-              const rawSlot = rawRow ? rawRow[conductorIdx] : "";
-              const slotUnset = conductorSlotIsUnset(rawSlot, conductorIdx);
               const displayName = withR4R5Crown(
-                getConductorNameForCalendarLabelForCell(w, d, conductorIdx),
+                getConductorNameForCell(w, d, conductorIdx),
               );
-              const phClass = slotUnset ? " conductor-chip-placeholder" : "";
-              chipHtml = `<span class="conductor-chip${phClass}" style="color:${escapeHtml(c.color)};border-color:${escapeHtml(c.color)};background:${chipBg};">${escapeHtml(displayName)}</span>`;
+              if (displayName) {
+                chipHtml = `<span class="conductor-chip" style="color:${escapeHtml(c.color)};border-color:${escapeHtml(c.color)};background:${chipBg};">${escapeHtml(displayName)}</span>`;
+              }
             }
 
             let vipHtml = "";
@@ -5654,15 +5611,8 @@
               todayWeekIdx,
               todayColIdx,
             );
-            const todayRow = todayKey ? getDateNamesRow(todayKey) : null;
-            const rawToday = todayRow ? todayRow[todayConduectorIdx] : "";
-            const todayUnset = conductorSlotIsUnset(
-              rawToday,
-              todayConduectorIdx,
-            );
-            const phClass = todayUnset ? " conductor-chip-placeholder" : "";
             const displayName = withR4R5Crown(
-              getConductorNameForCalendarLabelForCell(
+              getConductorNameForCell(
                 todayWeekIdx,
                 todayColIdx,
                 todayConduectorIdx,
@@ -5679,7 +5629,11 @@
                 todayVipHtml = `<span class="vip-badge">${escapeHtml(withR4R5Crown(vipRaw))}</span>`;
               }
             }
-            bannerChip = `<span class="conductor-chip${phClass}" style="color:${escapeHtml(c.color)};border-color:${escapeHtml(c.color)};">${escapeHtml(displayName)}</span>${todayVipHtml}<span class="today-banner-date">${escapeHtml(todayLabel)}</span>`;
+            if (displayName) {
+              bannerChip = `<span class="conductor-chip" style="color:${escapeHtml(c.color)};border-color:${escapeHtml(c.color)};">${escapeHtml(displayName)}</span>${todayVipHtml}<span class="today-banner-date">${escapeHtml(todayLabel)}</span>`;
+            } else {
+              bannerChip = `<span style="color:var(--muted);font-style:italic;">No name set</span>${todayVipHtml}<span class="today-banner-date">${escapeHtml(todayLabel)}</span>`;
+            }
           }
           todayBannerContent.innerHTML = bannerChip;
           todayBanner.classList.remove("is-hidden");
