@@ -3,28 +3,28 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Season 1 Warzone Planner - Last War Tools</title>
+    <title>Season 3 Warzone Planner - Last War Tools</title>
     <meta
       name="description"
-      content="Place server numbers, alliance tags, and usernames on the Season 1 City of Apocalypse warzone capitol map. Drag labels and save locally in your browser."
+      content="Place server numbers, alliance tags, and usernames on the Season 3 Great Pyramid warzone capitol map. Drag labels and save locally in your browser."
     />
     <link
       rel="canonical"
-      href="https://lastwarsurvivaltools.com/season-1-warzone-planner.html"
+      href="https://lastwarsurvivaltools.com/season-3-warzone-planner.html"
     />
     <meta property="og:type" content="website" />
-    <meta property="og:title" content="Season 1 Warzone Planner - Last War Tools" />
+    <meta property="og:title" content="Season 3 Warzone Planner - Last War Tools" />
     <meta
       property="og:description"
-      content="Place server numbers, alliance tags, and usernames on the Season 1 warzone capitol map. Drag labels, zoom, and save your plan in the browser."
+      content="Place server numbers, alliance tags, and usernames on the Season 3 warzone capitol map. Drag labels, zoom, and save your plan in the browser."
     />
     <meta
       property="og:url"
-      content="https://lastwarsurvivaltools.com/season-1-warzone-planner.html"
+      content="https://lastwarsurvivaltools.com/season-3-warzone-planner.html"
     />
     <meta
       property="og:image"
-      content="https://lastwarsurvivaltools.com/media/season-1-warzone-capitol.png"
+      content="https://lastwarsurvivaltools.com/media/season-3-warzone-capitol.png"
     />
     <link rel="stylesheet" href="google-translate-toolbar-hide.css" />
     <link rel="stylesheet" href="last-war-furnace-upgrade-calculator.css" />
@@ -308,7 +308,7 @@
             <a href="t11-troops-calculator.html" class="page-link">T11 Troops</a>
           </div>
         </details>
-        <details class="page-nav-dropdown active" name="season-nav">
+        <details class="page-nav-dropdown" name="season-nav">
           <summary class="page-link page-nav-dropdown-toggle">Season 1 Tools</summary>
           <div class="page-nav-dropdown-menu">
             <a href="virus-research-institute-calculator.html" class="page-link"
@@ -316,7 +316,7 @@
             >
             <a href="season-1-squad-base-calculator.html" class="page-link">Season 1 Squad Base</a>
             <a href="season-1-interactive-map.html" class="page-link">Interactive Map</a>
-            <a href="season-1-warzone-planner.html" class="page-link active">Warzone Planner</a>
+            <a href="season-1-warzone-planner.html" class="page-link">Warzone Planner</a>
           </div>
         </details>
         <details class="page-nav-dropdown" name="season-nav">
@@ -334,15 +334,15 @@
             <a href="rare-soil-war-tracker.html" class="page-link">Rare Soil War Tracker</a>
           </div>
         </details>
-        <details class="page-nav-dropdown" name="season-nav">
+        <details class="page-nav-dropdown active" name="season-nav">
           <summary class="page-link page-nav-dropdown-toggle">Season 3 Tools</summary>
           <div class="page-nav-dropdown-menu">
             <a href="curse-research-lab-calculator.html" class="page-link">Curse Research Lab</a>
             <a href="altar-calculator.html" class="page-link">Altar</a>
             <a href="protectors-field-calculator.html" class="page-link">Protector's Field</a>
             <a href="season-3-desert-artifacts-checklist.html" class="page-link">Desert Artifacts</a>
-                        <a href="season-3-interactive-map.html" class="page-link">Interactive Map</a>
-            <a href="season-3-warzone-planner.html" class="page-link">Warzone Planner</a>
+            <a href="season-3-interactive-map.html" class="page-link">Interactive Map</a>
+            <a href="season-3-warzone-planner.html" class="page-link active">Warzone Planner</a>
             <a href="spice-war-tracker.html" class="page-link">Spice War Tracker</a>
           </div>
         </details>
@@ -384,10 +384,10 @@
       </nav>
 
       <div class="container">
-        <h1>Season 1 Warzone Planner</h1>
+        <h1>Season 3 Warzone Planner</h1>
         <p style="color: rgba(217, 240, 255, 0.7); margin-bottom: 20px; max-width: 72ch">
           Mark the
-          <strong>City of Apocalypse</strong> warzone capitol: add server numbers, alliance tags, or
+          <strong>Great Pyramid</strong> warzone capitol: add server numbers, alliance tags, or
           usernames, drag them on the capitol view, and zoom the map. Your layout is stored in this
           browser.
         </p>
@@ -408,7 +408,7 @@
               <span id="fwplannerZoomVal">100%</span>
             </div>
             <p class="fwplanner-legend" style="margin: 0 0 6px 0">
-              Map: Season 1 warzone capitol (City of Apocalypse). Coordinates are saved as a percentage of image
+              Map: Season 3 warzone capitol (Great Pyramid). Coordinates are saved as a percentage of image
               size so labels stay aligned when the window is resized.
             </p>
             <div
@@ -421,10 +421,10 @@
                 <img
                   class="fwplanner-map-img"
                   id="fwplannerImg"
-                  src="media/season-1-warzone-capitol.png"
-                  alt="Top-down view of the Season 1 City of Apocalypse warzone capitol with shields and defensive turrets in Last War: Survival"
-                  width="550"
-                  height="494"
+                  src="media/season-3-warzone-capitol.png"
+                  alt="Top-down view of the Season 3 Great Pyramid warzone capitol with Giant Cannons, Missile Factories, and shields in Last War: Survival"
+                  width="953"
+                  height="788"
                   draggable="false"
                 />
                 <div id="fwplannerPins" aria-label="Map labels"></div>
@@ -504,7 +504,7 @@
 
     <script>
       (function () {
-        const STORAGE_KEY = "lwst-s1-warzone-planner-v1";
+        const STORAGE_KEY = "lwst-s3-warzone-planner-v1";
         /** At slider "100%", image width = this % of the stage; keep 100 to avoid scroll at default zoom. */
         const ZOOM_BASE_PCT = 100;
         const state = { markers: [], nextId: 1, placeMode: false, scale: 1 };
@@ -699,7 +699,7 @@
             setStatus("Export failed (image may be tainted or blocked).");
             return;
           }
-          const refW = 550;
+          const refW = 953;
           const scaleW = W / refW;
           const padX = Math.max(2, 8 * scaleW);
           const padY1 = Math.max(2, 3 * scaleW);
@@ -777,7 +777,7 @@
                 "-" +
                 String(d.getDate()).padStart(2, "0");
               a.href = URL.createObjectURL(blob);
-              a.download = "last-war-s1-warzone-planner-" + stamp + ".png";
+              a.download = "last-war-s3-warzone-planner-" + stamp + ".png";
               a.click();
               window.setTimeout(function () {
                 URL.revokeObjectURL(a.href);
