@@ -2047,12 +2047,19 @@
         return String(raw).trim().slice(0, 40);
       }
 
+      /** Calendar chip label: saved name, or default slot label when unset. */
       function getConductorNameForCalendarLabelForCell(
         weekIdx,
         dayIdx,
         conductorIdx,
       ) {
-        return getConductorNameForCell(weekIdx, dayIdx, conductorIdx);
+        const custom = getConductorNameForCell(weekIdx, dayIdx, conductorIdx);
+        if (custom) return custom;
+        const ci = Number(conductorIdx);
+        if (Number.isFinite(ci) && ci >= 0 && ci < DEFAULT_NAMES.length) {
+          return DEFAULT_NAMES[ci];
+        }
+        return "";
       }
 
       /**
@@ -2677,6 +2684,77 @@
         }
       }
 
+      /**
+       * Import `conductorNamesByWeek` (4×7) onto each conductor’s assigned
+       * calendar day only — never copy one row onto all seven dates.
+       */
+      function migrateSavedConductorNamesByWeekIntoCalendar(
+        startStr,
+        rows4x7,
+      ) {
+        if (!Array.isArray(rows4x7) || rows4x7.length !== 4) return;
+        const baseStr = String(startStr || "").trim();
+        if (!baseStr) return;
+        repairStateDayAssignmentsByWeekIfNeeded();
+        for (let w = 0; w < 4; w++) {
+          const weekNames = rows4x7[w];
+          if (!Array.isArray(weekNames) || weekNames.length !== 7) continue;
+          for (let ci = 0; ci < 7; ci++) {
+            const n = sanitizeStoredConductorName(weekNames[ci], ci);
+            if (!n) continue;
+            const dk = getCalendarDateKeyForConductorSlotInWeek(ci, w);
+            if (!dk) continue;
+            const row = getDateNamesRow(dk);
+            const existing = row
+              ? sanitizeStoredConductorName(row[ci], ci)
+              : "";
+            if (existing) continue;
+            const pack = ensureDatePack(dk);
+            pack.names[ci] = n;
+            pack.names = normalizeNames7(pack.names);
+          }
+        }
+      }
+
+      /**
+       * Import legacy `scheduleByWeekStart` names onto each slot’s calendar day
+       * only (not duplicated across the whole week row).
+       */
+      function migrateLegacyWeekMapsIntoCalendarDateNames(startStr) {
+        const baseStr = String(startStr || "").trim();
+        if (!baseStr) return;
+        ensureScheduleByCalendarDate();
+        ensureScheduleMap();
+        repairStateDayAssignmentsByWeekIfNeeded();
+        for (let w = 0; w < 4; w++) {
+          const monKey = getMondayKeyForWeekIndexFromStart(w, baseStr);
+          if (!monKey) continue;
+          const pack = state.scheduleByWeekStart[monKey];
+          if (
+            !pack ||
+            typeof pack !== "object" ||
+            !Array.isArray(pack.names) ||
+            weekPackNonEmptyNameCount(pack) === 0
+          ) {
+            continue;
+          }
+          for (let ci = 0; ci < 7; ci++) {
+            const n = sanitizeStoredConductorName(pack.names[ci], ci);
+            if (!n) continue;
+            const dk = getCalendarDateKeyForConductorSlotInWeek(ci, w);
+            if (!dk) continue;
+            const row = getDateNamesRow(dk);
+            const existing = row
+              ? sanitizeStoredConductorName(row[ci], ci)
+              : "";
+            if (existing) continue;
+            const pack = ensureDatePack(dk);
+            pack.names[ci] = n;
+            pack.names = normalizeNames7(pack.names);
+          }
+        }
+      }
+
       /** Strip legacy saves that duplicated one week row onto every day. */
       function scrubDuplicatedWeekNameRowsFromCalendarDates(startStr) {
         const baseStr = String(startStr || "").trim();
@@ -2806,8 +2884,22 @@
           }
         }
         if (state.startDateStr) {
-          scrubDuplicatedWeekNameRowsFromCalendarDates(state.startDateStr);
           hydrateDayAssignmentsFromWeekMap(state.startDateStr);
+          migrateLegacyWeekMapsIntoCalendarDateNames(state.startDateStr);
+          if (
+            legacyConductorNamesByWeek &&
+            Array.isArray(legacyConductorNamesByWeek) &&
+            legacyConductorNamesByWeek.length === 4 &&
+            legacyConductorNamesByWeek.every(
+              (week) => Array.isArray(week) && week.length === 7,
+            )
+          ) {
+            migrateSavedConductorNamesByWeekIntoCalendar(
+              state.startDateStr,
+              legacyConductorNamesByWeek,
+            );
+          }
+          scrubDuplicatedWeekNameRowsFromCalendarDates(state.startDateStr);
         }
       }
 
@@ -4987,9 +5079,6 @@
         }
         mergeScheduleMapFromSaved(saved, legacyConductorNamesByWeek);
         migrateLegacyConductorVipToCalendarPacks();
-        if (state.startDateStr) {
-          scrubDuplicatedWeekNameRowsFromCalendarDates(state.startDateStr);
-        }
         clampNameEditWeekToVisibleSchedule();
       }
 
@@ -5051,7 +5140,11 @@
             if (conductorIdx >= 0 && conductorIdx < state.conductors.length) {
               const conductorName =
                 withR4R5Crown(
-                  getConductorNameForCell(w, d, conductorIdx),
+                  getConductorNameForCalendarLabelForCell(
+                    w,
+                    d,
+                    conductorIdx,
+                  ),
                 ) || "—";
               cellText += ` - ${conductorName}`;
               if (state.showVip) {
@@ -5552,12 +5645,14 @@
             if (conductorIdx >= 0 && conductorIdx < state.conductors.length) {
               const c = state.conductors[conductorIdx];
               const chipBg = hexToRgba(c.color, 0.18);
+              const rawRow = cellKey ? getDateNamesRow(cellKey) : null;
+              const rawSlot = rawRow ? rawRow[conductorIdx] : "";
+              const slotUnset = conductorSlotIsUnset(rawSlot, conductorIdx);
               const displayName = withR4R5Crown(
-                getConductorNameForCell(w, d, conductorIdx),
+                getConductorNameForCalendarLabelForCell(w, d, conductorIdx),
               );
-              if (displayName) {
-                chipHtml = `<span class="conductor-chip" style="color:${escapeHtml(c.color)};border-color:${escapeHtml(c.color)};background:${chipBg};">${escapeHtml(displayName)}</span>`;
-              }
+              const phClass = slotUnset ? " conductor-chip-placeholder" : "";
+              chipHtml = `<span class="conductor-chip${phClass}" style="color:${escapeHtml(c.color)};border-color:${escapeHtml(c.color)};background:${chipBg};">${escapeHtml(displayName)}</span>`;
             }
 
             let vipHtml = "";
@@ -5611,8 +5706,15 @@
               todayWeekIdx,
               todayColIdx,
             );
+            const todayRow = todayKey ? getDateNamesRow(todayKey) : null;
+            const rawToday = todayRow ? todayRow[todayConduectorIdx] : "";
+            const todayUnset = conductorSlotIsUnset(
+              rawToday,
+              todayConduectorIdx,
+            );
+            const phClass = todayUnset ? " conductor-chip-placeholder" : "";
             const displayName = withR4R5Crown(
-              getConductorNameForCell(
+              getConductorNameForCalendarLabelForCell(
                 todayWeekIdx,
                 todayColIdx,
                 todayConduectorIdx,
@@ -5629,11 +5731,7 @@
                 todayVipHtml = `<span class="vip-badge">${escapeHtml(withR4R5Crown(vipRaw))}</span>`;
               }
             }
-            if (displayName) {
-              bannerChip = `<span class="conductor-chip" style="color:${escapeHtml(c.color)};border-color:${escapeHtml(c.color)};">${escapeHtml(displayName)}</span>${todayVipHtml}<span class="today-banner-date">${escapeHtml(todayLabel)}</span>`;
-            } else {
-              bannerChip = `<span style="color:var(--muted);font-style:italic;">No name set</span>${todayVipHtml}<span class="today-banner-date">${escapeHtml(todayLabel)}</span>`;
-            }
+            bannerChip = `<span class="conductor-chip${phClass}" style="color:${escapeHtml(c.color)};border-color:${escapeHtml(c.color)};">${escapeHtml(displayName)}</span>${todayVipHtml}<span class="today-banner-date">${escapeHtml(todayLabel)}</span>`;
           }
           todayBannerContent.innerHTML = bannerChip;
           todayBanner.classList.remove("is-hidden");
