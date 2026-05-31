@@ -1826,6 +1826,8 @@
       let pendingImportR4R5Candidates = [];
       let pendingImportFileName = "";
       let editingAllianceMemberIdx = -1;
+      /** In-progress alliance rename text (survives list re-renders while editing). */
+      let allianceMemberEditDraft = null;
       let allianceMemberSearchSaveTimer = null;
       /**
        * Last roster date key matching the left “name assignment” panel; updated on
@@ -3835,6 +3837,66 @@
         );
       }
 
+      /** Filtered list, but always includes the row currently being renamed. */
+      function getAllianceMembersForDisplay() {
+        const filtered = getFilteredAllianceMembers();
+        if (
+          editingAllianceMemberIdx < 0 ||
+          editingAllianceMemberIdx >= state.allianceMembers.length
+        ) {
+          return filtered;
+        }
+        const editingName = state.allianceMembers[editingAllianceMemberIdx];
+        if (!editingName) return filtered;
+        const alreadyVisible = filtered.some(
+          (name) =>
+            state.allianceMembers.findIndex((n) => n === name) ===
+            editingAllianceMemberIdx,
+        );
+        if (alreadyVisible) return filtered;
+        return [editingName, ...filtered];
+      }
+
+      /** Update schedule cells and history when an alliance member is renamed. */
+      function propagateAllianceMemberRename(oldName, newName) {
+        const oldNorm = normalizeMemberName(oldName);
+        const next = sanitizeMemberName(newName);
+        if (!oldNorm || !next || oldNorm === normalizeMemberName(next)) {
+          return;
+        }
+        ensureScheduleByCalendarDate();
+        for (const dk of Object.keys(state.scheduleByCalendarDate)) {
+          const pack = state.scheduleByCalendarDate[dk];
+          if (!pack) continue;
+          let changed = false;
+          if (Array.isArray(pack.names)) {
+            for (let i = 0; i < pack.names.length; i++) {
+              if (normalizeMemberName(pack.names[i]) === oldNorm) {
+                pack.names[i] = next;
+                changed = true;
+              }
+            }
+          }
+          if (Array.isArray(pack.vip)) {
+            for (let i = 0; i < pack.vip.length; i++) {
+              if (normalizeMemberName(pack.vip[i]) === oldNorm) {
+                pack.vip[i] = normalizeVipGuardianValue(next);
+                changed = true;
+              }
+            }
+          }
+          if (changed) {
+            pack.names = normalizeNames7(pack.names);
+            pack.vip = normalizeVip7(pack.vip);
+          }
+        }
+        state.memberHistory.forEach((entry) => {
+          if (normalizeMemberName(entry.name) === oldNorm) {
+            entry.name = next;
+          }
+        });
+      }
+
       function getMemberScheduleInfo(memberName) {
         const normalizedName = normalizeMemberName(memberName);
         const result = {
@@ -4041,10 +4103,26 @@
         syncAllianceFillConductorOptions();
         renderR4R5Group();
 
-        const filtered = getFilteredAllianceMembers();
+        const filtered = getAllianceMembersForDisplay();
         if (!filtered.length) {
           allianceMembersList.innerHTML = `<div class="alliance-members-empty">No members found.</div>`;
           return;
+        }
+
+        let editFocusRestore = null;
+        if (editingAllianceMemberIdx >= 0 && allianceMembersList) {
+          const liveInput = allianceMembersList.querySelector(
+            `[data-edit-input-idx="${editingAllianceMemberIdx}"]`,
+          );
+          if (liveInput) {
+            allianceMemberEditDraft = liveInput.value;
+            if (document.activeElement === liveInput) {
+              editFocusRestore = {
+                start: liveInput.selectionStart,
+                end: liveInput.selectionEnd,
+              };
+            }
+          }
         }
 
         allianceMembersList.innerHTML = filtered
@@ -4053,9 +4131,13 @@
               (n) => n === name,
             );
             if (actualIdx === editingAllianceMemberIdx) {
+              const draftValue =
+                allianceMemberEditDraft !== null
+                  ? allianceMemberEditDraft
+                  : name;
               return `<div class="alliance-member-item is-editing">
                 <div class="alliance-member-edit-row">
-                  <input class="alliance-member-edit-input" data-edit-input-idx="${actualIdx}" value="${escapeHtml(name)}" maxlength="40" />
+                  <input class="alliance-member-edit-input" data-edit-input-idx="${actualIdx}" value="${escapeHtml(draftValue)}" maxlength="40" />
                   <button type="button" class="alliance-member-edit" data-edit-save-idx="${actualIdx}">Save</button>
                   <button type="button" class="alliance-member-remove" data-edit-cancel-idx="${actualIdx}">Cancel</button>
                 </div>
@@ -4108,8 +4190,32 @@
             `[data-edit-input-idx="${editingAllianceMemberIdx}"]`,
           );
           if (input) {
+            input.addEventListener("input", () => {
+              allianceMemberEditDraft = input.value;
+            });
             input.focus();
-            input.select();
+            if (editFocusRestore) {
+              try {
+                const len = input.value.length;
+                const start = Math.min(
+                  Number.isFinite(editFocusRestore.start)
+                    ? editFocusRestore.start
+                    : len,
+                  len,
+                );
+                const end = Math.min(
+                  Number.isFinite(editFocusRestore.end)
+                    ? editFocusRestore.end
+                    : len,
+                  len,
+                );
+                input.setSelectionRange(start, end);
+              } catch {
+                /* ignore */
+              }
+            } else {
+              input.select();
+            }
           }
         }
       }
@@ -4143,6 +4249,7 @@
 
         const oldName = state.allianceMembers[idx];
         state.allianceMembers[idx] = trimmed;
+        propagateAllianceMemberRename(oldName, trimmed);
         if (isR4R5Member(oldName)) {
           state.r4r5Members = state.r4r5Members
             .map((name) =>
@@ -4153,8 +4260,11 @@
             .slice(0, MAX_R4R5_MEMBERS);
         }
         editingAllianceMemberIdx = -1;
+        allianceMemberEditDraft = null;
+        setAllianceImportStatus("");
         saveState();
         renderAllianceMembers();
+        renderSchedule();
       }
 
       function addAllianceMember(name) {
@@ -4651,7 +4761,9 @@
         rosterPersistTimer = setTimeout(() => {
           rosterPersistTimer = null;
           saveState();
-          renderAllianceMembers();
+          if (editingAllianceMemberIdx < 0) {
+            renderAllianceMembers();
+          }
         }, 450);
       }
 
@@ -5154,6 +5266,21 @@
       }
 
       /**
+       * True when a roster input's `data-date-key` matches the calendar date for
+       * this conductor slot in the current name-edit week (avoids copying stale
+       * DOM values after changing week or start date).
+       */
+      function conductorRosterInputMatchesNameEditWeek(inp, conductorIdx) {
+        const expected = getConductorNamePackDateKeyForSlot(
+          conductorIdx,
+          state.nameEditWeek,
+        );
+        if (!expected) return false;
+        const domDk = readConductorNameDateKeyFromInputEl(inp);
+        return domDk === expected;
+      }
+
+      /**
        * Copy visible conductor name inputs into state so keyed `flush` sees the
        * same values the user typed (avoids losing edits when changing start date).
        */
@@ -5165,6 +5292,7 @@
           .forEach((inp) => {
             const idx = readConductorSlotIdxFromInputEl(inp);
             if (!Number.isFinite(idx) || idx < 0 || idx > 6) return;
+            if (!conductorRosterInputMatchesNameEditWeek(inp, idx)) return;
             const v = inp.value.trim().slice(0, 40);
             const before = getConductorNameInputValue(idx);
             if (before !== v) {
@@ -5178,6 +5306,7 @@
             .forEach((inp) => {
               const idx = readConductorSlotIdxFromInputEl(inp);
               if (!Number.isFinite(idx) || idx < 0 || idx > 6) return;
+              if (!conductorRosterInputMatchesNameEditWeek(inp, idx)) return;
               const v = normalizeVipGuardianValue(inp.value);
               const before = getConductorVipForWeekSlot(idx, state.nameEditWeek);
               if (before === v) return;
@@ -6293,6 +6422,7 @@
             idx < state.allianceMembers.length
           ) {
             editingAllianceMemberIdx = idx;
+            allianceMemberEditDraft = state.allianceMembers[idx] ?? "";
             renderAllianceMembers();
           }
           return;
@@ -6311,6 +6441,7 @@
         const cancelEditBtn = el.closest("[data-edit-cancel-idx]");
         if (cancelEditBtn) {
           editingAllianceMemberIdx = -1;
+          allianceMemberEditDraft = null;
           renderAllianceMembers();
           return;
         }
@@ -6331,6 +6462,7 @@
             );
             if (editingAllianceMemberIdx === idx) {
               editingAllianceMemberIdx = -1;
+              allianceMemberEditDraft = null;
             }
             saveState();
             renderAllianceMembers();
@@ -6369,6 +6501,7 @@
         if (event.key === "Escape") {
           event.preventDefault();
           editingAllianceMemberIdx = -1;
+          allianceMemberEditDraft = null;
           renderAllianceMembers();
         }
       });
