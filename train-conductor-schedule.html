@@ -281,6 +281,12 @@
         box-shadow: 0 0 0 3px rgba(77, 171, 247, 0.22);
       }
 
+      .conductor-name-input.roster-fill-target-active,
+      .conductor-vip-input.roster-fill-target-active {
+        border-color: var(--accent-2);
+        box-shadow: 0 0 0 3px rgba(77, 171, 247, 0.35);
+      }
+
       .vip-badge {
         display: inline-flex;
         align-items: center;
@@ -3770,31 +3776,76 @@
         readAllianceFillFromDom();
       }
 
+      /** Ensure VIP inputs exist in the roster panel. */
+      function ensureVipRosterVisible() {
+        if (state.showVip) return false;
+        state.showVip = true;
+        if (vipToggleInput) {
+          vipToggleInput.checked = true;
+        }
+        renderConductors();
+        return true;
+      }
+
+      function getRosterFillInputEl(targetType, conductorIdx) {
+        if (!conductorsList) return null;
+        const i = Number(conductorIdx);
+        if (!Number.isFinite(i) || i < 0 || i > 6) return null;
+        const cls =
+          targetType === "vip"
+            ? "conductor-vip-input"
+            : "conductor-name-input";
+        return conductorsList.querySelector(`.${cls}[data-idx="${i}"]`);
+      }
+
       /**
-       * Resolve fill target + slot for an alliance member pick. Target type always
-       * comes from the Click fills dropdown; never from which roster field is focused.
+       * Focus the roster field chosen in “Click fills” (dropdown is authoritative).
+       * Optionally scroll it into view and pulse the border so the slot is obvious.
        */
-      function getAllianceFillTargetsForMemberPick() {
-        const { targetType, idx: domIdx } = readAllianceFillFromDom();
-        let idx = domIdx;
-        const active = document.activeElement;
-
-        if (targetType === "vip") {
-          if (active?.classList?.contains("conductor-vip-input")) {
-            const ai = readConductorSlotIdxFromInputEl(active);
-            if (Number.isFinite(ai)) idx = ai;
-          }
-        } else if (active?.classList?.contains("conductor-name-input")) {
-          const ai = readConductorSlotIdxFromInputEl(active);
-          if (Number.isFinite(ai)) idx = ai;
-        }
-
-        if (!Number.isFinite(idx) || idx < 0 || idx > 6) {
-          idx = 0;
-        }
+      function focusRosterFillTarget(opts = {}) {
+        const { targetType, idx } = readAllianceFillFromDom();
         state.allianceFillTarget = targetType;
         state.allianceFillConductorIdx = idx;
-        return { targetType, idx };
+        if (allianceFillTargetSelect) {
+          allianceFillTargetSelect.value = targetType;
+        }
+        if (allianceFillConductorSelect) {
+          allianceFillConductorSelect.value = String(idx);
+        }
+
+        if (targetType === "vip") {
+          ensureVipRosterVisible();
+        }
+
+        const inp = getRosterFillInputEl(targetType, idx);
+        if (!inp) return false;
+
+        if (opts.scroll !== false) {
+          inp.scrollIntoView({ block: "nearest", behavior: "smooth" });
+        }
+        inp.focus({ preventScroll: true });
+        try {
+          const len = inp.value.length;
+          inp.setSelectionRange(len, len);
+        } catch {
+          /* ignore */
+        }
+
+        if (opts.highlight !== false) {
+          inp.classList.add("roster-fill-target-active");
+          window.setTimeout(() => {
+            inp.classList.remove("roster-fill-target-active");
+          }, 1400);
+        }
+        return true;
+      }
+
+      /**
+       * Resolve fill target + slot for an alliance member pick from the Click fills
+       * dropdowns (not from focus, which is lost when clicking the member list).
+       */
+      function getAllianceFillTargetsForMemberPick() {
+        return readAllianceFillFromDom();
       }
 
       function syncAllianceFillConductorIdxFromRosterInput(inputEl) {
@@ -4791,15 +4842,10 @@
 
         let filled = false;
         if (targetType === "vip") {
-          if (!state.showVip) {
-            state.showVip = true;
-            if (vipToggleInput) {
-              vipToggleInput.checked = true;
-            }
-            renderConductors();
-          }
           const vipName = normalizeVipGuardianValue(memberName);
-          if (vipName && setConductorVipForWeekSlot(idx, state.nameEditWeek, vipName)) {
+          if (vipName && state.startDateStr) {
+            ensureVipRosterVisible();
+            setConductorVipForWeekSlot(idx, state.nameEditWeek, vipName);
             recordMemberHistory(vipName, "vip", idx, state.nameEditWeek);
             filled = true;
           }
@@ -4817,13 +4863,15 @@
           return;
         }
 
-        const fillTargetType = targetType;
-        const fillIdx = idx;
         updateConductorRowInputsInDom(idx, { force: true });
         renderSchedule();
         flushRosterFieldPersist();
-        refocusRosterFillField(fillTargetType, fillIdx);
-        window.setTimeout(() => renderAllianceMembers(), 0);
+        window.requestAnimationFrame(() => {
+          focusRosterFillTarget({ scroll: false, highlight: true });
+          if (editingAllianceMemberIdx < 0) {
+            renderAllianceMembers();
+          }
+        });
       }
 
       function applyAllianceMemberAsConductor(memberName) {
@@ -6274,6 +6322,7 @@
 
       function onAllianceFillUiChanged() {
         syncAllianceFillTargetsFromDom();
+        focusRosterFillTarget({ scroll: true, highlight: true });
         saveState();
       }
 
