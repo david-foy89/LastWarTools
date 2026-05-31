@@ -4997,15 +4997,22 @@
             setAllianceImportStatus("That member name is empty.");
             return;
           }
+          if (conductorSlotIsUnset(n, idx)) {
+            setAllianceImportStatus(
+              "That name matches a default Conductor label and was not saved. Rename the member in your list or type a custom name in the roster field.",
+            );
+            return;
+          }
+          const persisted = sanitizeStoredConductorName(n, idx);
           const nameRow = getDateNamesRow(fillDateKey);
           const stored = nameRow
             ? sanitizeStoredConductorName(nameRow[idx], idx)
             : "";
-          const alreadySet = stored === sanitizeStoredConductorName(n, idx);
+          const alreadySet = stored.length > 0 && stored === persisted;
           if (setConductorNameOnDateKey(idx, fillDateKey, n) || alreadySet) {
             recordMemberHistory(n, "conductor", idx, weekIdx);
             filled = true;
-            displayValue = sanitizeStoredConductorName(n, idx);
+            displayValue = persisted;
           }
         }
 

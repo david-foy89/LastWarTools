@@ -6,7 +6,7 @@
     <title>Season 1 Warzone Planner - Last War Tools</title>
     <meta
       name="description"
-      content="Place server numbers, alliance tags, and usernames on the Season 1 City of Apocalypse warzone map with Giant Cannons. Drag labels and save locally in your browser."
+      content="Place server numbers, alliance tags, and usernames on the Season 1 City of Apocalypse warzone capitol map. Drag labels and save locally in your browser."
     />
     <link
       rel="canonical"
@@ -16,7 +16,7 @@
     <meta property="og:title" content="Season 1 Warzone Planner - Last War Tools" />
     <meta
       property="og:description"
-      content="Place server numbers, alliance tags, and usernames on the Season 1 City of Apocalypse capitol and cannon map. Drag labels, zoom, and save your plan in the browser."
+      content="Place server numbers, alliance tags, and usernames on the Season 1 warzone capitol map. Drag labels, zoom, and save your plan in the browser."
     />
     <meta
       property="og:url"
@@ -258,16 +258,6 @@
         color: rgba(217, 240, 255, 0.55);
         margin-top: 4px;
       }
-      .fwplanner-preset-row {
-        display: grid;
-        grid-template-columns: repeat(3, minmax(0, 1fr));
-        gap: 6px;
-        margin-top: 6px;
-      }
-      .fwplanner-preset-row .action-button--small {
-        padding: 6px 6px;
-        font-size: 0.72rem;
-      }
     </style>
   </head>
   <body>
@@ -395,10 +385,10 @@
       <div class="container">
         <h1>Season 1 Warzone Planner</h1>
         <p style="color: rgba(217, 240, 255, 0.7); margin-bottom: 20px; max-width: 72ch">
-          Plan the Season 1 <strong>City of Apocalypse</strong> warzone layout: mark the Capitol and
-          <strong>Giant Cannons</strong> (N, E, W, S) with server numbers, alliance tags, or
-          player names. Drag labels on the map, use quick-place spots for each structure, and zoom
-          as needed. Your layout is stored in this browser.
+          Mark the
+          <strong>City of Apocalypse</strong> warzone capitol: add server numbers, alliance tags, or
+          usernames, drag them on the capitol view, and zoom the map. Your layout is stored in this
+          browser.
         </p>
 
         <div class="fwplanner-wrap">
@@ -417,21 +407,21 @@
               <span id="fwplannerZoomVal">100%</span>
             </div>
             <p class="fwplanner-legend" style="margin: 0 0 6px 0">
-              Map: Season 1 City of Apocalypse with Giant Cannons. Coordinates are saved as a percentage of image
+              Map: Season 1 warzone capitol (City of Apocalypse). Coordinates are saved as a percentage of image
               size so labels stay aligned when the window is resized.
             </p>
             <div
               class="fwplanner-viewport"
               id="fwplannerViewport"
               role="region"
-              aria-label="Season 1 City of Apocalypse warzone map; click to place a label"
+              aria-label="Capitol map; click to place a label"
             >
               <div class="fwplanner-stage" id="fwplannerStage" data-place-mode="0">
                 <img
                   class="fwplanner-map-img"
                   id="fwplannerImg"
                   src="media/warzone-capitol.png"
-                  alt="Top-down view of the Season 1 City of Apocalypse Capitol and four Giant Cannons with shields in Last War: Survival"
+                  alt="Top-down view of the Warzone Capitol and four Giant Cannons with shields in Last War: Survival"
                   width="840"
                   height="617"
                   draggable="false"
@@ -485,32 +475,6 @@
                 Place in center
               </button>
             </div>
-            <h2 style="margin-top: 14px">Quick place</h2>
-            <p class="fwplanner-hint">
-              Enter text above, then tap a structure to drop a label on that spot.
-            </p>
-            <div class="fwplanner-preset-row" id="fwplannerPresets">
-              <button type="button" class="action-button action-button--small" data-preset="north">
-                Cannon N
-              </button>
-              <button type="button" class="action-button action-button--small" data-preset="east">
-                Cannon E
-              </button>
-              <button type="button" class="action-button action-button--small" data-preset="west">
-                Cannon W
-              </button>
-              <button type="button" class="action-button action-button--small" data-preset="south">
-                Cannon S
-              </button>
-              <button
-                type="button"
-                class="action-button action-button--small"
-                data-preset="capitol"
-                style="grid-column: span 3"
-              >
-                Capitol
-              </button>
-            </div>
             <div class="fwplanner-btn-row">
               <button
                 type="button"
@@ -540,14 +504,6 @@
     <script>
       (function () {
         const STORAGE_KEY = "lwst-s1-warzone-planner-v1";
-        /** Percent positions tuned for media/warzone-capitol.png (840×617). */
-        const STRUCTURE_PRESETS = {
-          capitol: { x: 50, y: 45, label: "Capitol" },
-          north: { x: 26, y: 24, label: "Giant Cannon [N]" },
-          east: { x: 74, y: 24, label: "Giant Cannon [E]" },
-          west: { x: 26, y: 76, label: "Giant Cannon [W]" },
-          south: { x: 74, y: 76, label: "Giant Cannon [S]" },
-        };
         /** At slider "100%", image width = this % of the stage; keep 100 to avoid scroll at default zoom. */
         const ZOOM_BASE_PCT = 100;
         const state = { markers: [], nextId: 1, placeMode: false, scale: 1 };
@@ -1080,21 +1036,8 @@
         document.addEventListener("pointercancel", onPointerUp);
 
         $("fwplannerCenterBtn").addEventListener("click", function () {
-          addMarker(50, 45);
+          addMarker(50, 50);
         });
-
-        const presetsEl = $("fwplannerPresets");
-        if (presetsEl) {
-          presetsEl.addEventListener("click", function (ev) {
-            const btn = ev.target.closest("[data-preset]");
-            if (!btn || !presetsEl.contains(btn)) return;
-            const key = btn.getAttribute("data-preset");
-            const spot = STRUCTURE_PRESETS[key];
-            if (!spot) return;
-            addMarker(spot.x, spot.y);
-            setStatus("Placed at " + spot.label + ".");
-          });
-        }
 
         $("fwplannerClearBtn").addEventListener("click", function () {
           if (!state.markers.length) return;
