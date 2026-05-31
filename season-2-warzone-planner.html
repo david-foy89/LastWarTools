@@ -1,26 +1,26 @@
-<!doctype html>
+﻿<!doctype html>
 <html lang="en">
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Season 2 Faction War Planner - Last War Tools</title>
+    <title>Season 2 Warzone Planner - Last War Tools</title>
     <meta
       name="description"
-      content="Place server numbers, alliance tags, and usernames on the Season 2 capitol (Nuclear Furnace) map for Faction War planning. Drag labels and save locally in your browser."
+      content="Place server numbers, alliance tags, and usernames on the Season 2 warzone capitol (Nuclear Furnace) map. Drag labels and save locally in your browser."
     />
     <link
       rel="canonical"
-      href="https://lastwarsurvivaltools.com/season-2-faction-war-planner.html"
+      href="https://lastwarsurvivaltools.com/season-2-warzone-planner.html"
     />
     <meta property="og:type" content="website" />
-    <meta property="og:title" content="Season 2 Faction War Planner - Last War Tools" />
+    <meta property="og:title" content="Season 2 Warzone Planner - Last War Tools" />
     <meta
       property="og:description"
       content="Place server numbers, alliance tags, and usernames on the capitol map. Drag labels, zoom, and save your plan in the browser."
     />
     <meta
       property="og:url"
-      content="https://lastwarsurvivaltools.com/season-2-faction-war-planner.html"
+      content="https://lastwarsurvivaltools.com/season-2-warzone-planner.html"
     />
     <meta
       property="og:image"
@@ -327,10 +327,8 @@
             >
             <a href="season-2-tank-center-calculator.html" class="page-link">Season 2 Squad Base</a>
             <a href="season-2-interactive-map.html" class="page-link">Interactive Map</a>
-            <a
-              href="season-2-faction-war-planner.html"
-              class="page-link active"
-              >Faction War Planner</a
+            <a href="season-2-warzone-planner.html" class="page-link active"
+              >Warzone Planner</a
             >
             <a href="season-2-supplies-checklist.html" class="page-link">Supplies Checklist</a>
             <a href="rare-soil-war-tracker.html" class="page-link">Rare Soil War Tracker</a>
@@ -385,10 +383,10 @@
       </nav>
 
       <div class="container">
-        <h1>Season 2 Faction War Planner</h1>
+        <h1>Season 2 Warzone Planner</h1>
         <p style="color: rgba(217, 240, 255, 0.7); margin-bottom: 20px; max-width: 72ch">
           Mark the
-          <strong>Nuclear Furnace</strong> battlefield: add server numbers, alliance tags, or
+          <strong>Nuclear Furnace</strong> warzone capitol: add server numbers, alliance tags, or
           usernames, drag them on the capitol view, and zoom the map. Your layout is stored in this
           browser.
         </p>
@@ -437,7 +435,7 @@
             <h2>Add labels</h2>
             <p class="fwplanner-hint">
               Enter text, choose a label type, then
-              <strong>click the map</strong> where you want the pin (or use “Place in center”). Drag
+              <strong>click the map</strong> where you want the pin (or use ΓÇ£Place in centerΓÇ¥). Drag
               pins to adjust.
             </p>
             <div class="fwplanner-field">
@@ -446,7 +444,7 @@
                 type="text"
                 id="fwplannerText"
                 maxlength="80"
-                placeholder="e.g. #1004 · [AB] · PlayerName"
+                placeholder="e.g. #1004 ┬╖ [AB] ┬╖ PlayerName"
                 autocomplete="off"
               />
             </div>
@@ -505,7 +503,8 @@
 
     <script>
       (function () {
-        const STORAGE_KEY = "lwst-s2-faction-war-planner-v1";
+        const STORAGE_KEY = "lwst-s2-warzone-planner-v1";
+        const LEGACY_STORAGE_KEY = "lwst-s2-faction-war-planner-v1";
         /** At slider "100%", image width = this % of the stage; keep 100 to avoid scroll at default zoom. */
         const ZOOM_BASE_PCT = 100;
         const state = { markers: [], nextId: 1, placeMode: false, scale: 1 };
@@ -547,7 +546,10 @@
 
         function load() {
           try {
-            const raw = localStorage.getItem(STORAGE_KEY);
+            let raw = localStorage.getItem(STORAGE_KEY);
+            if (!raw) {
+              raw = localStorage.getItem(LEGACY_STORAGE_KEY);
+            }
             if (!raw) return;
             const data = JSON.parse(raw);
             if (Array.isArray(data.markers)) {
@@ -641,9 +643,9 @@
 
         function buildLinesForExport(ctx, text, maxW) {
           if (maxW < 2) {
-            return [((text || "").trim() || "—").slice(0, 1)];
+            return [((text || "").trim() || "ΓÇö").slice(0, 1)];
           }
-          const t = (text || "").trim() || "—";
+          const t = (text || "").trim() || "ΓÇö";
           if (ctx.measureText(t).width <= maxW) {
             return [t];
           }
@@ -681,7 +683,7 @@
 
         function exportToPng() {
           if (!img.complete || img.naturalWidth < 1) {
-            setStatus("Map image is not ready yet—try again in a moment.");
+            setStatus("Map image is not ready yetΓÇötry again in a moment.");
             return;
           }
           const W = img.naturalWidth;
@@ -778,7 +780,7 @@
                 "-" +
                 String(d.getDate()).padStart(2, "0");
               a.href = URL.createObjectURL(blob);
-              a.download = "last-war-s2-capitol-planner-" + stamp + ".png";
+              a.download = "last-war-s2-warzone-planner-" + stamp + ".png";
               a.click();
               window.setTimeout(function () {
                 URL.revokeObjectURL(a.href);
@@ -883,7 +885,7 @@
             const del = document.createElement("button");
             del.type = "button";
             del.className = "action-button action-button--small";
-            del.textContent = "×";
+            del.textContent = "├ù";
             del.setAttribute("aria-label", "Remove " + m.text);
             del.dataset.id = String(m.id);
             del.addEventListener("click", function () {
@@ -1075,7 +1077,7 @@
         const sel = document.getElementById("languageSelect");
         if (sel) {
           sel.innerHTML =
-            '<option value="en">English</option><option value="es">Español</option><option value="fr">Français</option><option value="de">Deutsch</option><option value="pt">Português</option><option value="ru">Русский</option><option value="ja">日本語</option><option value="zh">中文</option>';
+            '<option value="en">English</option><option value="es">Espa├▒ol</option><option value="fr">Fran├ºais</option><option value="de">Deutsch</option><option value="pt">Portugu├¬s</option><option value="ru">╨á╤â╤ü╤ü╨║╨╕╨╣</option><option value="ja">µùÑµ£¼Φ¬₧</option><option value="zh">Σ╕¡µûç</option>';
         }
       })();
     </script>

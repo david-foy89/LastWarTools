@@ -24,7 +24,7 @@
     />
     <meta
       property="og:image"
-      content="https://lastwarsurvivaltools.com/media/warzone-capitol.png"
+      content="https://lastwarsurvivaltools.com/media/season-1-warzone-capitol.png"
     />
     <link rel="stylesheet" href="google-translate-toolbar-hide.css" />
     <link rel="stylesheet" href="last-war-furnace-upgrade-calculator.css" />
@@ -327,8 +327,8 @@
             >
             <a href="season-2-tank-center-calculator.html" class="page-link">Season 2 Squad Base</a>
             <a href="season-2-interactive-map.html" class="page-link">Interactive Map</a>
-            <a href="season-2-faction-war-planner.html" class="page-link"
-              >Faction War Planner</a
+            <a href="season-2-warzone-planner.html" class="page-link"
+              >Warzone Planner</a
             >
             <a href="season-2-supplies-checklist.html" class="page-link">Supplies Checklist</a>
             <a href="rare-soil-war-tracker.html" class="page-link">Rare Soil War Tracker</a>
@@ -420,10 +420,10 @@
                 <img
                   class="fwplanner-map-img"
                   id="fwplannerImg"
-                  src="media/warzone-capitol.png"
-                  alt="Top-down view of the Warzone Capitol and four Giant Cannons with shields in Last War: Survival"
-                  width="840"
-                  height="617"
+                  src="media/season-1-warzone-capitol.png"
+                  alt="Top-down view of the Season 1 City of Apocalypse warzone capitol with shields and defensive turrets in Last War: Survival"
+                  width="550"
+                  height="494"
                   draggable="false"
                 />
                 <div id="fwplannerPins" aria-label="Map labels"></div>
@@ -698,7 +698,7 @@
             setStatus("Export failed (image may be tainted or blocked).");
             return;
           }
-          const refW = 840;
+          const refW = 550;
           const scaleW = W / refW;
           const padX = Math.max(2, 8 * scaleW);
           const padY1 = Math.max(2, 3 * scaleW);
