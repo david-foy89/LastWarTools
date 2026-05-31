@@ -3,24 +3,24 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Warzone Planner - Last War Tools</title>
+    <title>Season 1 Warzone Planner - Last War Tools</title>
     <meta
       name="description"
-      content="Place server numbers, alliance tags, and usernames on the Warzone capitol map with Giant Cannons. Drag labels and save locally in your browser."
+      content="Place server numbers, alliance tags, and usernames on the Season 1 City of Apocalypse warzone map with Giant Cannons. Drag labels and save locally in your browser."
     />
     <link
       rel="canonical"
-      href="https://lastwarsurvivaltools.com/warzone-planner.html"
+      href="https://lastwarsurvivaltools.com/season-1-warzone-planner.html"
     />
     <meta property="og:type" content="website" />
-    <meta property="og:title" content="Warzone Planner - Last War Tools" />
+    <meta property="og:title" content="Season 1 Warzone Planner - Last War Tools" />
     <meta
       property="og:description"
-      content="Place server numbers, alliance tags, and usernames on the Warzone capitol and cannon map. Drag labels, zoom, and save your plan in the browser."
+      content="Place server numbers, alliance tags, and usernames on the Season 1 City of Apocalypse capitol and cannon map. Drag labels, zoom, and save your plan in the browser."
     />
     <meta
       property="og:url"
-      content="https://lastwarsurvivaltools.com/warzone-planner.html"
+      content="https://lastwarsurvivaltools.com/season-1-warzone-planner.html"
     />
     <meta
       property="og:image"
@@ -299,7 +299,7 @@
 
       <nav class="page-nav" aria-label="Calculator pages">
         <a href="hq-upgrade-calculator.html" class="page-link">HQ Upgrade</a>
-        <details class="page-nav-dropdown active" name="alliance-nav">
+        <details class="page-nav-dropdown" name="alliance-nav">
           <summary class="page-link page-nav-dropdown-toggle">Alliance Tools</summary>
           <div class="page-nav-dropdown-menu">
             <a href="train-conductor-schedule.html" class="page-link">Train Conductor</a>
@@ -307,7 +307,7 @@
             <a href="verus-tracker.html" class="page-link">Versus Tracker</a>
             <a href="ds-tracker.html" class="page-link">Desert Storm Tracker/Planner</a>
             <a href="server-search.html" class="page-link">Server Search</a>
-            <a href="warzone-planner.html" class="page-link active">Warzone Planner</a>
+            <a href="warzone-planner.html" class="page-link">Warzone Planner</a>
             <a href="alliance-hive.html" class="page-link">Hive Builder</a>
           </div>
         </details>
@@ -318,7 +318,7 @@
             <a href="t11-troops-calculator.html" class="page-link">T11 Troops</a>
           </div>
         </details>
-        <details class="page-nav-dropdown" name="season-nav">
+        <details class="page-nav-dropdown active" name="season-nav">
           <summary class="page-link page-nav-dropdown-toggle">Season 1 Tools</summary>
           <div class="page-nav-dropdown-menu">
             <a href="virus-research-institute-calculator.html" class="page-link"
@@ -326,7 +326,7 @@
             >
             <a href="season-1-squad-base-calculator.html" class="page-link">Season 1 Squad Base</a>
             <a href="season-1-interactive-map.html" class="page-link">Interactive Map</a>
-            <a href="season-1-warzone-planner.html" class="page-link">Warzone Planner</a>
+            <a href="season-1-warzone-planner.html" class="page-link active">Warzone Planner</a>
           </div>
         </details>
         <details class="page-nav-dropdown" name="season-nav">
@@ -393,9 +393,9 @@
       </nav>
 
       <div class="container">
-        <h1>Warzone Planner</h1>
+        <h1>Season 1 Warzone Planner</h1>
         <p style="color: rgba(217, 240, 255, 0.7); margin-bottom: 20px; max-width: 72ch">
-          Plan the <strong>Warzone capitol</strong> layout: mark the Capitol and
+          Plan the Season 1 <strong>City of Apocalypse</strong> warzone layout: mark the Capitol and
           <strong>Giant Cannons</strong> (N, E, W, S) with server numbers, alliance tags, or
           player names. Drag labels on the map, use quick-place spots for each structure, and zoom
           as needed. Your layout is stored in this browser.
@@ -417,21 +417,21 @@
               <span id="fwplannerZoomVal">100%</span>
             </div>
             <p class="fwplanner-legend" style="margin: 0 0 6px 0">
-              Map: Warzone capitol with Giant Cannons. Coordinates are saved as a percentage of image
+              Map: Season 1 City of Apocalypse with Giant Cannons. Coordinates are saved as a percentage of image
               size so labels stay aligned when the window is resized.
             </p>
             <div
               class="fwplanner-viewport"
               id="fwplannerViewport"
               role="region"
-              aria-label="Warzone capitol map; click to place a label"
+              aria-label="Season 1 City of Apocalypse warzone map; click to place a label"
             >
               <div class="fwplanner-stage" id="fwplannerStage" data-place-mode="0">
                 <img
                   class="fwplanner-map-img"
                   id="fwplannerImg"
                   src="media/warzone-capitol.png"
-                  alt="Top-down view of the Warzone Capitol and four Giant Cannons with shields in Last War: Survival"
+                  alt="Top-down view of the Season 1 City of Apocalypse Capitol and four Giant Cannons with shields in Last War: Survival"
                   width="840"
                   height="617"
                   draggable="false"
@@ -539,7 +539,7 @@
 
     <script>
       (function () {
-        const STORAGE_KEY = "lwst-warzone-planner-v1";
+        const STORAGE_KEY = "lwst-s1-warzone-planner-v1";
         /** Percent positions tuned for media/warzone-capitol.png (840×617). */
         const STRUCTURE_PRESETS = {
           capitol: { x: 50, y: 45, label: "Capitol" },
@@ -820,7 +820,7 @@
                 "-" +
                 String(d.getDate()).padStart(2, "0");
               a.href = URL.createObjectURL(blob);
-              a.download = "last-war-warzone-planner-" + stamp + ".png";
+              a.download = "last-war-s1-warzone-planner-" + stamp + ".png";
               a.click();
               window.setTimeout(function () {
                 URL.revokeObjectURL(a.href);

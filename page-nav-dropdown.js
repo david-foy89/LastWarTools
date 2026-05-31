@@ -182,6 +182,7 @@
     }
 
     ensureAllianceToolsLinks(nav);
+    ensureSeason1WarzonePlannerLink(nav);
     ensureSeason2SuppliesLink(nav);
     ensureAccountBackgroundSync();
     // Train Conductor and Server Search are now handled in the Alliance Tools dropdown in HTML
@@ -426,6 +427,40 @@
         }
       })
       .catch(function () {});
+  }
+
+  function ensureSeason1WarzonePlannerLink(nav) {
+    const currentPage = window.location.pathname.split('/').pop() || 'index.html';
+    const season1Dropdowns = Array.from(
+      nav.querySelectorAll('details.page-nav-dropdown'),
+    ).filter((dropdown) => {
+      const summary = dropdown.querySelector('summary.page-nav-dropdown-toggle');
+      return summary && summary.textContent.trim() === 'Season 1 Tools';
+    });
+
+    season1Dropdowns.forEach((dropdown) => {
+      const menu = dropdown.querySelector('.page-nav-dropdown-menu');
+      if (!menu) return;
+
+      let link = menu.querySelector('a[href="season-1-warzone-planner.html"]');
+      if (!link) {
+        link = document.createElement('a');
+        link.href = 'season-1-warzone-planner.html';
+        link.className = 'page-link';
+        link.textContent = 'Warzone Planner';
+        const interactiveMap = menu.querySelector('a[href="season-1-interactive-map.html"]');
+        if (interactiveMap && interactiveMap.parentNode === menu) {
+          interactiveMap.insertAdjacentElement('afterend', link);
+        } else {
+          menu.appendChild(link);
+        }
+      }
+
+      if (currentPage === 'season-1-warzone-planner.html') {
+        dropdown.classList.add('active');
+        link.classList.add('active');
+      }
+    });
   }
 
   function ensureSeason2SuppliesLink(nav) {
