@@ -3,28 +3,28 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Warzone Planner - Last War Tools</title>
+    <title>Season 5 Warzone Planner - Last War Tools</title>
     <meta
       name="description"
-      content="Place server numbers, alliance tags, and usernames on the Warzone capitol map. Drag labels and save locally in your browser."
+      content="Place server numbers, alliance tags, and usernames on the Season 5 Wild West warzone capitol map. Choose Grand Nexus or Golden Palace and save locally in your browser."
     />
     <link
       rel="canonical"
-      href="https://lastwarsurvivaltools.com/warzone-planner.html"
+      href="https://lastwarsurvivaltools.com/season-5-warzone-planner.html"
     />
     <meta property="og:type" content="website" />
-    <meta property="og:title" content="Warzone Planner - Last War Tools" />
+    <meta property="og:title" content="Season 5 Warzone Planner - Last War Tools" />
     <meta
       property="og:description"
-      content="Place server numbers, alliance tags, and usernames on the Warzone capitol map. Drag labels, zoom, and save your plan in the browser."
+      content="Place server numbers, alliance tags, and usernames on the Season 5 warzone capitol map. Drag labels, zoom, and save your plan in the browser."
     />
     <meta
       property="og:url"
-      content="https://lastwarsurvivaltools.com/warzone-planner.html"
+      content="https://lastwarsurvivaltools.com/season-5-warzone-planner.html"
     />
     <meta
       property="og:image"
-      content="https://lastwarsurvivaltools.com/media/warzone-capitol.png"
+      content="https://lastwarsurvivaltools.com/media/season-5-warzone-capitol-nexus.png"
     />
     <link rel="stylesheet" href="google-translate-toolbar-hide.css" />
     <link rel="stylesheet" href="last-war-furnace-upgrade-calculator.css" />
@@ -289,7 +289,7 @@
 
       <nav class="page-nav" aria-label="Calculator pages">
         <a href="hq-upgrade-calculator.html" class="page-link">HQ Upgrade</a>
-        <details class="page-nav-dropdown active" name="alliance-nav">
+        <details class="page-nav-dropdown" name="alliance-nav">
           <summary class="page-link page-nav-dropdown-toggle">Alliance Tools</summary>
           <div class="page-nav-dropdown-menu">
             <a href="train-conductor-schedule.html" class="page-link">Train Conductor</a>
@@ -297,7 +297,7 @@
             <a href="verus-tracker.html" class="page-link">Versus Tracker</a>
             <a href="ds-tracker.html" class="page-link">Desert Storm Tracker/Planner</a>
             <a href="server-search.html" class="page-link">Server Search</a>
-            <a href="warzone-planner.html" class="page-link active">Warzone Planner</a>
+            <a href="warzone-planner.html" class="page-link">Warzone Planner</a>
             <a href="alliance-hive.html" class="page-link">Hive Builder</a>
           </div>
         </details>
@@ -341,7 +341,7 @@
             <a href="altar-calculator.html" class="page-link">Altar</a>
             <a href="protectors-field-calculator.html" class="page-link">Protector's Field</a>
             <a href="season-3-desert-artifacts-checklist.html" class="page-link">Desert Artifacts</a>
-                        <a href="season-3-interactive-map.html" class="page-link">Interactive Map</a>
+            <a href="season-3-interactive-map.html" class="page-link">Interactive Map</a>
             <a href="season-3-warzone-planner.html" class="page-link">Warzone Planner</a>
             <a href="spice-war-tracker.html" class="page-link">Spice War Tracker</a>
           </div>
@@ -357,14 +357,14 @@
             <a href="copper-war-tracker.html" class="page-link">Copper War Tracker</a>
           </div>
         </details>
-        <details class="page-nav-dropdown" name="season-nav">
+        <details class="page-nav-dropdown active" name="season-nav">
           <summary class="page-link page-nav-dropdown-toggle">Season 5 Tools</summary>
           <div class="page-nav-dropdown-menu">
             <a href="caffeine-institute-calculator.html" class="page-link">Caffeine Institute</a>
             <a href="protectors-field-s5-calculator.html" class="page-link">Protector's Field S5</a>
             <a href="season-5-squad-base-calculator.html" class="page-link">Season 5 Tanker Bar</a>
             <a href="season-5-interactive-map.html" class="page-link">Interactive Map</a>
-            <a href="season-5-warzone-planner.html" class="page-link">Warzone Planner</a>
+            <a href="season-5-warzone-planner.html" class="page-link active">Warzone Planner</a>
           </div>
         </details>
                 <details class="page-nav-dropdown" name="season-nav">
@@ -389,12 +389,13 @@
       </nav>
 
       <div class="container">
-        <h1>Warzone Planner</h1>
+        <h1>Season 5 Warzone Planner</h1>
         <p style="color: rgba(217, 240, 255, 0.7); margin-bottom: 20px; max-width: 72ch">
           Mark the
-          <strong>Warzone capitol</strong> battlefield: add server numbers, alliance tags, or
-          usernames, drag them on the capitol view, and zoom the map. Your layout is stored in this
-          browser.
+          <strong>Wild West</strong> warzone capitol: add server numbers, alliance tags, or
+          usernames, drag them on the capitol view, and zoom the map. Choose
+          <strong>Grand Nexus</strong> or <strong>Golden Palace</strong> below. Each map keeps its
+          own labels in this browser.
         </p>
 
         <div class="fwplanner-wrap">
@@ -412,9 +413,9 @@
               />
               <span id="fwplannerZoomVal">100%</span>
             </div>
-            <p class="fwplanner-legend" style="margin: 0 0 6px 0">
-              Map: Warzone capitol. Coordinates are saved as a percentage of image
-              size so labels stay aligned when the window is resized.
+            <p class="fwplanner-legend" id="fwplannerMapLegend" style="margin: 0 0 6px 0">
+              Map: Season 5 warzone capitol (Grand Nexus). Coordinates are saved as a percentage of
+              image size so labels stay aligned when the window is resized.
             </p>
             <div
               class="fwplanner-viewport"
@@ -426,10 +427,10 @@
                 <img
                   class="fwplanner-map-img"
                   id="fwplannerImg"
-                  src="media/warzone-capitol.png"
-                  alt="Top-down view of the Warzone Capitol and four Giant Cannons with shields in Last War: Survival"
-                  width="840"
-                  height="617"
+                  src="media/season-5-warzone-capitol-nexus.png"
+                  alt="Top-down view of the Season 5 Grand Nexus warzone capitol with Great Cannons and shields in Last War: Survival"
+                  width="602"
+                  height="548"
                   draggable="false"
                 />
                 <div id="fwplannerPins" aria-label="Map labels"></div>
@@ -438,6 +439,14 @@
           </div>
 
           <aside class="fwplanner-panel sidebar" aria-label="Placing controls">
+            <h2>Capitol map</h2>
+            <div class="fwplanner-field">
+              <label for="fwplannerMapSelect">Map view</label>
+              <select id="fwplannerMapSelect">
+                <option value="nexus">Grand Nexus</option>
+                <option value="palace">Golden Palace</option>
+              </select>
+            </div>
             <h2>Add labels</h2>
             <p class="fwplanner-hint">
               Enter text, choose a label type, then
@@ -509,10 +518,39 @@
 
     <script>
       (function () {
-        const STORAGE_KEY = "lwst-warzone-planner-v1";
+        const STORAGE_KEY = "lwst-s5-warzone-planner-v1";
+        const MAP_VARIANTS = {
+          nexus: {
+            id: "nexus",
+            label: "Grand Nexus",
+            legend: "Season 5 warzone capitol (Grand Nexus)",
+            src: "media/season-5-warzone-capitol-nexus.png",
+            width: 602,
+            height: 548,
+            refW: 602,
+            alt: "Top-down view of the Season 5 Grand Nexus warzone capitol with Great Cannons and shields in Last War: Survival",
+          },
+          palace: {
+            id: "palace",
+            label: "Golden Palace",
+            legend: "Season 5 warzone capitol (Golden Palace)",
+            src: "media/season-5-warzone-capitol-palace.png",
+            width: 359,
+            height: 326,
+            refW: 359,
+            alt: "Top-down view of the Season 5 Golden Palace warzone capitol with cannons and shields in Last War: Survival",
+          },
+        };
         /** At slider "100%", image width = this % of the stage; keep 100 to avoid scroll at default zoom. */
         const ZOOM_BASE_PCT = 100;
-        const state = { markers: [], nextId: 1, placeMode: false, scale: 1 };
+        const state = {
+          mapId: "nexus",
+          markersByMap: {},
+          markers: [],
+          nextId: 1,
+          placeMode: false,
+          scale: 1,
+        };
 
         const $ = (id) => document.getElementById(id);
         const viewport = $("fwplannerViewport");
@@ -527,6 +565,91 @@
         const list = $("fwplannerList");
         const statusEl = $("fwplannerStatus");
         const modeBtn = $("fwplannerModeBtn");
+        const mapSelectEl = $("fwplannerMapSelect");
+        const mapLegendEl = $("fwplannerMapLegend");
+
+        function emptyMapPack() {
+          return { markers: [], nextId: 1 };
+        }
+
+        function normalizeMapId(raw) {
+          return raw === "palace" ? "palace" : "nexus";
+        }
+
+        function getCurrentMap() {
+          return MAP_VARIANTS[normalizeMapId(state.mapId)] || MAP_VARIANTS.nexus;
+        }
+
+        function getMapPack(mapId) {
+          const id = normalizeMapId(mapId);
+          if (!state.markersByMap[id]) {
+            state.markersByMap[id] = emptyMapPack();
+          }
+          return state.markersByMap[id];
+        }
+
+        function filterMarkers(rawMarkers) {
+          if (!Array.isArray(rawMarkers)) return [];
+          return rawMarkers.filter(function (m) {
+            return (
+              m &&
+              typeof m.id === "number" &&
+              typeof m.text === "string" &&
+              m.text.trim() &&
+              typeof m.x === "number" &&
+              typeof m.y === "number" &&
+              m.x >= 0 &&
+              m.x <= 100 &&
+              m.y >= 0 &&
+              m.y <= 100
+            );
+          });
+        }
+
+        function syncActiveMarkersFromPack() {
+          const pack = getMapPack(state.mapId);
+          state.markers = pack.markers;
+          state.nextId = pack.nextId;
+        }
+
+        function flushActiveMarkersToPack() {
+          const pack = getMapPack(state.mapId);
+          pack.markers = state.markers;
+          pack.nextId = state.nextId;
+        }
+
+        function updateMapLegend() {
+          if (!mapLegendEl) return;
+          mapLegendEl.textContent =
+            "Map: " +
+            getCurrentMap().legend +
+            ". Coordinates are saved as a percentage of image size so labels stay aligned when the window is resized.";
+        }
+
+        function applyMapImage() {
+          const map = getCurrentMap();
+          if (mapSelectEl) mapSelectEl.value = map.id;
+          updateMapLegend();
+          if (!img) return;
+          img.width = map.width;
+          img.height = map.height;
+          img.alt = map.alt;
+          if (img.getAttribute("src") !== map.src) {
+            img.src = map.src;
+          }
+        }
+
+        function setMapId(mapId, opts) {
+          const nextId = normalizeMapId(mapId);
+          const force = Boolean(opts && opts.force);
+          if (!force && nextId === state.mapId) return;
+          flushActiveMarkersToPack();
+          state.mapId = nextId;
+          syncActiveMarkersFromPack();
+          applyMapImage();
+          render();
+          if (!opts || opts.save !== false) save();
+        }
 
         function setStatus(t) {
           if (statusEl) statusEl.textContent = t || "";
@@ -534,9 +657,13 @@
 
         function save() {
           try {
+            flushActiveMarkersToPack();
             localStorage.setItem(
               STORAGE_KEY,
-              JSON.stringify({ markers: state.markers, nextId: state.nextId }),
+              JSON.stringify({
+                mapId: state.mapId,
+                markersByMap: state.markersByMap,
+              }),
             );
             setStatus("Saved in this browser.");
             window.setTimeout(function () {
@@ -554,25 +681,34 @@
             const raw = localStorage.getItem(STORAGE_KEY);
             if (!raw) return;
             const data = JSON.parse(raw);
-            if (Array.isArray(data.markers)) {
-              state.markers = data.markers.filter(function (m) {
-                return (
-                  m &&
-                  typeof m.id === "number" &&
-                  typeof m.text === "string" &&
-                  m.text.trim() &&
-                  typeof m.x === "number" &&
-                  typeof m.y === "number" &&
-                  m.x >= 0 &&
-                  m.x <= 100 &&
-                  m.y >= 0 &&
-                  m.y <= 100
-                );
+            if (data.markersByMap && typeof data.markersByMap === "object") {
+              state.mapId = normalizeMapId(data.mapId);
+              state.markersByMap = {};
+              Object.keys(MAP_VARIANTS).forEach(function (key) {
+                const src = data.markersByMap[key];
+                if (!src || typeof src !== "object") return;
+                state.markersByMap[key] = {
+                  markers: filterMarkers(src.markers),
+                  nextId:
+                    Number.isFinite(src.nextId) && src.nextId > 0
+                      ? src.nextId
+                      : 1,
+                };
               });
+            } else if (Array.isArray(data.markers)) {
+              state.mapId = "nexus";
+              state.markersByMap = {
+                nexus: {
+                  markers: filterMarkers(data.markers),
+                  nextId:
+                    Number.isFinite(data.nextId) && data.nextId > 0
+                      ? data.nextId
+                      : 1,
+                },
+                palace: emptyMapPack(),
+              };
             }
-            if (Number.isFinite(data.nextId) && data.nextId > state.nextId) {
-              state.nextId = data.nextId;
-            }
+            syncActiveMarkersFromPack();
           } catch (e) {
             /* ignore */
           }
@@ -704,7 +840,7 @@
             setStatus("Export failed (image may be tainted or blocked).");
             return;
           }
-          const refW = 840;
+          const refW = getCurrentMap().refW;
           const scaleW = W / refW;
           const padX = Math.max(2, 8 * scaleW);
           const padY1 = Math.max(2, 3 * scaleW);
@@ -782,7 +918,7 @@
                 "-" +
                 String(d.getDate()).padStart(2, "0");
               a.href = URL.createObjectURL(blob);
-              a.download = "last-war-warzone-planner-" + stamp + ".png";
+              a.download = "last-war-s5-warzone-planner-" + getCurrentMap().id + "-" + stamp + ".png";
               a.click();
               window.setTimeout(function () {
                 URL.revokeObjectURL(a.href);
@@ -1064,7 +1200,14 @@
           applyZoom();
         }).observe(viewport);
 
+        if (mapSelectEl) {
+          mapSelectEl.addEventListener("change", function () {
+            setMapId(mapSelectEl.value);
+          });
+        }
+
         load();
+        setMapId(state.mapId, { force: true, save: false });
         render();
         applyZoom();
 
