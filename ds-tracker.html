@@ -27,9 +27,13 @@
         window.__lwApplyFirebaseAppCheckDebug();
       }
     </script>
+    <script src="anthropic-config.example.js"></script>
+    <script src="anthropic-config.js"></script>
+    <script src="claude-ocr.js"></script>
+    <script src="ocr-ui-gate.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/tesseract.js@5/dist/tesseract.min.js"></script>
     <script src="tesseract-wasm-warn-filter.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
     <style>
       .ds-wrap {
         display: grid;
@@ -3329,6 +3333,19 @@
           return preprocessImageFile(file);
         }
 
+        function dsUseClaudeOcr() {
+          try {
+            return (
+              typeof window.__lwstClaudeOcrEnabled === "function" &&
+              window.__lwstClaudeOcrEnabled() &&
+              typeof LwstClaudeOcr !== "undefined" &&
+              LwstClaudeOcr.isConfigured()
+            );
+          } catch (_) {
+            return false;
+          }
+        }
+
         const DS_TESSERACT_WORKER_OPTS = { logger: function () {} };
 
         async function dsTesseractRecognizeOnce(source, langs, psm) {
@@ -3354,7 +3371,26 @@
           }
         }
 
-        async function dsOcrTextFromSource(source, langs) {
+        function dsOcrLangHintFromSel() {
+          const value =
+            (langSel && String(langSel.value || "").trim()) ||
+            "eng+kor+jpn+chi_sim+chi_tra";
+          if (typeof LwstClaudeOcr !== "undefined" && LwstClaudeOcr.langHintFromTesseractValue) {
+            return LwstClaudeOcr.langHintFromTesseractValue(value);
+          }
+          return value.replace(/\+/g, ", ");
+        }
+
+        function dsEnsureClaudeOcrReady() {
+          if (typeof LwstClaudeOcr === "undefined") {
+            throw new Error("Enhanced OCR is not loaded.");
+          }
+          if (!LwstClaudeOcr.isConfigured()) {
+            throw new Error(LwstClaudeOcr.missingKeyMessage());
+          }
+        }
+
+        async function dsOcrTextFromTesseract(source, langs) {
           let out = await dsTesseractRecognizeOnce(source, langs, "4");
           let text = (out && out.data && out.data.text) || "";
           let rows = mergeOcrParseResults(text);
@@ -3364,6 +3400,26 @@
             rows = mergeOcrParseResults(text);
           }
           return { text, rows };
+        }
+
+        async function dsOcrTextFromClaude(source) {
+          dsEnsureClaudeOcrReady();
+          const result = await LwstClaudeOcr.recognize(source, {
+            mode: "desert-storm",
+            langHint: dsOcrLangHintFromSel(),
+          });
+          let rows = result.rows || [];
+          if (!rows.length && result.text) {
+            rows = mergeOcrParseResults(result.text);
+          }
+          return { text: result.text || "", rows };
+        }
+
+        async function dsOcrTextFromSource(source, langs) {
+          if (dsUseClaudeOcr()) {
+            return dsOcrTextFromClaude(source);
+          }
+          return dsOcrTextFromTesseract(source, langs);
         }
 
         async function runOcrOnFile(file) {
@@ -3379,7 +3435,7 @@
           const source = await preprocessDsCaptureFile(file);
           let { rows } = await dsOcrTextFromSource(source, langsPrimary);
 
-          if (!rows.length && langsPrimary !== langsFallback) {
+          if (!rows.length && langsPrimary !== langsFallback && !dsUseClaudeOcr()) {
             const second = await dsOcrTextFromSource(source, langsFallback);
             rows = second.rows;
           }

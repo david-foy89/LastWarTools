@@ -1,2 +1,5 @@
 # Firebase web client config (contains API key — never commit real values to public repos)
 firebase-config.js
+
+# Anthropic API key for Claude OCR (Versus / Desert Storm trackers)
+anthropic-config.js

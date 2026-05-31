@@ -27,6 +27,10 @@
         window.__lwApplyFirebaseAppCheckDebug();
       }
     </script>
+    <script src="anthropic-config.example.js"></script>
+    <script src="anthropic-config.js"></script>
+    <script src="claude-ocr.js"></script>
+    <script src="ocr-ui-gate.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/tesseract.js@5/dist/tesseract.min.js"></script>
     <script src="tesseract-wasm-warn-filter.js"></script>
@@ -963,7 +967,7 @@
           Pick a calendar week; each week is stored separately in your browser.
           Monday–Saturday scores and VS Total (sum) use Desert Storm server-day timing:
           <strong>EST + 2 hours</strong>, midnight reset.
-          Import scores from screenshots or <code>.mp4</code> screen recordings with OCR.
+          Import scores from screenshots or <code>.mp4</code> screen recordings with OCR, or paste leaderboard text.
         </div>
       </section>
 
@@ -1074,7 +1078,7 @@
             <label for="verusOcrLang">OCR language</label>
             <select
               id="verusOcrLang"
-              title="Fewer scripts = fewer misreads. Korean + English is the default; use Auto if names use Japanese or Chinese characters. Slower than single-pass OCR."
+              title="Fewer scripts = fewer misreads. Korean + English is the default; use Auto if names use Japanese or Chinese characters."
             >
               <option value="kor+eng+jpn+chi_sim+chi_tra">
                 Auto (English + Asian, Korean‑first)
@@ -1112,7 +1116,7 @@
               type="button"
               id="verusPasteTextBtn"
               class="action-button"
-              title="Paste plain text (e.g. from a spreadsheet or phone OCR)—uses the same parsing as screenshot OCR, often more accurate than in-browser OCR"
+              title="Paste plain text from a spreadsheet or the in-game leaderboard list"
             >
               Paste leaderboard text
             </button>
@@ -1245,7 +1249,7 @@
             Recordings are sampled every second (up to five minutes); tall portrait and wide landscape clips also
             OCR a bottom crop where leaderboards often sit. All sampled frames are merged so partial reads can combine.
             Pick the <strong>narrowest</strong> language set that covers your roster (default is Korean + English).
-            <strong>Paste leaderboard text</strong> skips image OCR entirely—paste from a spreadsheet or
+            <strong>Paste leaderboard text</strong> skips image OCR—paste from a spreadsheet or
             phone OCR when screenshots read badly.
             Keep <strong>Match roster only</strong> checked (default) so OCR only updates players already
             in the table—garbled OCR text won’t create extra rows. Uncheck to allow OCR to add new rows.
@@ -2645,15 +2649,24 @@
           }
         }
 
+        function verusUseClaudeOcr() {
+          try {
+            return (
+              typeof window.__lwstClaudeOcrEnabled === "function" &&
+              window.__lwstClaudeOcrEnabled() &&
+              typeof LwstClaudeOcr !== "undefined" &&
+              LwstClaudeOcr.isConfigured()
+            );
+          } catch (_) {
+            return false;
+          }
+        }
+
         /** Suppress tesseract.js progress spam; WASM "Parameter not found" may still use worker console. */
         const VERUS_TESSERACT_WORKER_OPTS = {
           logger: function () {},
         };
 
-        /**
-         * PSM 4 = single column (typical leaderboard list). DPI hint matches upscale pipeline.
-         * Tesseract.js v5: use createWorker + setParameters + recognize (not Tesseract.recognize opts).
-         */
         async function verusApplyTesseractParams(worker, psm) {
           const mode =
             psm != null && String(psm).trim() !== "" ? String(psm).trim() : "4";
@@ -2677,22 +2690,6 @@
           }
         }
 
-        function verusRowsFromOcrOutput(out) {
-          const text = (out && out.data && out.data.text) || "";
-          const primary = parseVerusOcrRows(text);
-          const anchor = parseVerusOcrRowsByScoreAnchor(text);
-          const trailing = parseVerusOcrRowsByTrailingScore(text);
-          const combined = primary.concat(anchor).concat(trailing);
-          return collapseRowsByExactNormalizedName(combined);
-        }
-
-        /**
-         * Running PSM 4, 6, and 11 then concatenating can merge contradictory reads for the same
-         * rank (collapse keeps max score → wrong). Prefer the single pass with the most parsed rows;
-         * only concatenate when that yields strictly more rows than the best single pass.
-         * (Row count beats a “plausibility” score here: screen recordings often need whichever pass
-         * returns the longest parse, then cross-frame merge fills gaps.)
-         */
         function verusPickBestMergedOcrText(textChunks) {
           const arr = (textChunks || [])
             .map((s) => String(s || "").trim())
@@ -2714,9 +2711,6 @@
           return bestText;
         }
 
-        /**
-         * PSM 11 (sparse text) fragments tiny inputs into 2px-wide line boxes and spams WASM errors.
-         */
         function verusOcrPsmListForSource(source) {
           const el = source || {};
           const w =
@@ -2739,10 +2733,6 @@
           return ["4", "6"];
         }
 
-        /**
-         * Korean LSTM: run PSM passes, then pick the cleanest combined text (see
-         * verusPickBestMergedOcrText).
-         */
         async function verusMergedOcrTextForKorean(source, langs) {
           const chunks = [];
           for (const psm of verusOcrPsmListForSource(source)) {
@@ -2755,7 +2745,42 @@
           return verusPickBestMergedOcrText(chunks);
         }
 
-        async function runVerusOcrOnCanvas(source, langSel) {
+        function verusOcrLangHintFromSel(langSel) {
+          const value = verusOcrLangsFromSel(langSel);
+          if (typeof LwstClaudeOcr !== "undefined" && LwstClaudeOcr.langHintFromTesseractValue) {
+            return LwstClaudeOcr.langHintFromTesseractValue(value);
+          }
+          return value.replace(/\+/g, ", ");
+        }
+
+        function verusEnsureClaudeOcrReady() {
+          if (typeof LwstClaudeOcr === "undefined") {
+            throw new Error("Enhanced OCR is not loaded.");
+          }
+          if (!LwstClaudeOcr.isConfigured()) {
+            throw new Error(LwstClaudeOcr.missingKeyMessage());
+          }
+        }
+
+        async function runVerusOcrOnClaudeCanvas(source, langSel) {
+          verusEnsureClaudeOcrReady();
+          const result = await LwstClaudeOcr.recognize(source, {
+            mode: "versus",
+            langHint: verusOcrLangHintFromSel(langSel),
+          });
+          if (result.rows && result.rows.length) {
+            return result.rows
+              .map((r) => ({
+                name: cleanNameForOcr(r.name || ""),
+                score: normalizeOcrScore(r.score || ""),
+                ...(r.rank != null ? { rank: r.rank } : {}),
+              }))
+              .filter((r) => r.score);
+          }
+          return verusRowsFromOcrOutput({ data: { text: result.text || "" } });
+        }
+
+        async function runVerusOcrOnTesseractCanvas(source, langSel) {
           const langsPrimary = verusOcrLangsFromSel(langSel);
           const langsFallback = "kor+eng+jpn+chi_sim+chi_tra";
           const korean = verusOcrLangsSkipBinarize(langsPrimary);
@@ -2808,11 +2833,6 @@
           return rows;
         }
 
-        /**
-         * Same recognition strategy as runVerusOcrOnCanvas, but reuses one worker (for video frames).
-         * Narrow Korean / fallback langs may spawn extra short-lived workers where the main worker
-         * cannot switch language packs.
-         */
         async function verusRunOcrOnCanvasWithWorker(worker, canvas, langSel) {
           const langsPrimary = verusOcrLangsFromSel(langSel);
           const langsFallback = "kor+eng+jpn+chi_sim+chi_tra";
@@ -2895,6 +2915,22 @@
             rows = verusRowsFromOcrOutput({ data: { text } });
           }
           return rows;
+        }
+
+        async function runVerusOcrOnCanvas(source, langSel) {
+          if (verusUseClaudeOcr()) {
+            return runVerusOcrOnClaudeCanvas(source, langSel);
+          }
+          return runVerusOcrOnTesseractCanvas(source, langSel);
+        }
+
+        function verusRowsFromOcrOutput(out) {
+          const text = (out && out.data && out.data.text) || "";
+          const primary = parseVerusOcrRows(text);
+          const anchor = parseVerusOcrRowsByScoreAnchor(text);
+          const trailing = parseVerusOcrRowsByTrailingScore(text);
+          const combined = primary.concat(anchor).concat(trailing);
+          return collapseRowsByExactNormalizedName(combined);
         }
 
         async function runVerusOcrOnFile(file, langSel) {
@@ -3155,21 +3191,11 @@
             const langsPrimary = verusOcrLangsFromSel(langSel);
             const langsFallback = "kor+eng+jpn+chi_sim+chi_tra";
             const koreanPack = verusOcrLangsSkipBinarize(langsPrimary);
-            if (typeof Tesseract === "undefined" || !Tesseract.createWorker) {
-              throw new Error("OCR library is not loaded.");
-            }
             if (typeof onProgress === "function") {
               onProgress(0, times.length);
             }
-            /** One worker for all frames — creating a worker per frame often fails or times out. */
-            let worker = null;
             const frameArrays = [];
-            try {
-              worker = await Tesseract.createWorker(langsPrimary, 1, VERUS_TESSERACT_WORKER_OPTS);
-              await verusApplyTesseractParams(
-                worker,
-                koreanPack ? "6" : undefined,
-              );
+            if (verusUseClaudeOcr()) {
               for (let i = 0; i < times.length; i++) {
                 if (typeof onProgress === "function") {
                   onProgress(i + 1, times.length);
@@ -3187,18 +3213,13 @@
                   langsHint: langsPrimary,
                 };
                 const canvas = preprocessVerusImageSource(video, baseOpts);
-                let rows = await verusRunOcrOnCanvasWithWorker(
-                  worker,
-                  canvas,
-                  langSel,
-                );
+                let rows = await runVerusOcrOnClaudeCanvas(canvas, langSel);
                 if (tallPortrait || wideLandscape) {
                   const bottomCanvas = preprocessVerusImageSource(video, {
                     ...baseOpts,
                     verusOcrFocusBottom: true,
                   });
-                  const rowsBottom = await verusRunOcrOnCanvasWithWorker(
-                    worker,
+                  const rowsBottom = await runVerusOcrOnClaudeCanvas(
                     bottomCanvas,
                     langSel,
                   );
@@ -3206,18 +3227,68 @@
                     (rows || []).concat(rowsBottom || []),
                   );
                 }
-                if (!rows.length && langsPrimary !== langsFallback) {
-                  const out = await verusTesseractRecognizeOnce(
-                    canvas,
-                    langsFallback,
-                    verusOcrLangsSkipBinarize(langsFallback) ? "6" : undefined,
-                  );
-                  rows = verusRowsFromOcrOutput(out);
-                }
                 frameArrays.push(rows);
               }
-            } finally {
-              if (worker) await worker.terminate();
+            } else {
+              if (typeof Tesseract === "undefined" || !Tesseract.createWorker) {
+                throw new Error("OCR library is not loaded.");
+              }
+              let worker = null;
+              try {
+                worker = await Tesseract.createWorker(langsPrimary, 1, VERUS_TESSERACT_WORKER_OPTS);
+                await verusApplyTesseractParams(
+                  worker,
+                  koreanPack ? "6" : undefined,
+                );
+                for (let i = 0; i < times.length; i++) {
+                  if (typeof onProgress === "function") {
+                    onProgress(i + 1, times.length);
+                  }
+                  await seekVideo(video, times[i]);
+                  await ensureVideoFrameDecodable(video);
+                  const vw = video.videoWidth || 0;
+                  const vh = video.videoHeight || 0;
+                  const tallPortrait =
+                    vw > 0 && vh > 0 && vh >= vw * 1.35;
+                  const wideLandscape =
+                    vw > 0 && vh > 0 && vw >= vh * 1.25 && !tallPortrait;
+                  const baseOpts = {
+                    video: true,
+                    langsHint: langsPrimary,
+                  };
+                  const canvas = preprocessVerusImageSource(video, baseOpts);
+                  let rows = await verusRunOcrOnCanvasWithWorker(
+                    worker,
+                    canvas,
+                    langSel,
+                  );
+                  if (tallPortrait || wideLandscape) {
+                    const bottomCanvas = preprocessVerusImageSource(video, {
+                      ...baseOpts,
+                      verusOcrFocusBottom: true,
+                    });
+                    const rowsBottom = await verusRunOcrOnCanvasWithWorker(
+                      worker,
+                      bottomCanvas,
+                      langSel,
+                    );
+                    rows = collapseRowsByExactNormalizedName(
+                      (rows || []).concat(rowsBottom || []),
+                    );
+                  }
+                  if (!rows.length && langsPrimary !== langsFallback) {
+                    const out = await verusTesseractRecognizeOnce(
+                      canvas,
+                      langsFallback,
+                      verusOcrLangsSkipBinarize(langsFallback) ? "6" : undefined,
+                    );
+                    rows = verusRowsFromOcrOutput(out);
+                  }
+                  frameArrays.push(rows);
+                }
+              } finally {
+                if (worker) await worker.terminate();
+              }
             }
             return mergeVerusOcrRowArrays(frameArrays);
           } finally {

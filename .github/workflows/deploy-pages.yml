@@ -110,6 +110,28 @@ jobs:
           );
           NODE_SCRIPT
 
+      # Optional: OCR_PROXY_URL for Versus / Desert Storm Claude OCR (Firebase function URL).
+      - name: Generate anthropic-config.js from secret
+        env:
+          OCR_PROXY_URL: ${{ secrets.OCR_PROXY_URL }}
+        run: |
+          node <<'NODE_SCRIPT'
+          const fs = require("fs");
+          const proxyUrl = String(process.env.OCR_PROXY_URL || "").trim();
+          if (!proxyUrl) {
+            console.log(
+              "OCR_PROXY_URL not set — skipping anthropic-config.js (OCR needs local config or deploy the Firebase function).",
+            );
+            process.exit(0);
+          }
+          const out =
+            "window.__ANTHROPIC_CONFIG__ = " +
+            JSON.stringify({ ocrProxyUrl: proxyUrl, apiKey: "", model: "" }, null, 2) +
+            ";\n";
+          fs.writeFileSync("anthropic-config.js", out);
+          console.log("Wrote anthropic-config.js (proxy URL only, no API key).");
+          NODE_SCRIPT
+
       - name: Upload artifact
         uses: actions/upload-pages-artifact@v4
         with:

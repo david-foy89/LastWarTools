@@ -85,6 +85,14 @@ service cloud.firestore {
     }
 
     // =============================================================================
+    // SECTION: Claude OCR proxy — rate limit counters (Cloud Functions admin SDK only)
+    // Function: functions/index.js → claudeOcr
+    // =============================================================================
+    match /ocrRateLimits/{docId} {
+      allow read, write: if false;
+    }
+
+    // =============================================================================
     // SECTION: Default deny (must be last)
     // Covers any collection not listed above.
     // =============================================================================
