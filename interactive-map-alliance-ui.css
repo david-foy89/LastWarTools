@@ -1,0 +1,218 @@
+/**
+ * Shared alliance manager UI for all season interactive maps.
+ */
+#allianceList {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 2px 2px 4px;
+  scrollbar-width: thin;
+  scrollbar-color: rgba(116, 192, 252, 0.35) transparent;
+}
+
+#allianceList::-webkit-scrollbar {
+  width: 6px;
+}
+
+#allianceList::-webkit-scrollbar-thumb {
+  background: rgba(116, 192, 252, 0.35);
+  border-radius: 999px;
+}
+
+#allianceList .alliance-empty {
+  margin: 0;
+  padding: 14px 12px;
+  text-align: center;
+  font-size: 0.8rem;
+  line-height: 1.45;
+  color: rgba(217, 240, 255, 0.45);
+  background: rgba(8, 16, 25, 0.4);
+  border: 1px dashed rgba(116, 192, 252, 0.22);
+  border-radius: 8px;
+}
+
+#allianceList .alliance-item {
+  cursor: pointer;
+  display: grid !important;
+  grid-template-columns: 36px minmax(0, 1fr);
+  grid-template-areas:
+    "swatch info"
+    "actions actions";
+  align-items: start;
+  column-gap: 10px;
+  row-gap: 8px;
+  flex-wrap: nowrap !important;
+  padding: 10px 10px 10px 12px;
+  margin-bottom: 0;
+  border-radius: 8px;
+  border: 1px solid rgba(116, 192, 252, 0.12);
+  background: linear-gradient(
+    135deg,
+    rgba(8, 16, 25, 0.72) 0%,
+    rgba(12, 24, 37, 0.55) 100%
+  );
+  box-shadow: 0 1px 0 rgba(255, 255, 255, 0.04) inset;
+  transition:
+    border-color 0.2s,
+    background 0.2s,
+    box-shadow 0.2s,
+    transform 0.15s;
+}
+
+#allianceList .alliance-item:hover {
+  border-color: rgba(116, 192, 252, 0.32);
+  background: rgba(12, 24, 37, 0.88);
+  transform: translateY(-1px);
+}
+
+#allianceList .alliance-item.selected {
+  border-color: rgba(116, 192, 252, 0.55);
+  background: linear-gradient(
+    135deg,
+    rgba(18, 35, 53, 0.95) 0%,
+    rgba(12, 28, 48, 0.9) 100%
+  );
+  box-shadow:
+    0 0 0 1px rgba(116, 192, 252, 0.15) inset,
+    0 4px 14px rgba(0, 0, 0, 0.25),
+    3px 0 0 var(--alliance-accent, #74c0fc);
+}
+
+#allianceList .alliance-color-btn {
+  grid-area: swatch;
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  padding: 0;
+  border: none;
+  border-radius: 8px;
+  background: rgba(0, 0, 0, 0.25);
+  cursor: pointer;
+  transition: transform 0.15s, box-shadow 0.15s;
+}
+
+#allianceList .alliance-color-btn:hover {
+  transform: scale(1.06);
+  box-shadow: 0 0 0 2px rgba(116, 192, 252, 0.45);
+}
+
+#allianceList .alliance-color-btn:focus-visible {
+  outline: 2px solid rgba(116, 192, 252, 0.7);
+  outline-offset: 2px;
+}
+
+#allianceList .alliance-color-swatch {
+  display: block;
+  width: 18px;
+  height: 18px;
+  border-radius: 5px;
+  background: var(--alliance-color, #74c0fc);
+  box-shadow:
+    0 0 0 1px rgba(255, 255, 255, 0.2) inset,
+    0 2px 6px rgba(0, 0, 0, 0.35);
+}
+
+#allianceList .alliance-item-main {
+  grid-area: info;
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  min-width: 0;
+  overflow: visible;
+}
+
+#allianceList .alliance-tag {
+  font-size: 0.95rem;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  color: #e8f4ff;
+  line-height: 1.35;
+  white-space: normal;
+  word-break: break-word;
+  overflow-wrap: anywhere;
+}
+
+#allianceList .alliance-area-count {
+  font-size: 0.72rem;
+  color: rgba(217, 240, 255, 0.48);
+  line-height: 1.3;
+  white-space: normal;
+}
+
+#allianceList .alliance-actions {
+  grid-area: actions;
+  display: flex;
+  gap: 4px;
+  align-items: center;
+  flex-shrink: 0;
+  justify-self: end;
+  width: 100%;
+  padding: 3px;
+  border-radius: 8px;
+  background: rgba(0, 0, 0, 0.2);
+  border: 1px solid rgba(255, 255, 255, 0.06);
+  box-sizing: border-box;
+}
+
+#allianceList .alliance-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 30px;
+  height: 30px;
+  padding: 0;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+  font-family: inherit;
+  transition: background 0.15s, color 0.15s, transform 0.12s;
+}
+
+#allianceList .alliance-btn:active {
+  transform: scale(0.94);
+}
+
+#allianceList .alliance-btn--edit {
+  color: #74c0fc;
+  background: transparent;
+}
+
+#allianceList .alliance-btn--edit:hover {
+  color: #fff;
+  background: rgba(116, 192, 252, 0.22);
+}
+
+#allianceList .alliance-btn--delete {
+  color: #ff8787;
+  background: transparent;
+}
+
+#allianceList .alliance-btn--delete:hover {
+  color: #fff;
+  background: rgba(255, 107, 107, 0.22);
+}
+
+.alliance-input .btn-small--add {
+  color: #e8f4ff;
+  border-color: rgba(116, 192, 252, 0.4);
+  background: linear-gradient(
+    180deg,
+    rgba(116, 192, 252, 0.18) 0%,
+    rgba(116, 192, 252, 0.08) 100%
+  );
+}
+
+.alliance-input .btn-small--add:hover {
+  border-color: rgba(116, 192, 252, 0.65);
+  background: rgba(116, 192, 252, 0.25);
+  color: #fff;
+}
+
+@media (max-width: 900px) {
+  #allianceList .alliance-item {
+    flex-wrap: nowrap !important;
+  }
+}
