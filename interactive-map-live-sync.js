@@ -7,6 +7,7 @@
   function initMapLiveSync(opts) {
     opts = opts || {};
     const RTDB_MAP_ROOT = opts.rtdbPath || "season1-map";
+    const LIVE_SHARE_SCOPE = RTDB_MAP_ROOT;
     const getState = opts.getState || function () { return {}; };
     const onApply = opts.onApplyRemote;
 
@@ -283,13 +284,13 @@ function createShareId() {
   return lwShare.createShareId();
 }
 function getPersistedMapLiveShareId() {
-  return lwShare.getPersistedLiveShareId();
+  return lwShare.getPersistedLiveShareId(LIVE_SHARE_SCOPE);
 }
 function setPersistedMapLiveShareId(id) {
-  lwShare.setPersistedLiveShareId(id);
+  lwShare.setPersistedLiveShareId(id, LIVE_SHARE_SCOPE);
 }
 function ensureHostMapShareId() {
-  return lwShare.ensureUserShareId(liveSyncState);
+  return lwShare.ensureUserShareId(liveSyncState, LIVE_SHARE_SCOPE);
 }
 function updateMapLiveSharePanel() {
   const panel = document.getElementById("mapLiveSharePanel");

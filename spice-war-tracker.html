@@ -1200,6 +1200,7 @@
         };
 
         const lwShare = window.__lwLiveShareId;
+        const RS_LIVE_SHARE_SCOPE = "spice-war";
         function sanitizeShareId(raw) {
           return lwShare.sanitizeShareId(raw);
         }
@@ -1216,13 +1217,13 @@
           return lwShare.createShareId();
         }
         function getPersistedRsLiveShareId() {
-          return lwShare.getPersistedLiveShareId();
+          return lwShare.getPersistedLiveShareId(RS_LIVE_SHARE_SCOPE);
         }
         function setPersistedRsLiveShareId(id) {
-          lwShare.setPersistedLiveShareId(id);
+          lwShare.setPersistedLiveShareId(id, RS_LIVE_SHARE_SCOPE);
         }
         function ensureRsHostShareId() {
-          return lwShare.ensureUserShareId(rsLiveState);
+          return lwShare.ensureUserShareId(rsLiveState, RS_LIVE_SHARE_SCOPE);
         }
 
         function updateRsLiveSharePanel() {

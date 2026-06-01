@@ -1488,6 +1488,7 @@
       }
 
       const lwShare = window.__lwLiveShareId;
+      const LIVE_SHARE_SCOPE = "season2-supplies";
       function sanitizeShareId(raw) {
         return lwShare.sanitizeShareId(raw);
       }
@@ -1495,13 +1496,13 @@
         return lwShare.createShareId();
       }
       function getPersistedLiveShareId() {
-        return lwShare.getPersistedLiveShareId();
+        return lwShare.getPersistedLiveShareId(LIVE_SHARE_SCOPE);
       }
       function setPersistedLiveShareId(id) {
-        lwShare.setPersistedLiveShareId(id);
+        lwShare.setPersistedLiveShareId(id, LIVE_SHARE_SCOPE);
       }
       function ensureHostShareId() {
-        return lwShare.ensureUserShareId(liveSyncState);
+        return lwShare.ensureUserShareId(liveSyncState, LIVE_SHARE_SCOPE);
       }
 
       function updateLiveSharePanel() {
