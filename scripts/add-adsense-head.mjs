@@ -6,11 +6,17 @@ import path from "path";
 
 const root = path.resolve(import.meta.dirname, "..");
 const marker = "ca-pub-1014488780102797";
-const snippet = `    <script
+const snippet = `    <link rel="stylesheet" href="/adsense.css" />
+    <script
       async
       src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1014488780102797"
       crossorigin="anonymous"
     ></script>
+`;
+
+const bodySnippet = `    <script src="/adsense-config.js"></script>
+    <script src="/site-legal-footer.js" defer></script>
+    <script src="/adsense-placements.js" defer></script>
 `;
 
 function walk(dir, files = []) {
@@ -38,6 +44,9 @@ for (const file of walk(root)) {
     continue;
   }
   html = html.replace(/<\/head>/i, `${snippet}  </head>`);
+  if (!html.includes("site-legal-footer.js") && /<\/body>/i.test(html)) {
+    html = html.replace(/<\/body>/i, `${bodySnippet}  </body>`);
+  }
   fs.writeFileSync(file, html);
   updated++;
   console.log("Updated", path.relative(root, file));
