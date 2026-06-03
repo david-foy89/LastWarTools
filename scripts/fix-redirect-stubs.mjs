@@ -58,7 +58,7 @@ ${adsenseScript}
     Redirecting to
     <a href="${esc}">${esc}</a>...
   </p>
-  <script src="/site-legal-footer.js?v=3" defer></script>
+  <script src="/site-legal-footer.js?v=4" defer></script>
 </body>
 </html>
 `;

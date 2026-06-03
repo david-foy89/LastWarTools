@@ -60,14 +60,19 @@
       footer.appendChild(nav);
     }
 
-    ensureNavLink(nav, privacyUrl(), "Privacy Policy", "page-link");
-    ensureNavLink(
+    const homeLink = ensureNavLink(
       nav,
       location.protocol === "file:" ? "index.html" : "/index.html",
       "Home",
       "page-link",
     );
-    ensureNavLink(
+    const privacyLink = ensureNavLink(
+      nav,
+      privacyUrl(),
+      "Privacy Policy",
+      "page-link",
+    );
+    const contactLink = ensureNavLink(
       nav,
       `mailto:${CONTACT_EMAIL}`,
       "Contact us",
@@ -80,13 +85,15 @@
         ? supportBar.querySelector(".support-link").href
         : BUY_ME_COFFEE_URL;
 
-    ensureNavLink(
+    const coffeeLink = ensureNavLink(
       nav,
       coffeeHref,
       "Buy Me a Coffee",
       "page-link page-link--support",
       { external: true },
     );
+
+    nav.append(homeLink, privacyLink, contactLink, coffeeLink);
 
     if (supportBar) supportBar.remove();
 
