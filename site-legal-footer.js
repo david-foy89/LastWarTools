@@ -28,11 +28,13 @@
 
     const privacy = document.createElement("a");
     privacy.href = privacyUrl();
+    privacy.className = "page-link";
     privacy.textContent = "Privacy Policy";
     nav.appendChild(privacy);
 
     const home = document.createElement("a");
     home.href = location.protocol === "file:" ? "index.html" : "/index.html";
+    home.className = "page-link";
     home.textContent = "Home";
     nav.appendChild(home);
 
@@ -75,7 +77,7 @@
 
     const accept = document.createElement("button");
     accept.type = "button";
-    accept.className = "lw-cookie-notice__accept";
+    accept.className = "action-button lw-cookie-notice__accept";
     accept.textContent = "OK";
     accept.addEventListener("click", function () {
       try {
@@ -89,9 +91,8 @@
 
     const policy = document.createElement("a");
     policy.href = privacyUrl();
+    policy.className = "action-button action-button--quiet";
     policy.textContent = "Privacy Policy";
-    policy.style.alignSelf = "center";
-    policy.style.marginLeft = "4px";
 
     actions.appendChild(accept);
     actions.appendChild(policy);
