@@ -44,6 +44,7 @@ function buildRedirect(url) {
 <html lang="en">
 <head>
   <meta charset="utf-8" />
+  <link rel="stylesheet" href="/adsense.css" />
 ${adsenseScript}
   <title>Redirecting…</title>
   <link rel="canonical" href="${esc}" />
@@ -57,6 +58,7 @@ ${adsenseScript}
     Redirecting to
     <a href="${esc}">${esc}</a>...
   </p>
+  <script src="/site-legal-footer.js" defer></script>
 </body>
 </html>
 `;

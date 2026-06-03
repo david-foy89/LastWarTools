@@ -68,10 +68,31 @@
   flex-shrink: 0;
 }
 
-/* Use site pill links — same as page nav */
+/* Pill links (also used when main site CSS is not loaded) */
 .site-legal-bar nav .page-link {
-  font-size: 0.84rem;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
   padding: 9px 13px;
+  border: 1px solid var(--line, #2b3d51);
+  border-radius: 999px;
+  background: rgba(8, 16, 25, 0.66);
+  color: var(--muted, #91a4b8);
+  font-size: 0.84rem;
+  font-weight: 700;
+  line-height: 1;
+  text-decoration: none;
+  transition:
+    border-color 140ms ease,
+    color 140ms ease,
+    box-shadow 140ms ease;
+}
+
+.site-legal-bar nav .page-link:hover,
+.site-legal-bar nav .page-link:focus-visible {
+  color: var(--text, #e4edf7);
+  border-color: rgba(116, 192, 252, 0.42);
+  outline: none;
 }
 
 .site-legal-bar__note {

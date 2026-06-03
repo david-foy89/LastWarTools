@@ -17,41 +17,69 @@
     }
   }
 
-  function injectLegalBar() {
-    if (document.querySelector(".site-legal-bar")) return;
+  function ensureNavLink(nav, href, text, className) {
+    const normalizedHref = String(href || "").trim();
+    const existing = Array.from(nav.querySelectorAll("a")).find(
+      (a) =>
+        a.textContent.trim() === text ||
+        String(a.getAttribute("href") || "").trim() === normalizedHref,
+    );
+    if (existing) return existing;
+    const link = document.createElement("a");
+    link.href = normalizedHref;
+    link.className = className;
+    link.textContent = text;
+    nav.appendChild(link);
+    return link;
+  }
 
-    const footer = document.createElement("footer");
+  function ensureContactLink(nav) {
+    return ensureNavLink(
+      nav,
+      `mailto:${CONTACT_EMAIL}`,
+      "Contact us",
+      "page-link",
+    );
+  }
+
+  function injectLegalBar() {
+    let footer = document.querySelector(".site-legal-bar");
+    if (footer) {
+      let nav = footer.querySelector("nav");
+      if (!nav) {
+        nav = document.createElement("nav");
+        nav.setAttribute("aria-label", "Legal");
+        footer.insertBefore(nav, footer.firstChild);
+      }
+      ensureNavLink(nav, privacyUrl(), "Privacy Policy", "page-link");
+      ensureNavLink(
+        nav,
+        location.protocol === "file:" ? "index.html" : "/index.html",
+        "Home",
+        "page-link",
+      );
+      ensureContactLink(nav);
+      footer.querySelectorAll(".site-legal-bar__note").forEach((el) => el.remove());
+      return;
+    }
+
+    footer = document.createElement("footer");
     footer.className = "site-legal-bar";
     footer.setAttribute("role", "contentinfo");
 
     const nav = document.createElement("nav");
     nav.setAttribute("aria-label", "Legal");
 
-    const privacy = document.createElement("a");
-    privacy.href = privacyUrl();
-    privacy.className = "page-link";
-    privacy.textContent = "Privacy Policy";
-    nav.appendChild(privacy);
-
-    const home = document.createElement("a");
-    home.href = location.protocol === "file:" ? "index.html" : "/index.html";
-    home.className = "page-link";
-    home.textContent = "Home";
-    nav.appendChild(home);
-
-    const contact = document.createElement("a");
-    contact.href = `mailto:${CONTACT_EMAIL}`;
-    contact.className = "page-link";
-    contact.textContent = "Contact us";
-    nav.appendChild(contact);
-
-    const note = document.createElement("p");
-    note.className = "site-legal-bar__note";
-    note.textContent =
-      "We use cookies and similar technologies for advertising (Google AdSense), optional sign-in (Firebase), and saving your preferences in the browser.";
+    ensureNavLink(nav, privacyUrl(), "Privacy Policy", "page-link");
+    ensureNavLink(
+      nav,
+      location.protocol === "file:" ? "index.html" : "/index.html",
+      "Home",
+      "page-link",
+    );
+    ensureContactLink(nav);
 
     footer.appendChild(nav);
-    footer.appendChild(note);
 
     const support = document.querySelector(".support-bar");
     if (support && support.parentNode) {

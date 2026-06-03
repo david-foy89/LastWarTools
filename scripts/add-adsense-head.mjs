@@ -11,6 +11,9 @@ const snippet = `    <link rel="stylesheet" href="/adsense.css" />
      crossorigin="anonymous"></script>
 `;
 
+const footerSnippet = `    <script src="/site-legal-footer.js" defer></script>
+`;
+
 const bodySnippet = `    <script src="/adsense-config.js"></script>
     <script src="/site-legal-footer.js" defer></script>
     <script src="/adsense-placements.js" defer></script>
