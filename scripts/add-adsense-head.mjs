@@ -7,11 +7,8 @@ import path from "path";
 const root = path.resolve(import.meta.dirname, "..");
 const marker = "ca-pub-1014488780102797";
 const snippet = `    <link rel="stylesheet" href="/adsense.css" />
-    <script
-      async
-      src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1014488780102797"
-      crossorigin="anonymous"
-    ></script>
+    <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1014488780102797"
+     crossorigin="anonymous"></script>
 `;
 
 const bodySnippet = `    <script src="/adsense-config.js"></script>
