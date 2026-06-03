@@ -1,5 +1,5 @@
 /**
- * Privacy / legal footer + optional cookie notice (AdSense & analytics disclosure).
+ * Site footer: Privacy, Home, Contact, Buy Me a Coffee. Optional cookie popup.
  */
 (function () {
   "use strict";
@@ -7,6 +7,7 @@
   const CONSENT_KEY = "lastWarSiteConsentV1";
   const PRIVACY_HREF = "/privacy-policy.html";
   const CONTACT_EMAIL = "support@lastwarsurvivaltools.com";
+  const BUY_ME_COFFEE_URL = "https://buymeacoffee.com/dkfoy56w";
 
   function privacyUrl() {
     try {
@@ -17,58 +18,47 @@
     }
   }
 
-  function ensureNavLink(nav, href, text, className) {
+  function ensureNavLink(nav, href, text, className, options) {
+    options = options || {};
     const normalizedHref = String(href || "").trim();
     const existing = Array.from(nav.querySelectorAll("a")).find(
       (a) =>
         a.textContent.trim() === text ||
         String(a.getAttribute("href") || "").trim() === normalizedHref,
     );
-    if (existing) return existing;
-    const link = document.createElement("a");
-    link.href = normalizedHref;
-    link.className = className;
-    link.textContent = text;
-    nav.appendChild(link);
+    const link = existing || document.createElement("a");
+    if (!existing) {
+      link.href = normalizedHref;
+      link.className = className;
+      link.textContent = text;
+      nav.appendChild(link);
+    }
+    if (options.external) {
+      link.target = "_blank";
+      link.rel = "noopener noreferrer";
+    } else {
+      link.removeAttribute("target");
+      link.removeAttribute("rel");
+    }
     return link;
   }
 
-  function ensureContactLink(nav) {
-    return ensureNavLink(
-      nav,
-      `mailto:${CONTACT_EMAIL}`,
-      "Contact us",
-      "page-link",
-    );
+  function stripLegacyFooterCopy(footer) {
+    footer.querySelectorAll(".site-legal-bar__note").forEach((el) => el.remove());
+    footer.querySelectorAll("p").forEach((el) => {
+      if (/cookies and similar technologies/i.test(el.textContent || "")) {
+        el.remove();
+      }
+    });
   }
 
-  function injectLegalBar() {
-    let footer = document.querySelector(".site-legal-bar");
-    if (footer) {
-      let nav = footer.querySelector("nav");
-      if (!nav) {
-        nav = document.createElement("nav");
-        nav.setAttribute("aria-label", "Legal");
-        footer.insertBefore(nav, footer.firstChild);
-      }
-      ensureNavLink(nav, privacyUrl(), "Privacy Policy", "page-link");
-      ensureNavLink(
-        nav,
-        location.protocol === "file:" ? "index.html" : "/index.html",
-        "Home",
-        "page-link",
-      );
-      ensureContactLink(nav);
-      footer.querySelectorAll(".site-legal-bar__note").forEach((el) => el.remove());
-      return;
+  function ensureFooterNav(footer) {
+    let nav = footer.querySelector("nav");
+    if (!nav) {
+      nav = document.createElement("nav");
+      nav.setAttribute("aria-label", "Site footer");
+      footer.appendChild(nav);
     }
-
-    footer = document.createElement("footer");
-    footer.className = "site-legal-bar";
-    footer.setAttribute("role", "contentinfo");
-
-    const nav = document.createElement("nav");
-    nav.setAttribute("aria-label", "Legal");
 
     ensureNavLink(nav, privacyUrl(), "Privacy Policy", "page-link");
     ensureNavLink(
@@ -77,16 +67,49 @@
       "Home",
       "page-link",
     );
-    ensureContactLink(nav);
+    ensureNavLink(
+      nav,
+      `mailto:${CONTACT_EMAIL}`,
+      "Contact us",
+      "page-link",
+    );
 
-    footer.appendChild(nav);
+    const supportBar = document.querySelector(".support-bar");
+    const coffeeHref =
+      supportBar && supportBar.querySelector(".support-link")
+        ? supportBar.querySelector(".support-link").href
+        : BUY_ME_COFFEE_URL;
 
-    const support = document.querySelector(".support-bar");
-    if (support && support.parentNode) {
-      support.parentNode.insertBefore(footer, support);
-    } else {
-      document.body.appendChild(footer);
+    ensureNavLink(
+      nav,
+      coffeeHref,
+      "Buy Me a Coffee",
+      "page-link page-link--support",
+      { external: true },
+    );
+
+    if (supportBar) supportBar.remove();
+
+    stripLegacyFooterCopy(footer);
+    return nav;
+  }
+
+  function injectLegalBar() {
+    let footer = document.querySelector(".site-legal-bar");
+    if (!footer) {
+      footer = document.createElement("footer");
+      footer.className = "site-legal-bar";
+      footer.setAttribute("role", "contentinfo");
+
+      const support = document.querySelector(".support-bar");
+      if (support && support.parentNode) {
+        support.parentNode.insertBefore(footer, support);
+      } else {
+        document.body.appendChild(footer);
+      }
     }
+
+    ensureFooterNav(footer);
   }
 
   function injectCookieNotice() {
@@ -120,7 +143,6 @@
       } catch {
         /* ignore */
       }
-      box.classList.add("is-hidden");
       box.remove();
     });
 

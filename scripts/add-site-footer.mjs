@@ -8,7 +8,7 @@ import path from "path";
 const root = path.resolve(import.meta.dirname, "..");
 
 const cssLink = `    <link rel="stylesheet" href="/adsense.css" />\n`;
-const footerScript = `    <script src="/site-legal-footer.js" defer></script>\n`;
+const footerScript = `    <script src="/site-legal-footer.js?v=3" defer></script>\n`;
 
 function walk(dir, files = []) {
   for (const name of fs.readdirSync(dir)) {

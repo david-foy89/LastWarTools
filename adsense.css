@@ -45,9 +45,9 @@
   display: flex;
   flex-wrap: wrap;
   align-items: center;
-  justify-content: space-between;
-  gap: 14px 18px;
-  margin: 18px auto 10px;
+  justify-content: flex-start;
+  gap: 10px;
+  margin: 18px auto 14px;
   padding: 14px 18px;
   border-radius: 14px;
   border: 1px solid var(--line-soft, #37506a);
@@ -64,8 +64,14 @@
 .site-legal-bar nav {
   display: flex;
   flex-wrap: wrap;
+  align-items: center;
   gap: 10px;
-  flex-shrink: 0;
+  width: 100%;
+}
+
+/* Standalone support bar removed — link lives in footer nav */
+.support-bar {
+  display: none !important;
 }
 
 /* Pill links (also used when main site CSS is not loaded) */
@@ -95,15 +101,17 @@
   outline: none;
 }
 
-.site-legal-bar__note {
-  margin: 0;
-  flex: 1 1 220px;
-  line-height: 1.5;
-  font-size: 0.88rem;
+.site-legal-bar nav .page-link--support {
+  border-color: rgba(255, 146, 43, 0.45);
+  background: rgba(255, 146, 43, 0.1);
+  color: #ffd8a8;
 }
 
-.site-legal-bar__note strong {
-  color: var(--text, #e4edf7);
+.site-legal-bar nav .page-link--support:hover,
+.site-legal-bar nav .page-link--support:focus-visible {
+  color: #ffe8cc;
+  border-color: rgba(255, 146, 43, 0.8);
+  background: rgba(255, 146, 43, 0.2);
 }
 
 /* Cookie / ads consent — same panel + buttons as the rest of the site */
