@@ -6,6 +6,7 @@
 
   const CONSENT_KEY = "lastWarSiteConsentV1";
   const PRIVACY_HREF = "/privacy-policy.html";
+  const CONTACT_EMAIL = "support@lastwarsurvivaltools.com";
 
   function privacyUrl() {
     try {
@@ -37,6 +38,12 @@
     home.className = "page-link";
     home.textContent = "Home";
     nav.appendChild(home);
+
+    const contact = document.createElement("a");
+    contact.href = `mailto:${CONTACT_EMAIL}`;
+    contact.className = "page-link";
+    contact.textContent = "Contact us";
+    nav.appendChild(contact);
 
     const note = document.createElement("p");
     note.className = "site-legal-bar__note";
