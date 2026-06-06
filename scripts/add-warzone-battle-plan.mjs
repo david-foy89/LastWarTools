@@ -4,62 +4,12 @@
  */
 import fs from "fs";
 import path from "path";
+import {
+  BATTLE_PLAN_FILES,
+  applyWarzoneBattlePlanLayout,
+} from "./warzone-battle-plan-lib.mjs";
 
 const root = path.resolve(import.meta.dirname, "..");
-const files = [
-  "warzone-planner.html",
-  "season-1-warzone-planner.html",
-  "season-2-warzone-planner.html",
-  "season-3-warzone-planner.html",
-  "season-4-warzone-planner.html",
-  "season-5-warzone-planner.html",
-  "season-6-warzone-planner.html",
-];
-
-const cssBlock = `      .fwplanner-battle-plan {
-        margin-top: 16px;
-        background: linear-gradient(180deg, var(--panel) 0%, var(--panel-2) 100%);
-        border: 1px solid var(--line-soft);
-        border-radius: 12px;
-        padding: 15px;
-      }
-      .fwplanner-battle-plan h2 {
-        font-size: 0.85rem;
-        text-transform: uppercase;
-        letter-spacing: 0.06em;
-        color: var(--accent, #4dabf7);
-        margin: 0 0 8px;
-        font-weight: 700;
-      }
-      .fwplanner-battle-plan textarea {
-        width: 100%;
-        box-sizing: border-box;
-        min-height: 140px;
-        padding: 10px 12px;
-        background: rgba(8, 16, 25, 0.7);
-        border: 1px solid var(--line, #1e3a4d);
-        border-radius: 8px;
-        color: var(--text, #d9f0ff);
-        font: inherit;
-        font-size: 0.9rem;
-        line-height: 1.45;
-        resize: vertical;
-      }
-`;
-
-const htmlBlock = `        <section class="fwplanner-battle-plan" aria-labelledby="fwplannerBattlePlanTitle">
-          <h2 id="fwplannerBattlePlanTitle">Battle plan</h2>
-          <p class="fwplanner-hint">
-            Type your strategy here. Saved in this browser and included at the bottom of PNG exports.
-          </p>
-          <textarea
-            id="fwplannerBattlePlan"
-            rows="6"
-            maxlength="4000"
-            placeholder="e.g. Phase 1 — secure north shield. Phase 2 — rotate alliances to cannons..."
-          ></textarea>
-        </section>
-`;
 
 const scriptTag = `    <script src="warzone-planner-battle-plan.js"></script>\n`;
 
@@ -70,7 +20,15 @@ function patch(file) {
     return false;
   }
   let html = fs.readFileSync(full, "utf8");
-  if (html.includes("fwplannerBattlePlan")) {
+  const alreadyHasBattlePlan = html.includes("fwplannerBattlePlan");
+
+  if (alreadyHasBattlePlan) {
+    const laidOut = applyWarzoneBattlePlanLayout(html);
+    if (laidOut !== html) {
+      fs.writeFileSync(full, laidOut);
+      console.log("Layout fixed", file);
+      return true;
+    }
     console.log("Already patched", file);
     return false;
   }
@@ -79,12 +37,6 @@ function patch(file) {
     console.warn("No legend CSS anchor in", file);
     return false;
   }
-  html = html.replace(".fwplanner-legend {", cssBlock + "      .fwplanner-legend {");
-
-  html = html.replace(
-    /(\s*<\/aside>\s*\n\s*<\/div>\s*\n)(\s*<\/div>\s*\n\s*<\/div>\s*\n\s*<script>)/,
-    `$1${htmlBlock}$2`,
-  );
 
   if (!html.includes("warzone-planner-battle-plan.js")) {
     html = html.replace(/\n\s*<script>\s*\n\s*\(function \(\) \{/, `\n${scriptTag}    <script>\n      (function () {`);
@@ -195,13 +147,15 @@ function patch(file) {
         render();`,
   );
 
+  html = applyWarzoneBattlePlanLayout(html);
+
   fs.writeFileSync(full, html);
   console.log("Patched", file);
   return true;
 }
 
 let n = 0;
-for (const f of files) {
+for (const f of BATTLE_PLAN_FILES) {
   if (patch(f)) n++;
 }
 console.log(`Done. Patched ${n} file(s).`);
