@@ -151,8 +151,8 @@
         box-sizing: border-box;
         width: 100%;
         min-height: 0;
-        /* Image sets height; grows the column so no inner scroll at 100% (pins may extend into page) */
-        overflow: visible;
+        max-height: min(62vh, 720px);
+        overflow: auto;
         border: 1px solid var(--line, #1e3a4d);
         border-radius: 8px;
         background: #0a1218;
@@ -252,6 +252,38 @@
         flex: 1;
         min-width: 0;
         accent-color: var(--accent, #4dabf7);
+      }
+      .fwplanner-battle-plan {
+        margin-top: 10px;
+        padding-top: 10px;
+        border-top: 1px solid var(--line-soft);
+      }
+      .fwplanner-battle-plan h2 {
+        font-size: 0.85rem;
+        text-transform: uppercase;
+        letter-spacing: 0.06em;
+        color: var(--accent, #4dabf7);
+        margin: 0 0 6px;
+        font-weight: 700;
+      }
+      .fwplanner-battle-plan .fwplanner-hint {
+        margin: 0 0 8px;
+        font-size: 0.72rem;
+      }
+      .fwplanner-battle-plan textarea {
+        width: 100%;
+        box-sizing: border-box;
+        min-height: 88px;
+        max-height: 160px;
+        padding: 8px 10px;
+        background: rgba(8, 16, 25, 0.7);
+        border: 1px solid var(--line, #1e3a4d);
+        border-radius: 8px;
+        color: var(--text, #d9f0ff);
+        font: inherit;
+        font-size: 0.88rem;
+        line-height: 1.4;
+        resize: vertical;
       }
       .fwplanner-legend {
         font-size: 0.72rem;
@@ -438,6 +470,18 @@
                 <div id="fwplannerPins" aria-label="Map labels"></div>
               </div>
             </div>
+            <section class="fwplanner-battle-plan" aria-labelledby="fwplannerBattlePlanTitle">
+              <h2 id="fwplannerBattlePlanTitle">Battle plan</h2>
+              <p class="fwplanner-hint">
+                Saved in this browser and included at the bottom of PNG exports.
+              </p>
+              <textarea
+                id="fwplannerBattlePlan"
+                rows="4"
+                maxlength="4000"
+                placeholder="e.g. Phase 1 — secure north shield. Phase 2 — rotate alliances to cannons..."
+              ></textarea>
+            </section>
           </div>
 
           <aside class="fwplanner-panel sidebar" aria-label="Placing controls">
@@ -509,13 +553,13 @@
         </div>
       </div>
     </div>
-
+    <script src="warzone-planner-battle-plan.js"></script>
     <script>
       (function () {
         const STORAGE_KEY = "lwst-s1-warzone-planner-v1";
         /** At slider "100%", image width = this % of the stage; keep 100 to avoid scroll at default zoom. */
         const ZOOM_BASE_PCT = 100;
-        const state = { markers: [], nextId: 1, placeMode: false, scale: 1 };
+        const state = { markers: [], nextId: 1, placeMode: false, scale: 1, battlePlan: "" };
 
         const $ = (id) => document.getElementById(id);
         const viewport = $("fwplannerViewport");
@@ -530,6 +574,7 @@
         const list = $("fwplannerList");
         const statusEl = $("fwplannerStatus");
         const modeBtn = $("fwplannerModeBtn");
+        const battlePlanInput = $("fwplannerBattlePlan");
 
         function setStatus(t) {
           if (statusEl) statusEl.textContent = t || "";
@@ -539,7 +584,7 @@
           try {
             localStorage.setItem(
               STORAGE_KEY,
-              JSON.stringify({ markers: state.markers, nextId: state.nextId }),
+              JSON.stringify({ markers: state.markers, nextId: state.nextId, battlePlan: state.battlePlan || "" }),
             );
             setStatus("Saved in this browser.");
             window.setTimeout(function () {
@@ -575,6 +620,9 @@
             }
             if (Number.isFinite(data.nextId) && data.nextId > state.nextId) {
               state.nextId = data.nextId;
+            }
+            if (typeof data.battlePlan === "string") {
+              state.battlePlan = data.battlePlan;
             }
           } catch (e) {
             /* ignore */
@@ -770,7 +818,26 @@
             });
             xctx.restore();
           });
-          c.toBlob(
+                    let exportCanvas = c;
+          const battlePlanText = battlePlanInput
+            ? battlePlanInput.value
+            : state.battlePlan || "";
+          const bpMod = window.__lwWarzoneBattlePlan;
+          if (bpMod && bpMod.measureHeight && bpMod.draw) {
+            const extraH = bpMod.measureHeight(xctx, battlePlanText, W, scaleW);
+            if (extraH > 0) {
+              const full = document.createElement("canvas");
+              full.width = W;
+              full.height = H + extraH;
+              const fctx = full.getContext("2d");
+              if (fctx) {
+                fctx.drawImage(c, 0, 0);
+                bpMod.draw(fctx, battlePlanText, W, H, scaleW);
+                exportCanvas = full;
+              }
+            }
+          }
+          exportCanvas.toBlob(
             function (blob) {
               if (!blob) {
                 setStatus("Could not build PNG (browser blocked blob).");
@@ -1060,6 +1127,16 @@
           exportToPng();
         });
 
+        function syncBattlePlanFromInput() {
+          if (!battlePlanInput) return;
+          state.battlePlan = battlePlanInput.value;
+          save();
+        }
+
+        if (battlePlanInput) {
+          battlePlanInput.addEventListener("input", syncBattlePlanFromInput);
+        }
+
         zoom.addEventListener("input", function () {
           applyZoom();
         });
@@ -1068,6 +1145,9 @@
         }).observe(viewport);
 
         load();
+        if (battlePlanInput) {
+          battlePlanInput.value = state.battlePlan || "";
+        }
         render();
         applyZoom();
 
