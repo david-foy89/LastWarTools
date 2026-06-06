@@ -69,7 +69,7 @@ export const BATTLE_PLAN_SECTION = `            <section class="fwplanner-battle
                 id="fwplannerBattlePlan"
                 rows="4"
                 maxlength="4000"
-                placeholder="e.g. Phase 1 — secure north shield. Phase 2 — rotate alliances to cannons..."
+                placeholder="ex: Phase 1- Port in to south side and secure cannons"
               ></textarea>
             </section>`;
 
