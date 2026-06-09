@@ -77,9 +77,9 @@
     if (!trimmed) {
       return { height: 0, lines: [], titleSize: 0, bodySize: 0, lineH: 0, pad: 0 };
     }
-    const pad = Math.max(12, 16 * scaleW);
-    const titleSize = Math.max(14, 18 * scaleW);
-    const bodySize = Math.max(11, 14 * scaleW);
+    const pad = Math.max(14, 20 * scaleW);
+    const titleSize = Math.max(20, 28 * scaleW);
+    const bodySize = Math.max(16, 24 * scaleW);
     const innerW = Math.max(40, width - pad * 2);
     const measure = document.createElement("canvas").getContext("2d");
     measure.font = "700 " + titleSize + "px " + FONT;
@@ -87,7 +87,7 @@
     measure.font = "400 " + bodySize + "px " + FONT;
     const lines = buildLines(measure, trimmed, innerW);
     const lineH = bodySize * 1.35;
-    const gap = Math.max(6, 8 * scaleW);
+    const gap = Math.max(8, 12 * scaleW);
     const height = pad + titleH + gap + lines.length * lineH + pad;
     return { height, lines, titleSize, bodySize, lineH, pad, gap, innerW };
   }
