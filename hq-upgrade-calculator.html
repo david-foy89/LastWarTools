@@ -51,6 +51,71 @@
       <link rel="stylesheet" href="/adsense.css" />
       <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1014488780102797"
      crossorigin="anonymous"></script>
+    <style>
+      .hq-gov-hint {
+        margin: -4px 0 10px;
+        font-size: 0.82rem;
+        line-height: 1.45;
+        color: rgba(145, 164, 184, 0.92);
+      }
+      .hq-gov-role-options {
+        display: flex;
+        flex-direction: column;
+        gap: 8px;
+      }
+      .hq-gov-option {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        margin-bottom: 0;
+        padding: 11px 12px;
+        border: 1px solid var(--line);
+        border-radius: 10px;
+        background: #0c1825;
+        cursor: pointer;
+        text-transform: none;
+        letter-spacing: normal;
+        transition:
+          border-color 140ms ease,
+          background-color 140ms ease,
+          box-shadow 140ms ease;
+      }
+      .hq-gov-option:hover {
+        border-color: var(--line-soft);
+        background: #0f1d2c;
+      }
+      .hq-gov-option:has(input:checked) {
+        border-color: var(--accent-2);
+        background: rgba(77, 171, 247, 0.08);
+        box-shadow: 0 0 0 1px rgba(77, 171, 247, 0.18);
+      }
+      .hq-gov-option input[type="checkbox"] {
+        width: 16px;
+        height: 16px;
+        min-width: 16px;
+        margin: 0;
+        padding: 0;
+        flex-shrink: 0;
+        accent-color: var(--accent-2);
+        cursor: pointer;
+      }
+      .hq-gov-option__body {
+        display: flex;
+        flex-direction: column;
+        gap: 2px;
+        min-width: 0;
+      }
+      .hq-gov-option__title {
+        font-size: 0.92rem;
+        line-height: 1.35;
+        color: var(--text);
+      }
+      .hq-gov-option__bonus {
+        font-size: 0.75rem;
+        line-height: 1.3;
+        color: var(--accent);
+      }
+    </style>
   </head>
   <body>
     <div class="page">
@@ -328,6 +393,35 @@
               step="0.1"
               value="0"
             />
+          </div>
+          <div class="field">
+            <label>Government position</label>
+            <p class="hq-gov-hint">
+              Select your role to add its construction speed bonus to the estimate.
+            </p>
+            <div class="hq-gov-role-options">
+              <label class="hq-gov-option" for="govSecretaryDev">
+                <input type="checkbox" id="govSecretaryDev" />
+                <span class="hq-gov-option__body">
+                  <span class="hq-gov-option__title">Secretary of Development</span>
+                  <span class="hq-gov-option__bonus">+50% construction speed</span>
+                </span>
+              </label>
+              <label class="hq-gov-option" for="govSecretaryScience">
+                <input type="checkbox" id="govSecretaryScience" />
+                <span class="hq-gov-option__body">
+                  <span class="hq-gov-option__title">Secretary of Science</span>
+                  <span class="hq-gov-option__bonus">+25% construction speed</span>
+                </span>
+              </label>
+              <label class="hq-gov-option" for="govVicePresident">
+                <input type="checkbox" id="govVicePresident" />
+                <span class="hq-gov-option__body">
+                  <span class="hq-gov-option__title">Vice President</span>
+                  <span class="hq-gov-option__bonus">+20% construction speed</span>
+                </span>
+              </label>
+            </div>
           </div>
           <div class="field">
             <label>Increase Free Speed Up Time</label>
@@ -930,6 +1024,15 @@
       const constructionSpeedPctInput = document.getElementById(
         "constructionSpeedPct",
       );
+      const govSecretaryDevInput = document.getElementById("govSecretaryDev");
+      const govSecretaryScienceInput =
+        document.getElementById("govSecretaryScience");
+      const govVicePresidentInput = document.getElementById("govVicePresident");
+      const GOV_ROLE_CONSTRUCTION_SPEED = {
+        govSecretaryDev: 50,
+        govSecretaryScience: 25,
+        govVicePresident: 20,
+      };
       const freeSpeedupHoursInput = document.getElementById("freeSpeedupHours");
       const freeSpeedupMinutesInput =
         document.getElementById("freeSpeedupMinutes");
@@ -1391,6 +1494,25 @@
         const seconds = Number(match[4] || 0);
 
         return days * 86400 + hours * 3600 + minutes * 60 + seconds;
+      }
+
+      function getGovernmentConstructionSpeedBonus() {
+        let bonus = 0;
+        if (govSecretaryDevInput?.checked) {
+          bonus += GOV_ROLE_CONSTRUCTION_SPEED.govSecretaryDev;
+        }
+        if (govSecretaryScienceInput?.checked) {
+          bonus += GOV_ROLE_CONSTRUCTION_SPEED.govSecretaryScience;
+        }
+        if (govVicePresidentInput?.checked) {
+          bonus += GOV_ROLE_CONSTRUCTION_SPEED.govVicePresident;
+        }
+        return bonus;
+      }
+
+      function getEffectiveConstructionSpeedPct() {
+        const manual = Math.max(0, Number(constructionSpeedPctInput.value) || 0);
+        return manual + getGovernmentConstructionSpeedBonus();
       }
 
       function applyConstructionSpeed(
@@ -1881,6 +2003,9 @@
               0,
               Number(constructionSpeedPctInput.value) || 0,
             ),
+            govSecretaryDev: !!govSecretaryDevInput?.checked,
+            govSecretaryScience: !!govSecretaryScienceInput?.checked,
+            govVicePresident: !!govVicePresidentInput?.checked,
             freeSpeedupHours: Math.max(
               0,
               Math.floor(Number(freeSpeedupHoursInput.value) || 0),
@@ -1990,6 +2115,16 @@
             );
           }
 
+          if (govSecretaryDevInput) {
+            govSecretaryDevInput.checked = !!state.govSecretaryDev;
+          }
+          if (govSecretaryScienceInput) {
+            govSecretaryScienceInput.checked = !!state.govSecretaryScience;
+          }
+          if (govVicePresidentInput) {
+            govVicePresidentInput.checked = !!state.govVicePresident;
+          }
+
           if (Number.isFinite(Number(state.freeSpeedupHours))) {
             freeSpeedupHoursInput.value = String(
               Math.max(0, Math.floor(Number(state.freeSpeedupHours))),
@@ -2097,10 +2232,7 @@
         }
 
         const allianceTechPct = Number(allianceTechSelect.value || 0);
-        const constructionSpeedPct = Math.max(
-          0,
-          Number(constructionSpeedPctInput.value) || 0,
-        );
+        const constructionSpeedPct = getEffectiveConstructionSpeedPct();
         const freeSpeedupHours = Math.max(
           0,
           Math.floor(Number(freeSpeedupHoursInput.value) || 0),
@@ -2393,6 +2525,9 @@
       timeZoneSelect.addEventListener("change", updateCalculator);
       allianceTechSelect.addEventListener("change", updateCalculator);
       constructionSpeedPctInput.addEventListener("input", updateCalculator);
+      govSecretaryDevInput.addEventListener("change", updateCalculator);
+      govSecretaryScienceInput.addEventListener("change", updateCalculator);
+      govVicePresidentInput.addEventListener("change", updateCalculator);
       freeSpeedupHoursInput.addEventListener("input", updateCalculator);
       freeSpeedupMinutesInput.addEventListener("input", updateCalculator);
       helpSpeedupHoursInput.addEventListener("input", updateCalculator);
