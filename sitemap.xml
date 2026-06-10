@@ -1,87 +1,273 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
   <url>
-    <loc>https://lastwarsurvivaltools.com/altar-calculator.html</loc>
-    <lastmod>2026-03-20</lastmod>
-  </url>
-  <url>
-    <loc>https://lastwarsurvivaltools.com/caffeine-institute-calculator.html</loc>
-    <lastmod>2026-03-20</lastmod>
-  </url>
-  <url>
-    <loc>https://lastwarsurvivaltools.com/curse-research-lab-calculator.html</loc>
-    <lastmod>2026-03-20</lastmod>
-  </url>
-  <url>
-    <loc>https://lastwarsurvivaltools.com/ds-tracker.html</loc>
-    <lastmod>2026-03-26</lastmod>
-  </url>
-  <url>
-    <loc>https://lastwarsurvivaltools.com/hq-upgrade-calculator.html</loc>
-    <lastmod>2026-03-20</lastmod>
-  </url>
-  <url>
     <loc>https://lastwarsurvivaltools.com/index.html</loc>
-    <lastmod>2026-03-20</lastmod>
-  </url>
-  <url>
-    <loc>https://lastwarsurvivaltools.com/privacy-policy.html</loc>
-    <lastmod>2026-05-22</lastmod>
+    <lastmod>2026-06-10</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>1.0</priority>
   </url>
   <url>
     <loc>https://lastwarsurvivaltools.com/account.html</loc>
-    <lastmod>2026-03-27</lastmod>
+    <lastmod>2026-06-10</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+  </url>
+  <url>
+    <loc>https://lastwarsurvivaltools.com/alliance-hive.html</loc>
+    <lastmod>2026-06-10</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+  </url>
+  <url>
+    <loc>https://lastwarsurvivaltools.com/altar-calculator.html</loc>
+    <lastmod>2026-06-10</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+  </url>
+  <url>
+    <loc>https://lastwarsurvivaltools.com/caffeine-institute-calculator.html</loc>
+    <lastmod>2026-06-10</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+  </url>
+  <url>
+    <loc>https://lastwarsurvivaltools.com/copper-war-tracker.html</loc>
+    <lastmod>2026-06-10</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+  </url>
+  <url>
+    <loc>https://lastwarsurvivaltools.com/curse-research-lab-calculator.html</loc>
+    <lastmod>2026-06-10</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+  </url>
+  <url>
+    <loc>https://lastwarsurvivaltools.com/ds-tracker.html</loc>
+    <lastmod>2026-06-10</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.85</priority>
+  </url>
+  <url>
+    <loc>https://lastwarsurvivaltools.com/fungus-institute-calculator.html</loc>
+    <lastmod>2026-06-10</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+  </url>
+  <url>
+    <loc>https://lastwarsurvivaltools.com/hq-upgrade-calculator.html</loc>
+    <lastmod>2026-06-10</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.9</priority>
   </url>
   <url>
     <loc>https://lastwarsurvivaltools.com/last-war-furnace-upgrade-calculator.html</loc>
-    <lastmod>2026-03-20</lastmod>
+    <lastmod>2026-06-10</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
   </url>
   <url>
     <loc>https://lastwarsurvivaltools.com/lighthouse-s4-calculator.html</loc>
-    <lastmod>2026-03-20</lastmod>
+    <lastmod>2026-06-10</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
   </url>
   <url>
     <loc>https://lastwarsurvivaltools.com/optoelectronic-lab-calculator.html</loc>
-    <lastmod>2026-03-20</lastmod>
+    <lastmod>2026-06-10</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+  </url>
+  <url>
+    <loc>https://lastwarsurvivaltools.com/privacy-policy.html</loc>
+    <lastmod>2026-06-10</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
   </url>
   <url>
     <loc>https://lastwarsurvivaltools.com/protectors-field-calculator.html</loc>
-    <lastmod>2026-03-20</lastmod>
+    <lastmod>2026-06-10</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
   </url>
   <url>
     <loc>https://lastwarsurvivaltools.com/protectors-field-s4-calculator.html</loc>
-    <lastmod>2026-03-20</lastmod>
+    <lastmod>2026-06-10</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
   </url>
   <url>
     <loc>https://lastwarsurvivaltools.com/protectors-field-s5-calculator.html</loc>
-    <lastmod>2026-03-20</lastmod>
+    <lastmod>2026-06-10</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+  </url>
+  <url>
+    <loc>https://lastwarsurvivaltools.com/rare-soil-war-tracker.html</loc>
+    <lastmod>2026-06-10</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+  </url>
+  <url>
+    <loc>https://lastwarsurvivaltools.com/season-1-interactive-map.html</loc>
+    <lastmod>2026-06-10</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
   </url>
   <url>
     <loc>https://lastwarsurvivaltools.com/season-1-squad-base-calculator.html</loc>
-    <lastmod>2026-03-20</lastmod>
+    <lastmod>2026-06-10</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+  </url>
+  <url>
+    <loc>https://lastwarsurvivaltools.com/season-1-warzone-planner.html</loc>
+    <lastmod>2026-06-10</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+  </url>
+  <url>
+    <loc>https://lastwarsurvivaltools.com/season-2-interactive-map.html</loc>
+    <lastmod>2026-06-10</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+  </url>
+  <url>
+    <loc>https://lastwarsurvivaltools.com/season-2-supplies-checklist.html</loc>
+    <lastmod>2026-06-10</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
   </url>
   <url>
     <loc>https://lastwarsurvivaltools.com/season-2-tank-center-calculator.html</loc>
-    <lastmod>2026-03-20</lastmod>
+    <lastmod>2026-06-10</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+  </url>
+  <url>
+    <loc>https://lastwarsurvivaltools.com/season-2-warzone-planner.html</loc>
+    <lastmod>2026-06-10</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+  </url>
+  <url>
+    <loc>https://lastwarsurvivaltools.com/season-3-desert-artifacts-checklist.html</loc>
+    <lastmod>2026-06-10</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+  </url>
+  <url>
+    <loc>https://lastwarsurvivaltools.com/season-3-interactive-map.html</loc>
+    <lastmod>2026-06-10</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+  </url>
+  <url>
+    <loc>https://lastwarsurvivaltools.com/season-3-warzone-planner.html</loc>
+    <lastmod>2026-06-10</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+  </url>
+  <url>
+    <loc>https://lastwarsurvivaltools.com/season-4-interactive-map.html</loc>
+    <lastmod>2026-06-10</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+  </url>
+  <url>
+    <loc>https://lastwarsurvivaltools.com/season-4-warzone-planner.html</loc>
+    <lastmod>2026-06-10</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+  </url>
+  <url>
+    <loc>https://lastwarsurvivaltools.com/season-5-interactive-map.html</loc>
+    <lastmod>2026-06-10</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
   </url>
   <url>
     <loc>https://lastwarsurvivaltools.com/season-5-squad-base-calculator.html</loc>
-    <lastmod>2026-03-20</lastmod>
+    <lastmod>2026-06-10</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+  </url>
+  <url>
+    <loc>https://lastwarsurvivaltools.com/season-5-warzone-planner.html</loc>
+    <lastmod>2026-06-10</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+  </url>
+  <url>
+    <loc>https://lastwarsurvivaltools.com/season-6-interactive-map.html</loc>
+    <lastmod>2026-06-10</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+  </url>
+  <url>
+    <loc>https://lastwarsurvivaltools.com/season-6-squad-base-calculator.html</loc>
+    <lastmod>2026-06-10</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+  </url>
+  <url>
+    <loc>https://lastwarsurvivaltools.com/season-6-warzone-planner.html</loc>
+    <lastmod>2026-06-10</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+  </url>
+  <url>
+    <loc>https://lastwarsurvivaltools.com/server-search.html</loc>
+    <lastmod>2026-06-10</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+  </url>
+  <url>
+    <loc>https://lastwarsurvivaltools.com/spice-war-tracker.html</loc>
+    <lastmod>2026-06-10</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
   </url>
   <url>
     <loc>https://lastwarsurvivaltools.com/t10-troops-calculator.html</loc>
-    <lastmod>2026-03-20</lastmod>
+    <lastmod>2026-06-10</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
   </url>
   <url>
     <loc>https://lastwarsurvivaltools.com/t11-troops-calculator.html</loc>
-    <lastmod>2026-03-20</lastmod>
+    <lastmod>2026-06-10</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
   </url>
   <url>
-    <loc>https://lastwarsurvivaltools.com/virus-research-institute-calculator.html</loc>
-    <lastmod>2026-03-20</lastmod>
+    <loc>https://lastwarsurvivaltools.com/train-conductor-schedule.html</loc>
+    <lastmod>2026-06-10</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+  </url>
+  <url>
+    <loc>https://lastwarsurvivaltools.com/transfer-tracker.html</loc>
+    <lastmod>2026-06-10</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.85</priority>
   </url>
   <url>
     <loc>https://lastwarsurvivaltools.com/verus-tracker.html</loc>
-    <lastmod>2026-03-26</lastmod>
+    <lastmod>2026-06-10</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.85</priority>
+  </url>
+  <url>
+    <loc>https://lastwarsurvivaltools.com/virus-research-institute-calculator.html</loc>
+    <lastmod>2026-06-10</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+  </url>
+  <url>
+    <loc>https://lastwarsurvivaltools.com/warzone-planner.html</loc>
+    <lastmod>2026-06-10</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.9</priority>
   </url>
 </urlset>
