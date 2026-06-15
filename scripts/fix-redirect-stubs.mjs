@@ -3,8 +3,10 @@
  */
 import fs from "fs";
 import path from "path";
+import { buildGtagSnippet } from "./analytics-lib.mjs";
 
 const root = path.resolve(import.meta.dirname, "..");
+const gtagSnippet = buildGtagSnippet("  ");
 const adsenseScript = `  <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1014488780102797"
      crossorigin="anonymous"></script>`;
 
@@ -45,8 +47,8 @@ function buildRedirect(url) {
 <head>
   <meta charset="utf-8" />
   <meta name="robots" content="noindex, nofollow" />
+${gtagSnippet}${adsenseScript}
   <link rel="stylesheet" href="/adsense.css" />
-${adsenseScript}
   <title>Redirecting…</title>
   <link rel="canonical" href="${esc}" />
   <meta http-equiv="refresh" content="0; url=${esc}" />

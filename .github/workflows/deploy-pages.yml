@@ -135,6 +135,7 @@ jobs:
       - name: Refresh SEO artifacts
         run: |
           node scripts/fix-redirect-stubs.mjs
+          node scripts/add-google-analytics.mjs
           node scripts/generate-sitemap.mjs
 
       - name: Upload artifact
