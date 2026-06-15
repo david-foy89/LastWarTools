@@ -21,18 +21,24 @@ function walk(dir, files = []) {
 
 function stripExistingGtag(html) {
   return html
-    .replace(
-      /\s*<!-- Google tag \(gtag\.js\) -->\s*/gi,
-      "\n",
-    )
+    .replace(/\s*<!-- Google tag \(gtag\.js\) -->\s*/gi, "\n")
     .replace(
       /\s*<script\b[^>]*\bsrc=["']https:\/\/www\.googletagmanager\.com\/gtag\/js\?id=G-[^"']+["'][^>]*>\s*<\/script>/gi,
       "",
     )
+    .replace(/\s*<script\b[^>]*\bsrc=["']\/google-analytics-config\.js["'][^>]*>\s*<\/script>/gi, "")
     .replace(
-      /\s*<script>\s*window\.dataLayer[\s\S]*?gtag\('config',\s*'G-[^']+'\);\s*<\/script>/gi,
+      /\s*<script>\s*window\.dataLayer[\s\S]*?gtag\(['"]config['"],\s*['"]G-[^'"]+['"]\);\s*<\/script>/gi,
       "",
     );
+}
+
+function hasGtag(html) {
+  return (
+    html.includes(GA_MEASUREMENT_ID) &&
+    html.includes("googletagmanager.com/gtag/js") &&
+    html.includes("google-analytics-config.js")
+  );
 }
 
 function insertGtag(html) {
@@ -40,9 +46,17 @@ function insertGtag(html) {
     return null;
   }
   const cleaned = stripExistingGtag(html);
-  if (cleaned.includes(GA_MEASUREMENT_ID) && cleaned.includes("googletagmanager.com/gtag/js")) {
+  if (hasGtag(cleaned)) {
     return cleaned;
   }
+
+  if (/<meta\s+charset=/i.test(cleaned)) {
+    return cleaned.replace(
+      /(<meta\s+charset=[^>]*>\s*)/i,
+      `$1\n${snippet}`,
+    );
+  }
+
   return cleaned.replace(/<head([^>]*)>/i, `<head$1>\n${snippet}`);
 }
 
