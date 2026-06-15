@@ -1,4 +1,14 @@
 User-agent: *
 Allow: /
 
+# Legacy folder paths are redirect stubs; canonical tools live at site root.
+Disallow: /season-1/
+Disallow: /season-2/
+Disallow: /season-3/
+Disallow: /season-4/
+Disallow: /season-5/
+Disallow: /season-6/
+Disallow: /troop-tools/
+Disallow: /transfer-submit.html
+
 Sitemap: https://lastwarsurvivaltools.com/sitemap.xml

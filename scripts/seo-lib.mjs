@@ -148,6 +148,9 @@ const OG_IMAGE_BY_FILE = {
 };
 
 export function pageUrl(filename) {
+  if (filename === "index.html") {
+    return `${SITE_ORIGIN}/`;
+  }
   return `${SITE_ORIGIN}/${filename}`;
 }
 

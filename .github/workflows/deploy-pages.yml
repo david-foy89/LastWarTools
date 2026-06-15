@@ -132,6 +132,11 @@ jobs:
           console.log("Wrote anthropic-config.js (proxy URL only, no API key).");
           NODE_SCRIPT
 
+      - name: Refresh SEO artifacts
+        run: |
+          node scripts/fix-redirect-stubs.mjs
+          node scripts/generate-sitemap.mjs
+
       - name: Upload artifact
         uses: actions/upload-pages-artifact@v4
         with:
