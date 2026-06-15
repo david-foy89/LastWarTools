@@ -37,7 +37,8 @@ function hasGtag(html) {
   return (
     html.includes(GA_MEASUREMENT_ID) &&
     html.includes("googletagmanager.com/gtag/js") &&
-    html.includes("google-analytics-config.js")
+    /window\.dataLayer/.test(html) &&
+    /gtag\(['"]config['"],\s*['"]G-34RS45FLKS['"]\)/.test(html)
   );
 }
 
@@ -49,14 +50,6 @@ function insertGtag(html) {
   if (hasGtag(cleaned)) {
     return cleaned;
   }
-
-  if (/<meta\s+charset=/i.test(cleaned)) {
-    return cleaned.replace(
-      /(<meta\s+charset=[^>]*>\s*)/i,
-      `$1\n${snippet}`,
-    );
-  }
-
   return cleaned.replace(/<head([^>]*)>/i, `<head$1>\n${snippet}`);
 }
 
