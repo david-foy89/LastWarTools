@@ -4,7 +4,7 @@
  */
 import fs from "fs";
 import path from "path";
-import { buildGtagSnippet, GA_MEASUREMENT_ID } from "./analytics-lib.mjs";
+import { buildGtagSnippet, GA_MEASUREMENT_ID, GA_TAG_ID } from "./analytics-lib.mjs";
 
 const root = path.resolve(import.meta.dirname, "..");
 const snippet = buildGtagSnippet("    ");
@@ -23,22 +23,21 @@ function stripExistingGtag(html) {
   return html
     .replace(/\s*<!-- Google tag \(gtag\.js\) -->\s*/gi, "\n")
     .replace(
-      /\s*<script\b[^>]*\bsrc=["']https:\/\/www\.googletagmanager\.com\/gtag\/js\?id=G-[^"']+["'][^>]*>\s*<\/script>/gi,
+      /\s*<script\b[^>]*\bsrc=["']https:\/\/www\.googletagmanager\.com\/gtag\/js\?id=(?:G|GT|AW|DC)-[^"']+["'][^>]*>\s*<\/script>/gi,
       "",
     )
     .replace(/\s*<script\b[^>]*\bsrc=["']\/google-analytics-config\.js["'][^>]*>\s*<\/script>/gi, "")
     .replace(
-      /\s*<script>\s*window\.dataLayer[\s\S]*?gtag\(['"]config['"],\s*['"]G-[^'"]+['"]\);\s*<\/script>/gi,
+      /\s*<script>\s*window\.dataLayer[\s\S]*?gtag\(['"]config['"],\s*['"](?:G|GT|AW|DC)-[^'"]+['"]\);\s*<\/script>/gi,
       "",
     );
 }
 
 function hasGtag(html) {
   return (
-    html.includes(GA_MEASUREMENT_ID) &&
+    html.includes(GA_TAG_ID) &&
     html.includes("googletagmanager.com/gtag/js") &&
-    /window\.dataLayer/.test(html) &&
-    /gtag\(['"]config['"],\s*['"]G-34RS45FLKS['"]\)/.test(html)
+    new RegExp(`gtag\\(['"]config['"],\\s*['"]${GA_TAG_ID}['"]\\)`).test(html)
   );
 }
 
@@ -72,4 +71,4 @@ for (const file of walk(root)) {
   console.log("Updated", path.relative(root, file));
 }
 
-console.log(`Done. Updated ${updated}, skipped ${skipped}.`);
+console.log(`Done. Updated ${updated}, skipped ${skipped}. Tag ${GA_TAG_ID} → ${GA_MEASUREMENT_ID}.`);
