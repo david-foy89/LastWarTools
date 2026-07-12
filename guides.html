@@ -1,0 +1,701 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <!-- Google tag (gtag.js) -->
+    <script async src="https://www.googletagmanager.com/gtag/js?id=GT-5R3WG7DP"></script>
+    <script>
+      window.dataLayer = window.dataLayer || [];
+      function gtag(){dataLayer.push(arguments);}
+      gtag('js', new Date());
+      gtag('config', 'GT-5R3WG7DP');
+    </script>
+
+    <meta charset="UTF-8" />
+    <link rel="icon" href="/favicon.ico" sizes="32x32" type="image/x-icon" />
+    <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Guides — Last War Tools</title>
+    <meta
+      name="description"
+      content="Visual Last War guides for hero roles, defensive supports, damage dealers, and Season 3 essentials. Browse full-size infographics by SandrineF."
+    />
+    <meta name="robots" content="index, follow" />
+    <link rel="canonical" href="https://lastwarsurvivaltools.com/guides.html" />
+    <meta property="og:site_name" content="Last War Tools" />
+    <meta property="og:locale" content="en_US" />
+    <meta property="og:type" content="website" />
+    <meta property="og:title" content="Guides — Last War Tools" />
+    <meta
+      property="og:description"
+      content="Visual Last War guides for hero roles, defensive supports, damage dealers, and Season 3 essentials. Browse full-size infographics by SandrineF."
+    />
+    <meta property="og:url" content="https://lastwarsurvivaltools.com/guides.html" />
+    <meta property="og:image" content="https://lastwarsurvivaltools.com/media/guides/season-3-essential-guide.png" />
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:title" content="Guides — Last War Tools" />
+    <meta
+      name="twitter:description"
+      content="Visual Last War guides for hero roles, defensive supports, damage dealers, and Season 3 essentials. Browse full-size infographics by SandrineF."
+    />
+    <meta name="twitter:image" content="https://lastwarsurvivaltools.com/media/guides/season-3-essential-guide.png" />
+    <script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "CollectionPage",
+  "name": "Guides — Last War Tools",
+  "description": "Visual Last War guides for hero roles, defensive supports, damage dealers, and Season 3 essentials.",
+  "url": "https://lastwarsurvivaltools.com/guides.html",
+  "image": "https://lastwarsurvivaltools.com/media/guides/season-3-essential-guide.png",
+  "publisher": {
+    "@type": "Organization",
+    "name": "Last War Tools",
+    "url": "https://lastwarsurvivaltools.com/"
+  }
+}
+    </script>
+    <link rel="stylesheet" href="google-translate-toolbar-hide.css" />
+    <link rel="stylesheet" href="last-war-furnace-upgrade-calculator.css" />
+    <script src="firebase-config.example.js"></script>
+    <script src="firebase-config.js"></script>
+    <script>
+      if (typeof window.__lwSanitizeAppCheckSiteKey === "function") {
+        window.__lwSanitizeAppCheckSiteKey();
+      }
+      if (typeof window.__lwApplyFirebaseAppCheckDebug === "function") {
+        window.__lwApplyFirebaseAppCheckDebug();
+      }
+    </script>
+    <script src="page-nav-dropdown.js" defer></script>
+    <script src="language-translate.js" defer></script>
+    <link rel="stylesheet" href="/adsense.css" />
+    <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1014488780102797"
+     crossorigin="anonymous"></script>
+    <style>
+      .guides-layout {
+        grid-template-columns: 1fr;
+      }
+
+      .guide-filters {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 10px;
+        margin-bottom: 18px;
+      }
+
+      .guide-filter-btn {
+        cursor: pointer;
+        border: 1px solid var(--line-soft);
+        border-radius: 999px;
+        background: rgba(12, 24, 37, 0.88);
+        color: var(--muted);
+        padding: 10px 16px;
+        font: inherit;
+        font-size: 0.88rem;
+        font-weight: 700;
+        transition:
+          border-color 140ms ease,
+          background-color 140ms ease,
+          color 140ms ease;
+      }
+
+      .guide-filter-btn:hover,
+      .guide-filter-btn:focus-visible {
+        border-color: var(--accent-2);
+        color: var(--text);
+        outline: none;
+      }
+
+      .guide-filter-btn.active {
+        border-color: rgba(116, 192, 252, 0.55);
+        background: rgba(116, 192, 252, 0.14);
+        color: var(--text);
+      }
+
+      .guide-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(min(100%, 280px), 1fr));
+        gap: 18px;
+      }
+
+      .guide-card {
+        display: flex;
+        flex-direction: column;
+        gap: 12px;
+        border: 1px solid var(--line);
+        border-radius: 14px;
+        background: rgba(8, 16, 25, 0.55);
+        overflow: hidden;
+        transition:
+          border-color 140ms ease,
+          transform 140ms ease,
+          box-shadow 140ms ease;
+      }
+
+      .guide-card:hover,
+      .guide-card:focus-within {
+        border-color: var(--accent-2);
+        transform: translateY(-2px);
+        box-shadow: 0 10px 28px rgba(0, 0, 0, 0.28);
+      }
+
+      .guide-card__thumb-btn {
+        cursor: pointer;
+        display: block;
+        width: 100%;
+        padding: 0;
+        border: 0;
+        background: #0c1825;
+        line-height: 0;
+      }
+
+      .guide-card__thumb-btn img {
+        width: 100%;
+        height: auto;
+        display: block;
+      }
+
+      .guide-card__body {
+        display: flex;
+        flex-direction: column;
+        gap: 8px;
+        padding: 0 14px 14px;
+      }
+
+      .guide-card__category {
+        display: inline-flex;
+        align-self: flex-start;
+        align-items: center;
+        min-height: 28px;
+        padding: 4px 10px;
+        border: 1px solid rgba(116, 192, 252, 0.28);
+        border-radius: 999px;
+        background: rgba(116, 192, 252, 0.1);
+        color: var(--accent);
+        font-size: 0.72rem;
+        font-weight: 700;
+        letter-spacing: 0.04em;
+        text-transform: uppercase;
+      }
+
+      .guide-card__category--season {
+        border-color: rgba(255, 146, 43, 0.35);
+        background: rgba(255, 146, 43, 0.1);
+        color: #ffd8a8;
+      }
+
+      .guide-card__title {
+        margin: 0;
+        font-size: 1rem;
+        line-height: 1.35;
+        color: var(--text);
+      }
+
+      .guide-card__desc {
+        margin: 0;
+        font-size: 0.88rem;
+        line-height: 1.5;
+        color: var(--muted);
+      }
+
+      .guide-card__actions {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 8px;
+        margin-top: 4px;
+      }
+
+      .guide-card__actions .action-button {
+        cursor: pointer;
+        border: 1px solid var(--line-soft);
+        border-radius: 999px;
+        background: rgba(12, 24, 37, 0.88);
+        color: var(--text);
+        padding: 8px 12px;
+        font: inherit;
+        font-size: 0.82rem;
+        font-weight: 700;
+        text-decoration: none;
+        transition:
+          border-color 140ms ease,
+          background-color 140ms ease;
+      }
+
+      .guide-card__actions .action-button:hover,
+      .guide-card__actions .action-button:focus-visible {
+        border-color: var(--accent-2);
+        outline: none;
+      }
+
+      .guide-attribution {
+        margin-top: 20px;
+        padding: 14px 16px;
+        border: 1px solid var(--line);
+        border-radius: 14px;
+        background: rgba(8, 16, 25, 0.45);
+        color: var(--muted);
+        font-size: 0.88rem;
+        line-height: 1.5;
+        text-align: center;
+      }
+
+      .guide-lightbox {
+        position: fixed;
+        inset: 0;
+        z-index: 1200;
+        display: none;
+        align-items: center;
+        justify-content: center;
+        padding: 24px;
+        background: rgba(4, 10, 16, 0.92);
+      }
+
+      .guide-lightbox.is-open {
+        display: flex;
+      }
+
+      .guide-lightbox__panel {
+        position: relative;
+        display: flex;
+        flex-direction: column;
+        gap: 12px;
+        width: min(1100px, 100%);
+        max-height: calc(100vh - 48px);
+        max-height: calc(100dvh - 48px);
+      }
+
+      .guide-lightbox__toolbar {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 12px;
+      }
+
+      .guide-lightbox__title {
+        margin: 0;
+        font-size: clamp(0.9rem, 2.8vw, 1rem);
+        line-height: 1.35;
+        color: var(--text);
+        min-width: 0;
+      }
+
+      .guide-lightbox__close {
+        cursor: pointer;
+        flex-shrink: 0;
+        width: 40px;
+        height: 40px;
+        border: 1px solid var(--line-soft);
+        border-radius: 999px;
+        background: rgba(12, 24, 37, 0.88);
+        color: var(--text);
+        font: inherit;
+        font-size: 1.2rem;
+        line-height: 1;
+      }
+
+      .guide-lightbox__close:hover,
+      .guide-lightbox__close:focus-visible {
+        border-color: var(--accent-2);
+        outline: none;
+      }
+
+      .guide-lightbox__image-wrap {
+        flex: 1;
+        min-height: 0;
+        overflow: auto;
+        -webkit-overflow-scrolling: touch;
+        border: 1px solid var(--line);
+        border-radius: 14px;
+        background: #0c1825;
+      }
+
+      .guide-lightbox__image-wrap img {
+        display: block;
+        width: 100%;
+        height: auto;
+      }
+
+      .guide-card.is-hidden {
+        display: none;
+      }
+
+      @media (max-width: 720px) {
+        .guide-grid {
+          grid-template-columns: 1fr;
+        }
+      }
+
+      @media (max-width: 640px) {
+        .guide-lightbox {
+          padding: 12px;
+          padding-bottom: max(12px, env(safe-area-inset-bottom));
+        }
+
+        .guide-lightbox__panel {
+          max-height: calc(100vh - 24px);
+          max-height: calc(100dvh - 24px);
+          height: calc(100vh - 24px);
+          height: calc(100dvh - 24px);
+        }
+
+        .guide-lightbox__toolbar {
+          align-items: flex-start;
+        }
+      }
+
+      @media (max-width: 520px) {
+        .guide-filters {
+          display: grid;
+          grid-template-columns: repeat(3, minmax(0, 1fr));
+          gap: 8px;
+        }
+
+        .guide-filter-btn {
+          width: 100%;
+          min-height: 44px;
+          padding: 10px 8px;
+          font-size: 0.82rem;
+        }
+
+        .guide-card__body {
+          padding: 0 12px 12px;
+        }
+
+        .guide-card__actions {
+          flex-direction: column;
+        }
+
+        .guide-card__actions .action-button {
+          display: inline-flex;
+          align-items: center;
+          justify-content: center;
+          width: 100%;
+          min-height: 44px;
+          text-align: center;
+        }
+
+        .guide-attribution {
+          font-size: 0.82rem;
+          padding: 12px;
+        }
+      }
+
+      @media (max-width: 380px) {
+        .guide-filters {
+          grid-template-columns: 1fr;
+        }
+      }
+
+      @media (hover: none) {
+        .guide-card:hover,
+        .guide-card:focus-within {
+          transform: none;
+        }
+      }
+    </style>
+  </head>
+  <body class="guides-page">
+    <div class="page">
+      <div class="page-top-stack">
+        <aside class="account-promo-strip" aria-label="Optional account">
+          <p class="account-promo-strip__text">
+            <strong>No account required.</strong> Every calculator works in your browser without signing up.
+            Create a free account only if you want to sync saved data across devices.
+          </p>
+          <div class="account-promo-actions">
+            <a href="account.html" class="action-button" data-account-auth-mode="signUp">Create account</a>
+            <a href="account.html" class="action-button action-button--quiet" data-account-auth-mode="signIn">Sign in</a>
+          </div>
+        </aside>
+        <div class="page-top-controls">
+          <div class="logo-control">
+            <a href="index.html" aria-label="Go to homepage">
+              <img src="media/lwst.png" alt="LWST logo" class="site-logo" />
+            </a>
+          </div>
+          <div class="language-control">
+            <label for="languageSelect">Language</label>
+            <select id="languageSelect"></select>
+          </div>
+        </div>
+      </div>
+      <div id="google_translate_element" class="hidden-translate"></div>
+
+      <nav class="page-nav" aria-label="Calculator pages">
+        <a href="hq-upgrade-calculator.html" class="page-link">HQ Upgrade</a>
+        <a href="guides.html" class="page-link active">Guides</a>
+        <details class="page-nav-dropdown" name="alliance-nav">
+          <summary class="page-link page-nav-dropdown-toggle">Alliance Tools</summary>
+          <div class="page-nav-dropdown-menu">
+            <a href="train-conductor-schedule.html" class="page-link">Train Conductor</a>
+            <a href="transfer-tracker.html" class="page-link">Transfer Tracker</a>
+            <a href="verus-tracker.html" class="page-link">Versus Tracker</a>
+            <a href="ds-tracker.html" class="page-link">Desert Storm Tracker/Planner</a>
+            <a href="server-search.html" class="page-link">Server Search</a>
+            <a href="warzone-planner.html" class="page-link">Warzone Planner</a>
+            <a href="alliance-hive.html" class="page-link">Hive Builder</a>
+          </div>
+        </details>
+        <details class="page-nav-dropdown" name="troop-nav">
+          <summary class="page-link page-nav-dropdown-toggle">Troop Tools</summary>
+          <div class="page-nav-dropdown-menu">
+            <a href="t10-troops-calculator.html" class="page-link">T10 Troops</a>
+            <a href="t11-troops-calculator.html" class="page-link">T11 Troops</a>
+          </div>
+        </details>
+        <details class="page-nav-dropdown" name="season-nav">
+          <summary class="page-link page-nav-dropdown-toggle">Season 1 Tools</summary>
+          <div class="page-nav-dropdown-menu">
+            <a href="virus-research-institute-calculator.html" class="page-link">Virus Research Institute</a>
+            <a href="season-1-squad-base-calculator.html" class="page-link">Season 1 Squad Base</a>
+            <a href="season-1-interactive-map.html" class="page-link">Interactive Map</a>
+            <a href="season-1-warzone-planner.html" class="page-link">Warzone Planner</a>
+          </div>
+        </details>
+        <details class="page-nav-dropdown" name="season-nav">
+          <summary class="page-link page-nav-dropdown-toggle">Season 2 Tools</summary>
+          <div class="page-nav-dropdown-menu">
+            <a href="last-war-furnace-upgrade-calculator.html" class="page-link">Furnace Calculator</a>
+            <a href="season-2-tank-center-calculator.html" class="page-link">Season 2 Squad Base</a>
+            <a href="season-2-interactive-map.html" class="page-link">Interactive Map</a>
+            <a href="season-2-warzone-planner.html" class="page-link">Warzone Planner</a>
+            <a href="season-2-supplies-checklist.html" class="page-link">Supplies Checklist</a>
+            <a href="rare-soil-war-tracker.html" class="page-link">Rare Soil War Tracker</a>
+          </div>
+        </details>
+        <details class="page-nav-dropdown" name="season-nav">
+          <summary class="page-link page-nav-dropdown-toggle">Season 3 Tools</summary>
+          <div class="page-nav-dropdown-menu">
+            <a href="curse-research-lab-calculator.html" class="page-link">Curse Research Lab</a>
+            <a href="altar-calculator.html" class="page-link">Altar</a>
+            <a href="protectors-field-calculator.html" class="page-link">Protector's Field</a>
+            <a href="season-3-desert-artifacts-checklist.html" class="page-link">Desert Artifacts</a>
+            <a href="season-3-interactive-map.html" class="page-link">Interactive Map</a>
+            <a href="season-3-warzone-planner.html" class="page-link">Warzone Planner</a>
+            <a href="spice-war-tracker.html" class="page-link">Spice War Tracker</a>
+          </div>
+        </details>
+        <details class="page-nav-dropdown" name="season-nav">
+          <summary class="page-link page-nav-dropdown-toggle">Season 4 Tools</summary>
+          <div class="page-nav-dropdown-menu">
+            <a href="optoelectronic-lab-calculator.html" class="page-link">Optoelectronic Lab</a>
+            <a href="protectors-field-s4-calculator.html" class="page-link">Protector's Field S4</a>
+            <a href="lighthouse-s4-calculator.html" class="page-link">Lighthouse S4</a>
+            <a href="season-4-interactive-map.html" class="page-link">Interactive Map</a>
+            <a href="season-4-warzone-planner.html" class="page-link">Warzone Planner</a>
+            <a href="copper-war-tracker.html" class="page-link">Copper War Tracker</a>
+          </div>
+        </details>
+        <details class="page-nav-dropdown" name="season-nav">
+          <summary class="page-link page-nav-dropdown-toggle">Season 5 Tools</summary>
+          <div class="page-nav-dropdown-menu">
+            <a href="caffeine-institute-calculator.html" class="page-link">Caffeine Institute</a>
+            <a href="protectors-field-s5-calculator.html" class="page-link">Protector's Field S5</a>
+            <a href="season-5-squad-base-calculator.html" class="page-link">Season 5 Tanker Bar</a>
+            <a href="season-5-interactive-map.html" class="page-link">Interactive Map</a>
+            <a href="season-5-warzone-planner.html" class="page-link">Warzone Planner</a>
+          </div>
+        </details>
+        <details class="page-nav-dropdown" name="season-nav">
+          <summary class="page-link page-nav-dropdown-toggle">Season 6 Tools</summary>
+          <div class="page-nav-dropdown-menu">
+            <a href="fungus-institute-calculator.html" class="page-link">Fungus Institute</a>
+            <a href="season-6-squad-base-calculator.html" class="page-link">Season 6 Squad Base</a>
+            <a href="season-6-interactive-map.html" class="page-link">Interactive Map</a>
+            <a href="season-6-warzone-planner.html" class="page-link">Warzone Planner</a>
+          </div>
+        </details>
+      </nav>
+
+      <section class="hero">
+        <h1>Guides</h1>
+        <div class="sub">
+          Visual reference guides for hero roles, squad building, and Season 3 strategy.
+          Tap any guide to view it full size.
+        </div>
+      </section>
+
+      <section class="layout guides-layout">
+        <div class="card">
+          <h2 class="card-title">Browse Guides</h2>
+          <div class="guide-filters" role="tablist" aria-label="Filter guides by category">
+            <button type="button" class="guide-filter-btn active" data-filter="all" role="tab" aria-selected="true">All</button>
+            <button type="button" class="guide-filter-btn" data-filter="heroes" role="tab" aria-selected="false">Heroes</button>
+            <button type="button" class="guide-filter-btn" data-filter="season-3" role="tab" aria-selected="false">Season 3</button>
+          </div>
+
+          <div class="guide-grid" id="guideGrid">
+            <article class="guide-card" data-category="heroes">
+              <button type="button" class="guide-card__thumb-btn" data-guide-open aria-label="Open Defensive Heroes &amp; Supports guide">
+                <img src="media/guides/defensive-heroes-supports.png" alt="Defensive Heroes and Supports guide showing Murphy, Williams, Lucius, Carlie, McGregor, Adam, and Marshall roles" loading="lazy" width="1200" height="675" />
+              </button>
+              <div class="guide-card__body">
+                <span class="guide-card__category">Heroes</span>
+                <h3 class="guide-card__title">Defensive Heroes &amp; Supports</h3>
+                <p class="guide-card__desc">
+                  Understand each defensive hero's role, EW10 first upgrade, and EW30 final upgrade — from Murphy's damage reduction to Marshall's team buffs.
+                </p>
+                <div class="guide-card__actions">
+                  <button type="button" class="action-button" data-guide-open>View full size</button>
+                  <a class="action-button" href="media/guides/defensive-heroes-supports.png" download>Download</a>
+                </div>
+              </div>
+            </article>
+
+            <article class="guide-card" data-category="heroes">
+              <button type="button" class="guide-card__thumb-btn" data-guide-open aria-label="Open Damage Heroes guide">
+                <img src="media/guides/damage-heroes.png" alt="Damage Heroes guide showing Kim, DVA, Tesla, Morrison, Fiona, Swift, Skyler, and Stetmann" loading="lazy" width="1200" height="675" />
+              </button>
+              <div class="guide-card__body">
+                <span class="guide-card__category">Heroes</span>
+                <h3 class="guide-card__title">Damage Heroes</h3>
+                <p class="guide-card__desc">
+                  Compare damage types, targets, fight timing windows, and EW30 impact for every major damage dealer in your squad.
+                </p>
+                <div class="guide-card__actions">
+                  <button type="button" class="action-button" data-guide-open>View full size</button>
+                  <a class="action-button" href="media/guides/damage-heroes.png" download>Download</a>
+                </div>
+              </div>
+            </article>
+
+            <article class="guide-card" data-category="season-3">
+              <button type="button" class="guide-card__thumb-btn" data-guide-open aria-label="Open Season 3 Essential Guide">
+                <img src="media/guides/season-3-essential-guide.png" alt="Season 3 Essential Guide covering resources, buildings, sandworms, greenification, and daily priorities" loading="lazy" width="1200" height="675" />
+              </button>
+              <div class="guide-card__body">
+                <span class="guide-card__category guide-card__category--season">Season 3</span>
+                <h3 class="guide-card__title">Season 3 Essential Guide</h3>
+                <p class="guide-card__desc">
+                  A complete overview of Holy Water, Mithril, season buildings, sandworms, Desert Protectors, upgrade priorities, and the season calendar.
+                </p>
+                <div class="guide-card__actions">
+                  <button type="button" class="action-button" data-guide-open>View full size</button>
+                  <a class="action-button" href="media/guides/season-3-essential-guide.png" download>Download</a>
+                </div>
+              </div>
+            </article>
+
+            <article class="guide-card" data-category="season-3">
+              <button type="button" class="guide-card__thumb-btn" data-guide-open aria-label="Open Season 3 Launch Checklist">
+                <img src="media/guides/season-3-launch-checklist.png" alt="Season 3 Launch Checklist for Saturday, Sunday, and Monday launch day tasks" loading="lazy" width="1200" height="675" />
+              </button>
+              <div class="guide-card__body">
+                <span class="guide-card__category guide-card__category--season">Season 3</span>
+                <h3 class="guide-card__title">Season 3 Launch Checklist</h3>
+                <p class="guide-card__desc">
+                  Day-by-day prep for season launch — from D-2 troop conservation through Monday first kills, Blessing Fountains, and sandworm events.
+                </p>
+                <div class="guide-card__actions">
+                  <button type="button" class="action-button" data-guide-open>View full size</button>
+                  <a class="action-button" href="media/guides/season-3-launch-checklist.png" download>Download</a>
+                </div>
+              </div>
+            </article>
+          </div>
+
+          <p class="guide-attribution">
+            Guides created by <strong>SandrineF</strong> — Server 1719. Hosted here for easy alliance sharing.
+          </p>
+        </div>
+      </section>
+    </div>
+
+    <div class="guide-lightbox" id="guideLightbox" role="dialog" aria-modal="true" aria-labelledby="guideLightboxTitle" hidden>
+      <div class="guide-lightbox__panel">
+        <div class="guide-lightbox__toolbar">
+          <h2 class="guide-lightbox__title" id="guideLightboxTitle"></h2>
+          <button type="button" class="guide-lightbox__close" id="guideLightboxClose" aria-label="Close guide viewer">&times;</button>
+        </div>
+        <div class="guide-lightbox__image-wrap">
+          <img id="guideLightboxImage" src="" alt="" />
+        </div>
+      </div>
+    </div>
+
+    <div class="support-bar">
+      <a
+        href="https://buymeacoffee.com/dkfoy56w"
+        class="support-link"
+        target="_blank"
+        rel="noopener noreferrer"
+        >Buy Me a Coffee</a
+      >
+    </div>
+    <script src="/adsense-config.js"></script>
+    <script src="/site-legal-footer.js?v=4" defer></script>
+    <script src="/adsense-placements.js" defer></script>
+    <script>
+      (function () {
+        var filterButtons = Array.from(document.querySelectorAll(".guide-filter-btn"));
+        var guideCards = Array.from(document.querySelectorAll(".guide-card"));
+        var lightbox = document.getElementById("guideLightbox");
+        var lightboxImage = document.getElementById("guideLightboxImage");
+        var lightboxTitle = document.getElementById("guideLightboxTitle");
+        var lightboxClose = document.getElementById("guideLightboxClose");
+        var lastFocused = null;
+
+        function setFilter(filter) {
+          filterButtons.forEach(function (btn) {
+            var active = btn.dataset.filter === filter;
+            btn.classList.toggle("active", active);
+            btn.setAttribute("aria-selected", active ? "true" : "false");
+          });
+
+          guideCards.forEach(function (card) {
+            var show = filter === "all" || card.dataset.category === filter;
+            card.classList.toggle("is-hidden", !show);
+          });
+        }
+
+        filterButtons.forEach(function (btn) {
+          btn.addEventListener("click", function () {
+            setFilter(btn.dataset.filter || "all");
+          });
+        });
+
+        function openGuide(card) {
+          var image = card.querySelector(".guide-card__thumb-btn img");
+          var title = card.querySelector(".guide-card__title");
+          if (!image || !title) return;
+
+          lastFocused = document.activeElement;
+          lightboxTitle.textContent = title.textContent;
+          lightboxImage.src = image.currentSrc || image.src;
+          lightboxImage.alt = image.alt;
+          lightbox.classList.add("is-open");
+          lightbox.hidden = false;
+          lightboxClose.focus();
+          document.body.style.overflow = "hidden";
+        }
+
+        function closeGuide() {
+          lightbox.classList.remove("is-open");
+          lightbox.hidden = true;
+          lightboxImage.removeAttribute("src");
+          document.body.style.overflow = "";
+          if (lastFocused && typeof lastFocused.focus === "function") {
+            lastFocused.focus();
+          }
+        }
+
+        document.querySelectorAll("[data-guide-open]").forEach(function (trigger) {
+          trigger.addEventListener("click", function () {
+            var card = trigger.closest(".guide-card");
+            if (card) openGuide(card);
+          });
+        });
+
+        lightboxClose.addEventListener("click", closeGuide);
+        lightbox.addEventListener("click", function (event) {
+          if (event.target === lightbox) closeGuide();
+        });
+
+        document.addEventListener("keydown", function (event) {
+          if (event.key === "Escape" && lightbox.classList.contains("is-open")) {
+            closeGuide();
+          }
+        });
+      })();
+    </script>
+  </body>
+</html>

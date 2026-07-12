@@ -184,6 +184,7 @@
     ensureAllianceToolsLinks(nav);
     ensureSeason1WarzonePlannerLink(nav);
     ensureSeason2SuppliesLink(nav);
+    ensureGuidesLink(nav);
     ensureAccountBackgroundSync();
     // Train Conductor and Server Search are now handled in the Alliance Tools dropdown in HTML
 
@@ -490,6 +491,35 @@
         link.classList.add('active');
       }
     });
+  }
+
+  function ensureGuidesLink(nav) {
+    const currentPage = window.location.pathname.split('/').pop() || 'index.html';
+    let link = nav.querySelector('a[href="guides.html"]');
+    const oldLink = nav.querySelector('a[href="image-guides.html"]');
+    if (oldLink) {
+      oldLink.href = 'guides.html';
+      oldLink.textContent = 'Guides';
+      link = oldLink;
+    }
+    if (!link) {
+      link = document.createElement('a');
+      link.href = 'guides.html';
+      link.className = 'page-link';
+      link.textContent = 'Guides';
+      const hqLink = nav.querySelector('a[href="hq-upgrade-calculator.html"]');
+      if (hqLink && hqLink.parentNode === nav) {
+        hqLink.insertAdjacentElement('afterend', link);
+      } else {
+        nav.insertBefore(link, nav.firstChild);
+      }
+    } else if (link.textContent.trim() === 'Image Guides') {
+      link.textContent = 'Guides';
+    }
+
+    if (currentPage === 'guides.html') {
+      link.classList.add('active');
+    }
   }
 
   if (document.readyState === 'loading') {

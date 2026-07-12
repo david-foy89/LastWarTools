@@ -6,7 +6,7 @@ export const SITE_NAME = "Last War Tools";
 export const DEFAULT_OG_IMAGE = `${SITE_ORIGIN}/media/lwst.png`;
 
 /** Root HTML files excluded from the sitemap (utility / noindex). */
-export const SITEMAP_EXCLUDE = new Set(["transfer-submit.html"]);
+export const SITEMAP_EXCLUDE = new Set(["transfer-submit.html", "image-guides.html"]);
 
 /** Better descriptions and social copy where pages are thin or outdated. */
 export const SEO_OVERRIDES = {
