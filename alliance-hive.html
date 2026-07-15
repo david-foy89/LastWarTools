@@ -74,13 +74,50 @@
     <script src="page-nav-dropdown.js" defer></script>
     <script src="language-translate.js" defer></script>
     <style>
+      /* Hive Builder uses the full viewport — map fills the map column. */
+      .page {
+        max-width: none;
+        width: 100%;
+        padding: 8px clamp(8px, 1vw, 16px) 10px;
+        box-sizing: border-box;
+      }
+      .page-top-stack {
+        margin-bottom: 6px;
+      }
+      .page-nav {
+        margin-bottom: 8px;
+      }
+      .account-promo-strip {
+        padding: 8px 12px;
+        margin-bottom: 0;
+      }
+      .account-promo-strip__text {
+        font-size: 0.78rem;
+        line-height: 1.35;
+      }
+      .site-logo {
+        max-height: 42px;
+      }
+      .hero {
+        padding: 10px 16px;
+        margin-bottom: 8px;
+      }
+      .hero h1 {
+        font-size: clamp(1.25rem, 2.2vw, 1.75rem);
+      }
+      .hero .sub {
+        font-size: 0.82rem;
+        margin-top: 4px;
+        max-width: 100ch;
+      }
       .hive-card {
         background: var(--panel);
         border: 1px solid var(--line);
-        border-radius: 18px;
-        padding: 22px 24px 28px;
-        margin: 0 auto 28px;
-        max-width: min(1020px, 100%);
+        border-radius: 14px;
+        padding: 10px 12px 12px;
+        margin: 0 0 12px;
+        max-width: none;
+        width: 100%;
       }
       .hive-toolbar {
         display: flex;
@@ -93,13 +130,13 @@
         display: flex;
         flex-wrap: wrap;
         align-items: center;
-        gap: 8px 14px;
-        margin-bottom: 12px;
-        padding: 8px 12px;
+        gap: 6px 12px;
+        margin-bottom: 6px;
+        padding: 5px 10px;
         border-radius: 10px;
         border: 1px solid var(--line-soft);
         background: var(--panel-2);
-        font-size: 0.84rem;
+        font-size: 0.8rem;
         color: var(--muted);
       }
       .hive-planner-bar__sep {
@@ -122,8 +159,8 @@
         display: flex;
         flex-wrap: wrap;
         align-items: stretch;
-        gap: 8px;
-        margin-bottom: 10px;
+        gap: 6px;
+        margin-bottom: 6px;
       }
       .hive-tool-row__label {
         font-size: 0.76rem;
@@ -353,8 +390,8 @@
         flex-wrap: wrap;
         align-items: center;
         gap: 6px;
-        margin: 0 0 12px;
-        padding: 8px 10px;
+        margin: 0 0 6px;
+        padding: 6px 8px;
         border-radius: 12px;
         border: 1px solid var(--line-soft);
         background: var(--panel-2);
@@ -423,32 +460,266 @@
       .hive-tabs__hint {
         flex: 1 1 100%;
         margin: 2px 0 0;
-        font-size: 0.72rem;
+        font-size: 0.7rem;
         color: var(--muted);
-        line-height: 1.35;
+        line-height: 1.3;
+      }
+      @media (min-width: 901px) {
+        .hive-tabs__hint {
+          display: none;
+        }
       }
       .hive-canvas-wrap {
+        flex: 1 1 auto;
         display: flex;
         justify-content: center;
-        padding: 6px 0 2px;
-        overflow: auto;
+        align-items: center;
+        padding: 0;
+        overflow: hidden;
         -webkit-overflow-scrolling: touch;
+        width: 100%;
+        max-width: 100%;
+        min-height: 0;
+        position: relative;
+      }
+      .hive-canvas-wrap.hive-canvas-wrap--scroll {
+        overflow: auto;
+        align-items: flex-start;
       }
       #hiveCanvas {
         display: block;
         /* Display size set in JS from zoom; fallback before script runs. */
-        width: min(90vmin, 880px);
-        height: min(90vmin, 880px);
-        max-width: none;
+        width: min(100%, 70vh);
+        height: auto;
+        aspect-ratio: 1;
+        box-sizing: border-box;
         border: 2px solid var(--line-soft);
         border-radius: 10px;
         cursor: crosshair;
         touch-action: none;
-        vertical-align: middle;
+        flex-shrink: 0;
       }
       @media (max-width: 520px) {
         .hive-card {
           padding: 16px 14px 20px;
+        }
+      }
+      .hive-main-wrap {
+        display: grid;
+        grid-template-columns: minmax(200px, 260px) minmax(0, 1fr);
+        gap: 10px;
+        align-items: stretch;
+        min-height: 320px;
+      }
+      .hive-map-column {
+        min-width: 0;
+        min-height: 0;
+        display: flex;
+        flex-direction: column;
+        height: 100%;
+        overflow: hidden;
+      }
+      .hive-map-column .hive-tabs {
+        flex: 0 0 auto;
+      }
+      .hive-members-panel {
+        display: flex;
+        flex-direction: column;
+        gap: 8px;
+        padding: 10px;
+        border: 1px solid var(--line-soft);
+        border-radius: 14px;
+        background: var(--panel-2);
+        max-height: none;
+        height: 100%;
+        overflow: auto;
+        position: static;
+      }
+      .hive-members-panel h2 {
+        margin: 0;
+        font-size: 0.8rem;
+        text-transform: uppercase;
+        letter-spacing: 0.12em;
+        color: var(--accent);
+      }
+      .hive-settings-grid {
+        display: grid;
+        gap: 8px;
+      }
+      .hive-settings-field {
+        display: flex;
+        flex-direction: column;
+        gap: 4px;
+      }
+      .hive-settings-field label {
+        font-size: 0.72rem;
+        color: var(--muted);
+        font-weight: 600;
+      }
+      .hive-settings-field input,
+      .hive-settings-field select {
+        padding: 6px 8px;
+        border-radius: 8px;
+        border: 1px solid var(--line-soft);
+        background: var(--panel);
+        color: var(--text);
+        font: inherit;
+        font-size: 0.82rem;
+        font-variant-numeric: tabular-nums;
+      }
+      .hive-settings-field select:disabled {
+        opacity: 0.55;
+      }
+      .hive-settings-hint {
+        margin: 0;
+        font-size: 0.7rem;
+        line-height: 1.4;
+        color: var(--muted);
+      }
+      .hive-members-paste {
+        width: 100%;
+        min-height: 72px;
+        padding: 8px;
+        border-radius: 8px;
+        border: 1px solid var(--line-soft);
+        background: var(--panel);
+        color: var(--text);
+        font: inherit;
+        font-size: 0.78rem;
+        resize: vertical;
+      }
+      .hive-members-actions {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 8px;
+        align-items: center;
+      }
+      .hive-members-file-label {
+        cursor: pointer;
+        display: inline-flex;
+        align-items: center;
+        padding: 6px 10px;
+        border-radius: 8px;
+        border: 1px solid var(--line-soft);
+        background: var(--panel);
+        color: var(--text);
+        font-size: 0.78rem;
+        font-weight: 600;
+      }
+      .hive-members-file-label input {
+        display: none;
+      }
+      .hive-members-meta {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 8px 12px;
+        font-size: 0.76rem;
+        color: var(--muted);
+      }
+      .hive-unplaced-count--warn {
+        color: #ffd8a8;
+        font-weight: 700;
+      }
+      .hive-members-status {
+        margin: 0;
+        font-size: 0.72rem;
+        color: var(--muted);
+        min-height: 1.2em;
+      }
+      .hive-members-status--error {
+        color: #ffd8a8;
+      }
+      .hive-members-list {
+        display: flex;
+        flex-direction: column;
+        gap: 6px;
+        max-height: 320px;
+        overflow: auto;
+      }
+      .hive-members-empty {
+        margin: 0;
+        font-size: 0.76rem;
+        color: var(--muted);
+        line-height: 1.45;
+      }
+      .hive-member-item {
+        display: grid;
+        grid-template-columns: auto 1fr auto;
+        align-items: center;
+        gap: 8px;
+        padding: 6px 8px;
+        border-radius: 8px;
+        border: 1px solid var(--line-soft);
+        background: var(--panel);
+        cursor: grab;
+        touch-action: none;
+      }
+      .hive-member-item--placed {
+        opacity: 0.72;
+      }
+      .hive-member-item--unplaced {
+        border-color: rgba(116, 192, 252, 0.35);
+      }
+      .hive-member-item--dragging {
+        opacity: 0.55;
+      }
+      .hive-member-rank {
+        font-size: 0.68rem;
+        font-weight: 800;
+        padding: 2px 6px;
+        border-radius: 999px;
+        border: 1px solid var(--line-soft);
+      }
+      .hive-member-rank--r5 { color: #e8b84a; }
+      .hive-member-rank--r4 { color: #e85555; }
+      .hive-member-rank--r3 { color: #b388ff; }
+      .hive-member-rank--r2 { color: #6eb5ff; }
+      .hive-member-rank--r1 { color: #d9a04a; }
+      .hive-member-name {
+        font-size: 0.78rem;
+        font-weight: 600;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+      }
+      .hive-member-remove {
+        cursor: pointer;
+        width: 24px;
+        height: 24px;
+        border: 0;
+        border-radius: 999px;
+        background: transparent;
+        color: var(--muted);
+        font-size: 1.1rem;
+        line-height: 1;
+      }
+      .hive-member-remove:hover {
+        color: #ffd8a8;
+        background: rgba(255, 146, 43, 0.12);
+      }
+      @media (max-width: 900px) {
+        .hive-main-wrap {
+          grid-template-columns: 1fr;
+          height: auto !important;
+          min-height: 0;
+        }
+        .hive-map-column {
+          height: auto;
+        }
+        .hive-members-panel {
+          max-height: none;
+          height: auto;
+          position: static;
+        }
+        .hive-canvas-wrap {
+          flex: 0 0 auto;
+          min-height: min(70vw, 70vh);
+        }
+      }
+      @media (min-width: 1400px) {
+        .hive-main-wrap {
+          grid-template-columns: minmax(220px, 280px) minmax(0, 1fr);
+          gap: 12px;
         }
       }
     </style>
@@ -585,9 +856,7 @@
       <section class="hero">
         <h1>Hive Builder</h1>
         <div class="sub">
-          A <strong>50×50</strong> hive planner grid.
-          Use <strong>Icons</strong> to pick single-tile paint, <strong>3×3</strong> markers (Alliance Exercise, <strong>R5–R1</strong>), a <strong>5×5 Alliance Furnace</strong>, or a <strong>9×9 Alliance Center</strong>. Click or tap to apply; right-click to clear (on touch, <strong>long-press</strong> ~½s).
-          Coordinates are <strong>1–50</strong> from the top-left. <strong>Every 10 cells</strong> a heavier grid line helps with alignment.
+          50×50 hive planner — place <strong>Alliance Exercise</strong> / Furnace / Center, pick how many bases to lay out, then <strong>Generate hive</strong>. Import members optionally. Right-click or long-press to clear.
         </div>
       </section>
 
@@ -617,7 +886,7 @@
             id="hiveToolAE"
             class="hive-tool-btn hive-tool-btn--ae"
             aria-pressed="false"
-            title="Place Alliance Exercise — fills a 3×3 block (teal)"
+            title="Place Alliance Exercise — 3×3 hub for coords and auto-layout"
           >
             <span class="hive-tool-ae-icon" aria-hidden="true">◆</span>
             <span class="hive-tool-ae-line">
@@ -759,6 +1028,58 @@
           ></span>
           <span id="hiveCoord" class="hive-coord" aria-live="polite"></span>
         </div>
+        <div class="hive-main-wrap">
+          <aside class="hive-members-panel" aria-label="Alliance members">
+            <h2>Members</h2>
+            <div class="hive-settings-grid">
+              <div class="hive-settings-field">
+                <label for="hiveBaseGap">Gap (empty cells between edges)</label>
+                <input type="number" id="hiveBaseGap" min="0" max="10" value="1" />
+              </div>
+              <div class="hive-settings-field">
+                <label for="hiveHubSelect">Build around</label>
+                <select id="hiveHubSelect" aria-label="Hub building to build around">
+                  <option value="auto">Auto (edge hub, else Center → Furnace → AE)</option>
+                  <option value="ae">Alliance Exercise</option>
+                  <option value="furnace">Furnace</option>
+                  <option value="acenter">Alliance Center</option>
+                </select>
+              </div>
+              <div class="hive-settings-field">
+                <label for="hiveGenerateCount">Bases to place</label>
+                <input type="number" id="hiveGenerateCount" min="1" max="150" value="40" />
+              </div>
+            </div>
+            <p class="hive-settings-hint">
+              Generates from your <strong>Build around</strong> choice first, then other hubs.
+              Every hub and base uses your selected gap. Side hubs fill along that wall (one tile in), then inward; with two buildings, bases stay on one spacing grid so corridors between them stay even.
+              Auto prefers an edge/corner hub when one exists.
+            </p>
+            <div class="hive-members-actions">
+              <button type="button" id="hiveGenerateBtn" class="hive-tool-btn">Generate hive</button>
+            </div>
+            <textarea
+              id="hiveMembersPaste"
+              class="hive-members-paste"
+              placeholder="Paste members — one per line&#10;R4 PlayerName&#10;PlayerName R3&#10;R5: LeaderName"
+              aria-label="Paste alliance members"
+            ></textarea>
+            <div class="hive-members-actions">
+              <button type="button" id="hiveMembersImportBtn" class="hive-tool-btn">Import list</button>
+              <label class="hive-members-file-label">
+                Upload file
+                <input type="file" id="hiveMembersFileInput" accept=".txt,.csv,.xlsx,.xls" />
+              </label>
+            </div>
+            <p id="hiveMembersStatus" class="hive-members-status" aria-live="polite"></p>
+            <div class="hive-members-meta">
+              <span id="hiveMembersCount">0 members</span>
+              <span id="hiveUnplacedCount" class="hive-unplaced-count--warn">0 unplaced</span>
+            </div>
+            <div id="hiveMembersList" class="hive-members-list"></div>
+            <p class="hive-settings-hint">Drag a member onto the map to place their 3×3 base.</p>
+          </aside>
+          <div class="hive-map-column">
         <div class="hive-tabs">
           <span class="hive-tabs__label" id="hiveTabsLegend">Hives</span>
           <button
@@ -823,9 +1144,12 @@
             aria-label="Hive map with 50 by 50 tiles. Use mouse or touch to mark tiles."
           ></canvas>
         </div>
+          </div>
+        </div>
       </div>
     </div>
 
+    <script src="alliance-hive-members.js" defer></script>
     <script>
       (function () {
         /** Same grid count as typical Last War hive planners (e.g. cpt-hedge.com/maps/planner). */
@@ -857,7 +1181,7 @@
         var customWInput = document.getElementById("hiveCustomW");
         var customHInput = document.getElementById("hiveCustomH");
         var HIVE_TAB_COUNT = 10;
-        var HIVE_LS_KEY = "allianceHiveTabs_v1";
+        var HIVE_LS_KEY = "allianceHiveTabs_v2";
         var currentHiveTab = 0;
         var hiveTabNames = [];
         var hiveTabData = [];
@@ -882,6 +1206,8 @@
         var STATE_FURNACE = 8;
         var STATE_ALLIANCE_CENTER = 9;
         var STATE_CUSTOM = 10;
+        /** Legacy tile id from older saves — migrated to Alliance Exercise on load. */
+        var STATE_MARSHAL_LEGACY = 11;
         /** Half-width in cells: 3×3 → 1; 5×5 → 2; 9×9 → 4 (center ±half). */
         var BLOCK_HALF_3 = 1;
         var BLOCK_HALF_5 = 2;
@@ -904,6 +1230,18 @@
         var allianceCenterCenters = [];
         /** { left, top, w, h, name } in grid cells — rectangle [left, left+w) × [top, top+h). */
         var customBlocks = [];
+        /** Alliance roster: { id, name, rank } where rank is r1–r5. */
+        var members = [];
+        var hiveSettings = {
+          baseGap: 1,
+          hubPreference: "auto",
+          generateCount: 40,
+          anchorWorldX: null,
+          anchorWorldY: null,
+          anchorGridCol: null,
+          anchorGridRow: null,
+          anchorType: null,
+        };
         var activeTool = "mark";
         /** Pointer drag: maybeTap | maybeDrag | dragging */
         var drag = null;
@@ -918,6 +1256,885 @@
         function cssVar(name, fallback) {
           var v = getComputedStyle(document.documentElement).getPropertyValue(name).trim();
           return v || fallback;
+        }
+
+        function normalizeCenterMeta(meta) {
+          meta = meta || {};
+          return {
+            name: typeof meta.name === "string" ? meta.name.slice(0, 40) : "",
+            memberId: typeof meta.memberId === "string" ? meta.memberId : "",
+          };
+        }
+
+        function pullCenterFromStore(c) {
+          return {
+            cx: c.cx | 0,
+            cy: c.cy | 0,
+            name: typeof c.name === "string" ? c.name : "",
+            memberId: typeof c.memberId === "string" ? c.memberId : "",
+          };
+        }
+
+        function notifyHubsChange() {
+          if (window.__hiveBuilder && typeof window.__hiveBuilder.onHubsChange === "function") {
+            window.__hiveBuilder.onHubsChange(listAvailableHubs());
+          }
+        }
+
+        function listAvailableHubs() {
+          var hubs = [];
+          var i;
+          for (i = 0; i < aeCenters.length; i++) {
+            hubs.push({
+              type: "ae",
+              cx: aeCenters[i].cx,
+              cy: aeCenters[i].cy,
+              half: BLOCK_HALF_3,
+              label:
+                "Alliance Exercise" +
+                (aeCenters.length > 1 ? " #" + (i + 1) : ""),
+            });
+          }
+          for (i = 0; i < furnaceCenters.length; i++) {
+            hubs.push({
+              type: "furnace",
+              cx: furnaceCenters[i].cx,
+              cy: furnaceCenters[i].cy,
+              half: BLOCK_HALF_5,
+              label:
+                "Alliance Furnace" +
+                (furnaceCenters.length > 1 ? " #" + (i + 1) : ""),
+            });
+          }
+          for (i = 0; i < allianceCenterCenters.length; i++) {
+            hubs.push({
+              type: "acenter",
+              cx: allianceCenterCenters[i].cx,
+              cy: allianceCenterCenters[i].cy,
+              half: BLOCK_HALF_9,
+              label:
+                "Alliance Center" +
+                (allianceCenterCenters.length > 1 ? " #" + (i + 1) : ""),
+            });
+          }
+          return hubs;
+        }
+
+        function syncAnchorFromMap() {
+          var hubs = listAvailableHubs();
+          var hub = getLayoutHub();
+          if (!hub && hubs.length) hub = hubs[0];
+          if (hub) {
+            hiveSettings.anchorGridCol = hub.cx + 1;
+            hiveSettings.anchorGridRow = hub.cy + 1;
+            hiveSettings.anchorType = hub.type;
+          } else {
+            hiveSettings.anchorGridCol = null;
+            hiveSettings.anchorGridRow = null;
+            hiveSettings.anchorType = null;
+          }
+          notifyHubsChange();
+        }
+
+        function getLayoutHub() {
+          var hubs = listAvailableHubs();
+          if (!hubs.length) return null;
+          var pref = hiveSettings.hubPreference || "auto";
+          var i;
+          if (pref !== "auto") {
+            for (i = 0; i < hubs.length; i++) {
+              if (hubs[i].type === pref) return hubs[i];
+            }
+            return null;
+          }
+
+          /* Auto: prefer hubs on a map edge/corner, then larger hubs
+             (Center → Furnace → AE) so an interior AE doesn’t steal layout
+             from an Alliance Center parked on the wall. */
+          var gap = Math.max(0, hiveSettings.baseGap | 0);
+          var typeRank = { acenter: 3, furnace: 2, ae: 1 };
+          var best = hubs[0];
+          var bestEdges = -1;
+          var bestRank = -1;
+          for (i = 0; i < hubs.length; i++) {
+            var h = hubs[i];
+            var b = hubBlockedSides(h, gap);
+            var edges =
+              (b.left ? 1 : 0) +
+              (b.right ? 1 : 0) +
+              (b.top ? 1 : 0) +
+              (b.bottom ? 1 : 0);
+            var rank = typeRank[h.type] || 0;
+            if (
+              edges > bestEdges ||
+              (edges === bestEdges && rank > bestRank)
+            ) {
+              best = h;
+              bestEdges = edges;
+              bestRank = rank;
+            }
+          }
+          return best;
+        }
+
+        function newGeneratedMemberId() {
+          return (
+            "gen_" +
+            Date.now().toString(36) +
+            "_" +
+            Math.random().toString(36).slice(2, 8)
+          );
+        }
+
+        function countPlacedBases() {
+          return (
+            r5Centers.length +
+            r4Centers.length +
+            r3Centers.length +
+            r2Centers.length +
+            r1Centers.length
+          );
+        }
+
+        function buildGenerateQueue(targetCount) {
+          var placedIds = getPlacedMemberIds();
+          var rankOrder = ["r5", "r4", "r3", "r2", "r1"];
+          var queue = [];
+          var ri;
+          var mi;
+          for (ri = 0; ri < rankOrder.length; ri++) {
+            var rank = rankOrder[ri];
+            for (mi = 0; mi < members.length; mi++) {
+              var m = members[mi];
+              if (m.rank === rank && m.id && !placedIds.has(m.id)) {
+                queue.push(m);
+              }
+            }
+          }
+          var need = Math.max(0, (targetCount | 0) - countPlacedBases());
+          if (need <= 0) return [];
+          var nextBase = 1;
+          members.forEach(function (m) {
+            var match = String(m.name || "").match(/^Base\s+(\d+)$/i);
+            if (match) {
+              var n = parseInt(match[1], 10);
+              if (Number.isFinite(n) && n >= nextBase) nextBase = n + 1;
+            }
+          });
+          while (queue.length < need) {
+            var ph = {
+              id: newGeneratedMemberId(),
+              name: "Base " + nextBase,
+              rank: "r1",
+            };
+            nextBase++;
+            members.push(ph);
+            queue.push(ph);
+          }
+          return queue.slice(0, need);
+        }
+
+        function memberCenterArrays() {
+          return [r5Centers, r4Centers, r3Centers, r2Centers, r1Centers];
+        }
+
+        /** Empty cells between footprints: centerDist - halfA - halfB - 1. */
+        function minCenterDistForGap(halfA, halfB, gap) {
+          return halfA + halfB + Math.max(0, gap | 0) + 1;
+        }
+
+        /**
+         * True when two squares are closer than `gap` empty cells.
+         * Uses Chebyshev (square) clearance so side/corner packs match the
+         * same gap on every face — AABB OR-separation allowed L-touches that
+         * looked like uneven spacing beside wall hubs.
+         */
+        function footprintsViolateGap(cxa, cya, halfA, cxb, cyb, halfB, gap) {
+          var need = minCenterDistForGap(halfA, halfB, gap);
+          var dx = Math.abs(cxa - cxb);
+          var dy = Math.abs(cya - cyb);
+          return (dx > dy ? dx : dy) < need;
+        }
+
+        /** Empty tiles between hub footprint and a map border. */
+        function hubBorderSpace(hub, side) {
+          if (side === "left") return hub.cx - hub.half;
+          if (side === "right") return TILES - 1 - (hub.cx + hub.half);
+          if (side === "top") return hub.cy - hub.half;
+          return TILES - 1 - (hub.cy + hub.half);
+        }
+
+        /**
+         * Sides too tight for a 3×3 base + gap (treat as edge/corner even when
+         * the hub is not flush — e.g. 1 empty tile from the map border).
+         */
+        function hubBlockedSides(hub, gap) {
+          var need = 3 + Math.max(0, gap | 0);
+          return {
+            left: hubBorderSpace(hub, "left") < need,
+            right: hubBorderSpace(hub, "right") < need,
+            top: hubBorderSpace(hub, "top") < need,
+            bottom: hubBorderSpace(hub, "bottom") < need,
+          };
+        }
+
+        /**
+         * Ordered pack targets: user's Build-around hub first, then every other
+         * Alliance Center / Furnace / AE on the map.
+         */
+        function packHubWaves(primary) {
+          var waves = [];
+          var seen = Object.create(null);
+          function key(b) {
+            return b.cx + "," + b.cy + "," + b.half;
+          }
+          function push(b, label, type) {
+            var k = key(b);
+            if (seen[k]) return;
+            seen[k] = 1;
+            waves.push({
+              cx: b.cx | 0,
+              cy: b.cy | 0,
+              half: b.half | 0,
+              label: label,
+              type: type,
+            });
+          }
+          if (primary) {
+            push(primary, primary.label, primary.type);
+          }
+          var i;
+          for (i = 0; i < allianceCenterCenters.length; i++) {
+            push(
+              {
+                cx: allianceCenterCenters[i].cx,
+                cy: allianceCenterCenters[i].cy,
+                half: BLOCK_HALF_9,
+              },
+              "Alliance Center" +
+                (allianceCenterCenters.length > 1 ? " #" + (i + 1) : ""),
+              "acenter"
+            );
+          }
+          for (i = 0; i < furnaceCenters.length; i++) {
+            push(
+              {
+                cx: furnaceCenters[i].cx,
+                cy: furnaceCenters[i].cy,
+                half: BLOCK_HALF_5,
+              },
+              "Alliance Furnace" +
+                (furnaceCenters.length > 1 ? " #" + (i + 1) : ""),
+              "furnace"
+            );
+          }
+          for (i = 0; i < aeCenters.length; i++) {
+            push(
+              {
+                cx: aeCenters[i].cx,
+                cy: aeCenters[i].cy,
+                half: BLOCK_HALF_3,
+              },
+              "Alliance Exercise" + (aeCenters.length > 1 ? " #" + (i + 1) : ""),
+              "ae"
+            );
+          }
+          return waves;
+        }
+
+        /**
+         * Valid 3×3 base centers that leave `gap` empty tiles from the map border
+         * (border treated like a wall).
+         */
+        function mapEdgeCenterBounds(gap) {
+          var g = Math.max(0, gap | 0);
+          var lo = BLOCK_HALF_3 + g;
+          var hi = TILES - 1 - BLOCK_HALF_3 - g;
+          return { lo: lo, hi: hi };
+        }
+
+        function respectsMapEdgeGap(cx, cy, gap) {
+          var b = mapEdgeCenterBounds(gap);
+          return cx >= b.lo && cx <= b.hi && cy >= b.lo && cy <= b.hi;
+        }
+
+        /**
+         * Pack seats at the exact selected gap from hubs and the map edge.
+         * Corner: exact-gap seats on both wall rails, then wrap the open corner.
+         * Side: wall shoulders (one tile in) + primary open faces first; secondary
+         * hubs only get seats on the primary base lattice (exact gap, or gap+1
+         * when clear%step forces it) so AC+AE packs do not create corridors of
+         * uneven spacing.
+         */
+        function generateCandidateCenters(primary, gap) {
+          var g = Math.max(0, gap | 0);
+          var step = minCenterDistForGap(BLOCK_HALF_3, BLOCK_HALF_3, g);
+          var waves = packHubWaves(primary);
+          if (!waves.length || !primary) return [];
+          var blocked = hubBlockedSides(primary, gap);
+          var edgeCount =
+            (blocked.left ? 1 : 0) +
+            (blocked.right ? 1 : 0) +
+            (blocked.top ? 1 : 0) +
+            (blocked.bottom ? 1 : 0);
+          var hasEdge = edgeCount > 0;
+          var isSide = edgeCount === 1;
+          var bounds = mapEdgeCenterBounds(g);
+          var seats = [];
+          var cx;
+          var cy;
+          var primaryClear = minCenterDistForGap(primary.half, BLOCK_HALF_3, g);
+          /* One interior lattice from the open-face seat so secondary hubs
+             (AE etc.) cannot introduce a second phase of spacing. */
+          var latticeOrigin = {
+            cx: primary.cx,
+            cy: primary.cy,
+          };
+          if (blocked.top) latticeOrigin.cy = primary.cy + primaryClear;
+          else if (blocked.bottom) latticeOrigin.cy = primary.cy - primaryClear;
+          else if (blocked.left) latticeOrigin.cx = primary.cx + primaryClear;
+          else if (blocked.right) latticeOrigin.cx = primary.cx - primaryClear;
+          else latticeOrigin.cy = primary.cy + primaryClear;
+
+          function clearsAll(x, y) {
+            var fi;
+            for (fi = 0; fi < waves.length; fi++) {
+              if (
+                footprintsViolateGap(
+                  x,
+                  y,
+                  BLOCK_HALF_3,
+                  waves[fi].cx,
+                  waves[fi].cy,
+                  waves[fi].half,
+                  g
+                )
+              ) {
+                return false;
+              }
+            }
+            return true;
+          }
+
+          function edgeRailHits(x, y) {
+            var n = 0;
+            if (blocked.top && y === bounds.lo) n++;
+            if (blocked.bottom && y === bounds.hi) n++;
+            if (blocked.left && x === bounds.lo) n++;
+            if (blocked.right && x === bounds.hi) n++;
+            return n;
+          }
+
+          function behindWall(x, y) {
+            var n = 0;
+            if (blocked.top && y < primary.cy) n++;
+            if (blocked.bottom && y > primary.cy) n++;
+            if (blocked.left && x < primary.cx) n++;
+            if (blocked.right && x > primary.cx) n++;
+            return n;
+          }
+
+          function alongEdge(x, y) {
+            if (blocked.top || blocked.bottom) return Math.abs(x - primary.cx);
+            if (blocked.left || blocked.right) return Math.abs(y - primary.cy);
+            return 0;
+          }
+
+          function onPrimaryLattice(x, y) {
+            return (
+              (x - latticeOrigin.cx) % step === 0 &&
+              (y - latticeOrigin.cy) % step === 0
+            );
+          }
+
+          function hubPackInfo(x, y, w) {
+            var dx = Math.abs(x - w.cx);
+            var dy = Math.abs(y - w.cy);
+            var pack = dx > dy ? dx : dy;
+            var clear = minCenterDistForGap(w.half, BLOCK_HALF_3, g);
+            var soft = pack === clear ? 0 : pack === clear + 1 ? 1 : 1000;
+            return {
+              pack: pack,
+              manh: dx + dy,
+              clear: clear,
+              soft: soft,
+              onAxis: dx === 0 || dy === 0 ? 0 : 1,
+            };
+          }
+
+          /* Phase A — primary hub exact seats (wall + open cardinals). */
+          for (cy = bounds.lo; cy <= bounds.hi; cy++) {
+            for (cx = bounds.lo; cx <= bounds.hi; cx++) {
+              if (!clearsAll(cx, cy)) continue;
+              var info0 = hubPackInfo(cx, cy, waves[0]);
+              if (info0.soft !== 0) continue;
+              var rails = edgeRailHits(cx, cy);
+              if (isSide) {
+                if (rails === 0 && info0.onAxis !== 0) continue;
+              } else if (!(hasEdge && rails > 0) && info0.onAxis !== 0) {
+                continue;
+              }
+              var phase = hasEdge && rails > 0 ? 0 : 1;
+              seats.push({
+                cx: cx,
+                cy: cy,
+                wave: 0,
+                phase: phase,
+                pack: info0.pack,
+                manh: info0.manh,
+                edgeExact: rails,
+                behind: behindWall(cx, cy),
+                onAxis: info0.onAxis,
+                ringU: 0,
+                along: alongEdge(cx, cy),
+                soft: 0,
+              });
+            }
+          }
+
+          /* Phase B — other hubs: only primary-lattice seats at gap or gap+1. */
+          var wi;
+          for (wi = 1; wi < waves.length; wi++) {
+            for (cy = bounds.lo; cy <= bounds.hi; cy++) {
+              for (cx = bounds.lo; cx <= bounds.hi; cx++) {
+                if (!clearsAll(cx, cy)) continue;
+                if (!onPrimaryLattice(cx, cy)) continue;
+                var info = hubPackInfo(cx, cy, waves[wi]);
+                if (info.soft >= 1000) continue;
+                if (info.onAxis !== 0 && info.soft !== 0) continue;
+                seats.push({
+                  cx: cx,
+                  cy: cy,
+                  wave: wi,
+                  phase: 2 + info.soft,
+                  pack: info.pack,
+                  manh: info.manh,
+                  edgeExact: edgeRailHits(cx, cy),
+                  behind: behindWall(cx, cy),
+                  onAxis: info.onAxis,
+                  ringU: info.soft,
+                  along: alongEdge(cx, cy),
+                  soft: info.soft,
+                });
+              }
+            }
+          }
+
+          seats.sort(function (a, b) {
+            if (a.phase !== b.phase) return a.phase - b.phase;
+            if (a.soft !== b.soft) return a.soft - b.soft;
+            if (a.edgeExact !== b.edgeExact) return b.edgeExact - a.edgeExact;
+            if (a.wave !== b.wave) return a.wave - b.wave;
+            if (isSide && a.phase === 0 && b.phase === 0) {
+              if (a.along !== b.along) return a.along - b.along;
+            }
+            if (a.onAxis !== b.onAxis) return a.onAxis - b.onAxis;
+            if (a.pack !== b.pack) return a.pack - b.pack;
+            if (a.manh !== b.manh) return a.manh - b.manh;
+            if (a.cy !== b.cy) return a.cy - b.cy;
+            return a.cx - b.cx;
+          });
+
+          return seats;
+        }
+
+
+        function layoutHubSummary(primary) {
+          var waves = packHubWaves(primary);
+          if (!waves.length) return "";
+          if (waves.length === 1) return waves[0].label;
+          if (waves.length === 2) return waves[0].label + " + " + waves[1].label;
+          return (
+            waves
+              .slice(0, -1)
+              .map(function (w) {
+                return w.label;
+              })
+              .join(", ") +
+            " + " +
+            waves[waves.length - 1].label
+          );
+        }
+
+        function canPlaceMemberCenterAt(cx, cy, gap) {
+          var dx;
+          var dy;
+          if (!respectsMapEdgeGap(cx, cy, gap)) return false;
+          for (dy = -1; dy <= 1; dy++) {
+            for (dx = -1; dx <= 1; dx++) {
+              var gx = cx + dx;
+              var gy = cy + dy;
+              if (tiles[gy * TILES + gx] !== STATE_EMPTY) return false;
+            }
+          }
+          var fixed = [
+            { arr: aeCenters, half: BLOCK_HALF_3 },
+            { arr: furnaceCenters, half: BLOCK_HALF_5 },
+            { arr: allianceCenterCenters, half: BLOCK_HALF_9 },
+          ];
+          var fi;
+          var ci;
+          for (fi = 0; fi < fixed.length; fi++) {
+            for (ci = 0; ci < fixed[fi].arr.length; ci++) {
+              var fc = fixed[fi].arr[ci];
+              if (
+                footprintsViolateGap(
+                  cx,
+                  cy,
+                  BLOCK_HALF_3,
+                  fc.cx,
+                  fc.cy,
+                  fixed[fi].half,
+                  gap
+                )
+              ) {
+                return false;
+              }
+            }
+          }
+          var bi;
+          var b;
+          for (bi = 0; bi < customBlocks.length; bi++) {
+            b = customBlocks[bi];
+            if (
+              rectsOverlap(
+                cx - 1 - gap,
+                cy - 1 - gap,
+                3 + 2 * gap,
+                3 + 2 * gap,
+                b.left,
+                b.top,
+                b.w,
+                b.h
+              )
+            ) {
+              return false;
+            }
+          }
+          var arrs = memberCenterArrays();
+          var ai;
+          var ki;
+          for (ai = 0; ai < arrs.length; ai++) {
+            for (ki = 0; ki < arrs[ai].length; ki++) {
+              var oc = arrs[ai][ki];
+              if (
+                footprintsViolateGap(
+                  cx,
+                  cy,
+                  BLOCK_HALF_3,
+                  oc.cx,
+                  oc.cy,
+                  BLOCK_HALF_3,
+                  gap
+                )
+              ) {
+                return false;
+              }
+            }
+          }
+          return true;
+        }
+
+        function clearAllMemberBases() {
+          while (r5Centers.length) clearR5AtIndex(r5Centers.length - 1);
+          while (r4Centers.length) clearR4AtIndex(r4Centers.length - 1);
+          while (r3Centers.length) clearR3AtIndex(r3Centers.length - 1);
+          while (r2Centers.length) clearR2AtIndex(r2Centers.length - 1);
+          while (r1Centers.length) clearR1AtIndex(r1Centers.length - 1);
+        }
+
+        function generateAutoHive(opts) {
+          opts = opts || {};
+          if (typeof opts.hubPreference === "string") {
+            hiveSettings.hubPreference = opts.hubPreference;
+          }
+          if (opts.baseGap != null && Number.isFinite(opts.baseGap)) {
+            hiveSettings.baseGap = Math.max(0, Math.min(10, opts.baseGap | 0));
+          }
+          if (opts.count != null && Number.isFinite(opts.count)) {
+            hiveSettings.generateCount = Math.max(1, Math.min(150, opts.count | 0));
+          }
+
+          var hub = getLayoutHub();
+          if (!hub) {
+            var hubs = listAvailableHubs();
+            var pref = hiveSettings.hubPreference || "auto";
+            if (!hubs.length) {
+              window.alert(
+                "Place Alliance Exercise, Furnace, or Alliance Center on the map first."
+              );
+            } else {
+              window.alert(
+                "No " +
+                  (pref === "ae"
+                    ? "Alliance Exercise"
+                    : pref === "furnace"
+                      ? "Furnace"
+                      : pref === "acenter"
+                        ? "Alliance Center"
+                        : "hub") +
+                  " on the map. Place one, or change Build around."
+              );
+            }
+            return { placed: 0, skipped: 0 };
+          }
+
+          /* Always re-layout bases so gap / hub changes take effect. */
+          clearAllMemberBases();
+
+          syncAnchorFromMap();
+          var gap = Math.max(0, hiveSettings.baseGap | 0);
+          var target = Math.max(1, Math.min(150, hiveSettings.generateCount | 0));
+          var queue = buildGenerateQueue(target);
+          if (!queue.length) {
+            return {
+              placed: 0,
+              skipped: 0,
+              hub: layoutHubSummary(hub),
+              target: target,
+              message: "Nothing to place.",
+            };
+          }
+          var candidates = generateCandidateCenters(hub, gap);
+          var step = minCenterDistForGap(BLOCK_HALF_3, BLOCK_HALF_3, gap);
+          var placed = 0;
+          var skipped = 0;
+          var mi = 0;
+          var candIdx = 0;
+          var used = Object.create(null);
+          var placedPts = [];
+
+          function tryPlaceAt(cx, cy) {
+            if (mi >= queue.length) return false;
+            var key = cx + "," + cy;
+            if (used[key]) return false;
+            if (!canPlaceMemberCenterAt(cx, cy, gap)) return false;
+            if (!placeMember(queue[mi], { x: cx, y: cy })) return false;
+            used[key] = 1;
+            placedPts.push({ cx: cx, cy: cy });
+            placed++;
+            mi++;
+            return true;
+          }
+
+          /* Exact-gap seats: edge rails (if hub on side/corner), hub rings, fill. */
+          while (mi < queue.length && candIdx < candidates.length) {
+            var cand = candidates[candIdx++];
+            tryPlaceAt(cand.cx, cand.cy);
+          }
+
+          /* Hole-fill: exact base-gap neighbors only — keeps spacing matched. */
+          var bounds = mapEdgeCenterBounds(gap);
+          var blockedFill = hubBlockedSides(hub, gap);
+          var wavesFill = packHubWaves(hub);
+          var edgeCountFill =
+            (blockedFill.left ? 1 : 0) +
+            (blockedFill.right ? 1 : 0) +
+            (blockedFill.top ? 1 : 0) +
+            (blockedFill.bottom ? 1 : 0);
+          var isSideFill = edgeCountFill === 1;
+          var primaryClearFill = minCenterDistForGap(hub.half, BLOCK_HALF_3, gap);
+          var latticeOriginFill = { cx: hub.cx, cy: hub.cy };
+          if (blockedFill.top) latticeOriginFill.cy = hub.cy + primaryClearFill;
+          else if (blockedFill.bottom) latticeOriginFill.cy = hub.cy - primaryClearFill;
+          else if (blockedFill.left) latticeOriginFill.cx = hub.cx + primaryClearFill;
+          else if (blockedFill.right) latticeOriginFill.cx = hub.cx - primaryClearFill;
+          else latticeOriginFill.cy = hub.cy + primaryClearFill;
+
+          while (mi < queue.length && placedPts.length) {
+            var best = null;
+            var bestScore = 1e9;
+            var cx;
+            var cy;
+            var ai;
+            for (cy = bounds.lo; cy <= bounds.hi; cy++) {
+              for (cx = bounds.lo; cx <= bounds.hi; cx++) {
+                if (used[cx + "," + cy]) continue;
+                if (!canPlaceMemberCenterAt(cx, cy, gap)) continue;
+                var adjacent = false;
+                var orthAdj = false;
+                for (ai = 0; ai < placedPts.length; ai++) {
+                  var p = placedPts[ai];
+                  var pdx = Math.abs(cx - p.cx);
+                  var pdy = Math.abs(cy - p.cy);
+                  var ppack = pdx > pdy ? pdx : pdy;
+                  if (ppack === step) {
+                    adjacent = true;
+                    if (pdx === 0 || pdy === 0) orthAdj = true;
+                  }
+                }
+                if (!adjacent) continue;
+                var hubNear = 1e9;
+                var ringBoost = 0;
+                for (ai = 0; ai < wavesFill.length; ai++) {
+                  var hw = wavesFill[ai];
+                  var hdx = Math.abs(cx - hw.cx);
+                  var hdy = Math.abs(cy - hw.cy);
+                  var hpack = hdx > hdy ? hdx : hdy;
+                  if (hpack < hubNear) hubNear = hpack;
+                  var hClear = minCenterDistForGap(hw.half, BLOCK_HALF_3, gap);
+                  if (hpack === hClear) ringBoost = Math.min(ringBoost, -120);
+                  else if (hpack === hClear + 1) ringBoost = Math.min(ringBoost, -40);
+                }
+                var onBlockedRail =
+                  (blockedFill.top && cy === bounds.lo) ||
+                  (blockedFill.bottom && cy === bounds.hi) ||
+                  (blockedFill.left && cx === bounds.lo) ||
+                  (blockedFill.right && cx === bounds.hi);
+                var onLattice =
+                  (cx - latticeOriginFill.cx) % step === 0 &&
+                  (cy - latticeOriginFill.cy) % step === 0;
+                var score = orthAdj ? 0 : 400;
+                if (isSideFill) {
+                  if (onBlockedRail) score -= 5000;
+                  else {
+                    score += hubNear * 10 + ringBoost;
+                    if (!onLattice) score += 250;
+                  }
+                  if (
+                    cx === bounds.lo ||
+                    cx === bounds.hi ||
+                    cy === bounds.lo ||
+                    cy === bounds.hi
+                  ) {
+                    score -= 80;
+                  }
+                } else {
+                  if (onBlockedRail) score -= 1;
+                  score += hubNear * 10 + ringBoost;
+                  if (!onLattice) score += 80;
+                }
+                if (score < bestScore) {
+                  bestScore = score;
+                  best = { cx: cx, cy: cy };
+                }
+              }
+            }
+            if (!best || !tryPlaceAt(best.cx, best.cy)) break;
+          }
+
+          if (mi < queue.length) skipped = queue.length - mi;
+          hiveTabData[currentHiveTab] = captureHiveSnapshot();
+          persistHiveTabsStorage();
+          draw();
+          if (window.__hiveBuilder && window.__hiveBuilder.onMembersChange) {
+            window.__hiveBuilder.onMembersChange();
+          }
+          notifyHubsChange();
+          return {
+            placed: placed,
+            skipped: skipped,
+            hub: layoutHubSummary(hub),
+            target: target,
+          };
+        }
+
+        function worldCoordForCell(cell) {
+          if (!cell) return null;
+          if (
+            hiveSettings.anchorWorldX == null ||
+            hiveSettings.anchorWorldY == null ||
+            hiveSettings.anchorGridCol == null ||
+            hiveSettings.anchorGridRow == null
+          ) {
+            return null;
+          }
+          return {
+            x: hiveSettings.anchorWorldX + (cell.x + 1 - hiveSettings.anchorGridCol),
+            y: hiveSettings.anchorWorldY + (cell.y + 1 - hiveSettings.anchorGridRow),
+          };
+        }
+
+        function getPlacedMemberIds() {
+          var ids = new Set();
+          function scan(arr) {
+            var i;
+            for (i = 0; i < arr.length; i++) {
+              if (arr[i].memberId) ids.add(arr[i].memberId);
+            }
+          }
+          scan(r5Centers);
+          scan(r4Centers);
+          scan(r3Centers);
+          scan(r2Centers);
+          scan(r1Centers);
+          return ids;
+        }
+
+        function removeMemberFromMap(memberId) {
+          if (!memberId) return;
+          function clearIfMatch(arr, clearFn) {
+            var k;
+            for (k = arr.length - 1; k >= 0; k--) {
+              if (arr[k].memberId === memberId) {
+                clearFn(k);
+              }
+            }
+          }
+          clearIfMatch(r5Centers, clearR5AtIndex);
+          clearIfMatch(r4Centers, clearR4AtIndex);
+          clearIfMatch(r3Centers, clearR3AtIndex);
+          clearIfMatch(r2Centers, clearR2AtIndex);
+          clearIfMatch(r1Centers, clearR1AtIndex);
+          draw();
+          if (window.__hiveBuilder && window.__hiveBuilder.onMembersChange) {
+            window.__hiveBuilder.onMembersChange();
+          }
+        }
+
+        function placeMember(member, cell) {
+          if (!member || !cell) return false;
+          var rank = member.rank || "r1";
+          var meta = normalizeCenterMeta({ name: member.name, memberId: member.id });
+          removeMemberFromMap(member.id);
+          var gap = Math.max(0, hiveSettings.baseGap | 0);
+          var bounds = mapEdgeCenterBounds(gap);
+          var cx = cell.x | 0;
+          var cy = cell.y | 0;
+          if (cx < bounds.lo || cx > bounds.hi || cy < bounds.lo || cy > bounds.hi) {
+            return false;
+          }
+          if (!canPlaceMemberCenterAt(cx, cy, gap)) return false;
+          if (rank === "r5") placeR5AtCenter(cx, cy, meta);
+          else if (rank === "r4") placeR4AtCenter(cx, cy, meta);
+          else if (rank === "r3") placeR3AtCenter(cx, cy, meta);
+          else if (rank === "r2") placeR2AtCenter(cx, cy, meta);
+          else placeR1AtCenter(cx, cy, meta);
+          return true;
+        }
+
+        function drawCenterText(px, py, mainText, subText, fsMain) {
+          var textFill = cssVar("--text", "#e8eef5");
+          var textStroke = cssVar("--panel-2", "#0d1520");
+          var fs = fsMain || Math.max(10, Math.floor(SCALE * 0.68));
+          var fsSub = Math.max(5, Math.floor(fs * 0.52));
+          var main = mainText || subText || "";
+          var sub = mainText && subText ? subText : "";
+          if (main.length > 16) main = main.slice(0, 15) + "…";
+          ctx.textAlign = "center";
+          ctx.textBaseline = "middle";
+          if (sub) {
+            var yMain = py - Math.max(2, Math.ceil(fsSub * 0.65));
+            var ySub = py + Math.max(2, Math.ceil(fs * 0.55));
+            ctx.font = "bold " + fs + 'px system-ui, "Segoe UI", sans-serif';
+            ctx.lineWidth = Math.max(2, Math.ceil(fs / 7));
+            ctx.strokeStyle = textStroke;
+            ctx.strokeText(main, px, yMain);
+            ctx.fillStyle = textFill;
+            ctx.fillText(main, px, yMain);
+            ctx.font = "bold " + fsSub + 'px system-ui, "Segoe UI", sans-serif';
+            ctx.lineWidth = Math.max(1, Math.ceil(fsSub / 6));
+            ctx.strokeText(sub, px, ySub);
+            ctx.fillStyle = textFill;
+            ctx.fillText(sub, px, ySub);
+          } else {
+            ctx.font = "bold " + fs + 'px system-ui, "Segoe UI", sans-serif';
+            ctx.lineWidth = Math.max(2, Math.ceil(fs / 7));
+            ctx.strokeStyle = textStroke;
+            ctx.strokeText(main, px, py);
+            ctx.fillStyle = textFill;
+            ctx.fillText(main, px, py);
+          }
         }
 
         function buildBaseLayer() {
@@ -967,21 +2184,70 @@
           bctx.fill();
         }
 
-        /** Side length at 100% zoom: as large as fits in the viewport, up to 960px. */
+        /**
+         * At 100%: fill the map column width (the side gutters).
+         * Main area grows to fit the square so the full map stays visible.
+         */
         function getBaseDisplaySize() {
-          var w = window.innerWidth - 40;
-          var h = window.innerHeight - 168;
-          var side = Math.floor(Math.min(w, h));
-          return Math.min(960, Math.max(300, side));
+          var main = document.querySelector(".hive-main-wrap");
+          var mapCol = document.querySelector(".hive-map-column");
+          var wrap = canvas ? canvas.closest(".hive-canvas-wrap") : null;
+          var narrow =
+            window.matchMedia && window.matchMedia("(max-width: 900px)").matches;
+
+          var maxW = 0;
+          if (wrap && wrap.clientWidth > 0) {
+            maxW = wrap.clientWidth;
+          } else if (mapCol && mapCol.clientWidth > 0) {
+            maxW = mapCol.clientWidth;
+          } else {
+            maxW = Math.max(200, window.innerWidth - 48);
+          }
+
+          var tabsEl = mapCol ? mapCol.querySelector(".hive-tabs") : null;
+          var tabsH = tabsEl ? tabsEl.offsetHeight + 4 : 0;
+
+          /* Prefer filling column width — that is what leaves the side gutters. */
+          var side = Math.floor(maxW);
+
+          if (!narrow && main) {
+            var top = main.getBoundingClientRect().top;
+            if (top < 0) top = 0;
+            var viewportRoom = Math.floor(window.innerHeight - top - 8);
+            var needed = tabsH + side;
+            /* Grow the panel to fit the full-width square (may add a little page scroll). */
+            main.style.height = Math.max(viewportRoom, needed) + "px";
+          } else if (main) {
+            main.style.height = "";
+            if (wrap && wrap.clientHeight > 0) {
+              side = Math.floor(Math.min(maxW, wrap.clientHeight));
+            }
+          }
+
+          return Math.max(180, side);
         }
 
         var resizeTimer = null;
+        var applyingZoom = false;
         function applyZoom() {
-          var pct = parseInt(zoomEl && zoomEl.value, 10);
-          if (!Number.isFinite(pct) || pct < 25) pct = 100;
-          var s = Math.round(getBaseDisplaySize() * (pct / 100));
-          canvas.style.width = s + "px";
-          canvas.style.height = s + "px";
+          if (applyingZoom) return;
+          applyingZoom = true;
+          try {
+            var pct = parseInt(zoomEl && zoomEl.value, 10);
+            if (!Number.isFinite(pct) || pct < 25) pct = 100;
+            var base = getBaseDisplaySize();
+            var s = Math.round(base * (pct / 100));
+            canvas.style.width = s + "px";
+            canvas.style.height = s + "px";
+            canvas.style.maxWidth = "none";
+            canvas.style.aspectRatio = "auto";
+            var wrap = canvas.closest(".hive-canvas-wrap");
+            if (wrap) {
+              wrap.classList.toggle("hive-canvas-wrap--scroll", pct > 100);
+            }
+          } finally {
+            applyingZoom = false;
+          }
         }
 
         function draw() {
@@ -1048,53 +2314,53 @@
           var c;
           for (k = 0; k < r5Centers.length; k++) {
             c = r5Centers[k];
-            var px5 = c.cx * SCALE + SCALE / 2;
-            var py5 = c.cy * SCALE + SCALE / 2;
-            ctx.lineWidth = Math.max(2, Math.ceil(fs / 7));
-            ctx.strokeStyle = textStroke;
-            ctx.strokeText("R5", px5, py5);
-            ctx.fillStyle = textFill;
-            ctx.fillText("R5", px5, py5);
+            drawCenterText(
+              c.cx * SCALE + SCALE / 2,
+              c.cy * SCALE + SCALE / 2,
+              c.name || "",
+              "R5",
+              fs
+            );
           }
           for (k = 0; k < r4Centers.length; k++) {
             c = r4Centers[k];
-            var px4 = c.cx * SCALE + SCALE / 2;
-            var py4 = c.cy * SCALE + SCALE / 2;
-            ctx.lineWidth = Math.max(2, Math.ceil(fs / 7));
-            ctx.strokeStyle = textStroke;
-            ctx.strokeText("R4", px4, py4);
-            ctx.fillStyle = textFill;
-            ctx.fillText("R4", px4, py4);
+            drawCenterText(
+              c.cx * SCALE + SCALE / 2,
+              c.cy * SCALE + SCALE / 2,
+              c.name || "",
+              "R4",
+              fs
+            );
           }
           for (k = 0; k < r3Centers.length; k++) {
             c = r3Centers[k];
-            var px3 = c.cx * SCALE + SCALE / 2;
-            var py3 = c.cy * SCALE + SCALE / 2;
-            ctx.lineWidth = Math.max(2, Math.ceil(fs / 7));
-            ctx.strokeStyle = textStroke;
-            ctx.strokeText("R3", px3, py3);
-            ctx.fillStyle = textFill;
-            ctx.fillText("R3", px3, py3);
+            drawCenterText(
+              c.cx * SCALE + SCALE / 2,
+              c.cy * SCALE + SCALE / 2,
+              c.name || "",
+              "R3",
+              fs
+            );
           }
           for (k = 0; k < r2Centers.length; k++) {
             c = r2Centers[k];
-            var px2 = c.cx * SCALE + SCALE / 2;
-            var py2 = c.cy * SCALE + SCALE / 2;
-            ctx.lineWidth = Math.max(2, Math.ceil(fs / 7));
-            ctx.strokeStyle = textStroke;
-            ctx.strokeText("R2", px2, py2);
-            ctx.fillStyle = textFill;
-            ctx.fillText("R2", px2, py2);
+            drawCenterText(
+              c.cx * SCALE + SCALE / 2,
+              c.cy * SCALE + SCALE / 2,
+              c.name || "",
+              "R2",
+              fs
+            );
           }
           for (k = 0; k < r1Centers.length; k++) {
             c = r1Centers[k];
-            var px1 = c.cx * SCALE + SCALE / 2;
-            var py1 = c.cy * SCALE + SCALE / 2;
-            ctx.lineWidth = Math.max(2, Math.ceil(fs / 7));
-            ctx.strokeStyle = textStroke;
-            ctx.strokeText("R1", px1, py1);
-            ctx.fillStyle = textFill;
-            ctx.fillText("R1", px1, py1);
+            drawCenterText(
+              c.cx * SCALE + SCALE / 2,
+              c.cy * SCALE + SCALE / 2,
+              c.name || "",
+              "R1",
+              fs
+            );
           }
           for (k = 0; k < aeCenters.length; k++) {
             c = aeCenters[k];
@@ -1415,8 +2681,13 @@
             coordEl.textContent = "";
             return;
           }
-          coordEl.textContent =
-            "Column " + (cell.x + 1) + ", row " + (cell.y + 1) + " (of " + TILES + ")";
+          var text =
+            "Grid col " + (cell.x + 1) + ", row " + (cell.y + 1) + " (of " + TILES + ")";
+          var world = worldCoordForCell(cell);
+          if (world) {
+            text += " · World X " + world.x + ", Y " + world.y;
+          }
+          coordEl.textContent = text;
         }
 
         /**
@@ -1460,6 +2731,7 @@
         }
 
         function clearR5AtIndex(k) {
+          var hadMember = r5Centers[k] && r5Centers[k].memberId;
           var c = r5Centers[k];
           var dx;
           var dy;
@@ -1469,9 +2741,13 @@
             }
           }
           r5Centers.splice(k, 1);
+          if (hadMember && window.__hiveBuilder && window.__hiveBuilder.onMembersChange) {
+            window.__hiveBuilder.onMembersChange();
+          }
         }
 
         function clearR4AtIndex(k) {
+          var hadMember = r4Centers[k] && r4Centers[k].memberId;
           var c = r4Centers[k];
           var dx;
           var dy;
@@ -1481,6 +2757,9 @@
             }
           }
           r4Centers.splice(k, 1);
+          if (hadMember && window.__hiveBuilder && window.__hiveBuilder.onMembersChange) {
+            window.__hiveBuilder.onMembersChange();
+          }
         }
 
         function clearAeAtIndex(k) {
@@ -1493,9 +2772,11 @@
             }
           }
           aeCenters.splice(k, 1);
+          syncAnchorFromMap();
         }
 
         function clearR3AtIndex(k) {
+          var hadMember = r3Centers[k] && r3Centers[k].memberId;
           var c = r3Centers[k];
           var dx;
           var dy;
@@ -1505,9 +2786,13 @@
             }
           }
           r3Centers.splice(k, 1);
+          if (hadMember && window.__hiveBuilder && window.__hiveBuilder.onMembersChange) {
+            window.__hiveBuilder.onMembersChange();
+          }
         }
 
         function clearR2AtIndex(k) {
+          var hadMember = r2Centers[k] && r2Centers[k].memberId;
           var c = r2Centers[k];
           var dx;
           var dy;
@@ -1517,9 +2802,13 @@
             }
           }
           r2Centers.splice(k, 1);
+          if (hadMember && window.__hiveBuilder && window.__hiveBuilder.onMembersChange) {
+            window.__hiveBuilder.onMembersChange();
+          }
         }
 
         function clearR1AtIndex(k) {
+          var hadMember = r1Centers[k] && r1Centers[k].memberId;
           var c = r1Centers[k];
           var dx;
           var dy;
@@ -1529,6 +2818,9 @@
             }
           }
           r1Centers.splice(k, 1);
+          if (hadMember && window.__hiveBuilder && window.__hiveBuilder.onMembersChange) {
+            window.__hiveBuilder.onMembersChange();
+          }
         }
 
         function clearFurnaceAtIndex(k) {
@@ -1541,6 +2833,7 @@
             }
           }
           furnaceCenters.splice(k, 1);
+          syncAnchorFromMap();
         }
 
         function clearAllianceCenterAtIndex(k) {
@@ -1553,6 +2846,7 @@
             }
           }
           allianceCenterCenters.splice(k, 1);
+          syncAnchorFromMap();
         }
 
         function removeOverlapsForNew3x3(cx, cy) {
@@ -2161,10 +3455,10 @@
           placeCustomAtRect(o.left, o.top, spec.w, spec.h, spec.name);
         }
 
-        function placeR5AtCenter(cx, cy) {
+        function placeR5AtCenter(cx, cy, meta) {
           cx = Math.max(1, Math.min(TILES - 2, cx));
           cy = Math.max(1, Math.min(TILES - 2, cy));
-          var nu = { cx: cx, cy: cy };
+          var nu = Object.assign({ cx: cx, cy: cy }, normalizeCenterMeta(meta));
           removeOverlapsForNew3x3(cx, cy);
           var dx;
           var dy;
@@ -2177,10 +3471,10 @@
           draw();
         }
 
-        function placeR4AtCenter(cx, cy) {
+        function placeR4AtCenter(cx, cy, meta) {
           cx = Math.max(1, Math.min(TILES - 2, cx));
           cy = Math.max(1, Math.min(TILES - 2, cy));
-          var nu = { cx: cx, cy: cy };
+          var nu = Object.assign({ cx: cx, cy: cy }, normalizeCenterMeta(meta));
           removeOverlapsForNew3x3(cx, cy);
           var dx;
           var dy;
@@ -2218,6 +3512,7 @@
             }
           }
           aeCenters.push(nu);
+          syncAnchorFromMap();
           draw();
         }
 
@@ -2227,10 +3522,10 @@
           placeAeAtCenter(cx, cy);
         }
 
-        function placeR3AtCenter(cx, cy) {
+        function placeR3AtCenter(cx, cy, meta) {
           cx = Math.max(1, Math.min(TILES - 2, cx));
           cy = Math.max(1, Math.min(TILES - 2, cy));
-          var nu = { cx: cx, cy: cy };
+          var nu = Object.assign({ cx: cx, cy: cy }, normalizeCenterMeta(meta));
           removeOverlapsForNew3x3(cx, cy);
           var dx;
           var dy;
@@ -2243,10 +3538,10 @@
           draw();
         }
 
-        function placeR2AtCenter(cx, cy) {
+        function placeR2AtCenter(cx, cy, meta) {
           cx = Math.max(1, Math.min(TILES - 2, cx));
           cy = Math.max(1, Math.min(TILES - 2, cy));
-          var nu = { cx: cx, cy: cy };
+          var nu = Object.assign({ cx: cx, cy: cy }, normalizeCenterMeta(meta));
           removeOverlapsForNew3x3(cx, cy);
           var dx;
           var dy;
@@ -2259,10 +3554,10 @@
           draw();
         }
 
-        function placeR1AtCenter(cx, cy) {
+        function placeR1AtCenter(cx, cy, meta) {
           cx = Math.max(1, Math.min(TILES - 2, cx));
           cy = Math.max(1, Math.min(TILES - 2, cy));
-          var nu = { cx: cx, cy: cy };
+          var nu = Object.assign({ cx: cx, cy: cy }, normalizeCenterMeta(meta));
           removeOverlapsForNew3x3(cx, cy);
           var dx;
           var dy;
@@ -2306,6 +3601,7 @@
             }
           }
           furnaceCenters.push(nu);
+          syncAnchorFromMap();
           draw();
         }
 
@@ -2328,6 +3624,7 @@
             }
           }
           allianceCenterCenters.push(nu);
+          syncAnchorFromMap();
           draw();
         }
 
@@ -2510,15 +3807,15 @@
             tiles[d.origMark.y * TILES + d.origMark.x] = STATE_MARK;
             draw();
           } else if (d.kind === "r5") {
-            placeR5AtCenter(d.origR5.cx, d.origR5.cy);
+            placeR5AtCenter(d.origR5.cx, d.origR5.cy, d.origR5);
           } else if (d.kind === "r4") {
-            placeR4AtCenter(d.origR4.cx, d.origR4.cy);
+            placeR4AtCenter(d.origR4.cx, d.origR4.cy, d.origR4);
           } else if (d.kind === "r3") {
-            placeR3AtCenter(d.origR3.cx, d.origR3.cy);
+            placeR3AtCenter(d.origR3.cx, d.origR3.cy, d.origR3);
           } else if (d.kind === "r2") {
-            placeR2AtCenter(d.origR2.cx, d.origR2.cy);
+            placeR2AtCenter(d.origR2.cx, d.origR2.cy, d.origR2);
           } else if (d.kind === "r1") {
-            placeR1AtCenter(d.origR1.cx, d.origR1.cy);
+            placeR1AtCenter(d.origR1.cx, d.origR1.cy, d.origR1);
           } else if (d.kind === "ae") {
             placeAeAtCenter(d.origAe.cx, d.origAe.cy);
           } else if (d.kind === "furnace") {
@@ -2732,15 +4029,15 @@
           var ncy = Math.max(1, Math.min(TILES - 2, dropCell.y - d.grabDy));
           clearFootprintConflicts(ncx, ncy);
           if (d.kind === "r5") {
-            placeR5AtCenter(ncx, ncy);
+            placeR5AtCenter(ncx, ncy, d.origR5);
           } else if (d.kind === "r4") {
-            placeR4AtCenter(ncx, ncy);
+            placeR4AtCenter(ncx, ncy, d.origR4);
           } else if (d.kind === "r3") {
-            placeR3AtCenter(ncx, ncy);
+            placeR3AtCenter(ncx, ncy, d.origR3);
           } else if (d.kind === "r2") {
-            placeR2AtCenter(ncx, ncy);
+            placeR2AtCenter(ncx, ncy, d.origR2);
           } else if (d.kind === "r1") {
-            placeR1AtCenter(ncx, ncy);
+            placeR1AtCenter(ncx, ncy, d.origR1);
           } else {
             placeAeAtCenter(ncx, ncy);
           }
@@ -2809,10 +4106,54 @@
             furnaceCenters: [],
             allianceCenterCenters: [],
             customBlocks: [],
+            members: [],
+            settings: {
+              baseGap: 1,
+              hubPreference: "auto",
+              generateCount: 40,
+              anchorWorldX: null,
+              anchorWorldY: null,
+              anchorGridCol: null,
+              anchorGridRow: null,
+              anchorType: null,
+            },
             activeTool: "mark",
             customName: "",
             customW: "3",
             customH: "3",
+          };
+        }
+
+        function readAnchorSettings(src) {
+          var def = emptyHiveSnapshot().settings;
+          if (!src || typeof src !== "object") return def;
+          function pickNum(primary, legacy) {
+            if (primary != null && Number.isFinite(primary)) return primary | 0;
+            if (legacy != null && Number.isFinite(legacy)) return legacy | 0;
+            return null;
+          }
+          return {
+            baseGap: src.baseGap != null ? src.baseGap | 0 : 1,
+            hubPreference:
+              src.hubPreference === "ae" ||
+              src.hubPreference === "furnace" ||
+              src.hubPreference === "acenter"
+                ? src.hubPreference
+                : "auto",
+            generateCount:
+              src.generateCount != null
+                ? Math.max(1, Math.min(150, src.generateCount | 0))
+                : 40,
+            anchorWorldX: pickNum(src.anchorWorldX, src.marshalWorldX),
+            anchorWorldY: pickNum(src.anchorWorldY, src.marshalWorldY),
+            anchorGridCol: pickNum(src.anchorGridCol, src.marshalGridCol),
+            anchorGridRow: pickNum(src.anchorGridRow, src.marshalGridRow),
+            anchorType:
+              typeof src.anchorType === "string"
+                ? src.anchorType
+                : src.marshalGridCol != null || src.anchorGridCol != null
+                  ? "ae"
+                  : null,
           };
         }
 
@@ -2822,18 +4163,22 @@
           var tt = tab.tiles;
           var i;
           if (Array.isArray(tt) && tt.length === TOTAL) {
-            for (i = 0; i < TOTAL; i++) e.tiles[i] = tt[i] | 0;
+            for (i = 0; i < TOTAL; i++) {
+              var tv = tt[i] | 0;
+              e.tiles[i] = tv === STATE_MARSHAL_LEGACY ? STATE_AE : tv;
+            }
           }
           function pullCenters(key) {
             var a = tab[key];
             if (!Array.isArray(a)) return [];
-            return a.map(function (c) {
-              return { cx: c.cx | 0, cy: c.cy | 0 };
-            });
+            return a.map(pullCenterFromStore);
           }
           e.r5Centers = pullCenters("r5Centers");
           e.r4Centers = pullCenters("r4Centers");
           e.aeCenters = pullCenters("aeCenters");
+          pullCenters("marshalCenters").forEach(function (legacy) {
+            e.aeCenters.push(legacy);
+          });
           e.r3Centers = pullCenters("r3Centers");
           e.r2Centers = pullCenters("r2Centers");
           e.r1Centers = pullCenters("r1Centers");
@@ -2851,9 +4196,20 @@
               })
             : [];
           e.activeTool = typeof tab.activeTool === "string" ? tab.activeTool : "mark";
+          if (e.activeTool === "marshal") e.activeTool = "ae";
           e.customName = typeof tab.customName === "string" ? tab.customName : "";
           e.customW = tab.customW != null ? String(tab.customW) : "3";
           e.customH = tab.customH != null ? String(tab.customH) : "3";
+          e.members = Array.isArray(tab.members)
+            ? tab.members.map(function (m) {
+                return {
+                  id: typeof m.id === "string" ? m.id : "",
+                  name: typeof m.name === "string" ? m.name : "",
+                  rank: typeof m.rank === "string" ? m.rank : "r1",
+                };
+              })
+            : [];
+          e.settings = readAnchorSettings(tab.settings);
           return e;
         }
 
@@ -2863,24 +4219,14 @@
           for (i = 0; i < TOTAL; i++) t[i] = tiles[i];
           return {
             tiles: t,
-            r5Centers: r5Centers.map(function (c) {
-              return { cx: c.cx, cy: c.cy };
-            }),
-            r4Centers: r4Centers.map(function (c) {
-              return { cx: c.cx, cy: c.cy };
-            }),
+            r5Centers: r5Centers.map(pullCenterFromStore),
+            r4Centers: r4Centers.map(pullCenterFromStore),
             aeCenters: aeCenters.map(function (c) {
               return { cx: c.cx, cy: c.cy };
             }),
-            r3Centers: r3Centers.map(function (c) {
-              return { cx: c.cx, cy: c.cy };
-            }),
-            r2Centers: r2Centers.map(function (c) {
-              return { cx: c.cx, cy: c.cy };
-            }),
-            r1Centers: r1Centers.map(function (c) {
-              return { cx: c.cx, cy: c.cy };
-            }),
+            r3Centers: r3Centers.map(pullCenterFromStore),
+            r2Centers: r2Centers.map(pullCenterFromStore),
+            r1Centers: r1Centers.map(pullCenterFromStore),
             furnaceCenters: furnaceCenters.map(function (c) {
               return { cx: c.cx, cy: c.cy };
             }),
@@ -2896,6 +4242,19 @@
                 name: b.name,
               };
             }),
+            members: members.map(function (m) {
+              return { id: m.id, name: m.name, rank: m.rank };
+            }),
+            settings: {
+              baseGap: hiveSettings.baseGap,
+              hubPreference: hiveSettings.hubPreference || "auto",
+              generateCount: hiveSettings.generateCount || 40,
+              anchorWorldX: hiveSettings.anchorWorldX,
+              anchorWorldY: hiveSettings.anchorWorldY,
+              anchorGridCol: hiveSettings.anchorGridCol,
+              anchorGridRow: hiveSettings.anchorGridRow,
+              anchorType: hiveSettings.anchorType,
+            },
             activeTool: activeTool,
             customName: customNameInput ? customNameInput.value : "",
             customW: customWInput ? String(customWInput.value) : "3",
@@ -2907,7 +4266,10 @@
           var i;
           var tt = s.tiles;
           if (Array.isArray(tt) && tt.length === TOTAL) {
-            for (i = 0; i < TOTAL; i++) tiles[i] = tt[i] | 0;
+            for (i = 0; i < TOTAL; i++) {
+              var tv = tt[i] | 0;
+              tiles[i] = tv === STATE_MARSHAL_LEGACY ? STATE_AE : tv;
+            }
           } else {
             tiles.fill(STATE_EMPTY);
           }
@@ -2915,7 +4277,7 @@
             dst.length = 0;
             if (!Array.isArray(arr)) return;
             arr.forEach(function (c) {
-              dst.push({ cx: c.cx | 0, cy: c.cy | 0 });
+              dst.push(pullCenterFromStore(c));
             });
           }
           fillCenters(r5Centers, s.r5Centers);
@@ -2938,7 +4300,7 @@
               });
             });
           }
-          setTool(s.activeTool || "mark");
+          setTool(s.activeTool === "marshal" ? "ae" : s.activeTool || "mark");
           if (customNameInput) {
             customNameInput.value = s.customName != null ? s.customName : "";
           }
@@ -2947,6 +4309,12 @@
           }
           if (customHInput) {
             customHInput.value = s.customH != null ? s.customH : "3";
+          }
+          members = Array.isArray(s.members) ? s.members.slice() : [];
+          hiveSettings = readAnchorSettings(s.settings);
+          syncAnchorFromMap();
+          if (window.__hiveBuilder && window.__hiveBuilder.onMembersChange) {
+            window.__hiveBuilder.onMembersChange();
           }
         }
 
@@ -2987,12 +4355,12 @@
           var v = tiles[idx];
           if (v === STATE_EMPTY) return "";
           if (v === STATE_MARK) return "Mark";
-          if (v === STATE_R5) return "R5";
-          if (v === STATE_R4) return "R4";
-          if (v === STATE_R3) return "R3";
-          if (v === STATE_R2) return "R2";
-          if (v === STATE_R1) return "R1";
-          if (v === STATE_AE) return "AE";
+          if (v === STATE_R5) return rankExportLabelAt(x, y, r5Centers, "R5");
+          if (v === STATE_R4) return rankExportLabelAt(x, y, r4Centers, "R4");
+          if (v === STATE_R3) return rankExportLabelAt(x, y, r3Centers, "R3");
+          if (v === STATE_R2) return rankExportLabelAt(x, y, r2Centers, "R2");
+          if (v === STATE_R1) return rankExportLabelAt(x, y, r1Centers, "R1");
+          if (v === STATE_AE || v === STATE_MARSHAL_LEGACY) return "AE";
           if (v === STATE_FURNACE) return "Furnace";
           if (v === STATE_ALLIANCE_CENTER) return "Alliance Center";
           if (v === STATE_CUSTOM) {
@@ -3000,6 +4368,29 @@
             return nm || "Custom";
           }
           return "";
+        }
+
+        function rankExportLabelAt(x, y, arr, rankLabel) {
+          var k;
+          for (k = 0; k < arr.length; k++) {
+            var c = arr[k];
+            if (
+              x >= c.cx - 1 &&
+              x <= c.cx + 1 &&
+              y >= c.cy - 1 &&
+              y <= c.cy + 1
+            ) {
+              if (c.name) {
+                var world = worldCoordForCell({ x: c.cx, y: c.cy });
+                if (world) {
+                  return c.name + " (" + rankLabel + ") X" + world.x + " Y" + world.y;
+                }
+                return c.name + " (" + rankLabel + ")";
+              }
+              return rankLabel;
+            }
+          }
+          return rankLabel;
         }
 
         function buildHiveExportAoA() {
@@ -3139,7 +4530,7 @@
         function persistHiveTabsStorage() {
           hiveTabData[currentHiveTab] = captureHiveSnapshot();
           var payload = {
-            v: 1,
+            v: 2,
             active: currentHiveTab,
             names: hiveTabNames.slice(),
             tabs: hiveTabData.slice(),
@@ -3154,11 +4545,15 @@
         function loadHiveTabsStorage() {
           try {
             var raw = localStorage.getItem(HIVE_LS_KEY);
+            if (!raw) {
+              raw = localStorage.getItem("allianceHiveTabs_v1");
+            }
             if (!raw) return false;
             var o = JSON.parse(raw);
-            if (!o || o.v !== 1 || !Array.isArray(o.tabs) || o.tabs.length !== HIVE_TAB_COUNT) {
+            if (!o || !Array.isArray(o.tabs) || o.tabs.length !== HIVE_TAB_COUNT) {
               return false;
             }
+            if (o.v !== 1 && o.v !== 2) return false;
             var i;
             if (Array.isArray(o.names) && o.names.length === HIVE_TAB_COUNT) {
               for (i = 0; i < HIVE_TAB_COUNT; i++) {
@@ -3346,6 +4741,7 @@
           }
           var idx = cell.y * TILES + cell.x;
           var st = tiles[idx];
+          if (st === STATE_MARSHAL_LEGACY) st = STATE_AE;
           drag = {
             phase: st === STATE_EMPTY ? "maybeTap" : "maybeDrag",
             cell: cell,
@@ -3393,7 +4789,7 @@
             drag.r5 = rp;
             drag.grabDx = cell.x - rp.cx;
             drag.grabDy = cell.y - rp.cy;
-            drag.origR5 = { cx: rp.cx, cy: rp.cy };
+            drag.origR5 = pullCenterFromStore(r5Centers[rp.index]);
           } else if (st === STATE_R4) {
             var r4p = findR4Placement(cell);
             if (!r4p) {
@@ -3404,7 +4800,7 @@
             drag.r4 = r4p;
             drag.grabDx = cell.x - r4p.cx;
             drag.grabDy = cell.y - r4p.cy;
-            drag.origR4 = { cx: r4p.cx, cy: r4p.cy };
+            drag.origR4 = pullCenterFromStore(r4Centers[r4p.index]);
           } else if (st === STATE_R3) {
             var r3p = findR3Placement(cell);
             if (!r3p) {
@@ -3415,7 +4811,7 @@
             drag.r3 = r3p;
             drag.grabDx = cell.x - r3p.cx;
             drag.grabDy = cell.y - r3p.cy;
-            drag.origR3 = { cx: r3p.cx, cy: r3p.cy };
+            drag.origR3 = pullCenterFromStore(r3Centers[r3p.index]);
           } else if (st === STATE_R2) {
             var r2p = findR2Placement(cell);
             if (!r2p) {
@@ -3426,7 +4822,7 @@
             drag.r2 = r2p;
             drag.grabDx = cell.x - r2p.cx;
             drag.grabDy = cell.y - r2p.cy;
-            drag.origR2 = { cx: r2p.cx, cy: r2p.cy };
+            drag.origR2 = pullCenterFromStore(r2Centers[r2p.index]);
           } else if (st === STATE_R1) {
             var r1p = findR1Placement(cell);
             if (!r1p) {
@@ -3437,7 +4833,7 @@
             drag.r1 = r1p;
             drag.grabDx = cell.x - r1p.cx;
             drag.grabDy = cell.y - r1p.cy;
-            drag.origR1 = { cx: r1p.cx, cy: r1p.cy };
+            drag.origR1 = pullCenterFromStore(r1Centers[r1p.index]);
           } else if (st === STATE_AE) {
             var aep = findAePlacement(cell);
             if (!aep) {
@@ -3610,19 +5006,91 @@
           furnaceCenters.length = 0;
           allianceCenterCenters.length = 0;
           customBlocks.length = 0;
+          syncAnchorFromMap();
           draw();
           hiveTabData[currentHiveTab] = captureHiveSnapshot();
           persistHiveTabsStorage();
+          if (window.__hiveBuilder && window.__hiveBuilder.onMembersChange) {
+            window.__hiveBuilder.onMembersChange();
+          }
         });
 
         initHiveTabs();
         buildBaseLayer();
         draw();
         applyZoom();
+
+        window.__hiveBuilder = {
+          canvas: canvas,
+          eventToCell: eventToCell,
+          draw: draw,
+          persist: function () {
+            hiveTabData[currentHiveTab] = captureHiveSnapshot();
+            persistHiveTabsStorage();
+          },
+          getMembers: function () {
+            return members.slice();
+          },
+          setMembers: function (list) {
+            members = Array.isArray(list) ? list.slice() : [];
+          },
+          getSettings: function () {
+            return {
+              baseGap: hiveSettings.baseGap,
+              hubPreference: hiveSettings.hubPreference || "auto",
+              generateCount: hiveSettings.generateCount || 40,
+              anchorGridCol: hiveSettings.anchorGridCol,
+              anchorGridRow: hiveSettings.anchorGridRow,
+              anchorType: hiveSettings.anchorType,
+            };
+          },
+          setSettings: function (s) {
+            if (!s || typeof s !== "object") return;
+            hiveSettings.baseGap = s.baseGap != null ? s.baseGap | 0 : hiveSettings.baseGap;
+            if (
+              s.hubPreference === "auto" ||
+              s.hubPreference === "ae" ||
+              s.hubPreference === "furnace" ||
+              s.hubPreference === "acenter"
+            ) {
+              hiveSettings.hubPreference = s.hubPreference;
+            }
+            if (s.generateCount != null && Number.isFinite(s.generateCount)) {
+              hiveSettings.generateCount = Math.max(1, Math.min(150, s.generateCount | 0));
+            }
+            if (s.anchorGridCol != null) hiveSettings.anchorGridCol = s.anchorGridCol | 0;
+            else if (s.marshalGridCol != null) hiveSettings.anchorGridCol = s.marshalGridCol | 0;
+            if (s.anchorGridRow != null) hiveSettings.anchorGridRow = s.anchorGridRow | 0;
+            else if (s.marshalGridRow != null) hiveSettings.anchorGridRow = s.marshalGridRow | 0;
+            if (typeof s.anchorType === "string") hiveSettings.anchorType = s.anchorType;
+            syncAnchorFromMap();
+          },
+          listAvailableHubs: listAvailableHubs,
+          generateAutoHive: generateAutoHive,
+          placeMember: placeMember,
+          removeMemberFromMap: removeMemberFromMap,
+          getPlacedMemberIds: getPlacedMemberIds,
+          onMembersChange: null,
+          onHubsChange: null,
+        };
+
+        notifyHubsChange();
+
         zoomEl?.addEventListener("change", applyZoom);
         window.addEventListener("resize", function () {
           clearTimeout(resizeTimer);
           resizeTimer = setTimeout(applyZoom, 100);
+        });
+        var mapColEl = document.querySelector(".hive-map-column");
+        if (mapColEl && typeof ResizeObserver !== "undefined") {
+          var mapResizeObserver = new ResizeObserver(function () {
+            clearTimeout(resizeTimer);
+            resizeTimer = setTimeout(applyZoom, 50);
+          });
+          mapResizeObserver.observe(mapColEl);
+        }
+        requestAnimationFrame(function () {
+          requestAnimationFrame(applyZoom);
         });
 
         try {
