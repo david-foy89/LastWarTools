@@ -1052,7 +1052,7 @@
             </div>
             <p class="hive-settings-hint">
               Generates from your <strong>Build around</strong> choice first, then other hubs.
-              Every hub and base uses your selected gap. Side hubs fill along that wall (one tile in), then inward; with two buildings, bases stay on one spacing grid so corridors between them stay even.
+              Every hub and base uses your selected gap. The 50×50 borders are map walls — edge/corner hubs pack along those walls first, then inward; with two buildings, bases stay on one spacing grid so corridors between them stay even.
               Auto prefers an edge/corner hub when one exists.
             </p>
             <div class="hive-members-actions">
@@ -1544,7 +1544,7 @@
 
         /**
          * Valid 3×3 base centers that leave `gap` empty tiles from the map border
-         * (border treated like a wall).
+         * (50×50 edges treated as the real map walls).
          */
         function mapEdgeCenterBounds(gap) {
           var g = Math.max(0, gap | 0);
@@ -1559,42 +1559,168 @@
         }
 
         /**
-         * Pack seats at the exact selected gap from hubs and the map edge.
-         * Corner: exact-gap seats on both wall rails, then wrap the open corner.
-         * Side: wall shoulders (one tile in) + primary open faces first; secondary
-         * hubs only get seats on the primary base lattice (exact gap, or gap+1
-         * when clear%step forces it) so AC+AE packs do not create corridors of
-         * uneven spacing.
+         * Axis coords for edge/corner packs. Open directions step from the hub
+         * at exact clearance; blocked directions (map wall) walk toward that
+         * 50×50 border on the same phase so bases hug the wall without opening
+         * a second spacing grid.
+         */
+        function buildLatticeAxis(hubPos, blockedLo, blockedHi, clear, step, lo, hi) {
+          var seen = Object.create(null);
+          var coords = [];
+          var d;
+          var c;
+
+          function add(v) {
+            v = v | 0;
+            if (v < lo || v > hi || seen[v]) return;
+            seen[v] = 1;
+            coords.push(v);
+          }
+
+          add(hubPos);
+
+          if (!blockedHi) {
+            for (d = clear; hubPos + d <= hi; d += step) add(hubPos + d);
+          } else {
+            for (c = hubPos - clear; c <= hi; c += step) add(c);
+          }
+
+          if (!blockedLo) {
+            for (d = clear; hubPos - d >= lo; d += step) add(hubPos - d);
+          } else {
+            for (c = hubPos + clear - step; c >= lo; c -= step) add(c);
+          }
+
+          coords.sort(function (a, b) {
+            return a - b;
+          });
+          return coords;
+        }
+
+        /** Hub-centered step axis (no clearance gaps — used along an open side). */
+        function buildHubStepAxis(hubPos, step, lo, hi) {
+          var coords = [];
+          var c;
+          for (c = hubPos; c >= lo; c -= step) coords.push(c);
+          for (c = hubPos + step; c <= hi; c += step) coords.push(c);
+          coords.sort(function (a, b) {
+            return a - b;
+          });
+          return coords;
+        }
+
+        function axisToSet(coords) {
+          var set = Object.create(null);
+          var i;
+          for (i = 0; i < coords.length; i++) set[coords[i]] = 1;
+          return set;
+        }
+
+        /**
+         * Shared xs/ys for the primary hub:
+         *  - Corner: clearance-exact on both axes (solid pack from the walls)
+         *  - Side: clearance-exact toward the map wall; hub-step along the wall
+         *    so columns under the hub fill instead of leaving a trough
+         *  - Open map: hub-step on both axes
+         */
+        function primaryLatticeAxes(primary, gap) {
+          var g = Math.max(0, gap | 0);
+          var step = minCenterDistForGap(BLOCK_HALF_3, BLOCK_HALF_3, g);
+          var clear = minCenterDistForGap(primary.half, BLOCK_HALF_3, g);
+          var blocked = hubBlockedSides(primary, gap);
+          var bounds = mapEdgeCenterBounds(g);
+          var onEdge =
+            blocked.left || blocked.right || blocked.top || blocked.bottom;
+          var corner =
+            (blocked.left || blocked.right) && (blocked.top || blocked.bottom);
+          var xs;
+          var ys;
+
+          if (corner) {
+            xs = buildLatticeAxis(
+              primary.cx,
+              blocked.left,
+              blocked.right,
+              clear,
+              step,
+              bounds.lo,
+              bounds.hi
+            );
+            ys = buildLatticeAxis(
+              primary.cy,
+              blocked.top,
+              blocked.bottom,
+              clear,
+              step,
+              bounds.lo,
+              bounds.hi
+            );
+          } else if (onEdge) {
+            if (blocked.left || blocked.right) {
+              xs = buildLatticeAxis(
+                primary.cx,
+                blocked.left,
+                blocked.right,
+                clear,
+                step,
+                bounds.lo,
+                bounds.hi
+              );
+              ys = buildHubStepAxis(primary.cy, step, bounds.lo, bounds.hi);
+            } else {
+              ys = buildLatticeAxis(
+                primary.cy,
+                blocked.top,
+                blocked.bottom,
+                clear,
+                step,
+                bounds.lo,
+                bounds.hi
+              );
+              xs = buildHubStepAxis(primary.cx, step, bounds.lo, bounds.hi);
+            }
+          } else {
+            xs = buildHubStepAxis(primary.cx, step, bounds.lo, bounds.hi);
+            ys = buildHubStepAxis(primary.cy, step, bounds.lo, bounds.hi);
+          }
+
+          return {
+            xs: xs,
+            ys: ys,
+            xsSet: axisToSet(xs),
+            ysSet: axisToSet(ys),
+            blocked: blocked,
+            onEdge: onEdge,
+            corner: corner,
+            step: step,
+            clear: clear,
+            bounds: bounds,
+          };
+        }
+
+        /**
+         * Pack seats at the selected gap from hubs and the map edge (50×50
+         * borders = map walls). Corner/side: wall-aligned clearance lattice so
+         * bases hug those walls then fill the open quadrant. Two+ hubs share
+         * that same lattice so corridors stay even.
          */
         function generateCandidateCenters(primary, gap) {
           var g = Math.max(0, gap | 0);
-          var step = minCenterDistForGap(BLOCK_HALF_3, BLOCK_HALF_3, g);
           var waves = packHubWaves(primary);
           if (!waves.length || !primary) return [];
-          var blocked = hubBlockedSides(primary, gap);
-          var edgeCount =
-            (blocked.left ? 1 : 0) +
-            (blocked.right ? 1 : 0) +
-            (blocked.top ? 1 : 0) +
-            (blocked.bottom ? 1 : 0);
-          var hasEdge = edgeCount > 0;
-          var isSide = edgeCount === 1;
-          var bounds = mapEdgeCenterBounds(g);
+          var axes = primaryLatticeAxes(primary, gap);
+          var blocked = axes.blocked;
+          var bounds = axes.bounds;
+          var step = axes.step;
+          var onEdge = axes.onEdge;
+          var corner = axes.corner;
+          var multiHub = waves.length > 1;
           var seats = [];
+          var xi;
+          var yi;
+          var wi;
           var cx;
           var cy;
-          var primaryClear = minCenterDistForGap(primary.half, BLOCK_HALF_3, g);
-          /* One interior lattice from the open-face seat so secondary hubs
-             (AE etc.) cannot introduce a second phase of spacing. */
-          var latticeOrigin = {
-            cx: primary.cx,
-            cy: primary.cy,
-          };
-          if (blocked.top) latticeOrigin.cy = primary.cy + primaryClear;
-          else if (blocked.bottom) latticeOrigin.cy = primary.cy - primaryClear;
-          else if (blocked.left) latticeOrigin.cx = primary.cx + primaryClear;
-          else if (blocked.right) latticeOrigin.cx = primary.cx - primaryClear;
-          else latticeOrigin.cy = primary.cy + primaryClear;
 
           function clearsAll(x, y) {
             var fi;
@@ -1618,10 +1744,12 @@
 
           function edgeRailHits(x, y) {
             var n = 0;
-            if (blocked.top && y === bounds.lo) n++;
-            if (blocked.bottom && y === bounds.hi) n++;
-            if (blocked.left && x === bounds.lo) n++;
-            if (blocked.right && x === bounds.hi) n++;
+            /* Nearest lattice line to each blocked map border (not always
+               bounds.lo — clearance phase may sit one step farther in). */
+            if (blocked.top && y === axes.ys[0]) n++;
+            if (blocked.bottom && y === axes.ys[axes.ys.length - 1]) n++;
+            if (blocked.left && x === axes.xs[0]) n++;
+            if (blocked.right && x === axes.xs[axes.xs.length - 1]) n++;
             return n;
           }
 
@@ -1640,73 +1768,112 @@
             return 0;
           }
 
-          function onPrimaryLattice(x, y) {
-            return (
-              (x - latticeOrigin.cx) % step === 0 &&
-              (y - latticeOrigin.cy) % step === 0
-            );
-          }
-
           function hubPackInfo(x, y, w) {
             var dx = Math.abs(x - w.cx);
             var dy = Math.abs(y - w.cy);
             var pack = dx > dy ? dx : dy;
             var clear = minCenterDistForGap(w.half, BLOCK_HALF_3, g);
-            var soft = pack === clear ? 0 : pack === clear + 1 ? 1 : 1000;
+            var soft = pack - clear;
             return {
               pack: pack,
               manh: dx + dy,
               clear: clear,
-              soft: soft,
+              soft: soft < 0 ? 1000 : soft,
               onAxis: dx === 0 || dy === 0 ? 0 : 1,
+              dx: dx,
+              dy: dy,
             };
           }
 
-          /* Phase A — primary hub exact seats (wall + open cardinals). */
-          for (cy = bounds.lo; cy <= bounds.hi; cy++) {
-            for (cx = bounds.lo; cx <= bounds.hi; cx++) {
+          function wallDist(x, y) {
+            var sx = blocked.left
+              ? x - axes.xs[0]
+              : blocked.right
+                ? axes.xs[axes.xs.length - 1] - x
+                : Math.abs(x - primary.cx);
+            var sy = blocked.top
+              ? y - axes.ys[0]
+              : blocked.bottom
+                ? axes.ys[axes.ys.length - 1] - y
+                : Math.abs(y - primary.cy);
+            return { sx: sx, sy: sy, sum: sx + sy };
+          }
+
+          function minLatticePackForHub(w) {
+            var best = 1e9;
+            for (yi = 0; yi < axes.ys.length; yi++) {
+              for (xi = 0; xi < axes.xs.length; xi++) {
+                cx = axes.xs[xi];
+                cy = axes.ys[yi];
+                if (!clearsAll(cx, cy)) continue;
+                var p = hubPackInfo(cx, cy, w).pack;
+                if (p < best) best = p;
+              }
+            }
+            return best;
+          }
+
+          /* Primary seats on the shared xs × ys lattice. */
+          var minPackPrimary = multiHub ? minLatticePackForHub(waves[0]) : 0;
+          for (yi = 0; yi < axes.ys.length; yi++) {
+            for (xi = 0; xi < axes.xs.length; xi++) {
+              cx = axes.xs[xi];
+              cy = axes.ys[yi];
+              if (cx === primary.cx && cy === primary.cy) continue;
               if (!clearsAll(cx, cy)) continue;
               var info0 = hubPackInfo(cx, cy, waves[0]);
-              if (info0.soft !== 0) continue;
               var rails = edgeRailHits(cx, cy);
-              if (isSide) {
-                if (rails === 0 && info0.onAxis !== 0) continue;
-              } else if (!(hasEdge && rails > 0) && info0.onAxis !== 0) {
-                continue;
+              var wd = wallDist(cx, cy);
+
+              if (!onEdge) {
+                /* Open map: exact gap ring first (cardinals), or nearest
+                   lattice rings when a second hub forces the shared grid. */
+                if (multiHub) {
+                  if (minPackPrimary >= 1e9 || info0.pack > minPackPrimary + 1) {
+                    continue;
+                  }
+                } else if (info0.soft !== 0 || info0.onAxis !== 0) {
+                  continue;
+                }
               }
-              var phase = hasEdge && rails > 0 ? 0 : 1;
+
               seats.push({
                 cx: cx,
                 cy: cy,
                 wave: 0,
-                phase: phase,
-                pack: info0.pack,
+                /* Corners expand a solid square from the wall; sides fill the
+                   map-wall rail first, then inward. */
+                phase: corner ? 1 : rails > 0 ? 0 : 1,
+                pack: corner ? Math.max(wd.sx, wd.sy) : info0.pack,
                 manh: info0.manh,
                 edgeExact: rails,
                 behind: behindWall(cx, cy),
                 onAxis: info0.onAxis,
-                ringU: 0,
+                ringU: info0.soft,
                 along: alongEdge(cx, cy),
-                soft: 0,
+                soft: info0.soft,
+                edgeScore: wd.sum,
               });
             }
           }
 
-          /* Phase B — other hubs: only primary-lattice seats at gap or gap+1. */
-          var wi;
+          /* Secondary hubs: nearest rings on the same primary lattice. */
           for (wi = 1; wi < waves.length; wi++) {
-            for (cy = bounds.lo; cy <= bounds.hi; cy++) {
-              for (cx = bounds.lo; cx <= bounds.hi; cx++) {
+            var minPack = minLatticePackForHub(waves[wi]);
+            if (minPack >= 1e9) continue;
+            for (yi = 0; yi < axes.ys.length; yi++) {
+              for (xi = 0; xi < axes.xs.length; xi++) {
+                cx = axes.xs[xi];
+                cy = axes.ys[yi];
                 if (!clearsAll(cx, cy)) continue;
-                if (!onPrimaryLattice(cx, cy)) continue;
                 var info = hubPackInfo(cx, cy, waves[wi]);
-                if (info.soft >= 1000) continue;
-                if (info.onAxis !== 0 && info.soft !== 0) continue;
+                if (info.pack > minPack + 1) continue;
+                var wd2 = wallDist(cx, cy);
                 seats.push({
                   cx: cx,
                   cy: cy,
                   wave: wi,
-                  phase: 2 + info.soft,
+                  phase: 2 + Math.min(50, info.soft),
                   pack: info.pack,
                   manh: info.manh,
                   edgeExact: edgeRailHits(cx, cy),
@@ -1715,6 +1882,7 @@
                   ringU: info.soft,
                   along: alongEdge(cx, cy),
                   soft: info.soft,
+                  edgeScore: wd2.sum,
                 });
               }
             }
@@ -1722,15 +1890,22 @@
 
           seats.sort(function (a, b) {
             if (a.phase !== b.phase) return a.phase - b.phase;
+            if (a.wave !== b.wave) return a.wave - b.wave;
+            if (corner && a.pack !== b.pack) return a.pack - b.pack;
+            if (corner && a.edgeScore !== b.edgeScore) {
+              return a.edgeScore - b.edgeScore;
+            }
             if (a.soft !== b.soft) return a.soft - b.soft;
             if (a.edgeExact !== b.edgeExact) return b.edgeExact - a.edgeExact;
-            if (a.wave !== b.wave) return a.wave - b.wave;
-            if (isSide && a.phase === 0 && b.phase === 0) {
+            if (onEdge && !corner && a.phase === 0 && b.phase === 0) {
               if (a.along !== b.along) return a.along - b.along;
             }
             if (a.onAxis !== b.onAxis) return a.onAxis - b.onAxis;
             if (a.pack !== b.pack) return a.pack - b.pack;
             if (a.manh !== b.manh) return a.manh - b.manh;
+            if (onEdge && a.edgeScore !== b.edgeScore) {
+              return a.edgeScore - b.edgeScore;
+            }
             if (a.cy !== b.cy) return a.cy - b.cy;
             return a.cx - b.cx;
           });
@@ -1923,23 +2098,14 @@
             tryPlaceAt(cand.cx, cand.cy);
           }
 
-          /* Hole-fill: exact base-gap neighbors only — keeps spacing matched. */
-          var bounds = mapEdgeCenterBounds(gap);
-          var blockedFill = hubBlockedSides(hub, gap);
+          /* Hole-fill: exact base-gap neighbors on the same lattice / wall rails. */
+          var axesFill = primaryLatticeAxes(hub, gap);
+          var bounds = axesFill.bounds;
+          var blockedFill = axesFill.blocked;
           var wavesFill = packHubWaves(hub);
-          var edgeCountFill =
-            (blockedFill.left ? 1 : 0) +
-            (blockedFill.right ? 1 : 0) +
-            (blockedFill.top ? 1 : 0) +
-            (blockedFill.bottom ? 1 : 0);
-          var isSideFill = edgeCountFill === 1;
-          var primaryClearFill = minCenterDistForGap(hub.half, BLOCK_HALF_3, gap);
-          var latticeOriginFill = { cx: hub.cx, cy: hub.cy };
-          if (blockedFill.top) latticeOriginFill.cy = hub.cy + primaryClearFill;
-          else if (blockedFill.bottom) latticeOriginFill.cy = hub.cy - primaryClearFill;
-          else if (blockedFill.left) latticeOriginFill.cx = hub.cx + primaryClearFill;
-          else if (blockedFill.right) latticeOriginFill.cx = hub.cx - primaryClearFill;
-          else latticeOriginFill.cy = hub.cy + primaryClearFill;
+          var multiHubFill = wavesFill.length > 1;
+          var onEdgeFill = axesFill.onEdge;
+          var cornerFill = axesFill.corner;
 
           while (mi < queue.length && placedPts.length) {
             var best = null;
@@ -1951,6 +2117,19 @@
               for (cx = bounds.lo; cx <= bounds.hi; cx++) {
                 if (used[cx + "," + cy]) continue;
                 if (!canPlaceMemberCenterAt(cx, cy, gap)) continue;
+                var onBlockedRail =
+                  (blockedFill.top && cy === axesFill.ys[0]) ||
+                  (blockedFill.bottom &&
+                    cy === axesFill.ys[axesFill.ys.length - 1]) ||
+                  (blockedFill.left && cx === axesFill.xs[0]) ||
+                  (blockedFill.right &&
+                    cx === axesFill.xs[axesFill.xs.length - 1]);
+                var onLattice =
+                  !!axesFill.xsSet[cx] && !!axesFill.ysSet[cy];
+                /* Edge/corner and multi-hub stay on the shared wall/hub lattice. */
+                if ((onEdgeFill || multiHubFill) && !onLattice && !onBlockedRail) {
+                  continue;
+                }
                 var adjacent = false;
                 var orthAdj = false;
                 for (ai = 0; ai < placedPts.length; ai++) {
@@ -1976,20 +2155,25 @@
                   if (hpack === hClear) ringBoost = Math.min(ringBoost, -120);
                   else if (hpack === hClear + 1) ringBoost = Math.min(ringBoost, -40);
                 }
-                var onBlockedRail =
-                  (blockedFill.top && cy === bounds.lo) ||
-                  (blockedFill.bottom && cy === bounds.hi) ||
-                  (blockedFill.left && cx === bounds.lo) ||
-                  (blockedFill.right && cx === bounds.hi);
-                var onLattice =
-                  (cx - latticeOriginFill.cx) % step === 0 &&
-                  (cy - latticeOriginFill.cy) % step === 0;
                 var score = orthAdj ? 0 : 400;
-                if (isSideFill) {
+                if (onEdgeFill) {
+                  /* Side and corner: fill map-wall rails first, then inward. */
                   if (onBlockedRail) score -= 5000;
                   else {
                     score += hubNear * 10 + ringBoost;
                     if (!onLattice) score += 250;
+                  }
+                  if (cornerFill) {
+                    var edgeScoreFill =
+                      (blockedFill.left ? cx - axesFill.xs[0] : 0) +
+                      (blockedFill.right
+                        ? axesFill.xs[axesFill.xs.length - 1] - cx
+                        : 0) +
+                      (blockedFill.top ? cy - axesFill.ys[0] : 0) +
+                      (blockedFill.bottom
+                        ? axesFill.ys[axesFill.ys.length - 1] - cy
+                        : 0);
+                    score += edgeScoreFill;
                   }
                   if (
                     cx === bounds.lo ||
@@ -2000,7 +2184,6 @@
                     score -= 80;
                   }
                 } else {
-                  if (onBlockedRail) score -= 1;
                   score += hubNear * 10 + ringBoost;
                   if (!onLattice) score += 80;
                 }
