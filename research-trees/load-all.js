@@ -1,0 +1,20 @@
+/** Auto-generated research tree loader from community-sourced Tech Center data. */
+window.LW_RESEARCH_TREES = window.LW_RESEARCH_TREES || {};
+// loaded via <script src="research-trees/units.js"></script>
+// loaded via <script src="research-trees/aircraft-mastery.js"></script>
+// loaded via <script src="research-trees/missile-mastery.js"></script>
+// loaded via <script src="research-trees/tank-mastery.js"></script>
+// loaded via <script src="research-trees/tactical-weapon.js"></script>
+// loaded via <script src="research-trees/alliance-duel.js"></script>
+// loaded via <script src="research-trees/siege-to-seize.js"></script>
+// loaded via <script src="research-trees/defense-fortifications.js"></script>
+// loaded via <script src="research-trees/special-forces.js"></script>
+// loaded via <script src="research-trees/squad-1.js"></script>
+// loaded via <script src="research-trees/squad-4.js"></script>
+// loaded via <script src="research-trees/squad-2.js"></script>
+// loaded via <script src="research-trees/squad-3.js"></script>
+// loaded via <script src="research-trees/economy.js"></script>
+// loaded via <script src="research-trees/development.js"></script>
+// loaded via <script src="research-trees/intercity-truck.js"></script>
+// loaded via <script src="research-trees/the-age-of-oil.js"></script>
+// loaded via <script src="research-trees/hero.js"></script>

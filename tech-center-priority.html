@@ -1,0 +1,413 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <!-- Google tag (gtag.js) -->
+    <script async src="https://www.googletagmanager.com/gtag/js?id=GT-5R3WG7DP"></script>
+    <script>
+      window.dataLayer = window.dataLayer || [];
+      function gtag(){dataLayer.push(arguments);}
+      gtag('js', new Date());
+      gtag('config', 'GT-5R3WG7DP');
+    </script>
+
+    <meta charset="UTF-8" />
+    <link rel="icon" href="/favicon.ico" sizes="32x32" type="image/x-icon" />
+    <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Tech Center Priority — What to Research Next</title>
+    <meta
+      name="description"
+      content="Last War Tech Center priority guide — ranked research recommendations for damage, survivability, growth, and economy goals with links to the research calculator."
+    />
+    <meta name="robots" content="index, follow" />
+    <link rel="canonical" href="https://lastwarsurvivaltools.com/tech-center-priority.html" />
+    <meta property="og:site_name" content="Last War Tools" />
+    <meta property="og:locale" content="en_US" />
+    <meta property="og:type" content="website" />
+    <meta property="og:title" content="Tech Center Priority — What to Research Next" />
+    <meta
+      property="og:description"
+      content="Last War Tech Center priority guide — ranked research recommendations for damage, survivability, growth, and economy goals with links to the research calculator."
+    />
+    <meta property="og:url" content="https://lastwarsurvivaltools.com/tech-center-priority.html" />
+    <meta property="og:image" content="https://lastwarsurvivaltools.com/media/lwst.png" />
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:title" content="Tech Center Priority — What to Research Next" />
+    <meta
+      name="twitter:description"
+      content="Last War Tech Center priority guide — ranked research recommendations for damage, survivability, growth, and economy goals."
+    />
+    <meta name="twitter:image" content="https://lastwarsurvivaltools.com/media/lwst.png" />
+    <link rel="stylesheet" href="google-translate-toolbar-hide.css" />
+    <link rel="stylesheet" href="last-war-furnace-upgrade-calculator.css" />
+    <script src="page-nav-dropdown.js" defer></script>
+    <link rel="stylesheet" href="/adsense.css" />
+    <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1014488780102797"
+      crossorigin="anonymous"></script>
+    <style>
+      .goal-selector {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 8px;
+        margin-bottom: 16px;
+      }
+      .goal-selector button {
+        border: 1px solid var(--line);
+        border-radius: 10px;
+        background: #0c1825;
+        color: var(--text);
+        padding: 10px 14px;
+        cursor: pointer;
+        font: inherit;
+      }
+      .goal-selector button.active,
+      .goal-selector button[aria-pressed="true"] {
+        border-color: var(--accent-2);
+        background: rgba(77, 171, 247, 0.12);
+        box-shadow: 0 0 0 1px rgba(77, 171, 247, 0.18);
+      }
+      .priority-rank {
+        color: var(--accent);
+        font-weight: 600;
+        margin-right: 8px;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="page">
+      <div class="page-top-stack">
+        <aside class="account-promo-strip" aria-label="Optional account">
+          <p class="account-promo-strip__text">
+            <strong>No account required.</strong> Every calculator works in your browser without signing up.
+            Create a free account only if you want to sync saved data across devices.
+          </p>
+          <div class="account-promo-actions">
+            <a href="account.html" class="action-button">Create account</a>
+            <a href="account.html" class="action-button action-button--quiet">Sign in</a>
+          </div>
+        </aside>
+        <div class="page-top-controls">
+          <div class="logo-control">
+            <a href="index.html" aria-label="Go to homepage">
+              <img src="media/lwst.png" alt="LWST logo" class="site-logo" />
+            </a>
+          </div>
+          <div class="language-control">
+            <label for="languageSelect">Language</label>
+            <select id="languageSelect"></select>
+          </div>
+        </div>
+      </div>
+      <div id="google_translate_element" class="hidden-translate"></div>
+
+      <nav class="page-nav" aria-label="Calculator pages">
+        <a href="hq-upgrade-calculator.html" class="page-link">HQ Upgrade</a>
+        <details class="page-nav-dropdown" name="alliance-nav">
+          <summary class="page-link page-nav-dropdown-toggle">Alliance Tools</summary>
+          <div class="page-nav-dropdown-menu">
+            <a href="train-conductor-schedule.html" class="page-link">Train Conductor</a>
+            <a href="transfer-tracker.html" class="page-link">Transfer Tracker</a>
+            <a href="verus-tracker.html" class="page-link">Versus Tracker</a>
+            <a href="ds-tracker.html" class="page-link">Desert Storm Tracker/Planner</a>
+            <a href="server-search.html" class="page-link">Server Search</a>
+            <a href="warzone-planner.html" class="page-link">Warzone Planner</a>
+            <a href="alliance-hive.html" class="page-link">Hive Builder</a>
+          </div>
+        </details>
+        <details class="page-nav-dropdown" name="troop-nav">
+          <summary class="page-link page-nav-dropdown-toggle">Troop Tools</summary>
+          <div class="page-nav-dropdown-menu">
+            <a href="t10-troops-calculator.html" class="page-link">T10 Troops</a>
+            <a href="t11-troops-calculator.html" class="page-link">T11 Troops</a>
+          </div>
+        </details>
+        <details class="page-nav-dropdown active" name="tech-nav">
+          <summary class="page-link page-nav-dropdown-toggle">Tech Tools</summary>
+          <div class="page-nav-dropdown-menu">
+            <a href="research-calculator.html" class="page-link">Research Calculator</a>
+          </div>
+        </details>
+        <details class="page-nav-dropdown" name="season-nav">
+          <summary class="page-link page-nav-dropdown-toggle">Season 1 Tools</summary>
+          <div class="page-nav-dropdown-menu">
+            <a href="virus-research-institute-calculator.html" class="page-link">Virus Research Institute</a>
+            <a href="season-1-squad-base-calculator.html" class="page-link">Season 1 Squad Base</a>
+            <a href="season-1-interactive-map.html" class="page-link">Interactive Map</a>
+            <a href="season-1-warzone-planner.html" class="page-link">Warzone Planner</a>
+          </div>
+        </details>
+        <details class="page-nav-dropdown" name="season-nav">
+          <summary class="page-link page-nav-dropdown-toggle">Season 2 Tools</summary>
+          <div class="page-nav-dropdown-menu">
+            <a href="last-war-furnace-upgrade-calculator.html" class="page-link">Furnace Calculator</a>
+            <a href="season-2-tank-center-calculator.html" class="page-link">Season 2 Squad Base</a>
+            <a href="season-2-interactive-map.html" class="page-link">Interactive Map</a>
+            <a href="season-2-warzone-planner.html" class="page-link">Warzone Planner</a>
+            <a href="season-2-supplies-checklist.html" class="page-link">Supplies Checklist</a>
+            <a href="rare-soil-war-tracker.html" class="page-link">Rare Soil War Tracker</a>
+          </div>
+        </details>
+        <details class="page-nav-dropdown" name="season-nav">
+          <summary class="page-link page-nav-dropdown-toggle">Season 3 Tools</summary>
+          <div class="page-nav-dropdown-menu">
+            <a href="curse-research-lab-calculator.html" class="page-link">Curse Research Lab</a>
+            <a href="altar-calculator.html" class="page-link">Altar</a>
+            <a href="protectors-field-calculator.html" class="page-link">Protector's Field</a>
+            <a href="season-3-desert-artifacts-checklist.html" class="page-link">Desert Artifacts</a>
+            <a href="season-3-interactive-map.html" class="page-link">Interactive Map</a>
+            <a href="season-3-warzone-planner.html" class="page-link">Warzone Planner</a>
+            <a href="spice-war-tracker.html" class="page-link">Spice War Tracker</a>
+          </div>
+        </details>
+        <details class="page-nav-dropdown" name="season-nav">
+          <summary class="page-link page-nav-dropdown-toggle">Season 4 Tools</summary>
+          <div class="page-nav-dropdown-menu">
+            <a href="optoelectronic-lab-calculator.html" class="page-link">Optoelectronic Lab</a>
+            <a href="protectors-field-s4-calculator.html" class="page-link">Protector's Field S4</a>
+            <a href="lighthouse-s4-calculator.html" class="page-link">Lighthouse S4</a>
+            <a href="season-4-interactive-map.html" class="page-link">Interactive Map</a>
+            <a href="season-4-warzone-planner.html" class="page-link">Warzone Planner</a>
+            <a href="copper-war-tracker.html" class="page-link">Copper War Tracker</a>
+          </div>
+        </details>
+        <details class="page-nav-dropdown" name="season-nav">
+          <summary class="page-link page-nav-dropdown-toggle">Season 5 Tools</summary>
+          <div class="page-nav-dropdown-menu">
+            <a href="caffeine-institute-calculator.html" class="page-link">Caffeine Institute</a>
+            <a href="protectors-field-s5-calculator.html" class="page-link">Protector's Field S5</a>
+            <a href="season-5-squad-base-calculator.html" class="page-link">Season 5 Tanker Bar</a>
+            <a href="season-5-interactive-map.html" class="page-link">Interactive Map</a>
+            <a href="season-5-warzone-planner.html" class="page-link">Warzone Planner</a>
+          </div>
+        </details>
+        <details class="page-nav-dropdown" name="season-nav">
+          <summary class="page-link page-nav-dropdown-toggle">Season 6 Tools</summary>
+          <div class="page-nav-dropdown-menu">
+            <a href="fungus-institute-calculator.html" class="page-link">Fungus Institute</a>
+            <a href="season-6-squad-base-calculator.html" class="page-link">Season 6 Squad Base</a>
+            <a href="season-6-interactive-map.html" class="page-link">Interactive Map</a>
+            <a href="season-6-warzone-planner.html" class="page-link">Warzone Planner</a>
+          </div>
+        </details>
+      </nav>
+
+      <section class="hero">
+        <h1>Tech Center Priority — What to Research Next</h1>
+        <div class="sub">
+          Pick a goal and see community-style research priorities. These are general recommendations —
+          your roster, season, and alliance role may change the best order. Open any item in the
+          <a href="research-calculator.html">Research Calculator</a> to plan costs and progress.
+        </div>
+      </section>
+
+      <section class="layout">
+        <div class="card">
+          <h2 class="card-title">Choose Your Goal</h2>
+          <div class="field">
+            <label for="goalSelect">Priority Goal</label>
+            <select id="goalSelect">
+              <option value="damage">Damage</option>
+              <option value="survivability">Survivability</option>
+              <option value="growth">Growth</option>
+              <option value="economy">Economy</option>
+            </select>
+          </div>
+          <div class="goal-selector" id="goalButtons" role="group" aria-label="Priority goal"></div>
+          <div class="planner-overview" id="goalSummary"></div>
+        </div>
+
+        <div class="card">
+          <h2 class="card-title">Recommended Research Order</h2>
+          <div class="planner-breakdown" id="priorityList"></div>
+          <div class="details" style="margin-top: 16px;">
+            <div class="row">
+              <div class="row-key">Quick links</div>
+              <div class="row-value">
+                <a href="research-calculator.html">Research Calculator</a>,
+                <a href="research-calculator.html?tree=special-forces">Special Forces</a>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+    </div>
+
+    <script>
+      const STORAGE_KEY = "lastWarTechPriorityGoalV1";
+
+      const GOALS = {
+        damage: {
+          title: "Damage",
+          summary: "Focus combat output for marches, rallies, and base offense. Prioritize troop combat, squad trees, and type mastery before niche event trees.",
+          items: [
+            { rank: 1, name: "Units tree", tree: "units", why: "Direct troop training and combat boosts apply to every fight." },
+            { rank: 2, name: "Squad 1–4 trees", tree: "squad-1", why: "Each unlocked march gets its own combat multiplier — finish Squad 1 before spreading wide." },
+            { rank: 3, name: "Type Mastery (Tank / Missile / Aircraft)", tree: "tank-mastery", why: "Match your main troop type for the largest single-type damage spike." },
+            { rank: 4, name: "Special Forces — Attack Boost nodes", tree: "special-forces", why: "Attack Boost I–III along the T10 path stack with unit combat research.", link: "research-calculator.html?tree=special-forces" },
+            { rank: 5, name: "Hero tree", tree: "hero", why: "Hero combat research supports your primary damage dealers and skill scaling." },
+            { rank: 6, name: "Siege to Seize", tree: "siege-to-seize", why: "Worth prioritizing when your alliance runs frequent rallies or SVS siege windows." },
+          ],
+        },
+        survivability: {
+          title: "Survivability",
+          summary: "Reduce losses on defense and in open field. Stack base defense, HP/defense boosts, and healing capacity.",
+          items: [
+            { rank: 1, name: "Defense Fortifications", tree: "defense-fortifications", why: "Core base-defense research — helps every garrison and shielded HQ." },
+            { rank: 2, name: "Special Forces — HP & Defense Boost nodes", tree: "special-forces", why: "HP Boost and Defense Boost tiers raise troop durability across all marches." },
+            { rank: 3, name: "Development — Infirmary Expansion", tree: "development", why: "More hospital capacity means fewer permanent troop losses after fights." },
+            { rank: 4, name: "Development — Rapid Field Dressing / Efficient Healing", tree: "development", why: "Healing speed and efficiency reduce downtime between hits." },
+            { rank: 5, name: "Special Forces — Advanced Protection", tree: "special-forces", why: "Gate research that unlocks deeper defensive tiers on the SF path." },
+            { rank: 6, name: "Economy — Resource Protection", tree: "economy", why: "Protects stored RSS when you are under farm pressure — indirect survivability for long wars." },
+          ],
+        },
+        growth: {
+          title: "Growth",
+          summary: "Speed HQ, building, training, and research progression. Best early-mid game before you specialize in PvP.",
+          items: [
+            { rank: 1, name: "Development — Fast Builder I–IV", tree: "development", why: "Construction speed is the widest growth multiplier for HQ and utility buildings." },
+            { rank: 2, name: "Development — Research Enhancement I–IV", tree: "development", why: "Research speed compounds every other tree you touch afterward." },
+            { rank: 3, name: "Development — Barrack Expansion / Extra Barracks", tree: "development", why: "More training queue throughput accelerates power spikes." },
+            { rank: 4, name: "Economy — Output I–IV (Food, Iron, Coin)", tree: "economy", why: "Higher passive output feeds building and research without over-farming." },
+            { rank: 5, name: "Economy — Gathering boosts", tree: "economy", why: "Useful when you still rely on map tiles more than base production." },
+            { rank: 6, name: "Units tree (training nodes)", tree: "units", why: "Training speed and capacity research pays off once barracks levels catch up." },
+          ],
+        },
+        economy: {
+          title: "Economy",
+          summary: "Maximize RSS income, gathering, and storage protection for sustained building and research.",
+          items: [
+            { rank: 1, name: "Economy — Food / Iron / Coin Output", tree: "economy", why: "Passive generation is the backbone of non-spender progression." },
+            { rank: 2, name: "Economy — Gathering Food / Iron / Coins", tree: "economy", why: "Boosts tile yields when your marches are still farm-heavy." },
+            { rank: 3, name: "Economy — More Farmlands / Iron Mines / Gold Mines", tree: "economy", why: "Extra resource tiles inside your base raise the output cap." },
+            { rank: 4, name: "Economy — Food / Iron / Coin Protection", tree: "economy", why: "Reduces raid losses so banked RSS actually stays available." },
+            { rank: 5, name: "Development — Master Craftsman", tree: "development", why: "Workshop-related efficiency supports gear and material flow." },
+            { rank: 6, name: "Intercity Truck", tree: "intercity-truck", why: "Logistics research helps alliance trade and event resource movement when unlocked." },
+          ],
+        },
+      };
+
+      const goalSelect = document.getElementById("goalSelect");
+      const goalButtons = document.getElementById("goalButtons");
+      const goalSummary = document.getElementById("goalSummary");
+      const priorityList = document.getElementById("priorityList");
+      const languageSelect = document.getElementById("languageSelect");
+      let preferredLanguage = "en";
+
+      function calcLink(item) {
+        return item.link || ("research-calculator.html?tree=" + encodeURIComponent(item.tree));
+      }
+
+      function renderGoal(goalId) {
+        const goal = GOALS[goalId];
+        if (!goal) return;
+
+        goalSelect.value = goalId;
+        goalSummary.innerHTML = "<strong>" + goal.title + ":</strong> " + goal.summary;
+
+        goalButtons.querySelectorAll("button").forEach(function (btn) {
+          const active = btn.dataset.goal === goalId;
+          btn.classList.toggle("active", active);
+          btn.setAttribute("aria-pressed", active ? "true" : "false");
+        });
+
+        priorityList.innerHTML = goal.items.map(function (item) {
+          return (
+            '<div class="planner-breakdown-row">' +
+            '<div>' +
+            '<div class="planner-breakdown-title">' +
+            '<span class="priority-rank">#' + item.rank + '</span>' +
+            '<a href="' + calcLink(item) + '">' + item.name + '</a>' +
+            '</div>' +
+            '<div class="planner-breakdown-meta">' + item.why + '</div>' +
+            '</div>' +
+            '</div>'
+          );
+        }).join("");
+
+        try { localStorage.setItem(STORAGE_KEY, goalId); } catch (e) {}
+      }
+
+      function buildGoalButtons() {
+        goalButtons.innerHTML = Object.keys(GOALS).map(function (key) {
+          return '<button type="button" data-goal="' + key + '">' + GOALS[key].title + '</button>';
+        }).join("");
+        goalButtons.querySelectorAll("button").forEach(function (btn) {
+          btn.addEventListener("click", function () { renderGoal(btn.dataset.goal); });
+        });
+      }
+
+      function loadGoal() {
+        try {
+          const saved = localStorage.getItem(STORAGE_KEY);
+          if (saved && GOALS[saved]) return saved;
+        } catch (e) {}
+        return "damage";
+      }
+
+      const languageOptions = [
+        { code: "en", label: "English" },
+        { code: "es", label: "Spanish" },
+        { code: "fr", label: "French" },
+        { code: "de", label: "German" },
+        { code: "it", label: "Italian" },
+        { code: "pt", label: "Portuguese" },
+        { code: "ru", label: "Russian" },
+        { code: "zh-CN", label: "Chinese (Simplified)" },
+        { code: "ja", label: "Japanese" },
+        { code: "ko", label: "Korean" },
+      ];
+
+      function buildLanguageOptions() {
+        languageSelect.innerHTML = languageOptions
+          .map(function (lang) { return '<option value="' + lang.code + '">' + lang.label + '</option>'; })
+          .join("");
+        languageSelect.value = preferredLanguage;
+      }
+
+      function applyGoogleLanguage(languageCode, retries) {
+        retries = retries === undefined ? 25 : retries;
+        const combo = document.querySelector(".goog-te-combo");
+        if (!combo) {
+          if (retries > 0) setTimeout(function () { applyGoogleLanguage(languageCode, retries - 1); }, 200);
+          return;
+        }
+        combo.value = languageCode;
+        combo.dispatchEvent(new Event("change"));
+      }
+
+      function loadGoogleTranslateScript() {
+        if (window.google && window.google.translate) {
+          window.googleTranslateElementInit();
+          return;
+        }
+        const script = document.createElement("script");
+        script.src = "https://translate.google.com/translate_a/element.js?cb=googleTranslateElementInit";
+        script.async = true;
+        document.body.appendChild(script);
+      }
+
+      window.googleTranslateElementInit = function () {
+        new window.google.translate.TranslateElement({ pageLanguage: "en", autoDisplay: false }, "google_translate_element");
+        applyGoogleLanguage(preferredLanguage);
+      };
+
+      buildGoalButtons();
+      buildLanguageOptions();
+      renderGoal(loadGoal());
+      loadGoogleTranslateScript();
+
+      goalSelect.addEventListener("change", function () { renderGoal(goalSelect.value); });
+      languageSelect.addEventListener("change", function () {
+        preferredLanguage = languageSelect.value;
+        applyGoogleLanguage(preferredLanguage);
+      });
+    </script>
+
+    <div class="support-bar">
+      <a href="https://buymeacoffee.com/dkfoy56w" class="support-link" target="_blank" rel="noopener noreferrer">Buy Me a Coffee</a>
+    </div>
+    <script src="/adsense-config.js"></script>
+    <script src="/site-legal-footer.js?v=4" defer></script>
+    <script src="/adsense-placements.js" defer></script>
+  </body>
+</html>

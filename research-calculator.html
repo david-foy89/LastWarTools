@@ -1,0 +1,1076 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <!-- Google tag (gtag.js) -->
+    <script async src="https://www.googletagmanager.com/gtag/js?id=GT-5R3WG7DP"></script>
+    <script>
+      window.dataLayer = window.dataLayer || [];
+      function gtag(){dataLayer.push(arguments);}
+      gtag('js', new Date());
+      gtag('config', 'GT-5R3WG7DP');
+    </script>
+
+    <meta charset="UTF-8" />
+    <link rel="icon" href="/favicon.ico" sizes="32x32" type="image/x-icon" />
+    <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Last War Research Calculator — Tech Center Trees</title>
+    <meta
+      name="description"
+      content="Last War Tech Center Research Calculator — all 18 trees with remaining Iron, Food, Gold, and Valor. Development, Economy, Squads, Special Forces (Unit X / T10), Mastery, and more."
+    />
+    <meta name="robots" content="index, follow" />
+    <link rel="canonical" href="https://lastwarsurvivaltools.com/research-calculator.html" />
+    <meta property="og:site_name" content="Last War Tools" />
+    <meta property="og:locale" content="en_US" />
+    <meta property="og:type" content="website" />
+    <meta property="og:title" content="Last War Research Calculator — Tech Center Trees" />
+    <meta
+      property="og:description"
+      content="Last War Tech Center Research Calculator — all 18 trees with remaining Iron, Food, Gold, and Valor."
+    />
+    <meta property="og:url" content="https://lastwarsurvivaltools.com/research-calculator.html" />
+    <meta property="og:image" content="https://lastwarsurvivaltools.com/media/lwst.png" />
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:title" content="Last War Research Calculator — Tech Center Trees" />
+    <meta
+      name="twitter:description"
+      content="Last War Tech Center Research Calculator — all 18 trees with remaining Iron, Food, Gold, and Valor."
+    />
+    <meta name="twitter:image" content="https://lastwarsurvivaltools.com/media/lwst.png" />
+    <link rel="stylesheet" href="google-translate-toolbar-hide.css" />
+    <link rel="stylesheet" href="last-war-furnace-upgrade-calculator.css" />
+    <link rel="stylesheet" href="research-calculator.css" />
+    <script src="page-nav-dropdown.js" defer></script>
+    <link rel="stylesheet" href="/adsense.css" />
+    <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1014488780102797"
+      crossorigin="anonymous"></script>
+  </head>
+  <body class="rc-page">
+    <div class="page">
+      <div class="page-top-stack">
+        <aside class="account-promo-strip" aria-label="Optional account">
+          <p class="account-promo-strip__text">
+            <strong>No account required.</strong> Every calculator works in your browser without signing up.
+            Create a free account only if you want to sync saved data across devices.
+          </p>
+          <div class="account-promo-actions">
+            <a href="account.html" class="action-button">Create account</a>
+            <a href="account.html" class="action-button action-button--quiet">Sign in</a>
+          </div>
+        </aside>
+        <div class="page-top-controls">
+          <div class="logo-control">
+            <a href="index.html" aria-label="Go to homepage">
+              <img src="media/lwst.png" alt="LWST logo" class="site-logo" />
+            </a>
+          </div>
+          <div class="language-control">
+            <label for="languageSelect">Language</label>
+            <select id="languageSelect"></select>
+          </div>
+        </div>
+      </div>
+      <div id="google_translate_element" class="hidden-translate"></div>
+
+      <nav class="page-nav" aria-label="Calculator pages">
+        <a href="hq-upgrade-calculator.html" class="page-link">HQ Upgrade</a>
+        <details class="page-nav-dropdown" name="alliance-nav">
+          <summary class="page-link page-nav-dropdown-toggle">Alliance Tools</summary>
+          <div class="page-nav-dropdown-menu">
+            <a href="train-conductor-schedule.html" class="page-link">Train Conductor</a>
+            <a href="transfer-tracker.html" class="page-link">Transfer Tracker</a>
+            <a href="verus-tracker.html" class="page-link">Versus Tracker</a>
+            <a href="ds-tracker.html" class="page-link">Desert Storm Tracker/Planner</a>
+            <a href="server-search.html" class="page-link">Server Search</a>
+            <a href="warzone-planner.html" class="page-link">Warzone Planner</a>
+            <a href="alliance-hive.html" class="page-link">Hive Builder</a>
+          </div>
+        </details>
+        <details class="page-nav-dropdown" name="troop-nav">
+          <summary class="page-link page-nav-dropdown-toggle">Troop Tools</summary>
+          <div class="page-nav-dropdown-menu">
+            <a href="t10-troops-calculator.html" class="page-link">T10 Troops</a>
+            <a href="t11-troops-calculator.html" class="page-link">T11 Troops</a>
+          </div>
+        </details>
+        <details class="page-nav-dropdown active" name="tech-nav">
+          <summary class="page-link page-nav-dropdown-toggle">Tech Tools</summary>
+          <div class="page-nav-dropdown-menu">
+            <a href="research-calculator.html" class="page-link active">Research Calculator</a>
+          </div>
+        </details>
+        <details class="page-nav-dropdown" name="season-nav">
+          <summary class="page-link page-nav-dropdown-toggle">Season 1 Tools</summary>
+          <div class="page-nav-dropdown-menu">
+            <a href="virus-research-institute-calculator.html" class="page-link">Virus Research Institute</a>
+            <a href="season-1-squad-base-calculator.html" class="page-link">Season 1 Squad Base</a>
+            <a href="season-1-interactive-map.html" class="page-link">Interactive Map</a>
+            <a href="season-1-warzone-planner.html" class="page-link">Warzone Planner</a>
+          </div>
+        </details>
+        <details class="page-nav-dropdown" name="season-nav">
+          <summary class="page-link page-nav-dropdown-toggle">Season 2 Tools</summary>
+          <div class="page-nav-dropdown-menu">
+            <a href="last-war-furnace-upgrade-calculator.html" class="page-link">Furnace Calculator</a>
+            <a href="season-2-tank-center-calculator.html" class="page-link">Season 2 Squad Base</a>
+            <a href="season-2-interactive-map.html" class="page-link">Interactive Map</a>
+            <a href="season-2-warzone-planner.html" class="page-link">Warzone Planner</a>
+            <a href="season-2-supplies-checklist.html" class="page-link">Supplies Checklist</a>
+            <a href="rare-soil-war-tracker.html" class="page-link">Rare Soil War Tracker</a>
+          </div>
+        </details>
+        <details class="page-nav-dropdown" name="season-nav">
+          <summary class="page-link page-nav-dropdown-toggle">Season 3 Tools</summary>
+          <div class="page-nav-dropdown-menu">
+            <a href="curse-research-lab-calculator.html" class="page-link">Curse Research Lab</a>
+            <a href="altar-calculator.html" class="page-link">Altar</a>
+            <a href="protectors-field-calculator.html" class="page-link">Protector's Field</a>
+            <a href="season-3-desert-artifacts-checklist.html" class="page-link">Desert Artifacts</a>
+            <a href="season-3-interactive-map.html" class="page-link">Interactive Map</a>
+            <a href="season-3-warzone-planner.html" class="page-link">Warzone Planner</a>
+            <a href="spice-war-tracker.html" class="page-link">Spice War Tracker</a>
+          </div>
+        </details>
+        <details class="page-nav-dropdown" name="season-nav">
+          <summary class="page-link page-nav-dropdown-toggle">Season 4 Tools</summary>
+          <div class="page-nav-dropdown-menu">
+            <a href="optoelectronic-lab-calculator.html" class="page-link">Optoelectronic Lab</a>
+            <a href="protectors-field-s4-calculator.html" class="page-link">Protector's Field S4</a>
+            <a href="lighthouse-s4-calculator.html" class="page-link">Lighthouse S4</a>
+            <a href="season-4-interactive-map.html" class="page-link">Interactive Map</a>
+            <a href="season-4-warzone-planner.html" class="page-link">Warzone Planner</a>
+            <a href="copper-war-tracker.html" class="page-link">Copper War Tracker</a>
+          </div>
+        </details>
+        <details class="page-nav-dropdown" name="season-nav">
+          <summary class="page-link page-nav-dropdown-toggle">Season 5 Tools</summary>
+          <div class="page-nav-dropdown-menu">
+            <a href="caffeine-institute-calculator.html" class="page-link">Caffeine Institute</a>
+            <a href="protectors-field-s5-calculator.html" class="page-link">Protector's Field S5</a>
+            <a href="season-5-squad-base-calculator.html" class="page-link">Season 5 Tanker Bar</a>
+            <a href="season-5-interactive-map.html" class="page-link">Interactive Map</a>
+            <a href="season-5-warzone-planner.html" class="page-link">Warzone Planner</a>
+          </div>
+        </details>
+        <details class="page-nav-dropdown" name="season-nav">
+          <summary class="page-link page-nav-dropdown-toggle">Season 6 Tools</summary>
+          <div class="page-nav-dropdown-menu">
+            <a href="fungus-institute-calculator.html" class="page-link">Fungus Institute</a>
+            <a href="season-6-squad-base-calculator.html" class="page-link">Season 6 Squad Base</a>
+            <a href="season-6-interactive-map.html" class="page-link">Interactive Map</a>
+            <a href="season-6-warzone-planner.html" class="page-link">Warzone Planner</a>
+          </div>
+        </details>
+      </nav>
+
+      <section class="hero">
+        <h1>Research Calculator</h1>
+        <div class="sub" id="treeDescription">
+          Pick a tree, set Now / Want levels in the table, and watch remaining costs update. Prerequisites are auto-added.
+        </div>
+      </section>
+
+      <div class="rc-sticky-totals" id="stickyTotals" aria-live="polite">
+        <div class="rc-stat" id="stickyIronStat"><div class="rc-stat-key">Iron</div><div class="rc-stat-value" id="stickyIronValue">0</div></div>
+        <div class="rc-stat" id="stickyFoodStat"><div class="rc-stat-key">Food</div><div class="rc-stat-value" id="stickyFoodValue">0</div></div>
+        <div class="rc-stat" id="stickyGoldStat"><div class="rc-stat-key">Gold</div><div class="rc-stat-value" id="stickyGoldValue">0</div></div>
+        <div class="rc-stat" id="stickyValorStat"><div class="rc-stat-key">Valor</div><div class="rc-stat-value" id="stickyValorValue">0</div></div>
+        <div class="rc-sticky-next"><strong>Next</strong><span id="stickyNextValue">Set a Want level to start</span></div>
+      </div>
+
+      <section class="rc-layout" id="calculatorLayout">
+        <div class="rc-main">
+          <div class="card">
+            <div class="rc-group-tabs" id="groupTabs" role="tablist" aria-label="Tree groups"></div>
+            <div class="rc-setup-bar">
+              <div class="field">
+                <label for="treeSelect">Research Tree</label>
+                <select id="treeSelect"></select>
+              </div>
+              <div class="field">
+                <label for="modeSelect">Cost Mode</label>
+                <select id="modeSelect">
+                  <option value="remaining">Remaining (Now → Want)</option>
+                  <option value="reach">From level 0 → Want</option>
+                </select>
+              </div>
+              <div class="field">
+                <label for="reductionSelect">Reduction</label>
+                <select id="reductionSelect"></select>
+              </div>
+            </div>
+            <div class="rc-tree-chips" id="treeChips" aria-label="Trees in this group"></div>
+            <div id="progressOnlyBanner" class="planner-overview planner-hidden">
+              <strong>Progress tracking only</strong> — full costs for this tree are not loaded yet.
+            </div>
+            <div class="rc-actions-inline">
+              <button id="planT10Button" type="button" class="action-button planner-hidden">Plan Full T10</button>
+              <button id="setAllMaxButton" type="button" class="action-button">Max All Wants</button>
+              <button id="clearTargetsButton" type="button" class="action-button action-button--quiet">Match Want = Now</button>
+              <button id="resetCurrentButton" type="button" class="action-button action-button--quiet">Reset Now</button>
+              <button id="expandAllButton" type="button" class="action-button action-button--quiet">Expand All</button>
+              <button id="collapseDoneButton" type="button" class="action-button action-button--quiet">Collapse Done</button>
+            </div>
+
+            <div class="rc-toolbar">
+              <div class="field">
+                <label for="nodeSearch">Search nodes</label>
+                <input id="nodeSearch" type="search" placeholder="Type a research name…" autocomplete="off" />
+              </div>
+              <div class="rc-filter-chips" id="filterChips" role="group" aria-label="Node filters">
+                <button type="button" class="rc-chip-btn active" data-filter="all">All</button>
+                <button type="button" class="rc-chip-btn" data-filter="plan">In plan</button>
+                <button type="button" class="rc-chip-btn" data-filter="todo">Needed</button>
+                <button type="button" class="rc-chip-btn" data-filter="done">Done</button>
+              </div>
+            </div>
+            <div class="rc-progress-bar" aria-hidden="true"><span id="treeProgressBar"></span></div>
+            <p class="rc-filter-status" id="filterStatus">Showing all nodes</p>
+            <div class="rc-table-wrap" id="plannerSections"></div>
+          </div>
+        </div>
+
+        <aside class="rc-side">
+          <div class="card">
+            <h2 class="card-title">Plan Summary</h2>
+            <div class="summary">
+              <div class="tile">
+                <div class="tile-key">Iron</div>
+                <div class="tile-value" id="totalIronValue">0</div>
+                <div class="tile-sub" id="totalIronExact"></div>
+              </div>
+              <div class="tile">
+                <div class="tile-key">Food</div>
+                <div class="tile-value" id="totalFoodValue">0</div>
+                <div class="tile-sub" id="totalFoodExact"></div>
+              </div>
+              <div class="tile">
+                <div class="tile-key">Gold</div>
+                <div class="tile-value" id="totalGoldValue">0</div>
+                <div class="tile-sub" id="totalGoldExact"></div>
+              </div>
+              <div class="tile" id="valorTile">
+                <div class="tile-key">Valor</div>
+                <div class="tile-value" id="totalValorValue">0</div>
+                <div class="tile-sub" id="totalValorExact"></div>
+              </div>
+              <div class="tile">
+                <div class="tile-key">Tree</div>
+                <div class="tile-value" id="currentProgressValue">0%</div>
+                <div class="tile-sub" id="progressDetail">0 / 0 done</div>
+              </div>
+              <div class="tile">
+                <div class="tile-key">Plan</div>
+                <div class="tile-value" id="plannedProgressValue">0%</div>
+                <div class="tile-sub" id="plannedDetail">0 levels</div>
+              </div>
+            </div>
+            <div class="rc-copy-row">
+              <button id="copyTotalsButton" type="button" class="action-button action-button--quiet">Copy Totals</button>
+            </div>
+            <div class="details">
+              <div class="row">
+                <div class="row-key">Status</div>
+                <div class="row-value" id="statusValue">No research selected</div>
+              </div>
+              <div class="row">
+                <div class="row-key">Mode</div>
+                <div class="row-value" id="modeValue">Remaining levels</div>
+              </div>
+              <div class="row">
+                <div class="row-key">Reduction</div>
+                <div class="row-value" id="reductionValue">0%</div>
+              </div>
+              <div class="row">
+                <div class="row-key">In plan</div>
+                <div class="row-value" id="nodesInPlanValue">0</div>
+              </div>
+            </div>
+            <div class="planner-overview" id="plannerOverview">
+              <strong>Next:</strong> Raise a Want level above Now.
+            </div>
+            <details class="rc-breakdown-panel">
+              <summary>Included Breakdown</summary>
+              <div class="planner-breakdown" id="breakdownList"></div>
+              <div class="planner-empty" id="breakdownEmpty">Nothing included yet.</div>
+            </details>
+            <p class="planner-breakdown-meta" style="margin-top: 12px;">
+              Community-sourced costs — confirm big spends in-game.
+            </p>
+          </div>
+        </aside>
+      </section>
+
+      <section class="layout planner-hidden" id="comingSoonLayout">
+        <div class="card">
+          <h2 class="card-title">Tree Data Coming Soon</h2>
+          <p>This research tree is not loaded yet. Try Development, Economy, or Special Forces.</p>
+          <a href="research-calculator.html?tree=development" class="action-button">Open Development</a>
+        </div>
+      </section>
+    </div>
+
+    <script src="research-trees/catalog.js"></script>
+    <script src="research-trees/development.js"></script>
+    <script src="research-trees/economy.js"></script>
+    <script src="research-trees/hero.js"></script>
+    <script src="research-trees/intercity-truck.js"></script>
+    <script src="research-trees/the-age-of-oil.js"></script>
+    <script src="research-trees/squad-1.js"></script>
+    <script src="research-trees/squad-2.js"></script>
+    <script src="research-trees/squad-3.js"></script>
+    <script src="research-trees/squad-4.js"></script>
+    <script src="research-trees/alliance-duel.js"></script>
+    <script src="research-trees/siege-to-seize.js"></script>
+    <script src="research-trees/defense-fortifications.js"></script>
+    <script src="research-trees/special-forces.js"></script>
+    <script src="research-trees/units.js"></script>
+    <script src="research-trees/tank-mastery.js"></script>
+    <script src="research-trees/missile-mastery.js"></script>
+    <script src="research-trees/aircraft-mastery.js"></script>
+    <script src="research-trees/tactical-weapon.js"></script>
+    <script>
+      (function () {
+        const resourceKeys = ["iron", "food", "gold", "valor"];
+        const GROUP_ORDER = ["core", "squad", "combat", "mastery"];
+        const GROUP_LABELS = {
+          core: "Economy & Growth",
+          squad: "Squad",
+          combat: "Combat & Defense",
+          mastery: "Troop Mastery",
+        };
+
+        let treeId = null;
+        let treeData = null;
+        let treeRows = [];
+        let allElements = [];
+        let STORAGE_KEY = "";
+        let activeGroup = "core";
+        let activeFilter = "all";
+        let searchQuery = "";
+        let lastTotals = { iron: 0, food: 0, gold: 0, valor: 0 };
+        const collapsedSections = {};
+
+        const treeSelect = document.getElementById("treeSelect");
+        const modeSelect = document.getElementById("modeSelect");
+        const reductionSelect = document.getElementById("reductionSelect");
+        const languageSelect = document.getElementById("languageSelect");
+        const plannerSections = document.getElementById("plannerSections");
+        const breakdownList = document.getElementById("breakdownList");
+        const breakdownEmpty = document.getElementById("breakdownEmpty");
+        const calculatorLayout = document.getElementById("calculatorLayout");
+        const comingSoonLayout = document.getElementById("comingSoonLayout");
+        const progressOnlyBanner = document.getElementById("progressOnlyBanner");
+        const planT10Button = document.getElementById("planT10Button");
+        const setAllMaxButton = document.getElementById("setAllMaxButton");
+        const clearTargetsButton = document.getElementById("clearTargetsButton");
+        const resetCurrentButton = document.getElementById("resetCurrentButton");
+        const copyTotalsButton = document.getElementById("copyTotalsButton");
+        const expandAllButton = document.getElementById("expandAllButton");
+        const collapseDoneButton = document.getElementById("collapseDoneButton");
+        const treeDescription = document.getElementById("treeDescription");
+        const plannerOverview = document.getElementById("plannerOverview");
+        const statusValue = document.getElementById("statusValue");
+        const modeValue = document.getElementById("modeValue");
+        const reductionValue = document.getElementById("reductionValue");
+        const nodesInPlanValue = document.getElementById("nodesInPlanValue");
+        const totalIronValue = document.getElementById("totalIronValue");
+        const totalFoodValue = document.getElementById("totalFoodValue");
+        const totalGoldValue = document.getElementById("totalGoldValue");
+        const totalValorValue = document.getElementById("totalValorValue");
+        const totalIronExact = document.getElementById("totalIronExact");
+        const totalFoodExact = document.getElementById("totalFoodExact");
+        const totalGoldExact = document.getElementById("totalGoldExact");
+        const totalValorExact = document.getElementById("totalValorExact");
+        const stickyIronValue = document.getElementById("stickyIronValue");
+        const stickyFoodValue = document.getElementById("stickyFoodValue");
+        const stickyGoldValue = document.getElementById("stickyGoldValue");
+        const stickyValorValue = document.getElementById("stickyValorValue");
+        const stickyIronStat = document.getElementById("stickyIronStat");
+        const stickyFoodStat = document.getElementById("stickyFoodStat");
+        const stickyGoldStat = document.getElementById("stickyGoldStat");
+        const stickyValorStat = document.getElementById("stickyValorStat");
+        const stickyNextValue = document.getElementById("stickyNextValue");
+        const valorTile = document.getElementById("valorTile");
+        const currentProgressValue = document.getElementById("currentProgressValue");
+        const plannedProgressValue = document.getElementById("plannedProgressValue");
+        const progressDetail = document.getElementById("progressDetail");
+        const plannedDetail = document.getElementById("plannedDetail");
+        const treeProgressBar = document.getElementById("treeProgressBar");
+        const filterStatus = document.getElementById("filterStatus");
+        const groupTabs = document.getElementById("groupTabs");
+        const treeChips = document.getElementById("treeChips");
+        const nodeSearch = document.getElementById("nodeSearch");
+        const filterChips = document.getElementById("filterChips");
+
+        let preferredLanguage = "en";
+        const languageOptions = [
+          { code: "en", label: "English" },
+          { code: "es", label: "Spanish" },
+          { code: "fr", label: "French" },
+          { code: "de", label: "German" },
+          { code: "it", label: "Italian" },
+          { code: "pt", label: "Portuguese" },
+          { code: "ru", label: "Russian" },
+          { code: "uk", label: "Ukrainian" },
+          { code: "pl", label: "Polish" },
+          { code: "tr", label: "Turkish" },
+          { code: "ar", label: "Arabic" },
+          { code: "zh-CN", label: "Chinese (Simplified)" },
+          { code: "ja", label: "Japanese" },
+          { code: "ko", label: "Korean" },
+        ];
+
+        function formatNumber(value) {
+          return Math.round(Number(value) || 0).toLocaleString();
+        }
+
+        function formatCompact(value) {
+          const n = Math.round(Number(value) || 0);
+          const abs = Math.abs(n);
+          if (abs >= 1e9) return trimCompact(n / 1e9) + "B";
+          if (abs >= 1e6) return trimCompact(n / 1e6) + "M";
+          if (abs >= 1e3) return trimCompact(n / 1e3) + "K";
+          return String(n);
+        }
+
+        function trimCompact(n) {
+          const fixed = Math.abs(n) >= 100 ? n.toFixed(0) : Math.abs(n) >= 10 ? n.toFixed(1) : n.toFixed(2);
+          return fixed.replace(/\.0+$/, "").replace(/(\.\d*?)0+$/, "$1");
+        }
+
+        function catalog() {
+          return window.LW_RESEARCH_CATALOG || [];
+        }
+
+        function getDefaultTreeId() {
+          const fromUrl = new URLSearchParams(window.location.search).get("tree");
+          if (fromUrl) {
+            const match = catalog().find(function (t) { return t.slug === fromUrl || t.id === fromUrl; });
+            if (match) return match.id;
+          }
+          if (window.LW_RESEARCH_TREES && window.LW_RESEARCH_TREES.development) return "development";
+          return (catalog()[0] && catalog()[0].id) || "development";
+        }
+
+        function updateUrl(tree) {
+          const entry = catalog().find(function (t) { return t.id === tree; });
+          const param = entry ? entry.slug : tree;
+          const url = new URL(window.location.href);
+          url.searchParams.set("tree", param);
+          window.history.replaceState({}, "", url.pathname + "?" + url.searchParams.toString());
+        }
+
+        function buildTreeSelect() {
+          const grouped = {};
+          catalog().forEach(function (entry) {
+            const group = entry.group || "core";
+            if (!grouped[group]) grouped[group] = [];
+            grouped[group].push(entry);
+          });
+          treeSelect.innerHTML = GROUP_ORDER.filter(function (key) { return grouped[key]; }).map(function (key) {
+            return (
+              '<optgroup label="' + GROUP_LABELS[key] + '">' +
+              grouped[key].map(function (entry) {
+                return '<option value="' + entry.id + '">' + entry.name + "</option>";
+              }).join("") +
+              "</optgroup>"
+            );
+          }).join("");
+        }
+
+        function buildGroupTabs() {
+          const present = {};
+          catalog().forEach(function (entry) { present[entry.group || "core"] = true; });
+          groupTabs.innerHTML = GROUP_ORDER.filter(function (key) { return present[key]; }).map(function (key) {
+            return '<button type="button" class="rc-chip-btn' + (key === activeGroup ? " active" : "") + '" data-group="' + key + '">' + GROUP_LABELS[key] + "</button>";
+          }).join("");
+        }
+
+        function buildTreeChips() {
+          const trees = catalog().filter(function (entry) { return (entry.group || "core") === activeGroup; });
+          treeChips.innerHTML = trees.map(function (entry) {
+            return '<button type="button" class="rc-chip-btn' + (entry.id === treeId ? " active" : "") + '" data-tree="' + entry.id + '">' + entry.name + "</button>";
+          }).join("");
+        }
+
+        function buildReductionOptions() {
+          reductionSelect.innerHTML = Array.from({ length: 31 }, function (_, index) {
+            return '<option value="' + index + '">' + index + "%</option>";
+          }).join("");
+          reductionSelect.value = "0";
+        }
+
+        function buildLanguageOptions() {
+          languageSelect.innerHTML = languageOptions
+            .map(function (lang) { return '<option value="' + lang.code + '">' + lang.label + "</option>"; })
+            .join("");
+          languageSelect.value = preferredLanguage;
+        }
+
+        function applyGoogleLanguage(languageCode, retries) {
+          retries = retries === undefined ? 25 : retries;
+          const combo = document.querySelector(".goog-te-combo");
+          if (!combo) {
+            if (retries > 0) setTimeout(function () { applyGoogleLanguage(languageCode, retries - 1); }, 200);
+            return;
+          }
+          combo.value = languageCode;
+          combo.dispatchEvent(new Event("change"));
+        }
+
+        function loadGoogleTranslateScript() {
+          if (window.google && window.google.translate) {
+            window.googleTranslateElementInit();
+            return;
+          }
+          const script = document.createElement("script");
+          script.src = "https://translate.google.com/translate_a/element.js?cb=googleTranslateElementInit";
+          script.async = true;
+          document.body.appendChild(script);
+        }
+
+        window.googleTranslateElementInit = function () {
+          new window.google.translate.TranslateElement({ pageLanguage: "en", autoDisplay: false }, "google_translate_element");
+          applyGoogleLanguage(preferredLanguage);
+        };
+
+        function getDefaultState() {
+          const state = {
+            mode: "remaining",
+            reduction: 0,
+            language: preferredLanguage,
+            currentLevels: {},
+            targetLevels: {},
+          };
+          allElements.forEach(function (element) {
+            state.currentLevels[element.id] = 0;
+            state.targetLevels[element.id] = 0;
+          });
+          return state;
+        }
+
+        function getCurrentInputs() {
+          const currentLevels = {};
+          const targetLevels = {};
+          allElements.forEach(function (element) {
+            const currentInput = document.getElementById("current-" + element.id);
+            const targetInput = document.getElementById("target-" + element.id);
+            if (!currentInput || !targetInput) return;
+            const currentValue = Math.max(0, Math.min(element.maxLevel, Number(currentInput.value) || 0));
+            const targetValue = Math.max(currentValue, Math.min(element.maxLevel, Number(targetInput.value) || 0));
+            currentInput.value = String(currentValue);
+            targetInput.value = String(targetValue);
+            currentLevels[element.id] = currentValue;
+            targetLevels[element.id] = targetValue;
+          });
+          return { currentLevels: currentLevels, targetLevels: targetLevels };
+        }
+
+        function computeEffectiveTargets(targetLevels) {
+          const effectiveTargets = Object.assign({}, targetLevels);
+          let changed = true;
+          while (changed) {
+            changed = false;
+            allElements.forEach(function (element) {
+              const desiredLevel = effectiveTargets[element.id] || 0;
+              for (let level = 1; level <= desiredLevel; level += 1) {
+                (element.levels[level - 1].requirements || []).forEach(function (requirement) {
+                  if ((effectiveTargets[requirement.elementId] || 0) < requirement.minLevel) {
+                    effectiveTargets[requirement.elementId] = requirement.minLevel;
+                    changed = true;
+                  }
+                });
+              }
+            });
+          }
+          return effectiveTargets;
+        }
+
+        function sumCostsForRange(element, startLevel, endLevel, reductionMultiplier) {
+          const totals = { iron: 0, food: 0, gold: 0, valor: 0 };
+          for (let level = startLevel + 1; level <= endLevel; level += 1) {
+            const levelData = element.levels[level - 1];
+            resourceKeys.forEach(function (key) {
+              totals[key] += Math.round((levelData[key] || 0) * reductionMultiplier);
+            });
+          }
+          return totals;
+        }
+
+        function addTotals(base, addition) {
+          resourceKeys.forEach(function (key) { base[key] += addition[key]; });
+        }
+
+        function totalLevels(levelMap) {
+          return allElements.reduce(function (sum, element) {
+            return sum + (levelMap[element.id] || 0);
+          }, 0);
+        }
+
+        function maximumLevels() {
+          return allElements.reduce(function (sum, element) { return sum + element.maxLevel; }, 0);
+        }
+
+        function saveState() {
+          if (!STORAGE_KEY || !treeData) return;
+          try {
+            const inputs = getCurrentInputs();
+            localStorage.setItem(STORAGE_KEY, JSON.stringify({
+              mode: modeSelect.value,
+              reduction: Number(reductionSelect.value || 0),
+              language: languageSelect.value,
+              currentLevels: inputs.currentLevels,
+              targetLevels: inputs.targetLevels,
+            }));
+          } catch (e) {}
+        }
+
+        function applyState(state) {
+          modeSelect.value = state.mode || "remaining";
+          reductionSelect.value = String(Math.min(30, Math.max(0, Number(state.reduction || 0))));
+          if (state.language && languageOptions.some(function (o) { return o.code === state.language; })) {
+            preferredLanguage = state.language;
+            languageSelect.value = state.language;
+          }
+          allElements.forEach(function (element) {
+            const currentInput = document.getElementById("current-" + element.id);
+            const targetInput = document.getElementById("target-" + element.id);
+            if (!currentInput || !targetInput) return;
+            currentInput.value = String(Math.max(0, Math.min(element.maxLevel, Number(state.currentLevels && state.currentLevels[element.id] || 0))));
+            targetInput.value = String(Math.max(0, Math.min(element.maxLevel, Number(state.targetLevels && state.targetLevels[element.id] || 0))));
+          });
+        }
+
+        function loadState() {
+          try {
+            const raw = localStorage.getItem(STORAGE_KEY);
+            applyState(raw ? Object.assign(getDefaultState(), JSON.parse(raw)) : getDefaultState());
+          } catch (e) {
+            applyState(getDefaultState());
+          }
+        }
+
+        function nudgeLevel(inputId, delta) {
+          const input = document.getElementById(inputId);
+          if (!input) return;
+          const max = Number(input.max) || 0;
+          const next = Math.max(0, Math.min(max, (Number(input.value) || 0) + delta));
+          input.value = String(next);
+          if (inputId.indexOf("current-") === 0) {
+            const target = document.getElementById(inputId.replace("current-", "target-"));
+            if (target && Number(target.value) < next) target.value = String(next);
+          }
+          updateCalculator();
+        }
+
+        function setLevel(inputId, value) {
+          const input = document.getElementById(inputId);
+          if (!input) return;
+          const max = Number(input.max) || 0;
+          const next = Math.max(0, Math.min(max, value));
+          input.value = String(next);
+          if (inputId.indexOf("current-") === 0) {
+            const target = document.getElementById(inputId.replace("current-", "target-"));
+            if (target && Number(target.value) < next) target.value = String(next);
+          }
+          updateCalculator();
+        }
+
+        function buildPlanner() {
+          const body = treeRows.map(function (row) {
+            const collapsed = collapsedSections[row.id] ? " is-collapsed" : "";
+            return (
+              '<tbody class="planner-section' + collapsed + '" id="section-' + row.id + '" data-row-id="' + row.id + '">' +
+              '<tr class="rc-tier-row">' +
+              '<td colspan="5">' +
+              '<button type="button" data-toggle-section="' + row.id + '" aria-expanded="' + (collapsed ? "false" : "true") + '">' +
+              "<span>" + row.title + "</span>" +
+              '<span class="rc-section-meta" id="section-meta-' + row.id + '"></span>' +
+              "</button></td></tr>" +
+              row.elements.map(function (element) {
+                return (
+                  '<tr class="rc-node-row rc-tier-body" id="card-' + element.id + '" data-row-id="' + row.id + '" data-name="' + element.name.toLowerCase() + '">' +
+                  '<td><div class="rc-node-name"><strong>' + element.name + "</strong>" +
+                  '<span id="note-' + element.id + '">Max ' + element.maxLevel + "</span></div></td>" +
+                  '<td class="rc-col-now"><input class="rc-cell-input" id="current-' + element.id + '" type="number" min="0" max="' + element.maxLevel + '" step="1" value="0" inputmode="numeric" aria-label="' + element.name + ' now" /></td>' +
+                  '<td class="rc-col-want"><input class="rc-cell-input" id="target-' + element.id + '" type="number" min="0" max="' + element.maxLevel + '" step="1" value="0" inputmode="numeric" aria-label="' + element.name + ' want" /></td>' +
+                  '<td class="rc-col-cost"><div class="rc-cost-cell" id="cost-' + element.id + '">—</div></td>' +
+                  '<td class="rc-col-acts"><div class="rc-row-acts">' +
+                  '<button type="button" class="rc-mini-btn" data-set-max="' + element.id + '" title="Want max">Max</button>' +
+                  '<button type="button" class="rc-mini-btn" data-set-done="' + element.id + '" title="Mark done">Done</button>' +
+                  "</div></td></tr>"
+                );
+              }).join("") +
+              "</tbody>"
+            );
+          }).join("");
+
+          plannerSections.innerHTML =
+            '<table class="rc-table">' +
+            "<thead><tr>" +
+            "<th>Research</th>" +
+            '<th class="rc-col-now">Now</th>' +
+            '<th class="rc-col-want">Want</th>' +
+            '<th class="rc-col-cost">Cost</th>' +
+            '<th class="rc-col-acts">Quick</th>' +
+            "</tr></thead>" +
+            body +
+            "</table>";
+
+          allElements.forEach(function (element) {
+            document.getElementById("current-" + element.id).addEventListener("input", updateCalculator);
+            document.getElementById("target-" + element.id).addEventListener("input", updateCalculator);
+          });
+        }
+
+        function setAllTargetsToMax() {
+          allElements.forEach(function (element) {
+            document.getElementById("target-" + element.id).value = String(element.maxLevel);
+          });
+          updateCalculator();
+        }
+
+        function clearTargets() {
+          allElements.forEach(function (element) {
+            const currentValue = Number(document.getElementById("current-" + element.id).value) || 0;
+            document.getElementById("target-" + element.id).value = String(currentValue);
+          });
+          updateCalculator();
+        }
+
+        function resetCurrentLevels() {
+          allElements.forEach(function (element) {
+            document.getElementById("current-" + element.id).value = "0";
+          });
+          updateCalculator();
+        }
+
+        function planT10Path() {
+          if (!allElements.some(function (e) { return e.id === "unit-x"; })) return;
+          allElements.forEach(function (element) {
+            document.getElementById("target-" + element.id).value = "0";
+          });
+          document.getElementById("target-unit-x").value = "1";
+          updateCalculator();
+        }
+
+        function matchesFilter(cardState) {
+          if (searchQuery && cardState.name.indexOf(searchQuery) === -1) return false;
+          if (activeFilter === "all") return true;
+          if (activeFilter === "plan") return cardState.inPlan;
+          if (activeFilter === "todo") return cardState.needsWork;
+          if (activeFilter === "done") return cardState.isDone;
+          return true;
+        }
+
+        function applyVisibility(cardStates, sectionStats) {
+          let visible = 0;
+          allElements.forEach(function (element) {
+            const state = cardStates[element.id];
+            const card = document.getElementById("card-" + element.id);
+            const note = document.getElementById("note-" + element.id);
+            const costCell = document.getElementById("cost-" + element.id);
+            const isDirectlySelected = targetLevel > currentLevel;
+            const needsWork = effectiveLevel > currentLevel;
+            const finishedForPlan = effectiveLevel > 0 && currentLevel >= effectiveLevel;
+            const inPlan = needsWork || (mode === "reach" && effectiveLevel > 0) || isDirectlySelected;
+            const rowId = card.getAttribute("data-row-id");
+
+            cardStates[element.id] = {
+              name: element.name.toLowerCase(),
+              inPlan: inPlan || itemTotals.iron + itemTotals.food + itemTotals.gold + itemTotals.valor > 0,
+              needsWork: needsWork,
+              isDone: currentLevel >= element.maxLevel || finishedForPlan,
+            };
+
+            if (sectionStats[rowId]) {
+              if (currentLevel >= element.maxLevel) sectionStats[rowId].done += 1;
+              if (needsWork) sectionStats[rowId].todo += 1;
+            }
+
+            const costParts = [];
+            if (itemTotals.iron) costParts.push("I " + formatCompact(itemTotals.iron));
+            if (itemTotals.food) costParts.push("F " + formatCompact(itemTotals.food));
+            if (itemTotals.gold) costParts.push("G " + formatCompact(itemTotals.gold));
+            if (itemTotals.valor) costParts.push("V " + formatCompact(itemTotals.valor));
+            costCell.innerHTML = costParts.length ? costParts.join(" · ") : "—";
+
+            card.className = "rc-node-row rc-tier-body";
+            if (isDirectlySelected) card.classList.add("selected");
+
+            if (effectiveLevel > targetLevel) {
+              autoIncluded += 1;
+              card.classList.add("needs-support");
+              note.textContent = "Need Lv " + effectiveLevel + " (prereq) · Max " + element.maxLevel;
+            } else if (finishedForPlan) {
+              card.classList.add("done");
+              note.textContent = "Caught up · Max " + element.maxLevel;
+            } else if (needsWork) {
+              note.textContent = "Need Lv " + effectiveLevel + " · Max " + element.maxLevel;
+            } else {
+              note.textContent = "Max " + element.maxLevel;
+            }
+
+            if (!nextStep && needsWork) {
+              nextStep = {
+                name: element.name,
+                effectiveLevel: effectiveLevel,
+                autoIncluded: effectiveLevel > targetLevel,
+              };
+              card.classList.add("primary");
+            }
+
+            addTotals(totals, itemTotals);
+            if (needsWork || (mode === "reach" && effectiveLevel > 0) || itemTotals.iron || itemTotals.food || itemTotals.gold || itemTotals.valor) {
+              if (effectiveLevel > 0 || currentLevel > 0) {
+                breakdownRows.push({
+                  name: element.name,
+                  currentLevel: currentLevel,
+                  targetLevel: targetLevel,
+                  effectiveLevel: effectiveLevel,
+                  autoIncluded: effectiveLevel > targetLevel,
+                  totals: itemTotals,
+                });
+              }
+            }
+          });
+
+                    lastTotals = totals;
+          setResourceDisplay(totalIronValue, totalIronExact, stickyIronValue, stickyIronStat, totals.iron);
+          setResourceDisplay(totalFoodValue, totalFoodExact, stickyFoodValue, stickyFoodStat, totals.food);
+          setResourceDisplay(totalGoldValue, totalGoldExact, stickyGoldValue, stickyGoldStat, totals.gold);
+          setResourceDisplay(totalValorValue, totalValorExact, stickyValorValue, stickyValorStat, totals.valor);
+          valorTile.classList.toggle("planner-hidden", totals.valor === 0);
+
+          const maxLevels = maximumLevels() || 1;
+          const currentTotal = totalLevels(currentLevels);
+          const plannedTotal = totalLevels(effectiveTargets);
+          const currentPct = Math.round((currentTotal / maxLevels) * 100);
+          const plannedPct = Math.round((plannedTotal / maxLevels) * 100);
+          currentProgressValue.textContent = currentPct + "%";
+          plannedProgressValue.textContent = plannedPct + "%";
+          progressDetail.textContent = formatNumber(currentTotal) + " / " + formatNumber(maxLevels) + " levels done";
+          plannedDetail.textContent = "Targets cover " + formatNumber(plannedTotal) + " levels";
+          treeProgressBar.style.width = currentPct + "%";
+          modeValue.textContent = mode === "reach" ? "Full cost from 0" : "Remaining only";
+          reductionValue.textContent = Number(reductionSelect.value || 0) + "%";
+          nodesInPlanValue.textContent = String(breakdownRows.filter(function (r) { return r.effectiveLevel > r.currentLevel; }).length);
+
+          let nextText = "Set a Want level to start";
+          if (!nextStep && breakdownRows.every(function (r) { return r.effectiveLevel <= r.currentLevel; })) {
+            if (breakdownRows.length === 0) {
+              plannerOverview.innerHTML = "<strong>Next:</strong> Raise a Want level above Now.";
+              statusValue.textContent = "No research selected";
+              nextText = "Raise a Want level above Now";
+            } else {
+              plannerOverview.innerHTML = "<strong>Plan ready:</strong> You're already at every included target.";
+              statusValue.textContent = "Targets complete";
+              nextText = "Targets complete";
+            }
+          } else if (!nextStep) {
+            plannerOverview.innerHTML = "<strong>Plan ready:</strong> Current levels satisfy every included target.";
+            statusValue.textContent = "Targets complete";
+            nextText = "Targets complete";
+          } else {
+            nextText = nextStep.name + " → Lv " + nextStep.effectiveLevel + (nextStep.autoIncluded ? " (prereq)" : "");
+            plannerOverview.innerHTML = "<strong>Next:</strong> " + nextText + ".";
+            statusValue.textContent = autoIncluded > 0
+              ? "Planning with " + autoIncluded + " auto-included prerequisite(s)"
+              : "Custom research path";
+          }
+          stickyNextValue.textContent = nextText;
+
+          breakdownList.innerHTML = breakdownRows
+            .filter(function (row) { return row.effectiveLevel > row.currentLevel || mode === "reach"; })
+            .map(function (row) {
+              return (
+                '<div class="planner-breakdown-row"><div>' +
+                '<div class="planner-breakdown-title">' + row.name + "</div>" +
+                '<div class="planner-breakdown-meta">Now ' + row.currentLevel + " → Need " + row.effectiveLevel +
+                (row.autoIncluded ? " · Prerequisite" : "") +
+                (row.targetLevel !== row.effectiveLevel ? " · Wanted " + row.targetLevel : "") +
+                "</div></div>" +
+                '<div class="planner-breakdown-costs">' +
+                resourceKeys.filter(function (key) { return row.totals[key] > 0 || key !== "valor"; }).map(function (key) {
+                  if (key === "valor" && row.totals.valor === 0) return "";
+                  return '<div class="planner-breakdown-cost"><span class="label">' + key + '</span><span class="value">' + formatCompact(row.totals[key]) + "</span></div>";
+                }).join("") +
+                "</div></div>"
+              );
+            }).join("");
+          const shownBreakdown = breakdownRows.filter(function (row) { return row.effectiveLevel > row.currentLevel || mode === "reach"; });
+          breakdownEmpty.classList.toggle("planner-hidden", shownBreakdown.length > 0);
+
+          applyVisibility(cardStates, sectionStats);
+          saveState();
+        }
+
+        function loadTree(id, skipSavePrevious) {
+          if (treeId && treeData && !skipSavePrevious) saveState();
+
+          treeId = id;
+          treeData = window.LW_RESEARCH_TREES && window.LW_RESEARCH_TREES[id];
+          STORAGE_KEY = "lastWarResearchCalcStateV1_" + treeId;
+
+          const catalogEntry = catalog().find(function (t) { return t.id === id; });
+          if (catalogEntry) {
+            activeGroup = catalogEntry.group || "core";
+            treeDescription.textContent = catalogEntry.description + " Set Now / Want levels — remaining costs update instantly.";
+          }
+
+          if (!treeData) {
+            calculatorLayout.classList.add("planner-hidden");
+            comingSoonLayout.classList.remove("planner-hidden");
+            treeSelect.value = id;
+            buildGroupTabs();
+            buildTreeChips();
+            updateUrl(id);
+            return;
+          }
+
+          calculatorLayout.classList.remove("planner-hidden");
+          comingSoonLayout.classList.add("planner-hidden");
+          treeRows = treeData.treeRows || [];
+          allElements = treeRows.flatMap(function (row) { return row.elements; });
+          Object.keys(collapsedSections).forEach(function (key) { delete collapsedSections[key]; });
+
+          progressOnlyBanner.classList.toggle("planner-hidden", treeData.hasCosts !== false);
+          planT10Button.classList.toggle("planner-hidden", !allElements.some(function (e) { return e.id === "unit-x"; }));
+
+          treeSelect.value = id;
+          buildGroupTabs();
+          buildTreeChips();
+          updateUrl(id);
+          buildPlanner();
+          loadState();
+          updateCalculator();
+        }
+
+        async function copyTotals() {
+          const text = [
+            "Research Calculator — " + ((catalog().find(function (t) { return t.id === treeId; }) || {}).name || treeId),
+            "Iron: " + formatNumber(lastTotals.iron),
+            "Food: " + formatNumber(lastTotals.food),
+            "Gold: " + formatNumber(lastTotals.gold),
+            lastTotals.valor ? "Valor: " + formatNumber(lastTotals.valor) : null,
+            "Reduction: " + reductionSelect.value + "%",
+          ].filter(Boolean).join("\n");
+          try {
+            await navigator.clipboard.writeText(text);
+            copyTotalsButton.textContent = "Copied!";
+            setTimeout(function () { copyTotalsButton.textContent = "Copy Totals"; }, 1200);
+          } catch (e) {
+            copyTotalsButton.textContent = "Copy failed";
+            setTimeout(function () { copyTotalsButton.textContent = "Copy Totals"; }, 1200);
+          }
+        }
+
+        buildTreeSelect();
+        buildReductionOptions();
+        buildLanguageOptions();
+        loadGoogleTranslateScript();
+
+        treeSelect.addEventListener("change", function () { loadTree(treeSelect.value); });
+        modeSelect.addEventListener("change", updateCalculator);
+        reductionSelect.addEventListener("change", updateCalculator);
+        planT10Button.addEventListener("click", planT10Path);
+        setAllMaxButton.addEventListener("click", setAllTargetsToMax);
+        clearTargetsButton.addEventListener("click", clearTargets);
+        resetCurrentButton.addEventListener("click", resetCurrentLevels);
+        copyTotalsButton.addEventListener("click", copyTotals);
+        expandAllButton.addEventListener("click", function () {
+          treeRows.forEach(function (row) {
+            collapsedSections[row.id] = false;
+            const section = document.getElementById("section-" + row.id);
+            const toggle = section && section.querySelector("[data-toggle-section]");
+            if (section) section.classList.remove("is-collapsed");
+            if (toggle) toggle.setAttribute("aria-expanded", "true");
+          });
+        });
+        collapseDoneButton.addEventListener("click", function () {
+          treeRows.forEach(function (row) {
+            const allDone = row.elements.every(function (element) {
+              const current = Number(document.getElementById("current-" + element.id).value) || 0;
+              return current >= element.maxLevel;
+            });
+            collapsedSections[row.id] = allDone;
+            const section = document.getElementById("section-" + row.id);
+            const toggle = section && section.querySelector("[data-toggle-section]");
+            if (section) section.classList.toggle("is-collapsed", allDone);
+            if (toggle) toggle.setAttribute("aria-expanded", allDone ? "false" : "true");
+          });
+        });
+        languageSelect.addEventListener("change", function () {
+          preferredLanguage = languageSelect.value;
+          applyGoogleLanguage(preferredLanguage);
+          saveState();
+        });
+        nodeSearch.addEventListener("input", function () {
+          searchQuery = (nodeSearch.value || "").trim().toLowerCase();
+          updateCalculator();
+        });
+        filterChips.addEventListener("click", function (event) {
+          const btn = event.target.closest("[data-filter]");
+          if (!btn) return;
+          activeFilter = btn.getAttribute("data-filter");
+          filterChips.querySelectorAll(".rc-chip-btn").forEach(function (el) {
+            el.classList.toggle("active", el === btn);
+          });
+          updateCalculator();
+        });
+        groupTabs.addEventListener("click", function (event) {
+          const btn = event.target.closest("[data-group]");
+          if (!btn) return;
+          activeGroup = btn.getAttribute("data-group");
+          buildGroupTabs();
+          buildTreeChips();
+          const first = catalog().find(function (entry) { return (entry.group || "core") === activeGroup; });
+          if (first && first.id !== treeId) loadTree(first.id);
+        });
+        treeChips.addEventListener("click", function (event) {
+          const btn = event.target.closest("[data-tree]");
+          if (!btn) return;
+          loadTree(btn.getAttribute("data-tree"));
+        });
+        plannerSections.addEventListener("click", function (event) {
+          const toggle = event.target.closest("[data-toggle-section]");
+          if (toggle) {
+            const rowId = toggle.getAttribute("data-toggle-section");
+            collapsedSections[rowId] = !collapsedSections[rowId];
+            const section = document.getElementById("section-" + rowId);
+            section.classList.toggle("is-collapsed", !!collapsedSections[rowId]);
+            toggle.setAttribute("aria-expanded", collapsedSections[rowId] ? "false" : "true");
+            return;
+          }
+          const setMax = event.target.closest("[data-set-max]");
+          if (setMax) {
+            const id = setMax.getAttribute("data-set-max");
+            const element = allElements.find(function (e) { return e.id === id; });
+            if (element) setLevel("target-" + id, element.maxLevel);
+            return;
+          }
+          const setDone = event.target.closest("[data-set-done]");
+          if (setDone) {
+            const id = setDone.getAttribute("data-set-done");
+            const element = allElements.find(function (e) { return e.id === id; });
+            if (element) {
+              setLevel("current-" + id, element.maxLevel);
+              setLevel("target-" + id, element.maxLevel);
+            }
+          }
+        });
+
+        loadTree(getDefaultTreeId(), true);
+      })();
+    </script>
+
+    <div class="support-bar">
+      <a href="https://buymeacoffee.com/dkfoy56w" class="support-link" target="_blank" rel="noopener noreferrer">Buy Me a Coffee</a>
+    </div>
+    <script src="/adsense-config.js"></script>
+    <script src="/site-legal-footer.js?v=4" defer></script>
+    <script src="/adsense-placements.js" defer></script>
+  </body>
+</html>
