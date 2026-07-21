@@ -1,0 +1,531 @@
+/* Overlord Calculator — compact entry layout */
+
+.ol-page .hero {
+  padding-bottom: 12px;
+}
+
+.ol-page .hero .sub {
+  max-width: 52rem;
+}
+
+.ol-tab-bar {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-bottom: 12px;
+  padding-bottom: 12px;
+  border-bottom: 1px solid var(--line);
+}
+
+.ol-tab {
+  appearance: none;
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  background: rgba(12, 24, 37, 0.92);
+  color: var(--muted);
+  padding: 8px 14px;
+  font: inherit;
+  font-size: 0.82rem;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.ol-tab:hover {
+  border-color: rgba(116, 192, 252, 0.45);
+  color: var(--text);
+}
+
+.ol-tab.active {
+  color: var(--accent);
+  border-color: rgba(116, 192, 252, 0.65);
+  background: rgba(18, 42, 64, 0.96);
+}
+
+.ol-sticky-totals {
+  position: sticky;
+  top: 0;
+  z-index: 30;
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr)) minmax(160px, 1.2fr);
+  gap: 8px;
+  margin: 0 0 12px;
+  padding: 8px 10px;
+  border: 1px solid rgba(116, 192, 252, 0.28);
+  border-radius: 12px;
+  background: rgba(8, 16, 25, 0.94);
+  backdrop-filter: blur(10px);
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.28);
+}
+
+.ol-sticky-totals .ol-stat {
+  min-width: 0;
+  padding: 6px 8px;
+  border-radius: 8px;
+  background: rgba(12, 24, 37, 0.9);
+  border: 1px solid var(--line);
+}
+
+.ol-sticky-totals .ol-stat-key {
+  color: var(--muted);
+  font-size: 0.64rem;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+}
+
+.ol-sticky-totals .ol-stat-value {
+  margin-top: 1px;
+  font-size: 0.98rem;
+  font-weight: 800;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.ol-sticky-totals .ol-stat.is-zero {
+  opacity: 0.42;
+}
+
+.ol-sticky-next {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-width: 0;
+  padding: 6px 10px;
+  border-radius: 8px;
+  border: 1px solid rgba(116, 192, 252, 0.28);
+  background: rgba(18, 35, 53, 0.9);
+  color: var(--text);
+  font-size: 0.8rem;
+  font-weight: 700;
+  line-height: 1.3;
+}
+
+.ol-sticky-next strong {
+  color: var(--accent);
+  flex: 0 0 auto;
+}
+
+.ol-sticky-next span {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.ol-layout {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(240px, 300px);
+  gap: 14px;
+  align-items: start;
+}
+
+.ol-main,
+.ol-side {
+  min-width: 0;
+}
+
+.ol-side {
+  position: sticky;
+  top: 72px;
+}
+
+.ol-side .card,
+.ol-main .card {
+  padding: 14px 16px 16px;
+}
+
+.ol-section {
+  display: none;
+}
+
+.ol-section.active {
+  display: block;
+}
+
+.ol-hint {
+  margin: 0 0 10px;
+  color: var(--muted);
+  font-size: 0.82rem;
+  line-height: 1.45;
+}
+
+.ol-actions-inline {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  align-items: center;
+  margin-bottom: 10px;
+}
+
+.ol-actions-inline .action-button {
+  padding: 8px 12px;
+  font-size: 0.82rem;
+}
+
+.ol-actions-inline .action-button.action-button--quiet {
+  background: transparent;
+  box-shadow: none;
+}
+
+.ol-sync-bar {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(100px, 1fr)) auto auto;
+  gap: 8px;
+  align-items: end;
+  margin-bottom: 10px;
+  padding: 10px;
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  background: rgba(8, 16, 25, 0.55);
+}
+
+.ol-sync-bar .field {
+  margin-bottom: 0;
+}
+
+.ol-sync-bar .ol-cell-input,
+.ol-range-bar .ol-cell-input {
+  width: 100%;
+  margin: 0;
+}
+
+.ol-sync-bar .action-button {
+  padding: 9px 12px;
+  font-size: 0.8rem;
+  white-space: nowrap;
+}
+
+.ol-quick {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  align-items: center;
+}
+
+.ol-quick-label {
+  color: var(--muted);
+  font-size: 0.74rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  margin-right: 2px;
+}
+
+.ol-chip-btn {
+  appearance: none;
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  background: rgba(12, 24, 37, 0.9);
+  color: var(--muted);
+  font: inherit;
+  font-size: 0.74rem;
+  font-weight: 700;
+  padding: 5px 10px;
+  cursor: pointer;
+}
+
+.ol-chip-btn:hover {
+  border-color: rgba(116, 192, 252, 0.45);
+  color: var(--text);
+}
+
+.ol-range-bar {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(100px, 1fr)) minmax(0, 1fr);
+  gap: 10px;
+  align-items: end;
+  margin-bottom: 10px;
+  padding: 10px;
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  background: rgba(8, 16, 25, 0.55);
+}
+
+.ol-range-bar .field {
+  margin-bottom: 0;
+}
+
+.ol-range-bar .ol-quick {
+  justify-content: flex-end;
+}
+
+.ol-bond-bar {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr)) auto;
+  gap: 10px;
+  align-items: end;
+  margin-top: 12px;
+  padding: 10px;
+  border: 1px solid rgba(116, 192, 252, 0.22);
+  border-radius: 10px;
+  background: rgba(18, 35, 53, 0.45);
+}
+
+.ol-bond-bar .field {
+  margin-bottom: 0;
+}
+
+.ol-bond-bar .action-button {
+  padding: 9px 12px;
+  font-size: 0.8rem;
+  white-space: nowrap;
+}
+
+.ol-table-wrap {
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  overflow: auto;
+  background: rgba(8, 16, 25, 0.55);
+}
+
+.ol-table {
+  width: 100%;
+  border-collapse: separate;
+  border-spacing: 0;
+  min-width: 520px;
+}
+
+.ol-table thead th {
+  position: sticky;
+  top: 0;
+  z-index: 2;
+  padding: 8px 10px;
+  background: #0d1a28;
+  border-bottom: 1px solid var(--line);
+  color: var(--muted);
+  font-size: 0.68rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  text-align: left;
+}
+
+.ol-table thead th.ol-col-now,
+.ol-table thead th.ol-col-want,
+.ol-table thead th.ol-col-cost,
+.ol-table thead th.ol-col-include {
+  text-align: center;
+}
+
+.ol-table tbody td {
+  padding: 6px 8px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.04);
+  vertical-align: middle;
+}
+
+.ol-table tbody tr:hover td {
+  background: rgba(18, 35, 53, 0.45);
+}
+
+.ol-table tbody tr.is-disabled td {
+  opacity: 0.45;
+}
+
+.ol-table tbody tr.is-disabled .ol-cell-input {
+  pointer-events: none;
+}
+
+.ol-track-name strong {
+  display: block;
+  font-size: 0.9rem;
+  font-weight: 700;
+}
+
+.ol-track-name span {
+  display: block;
+  margin-top: 2px;
+  color: var(--muted);
+  font-size: 0.7rem;
+}
+
+.ol-col-now,
+.ol-col-want {
+  width: 88px;
+}
+
+.ol-col-cost {
+  width: 110px;
+}
+
+.ol-col-include {
+  width: 72px;
+  text-align: center;
+}
+
+.ol-cell-input {
+  width: 72px;
+  margin: 0 auto;
+  display: block;
+  text-align: center;
+  padding: 6px 4px;
+  font-size: 0.9rem;
+  font-weight: 700;
+  -moz-appearance: textfield;
+}
+
+.ol-cell-input::-webkit-outer-spin-button,
+.ol-cell-input::-webkit-inner-spin-button {
+  -webkit-appearance: none;
+  margin: 0;
+}
+
+.ol-cost-cell {
+  text-align: center;
+  font-size: 0.78rem;
+  font-weight: 700;
+  line-height: 1.25;
+}
+
+.ol-cost-cell small {
+  display: block;
+  color: var(--muted);
+  font-weight: 600;
+  font-size: 0.68rem;
+}
+
+.ol-cost-cell.is-zero {
+  opacity: 0.4;
+}
+
+.ol-toggle {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0;
+}
+
+.ol-toggle input {
+  width: 16px;
+  height: 16px;
+  margin: 0;
+}
+
+.ol-summary-tiles {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 8px;
+  margin-bottom: 10px;
+}
+
+.ol-tile {
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  background: rgba(8, 16, 25, 0.72);
+  padding: 10px;
+}
+
+.ol-tile-key {
+  color: var(--muted);
+  font-size: 0.68rem;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+}
+
+.ol-tile-value {
+  margin-top: 4px;
+  font-size: 1.05rem;
+  font-weight: 800;
+}
+
+.ol-tile-sub {
+  margin-top: 3px;
+  color: var(--muted);
+  font-size: 0.72rem;
+}
+
+.ol-copy-row {
+  margin-bottom: 10px;
+}
+
+.ol-list {
+  display: grid;
+  gap: 8px;
+  max-height: min(42vh, 360px);
+  overflow: auto;
+}
+
+.ol-list-item {
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  background: rgba(8, 16, 25, 0.62);
+  padding: 10px;
+}
+
+.ol-list-title {
+  font-weight: 800;
+  font-size: 0.86rem;
+}
+
+.ol-list-meta {
+  margin-top: 3px;
+  color: var(--muted);
+  font-size: 0.76rem;
+  line-height: 1.35;
+}
+
+.ol-empty {
+  padding: 12px;
+  border: 1px dashed var(--line-soft);
+  border-radius: 10px;
+  color: var(--muted);
+  text-align: center;
+  font-size: 0.82rem;
+  background: rgba(8, 16, 25, 0.5);
+}
+
+.ol-breakdown-title {
+  margin: 12px 0 8px;
+  font-size: 0.9rem;
+}
+
+.planner-overview + .planner-overview {
+  margin-top: 10px;
+}
+
+@media (max-width: 920px) {
+  .ol-layout {
+    grid-template-columns: 1fr;
+  }
+
+  .ol-side {
+    position: static;
+  }
+
+  .ol-sticky-totals {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .ol-sticky-next {
+    grid-column: 1 / -1;
+  }
+
+  .ol-sync-bar {
+    grid-template-columns: 1fr 1fr;
+  }
+
+  .ol-sync-bar .action-button {
+    grid-column: span 1;
+  }
+
+  .ol-bond-bar {
+    grid-template-columns: 1fr;
+  }
+
+  .ol-range-bar {
+    grid-template-columns: 1fr;
+  }
+
+  .ol-range-bar .ol-quick {
+    justify-content: flex-start;
+  }
+}
+
+@media (max-width: 640px) {
+  .ol-summary-tiles {
+    grid-template-columns: 1fr;
+  }
+
+  .ol-sync-bar {
+    grid-template-columns: 1fr;
+  }
+}

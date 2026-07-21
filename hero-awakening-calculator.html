@@ -1,0 +1,957 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <!-- Google tag (gtag.js) -->
+    <script async src="https://www.googletagmanager.com/gtag/js?id=GT-5R3WG7DP"></script>
+    <script>
+      window.dataLayer = window.dataLayer || [];
+      function gtag(){dataLayer.push(arguments);}
+      gtag('js', new Date());
+      gtag('config', 'GT-5R3WG7DP');
+    </script>
+
+    <meta charset="UTF-8" />
+    <link rel="icon" href="/favicon.ico" sizes="32x32" type="image/x-icon" />
+    <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Last War Hero Awakening Calculator — Shards &amp; Season Plan</title>
+    <meta
+      name="description"
+      content="Last War Hero Awakening Calculator. Plan awakening shard costs from unlock through 5 stars, check prerequisites, and track named vs universal shard gaps for Season 6 heroes."
+    />
+    <meta name="robots" content="index, follow" />
+    <link rel="canonical" href="https://lastwarsurvivaltools.com/hero-awakening-calculator.html" />
+    <meta property="og:site_name" content="Last War Tools" />
+    <meta property="og:locale" content="en_US" />
+    <meta property="og:type" content="website" />
+    <meta property="og:title" content="Last War Hero Awakening Calculator — Shards &amp; Season Plan" />
+    <meta
+      property="og:description"
+      content="Calculate awakening shards from unlock through 5 stars. Check 5★, weapon, and server-week gates plus shard inventory gaps."
+    />
+    <meta property="og:url" content="https://lastwarsurvivaltools.com/hero-awakening-calculator.html" />
+    <meta property="og:image" content="https://lastwarsurvivaltools.com/media/lwst.png" />
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:title" content="Last War Hero Awakening Calculator — Shards &amp; Season Plan" />
+    <meta
+      name="twitter:description"
+      content="Plan hero awakening shard costs and seasonal shard gaps for Kimberly, DVA, and Tesla."
+    />
+    <meta name="twitter:image" content="https://lastwarsurvivaltools.com/media/lwst.png" />
+    <link rel="stylesheet" href="google-translate-toolbar-hide.css" />
+    <link rel="stylesheet" href="last-war-furnace-upgrade-calculator.css" />
+    <link rel="stylesheet" href="hero-awakening-calculator.css" />
+    <script src="page-nav-dropdown.js" defer></script>
+    <link rel="stylesheet" href="/adsense.css" />
+    <script
+      async
+      src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1014488780102797"
+      crossorigin="anonymous"
+    ></script>
+  </head>
+  <body class="ha-page">
+    <div class="page">
+      <div class="page-top-stack">
+        <aside class="account-promo-strip" aria-label="Optional account">
+          <p class="account-promo-strip__text">
+            <strong>No account required.</strong> Every calculator works in your browser without signing up.
+            Create a free account only if you want to sync saved data across devices.
+          </p>
+          <div class="account-promo-actions">
+            <a href="account.html" class="action-button">Create account</a>
+            <a href="account.html" class="action-button action-button--quiet">Sign in</a>
+          </div>
+        </aside>
+        <div class="page-top-controls">
+          <div class="logo-control">
+            <a href="index.html" aria-label="Go to homepage">
+              <img src="media/lwst.png" alt="LWST logo" class="site-logo" />
+            </a>
+          </div>
+          <div class="language-control">
+            <label for="languageSelect">Language</label>
+            <select id="languageSelect"></select>
+          </div>
+        </div>
+      </div>
+      <div id="google_translate_element" class="hidden-translate"></div>
+
+      <nav class="page-nav" aria-label="Calculator pages">
+        <a href="hq-upgrade-calculator.html" class="page-link">HQ Upgrade</a>
+        <details class="page-nav-dropdown" name="alliance-nav">
+          <summary class="page-link page-nav-dropdown-toggle">Alliance Tools</summary>
+          <div class="page-nav-dropdown-menu">
+            <a href="train-conductor-schedule.html" class="page-link">Train Conductor</a>
+            <a href="transfer-tracker.html" class="page-link">Transfer Tracker</a>
+            <a href="verus-tracker.html" class="page-link">Versus Tracker</a>
+            <a href="ds-tracker.html" class="page-link">Desert Storm Tracker/Planner</a>
+            <a href="server-search.html" class="page-link">Server Search</a>
+            <a href="warzone-planner.html" class="page-link">Warzone Planner</a>
+            <a href="alliance-hive.html" class="page-link">Hive Builder</a>
+          </div>
+        </details>
+        <details class="page-nav-dropdown" name="troop-nav">
+          <summary class="page-link page-nav-dropdown-toggle">Troop Tools</summary>
+          <div class="page-nav-dropdown-menu">
+            <a href="t10-troops-calculator.html" class="page-link">T10 Troops</a>
+            <a href="t11-troops-calculator.html" class="page-link">T11 Troops</a>
+            <a href="overlord-calculator.html" class="page-link">Overlord Calculator</a>
+          </div>
+        </details>
+        <details class="page-nav-dropdown active" name="hero-nav">
+          <summary class="page-link page-nav-dropdown-toggle">Hero Tools</summary>
+          <div class="page-nav-dropdown-menu">
+            <a href="hero-awakening-calculator.html" class="page-link active">Hero Awakening</a>
+          </div>
+        </details>
+        <details class="page-nav-dropdown" name="tech-nav">
+          <summary class="page-link page-nav-dropdown-toggle">Tech Tools</summary>
+          <div class="page-nav-dropdown-menu">
+            <a href="research-calculator.html" class="page-link">Research Calculator</a>
+          </div>
+        </details>
+        <details class="page-nav-dropdown" name="season-nav">
+          <summary class="page-link page-nav-dropdown-toggle">Season 1 Tools</summary>
+          <div class="page-nav-dropdown-menu">
+            <a href="virus-research-institute-calculator.html" class="page-link">Virus Research Institute</a>
+            <a href="season-1-squad-base-calculator.html" class="page-link">Season 1 Squad Base</a>
+            <a href="season-1-interactive-map.html" class="page-link">Interactive Map</a>
+            <a href="season-1-warzone-planner.html" class="page-link">Warzone Planner</a>
+          </div>
+        </details>
+        <details class="page-nav-dropdown" name="season-nav">
+          <summary class="page-link page-nav-dropdown-toggle">Season 2 Tools</summary>
+          <div class="page-nav-dropdown-menu">
+            <a href="last-war-furnace-upgrade-calculator.html" class="page-link">Furnace Calculator</a>
+            <a href="season-2-tank-center-calculator.html" class="page-link">Season 2 Squad Base</a>
+            <a href="season-2-interactive-map.html" class="page-link">Interactive Map</a>
+            <a href="season-2-warzone-planner.html" class="page-link">Warzone Planner</a>
+            <a href="season-2-supplies-checklist.html" class="page-link">Supplies Checklist</a>
+            <a href="rare-soil-war-tracker.html" class="page-link">Rare Soil War Tracker</a>
+          </div>
+        </details>
+        <details class="page-nav-dropdown" name="season-nav">
+          <summary class="page-link page-nav-dropdown-toggle">Season 3 Tools</summary>
+          <div class="page-nav-dropdown-menu">
+            <a href="curse-research-lab-calculator.html" class="page-link">Curse Research Lab</a>
+            <a href="altar-calculator.html" class="page-link">Altar</a>
+            <a href="protectors-field-calculator.html" class="page-link">Protector's Field</a>
+            <a href="season-3-desert-artifacts-checklist.html" class="page-link">Desert Artifacts</a>
+            <a href="season-3-interactive-map.html" class="page-link">Interactive Map</a>
+            <a href="season-3-warzone-planner.html" class="page-link">Warzone Planner</a>
+            <a href="spice-war-tracker.html" class="page-link">Spice War Tracker</a>
+          </div>
+        </details>
+        <details class="page-nav-dropdown" name="season-nav">
+          <summary class="page-link page-nav-dropdown-toggle">Season 4 Tools</summary>
+          <div class="page-nav-dropdown-menu">
+            <a href="optoelectronic-lab-calculator.html" class="page-link">Optoelectronic Lab</a>
+            <a href="protectors-field-s4-calculator.html" class="page-link">Protector's Field S4</a>
+            <a href="lighthouse-s4-calculator.html" class="page-link">Lighthouse S4</a>
+            <a href="season-4-interactive-map.html" class="page-link">Interactive Map</a>
+            <a href="season-4-warzone-planner.html" class="page-link">Warzone Planner</a>
+            <a href="copper-war-tracker.html" class="page-link">Copper War Tracker</a>
+          </div>
+        </details>
+        <details class="page-nav-dropdown" name="season-nav">
+          <summary class="page-link page-nav-dropdown-toggle">Season 5 Tools</summary>
+          <div class="page-nav-dropdown-menu">
+            <a href="caffeine-institute-calculator.html" class="page-link">Caffeine Institute</a>
+            <a href="protectors-field-s5-calculator.html" class="page-link">Protector's Field S5</a>
+            <a href="season-5-squad-base-calculator.html" class="page-link">Season 5 Tanker Bar</a>
+            <a href="season-5-interactive-map.html" class="page-link">Interactive Map</a>
+            <a href="season-5-warzone-planner.html" class="page-link">Warzone Planner</a>
+          </div>
+        </details>
+        <details class="page-nav-dropdown" name="season-nav">
+          <summary class="page-link page-nav-dropdown-toggle">Season 6 Tools</summary>
+          <div class="page-nav-dropdown-menu">
+            <a href="fungus-institute-calculator.html" class="page-link">Fungus Institute</a>
+            <a href="season-6-squad-base-calculator.html" class="page-link">Season 6 Squad Base</a>
+            <a href="season-6-interactive-map.html" class="page-link">Interactive Map</a>
+            <a href="season-6-warzone-planner.html" class="page-link">Warzone Planner</a>
+          </div>
+        </details>
+      </nav>
+
+      <section class="hero">
+        <h1>Hero Awakening Calculator</h1>
+        <div class="sub">
+          Plan awakening shard costs from unlock through 5 stars, or model your Season 6 hero with prerequisites and shard inventory.
+        </div>
+      </section>
+
+      <div class="ha-sticky-totals" id="stickyTotals" aria-live="polite">
+        <div class="ha-stat is-zero" id="stickyStat1">
+          <div class="ha-stat-key" id="stickyLabel1">Shards Needed</div>
+          <div class="ha-stat-value" id="stickyValue1">0</div>
+        </div>
+        <div class="ha-stat is-zero" id="stickyStat2">
+          <div class="ha-stat-key" id="stickyLabel2">Named Required</div>
+          <div class="ha-stat-value" id="stickyValue2">0</div>
+        </div>
+        <div class="ha-stat is-zero" id="stickyStat3">
+          <div class="ha-stat-key" id="stickyLabel3">Either / Universal</div>
+          <div class="ha-stat-value" id="stickyValue3">0</div>
+        </div>
+        <div class="ha-sticky-next"><strong>Next</strong><span id="stickyNext">Pick a from/to range or season target</span></div>
+      </div>
+
+      <section class="ha-layout">
+        <div class="ha-main">
+          <div class="card">
+            <div class="ha-tab-bar" id="toolTabs" role="tablist" aria-label="Hero awakening tools">
+              <button type="button" class="ha-tab active" data-tab="upgrade">Upgrade Path</button>
+              <button type="button" class="ha-tab" data-tab="season">Season Plan</button>
+            </div>
+
+            <section class="ha-section active" id="section-upgrade">
+              <p class="ha-hint">
+                Set your current and target awakening star/tier. The unlock step uses <strong>50 named shards</strong>; later tiers accept named or universal shards.
+              </p>
+
+              <div class="ha-range-bar">
+                <div class="field">
+                  <label for="fromStar">From Star</label>
+                  <select id="fromStar"></select>
+                </div>
+                <div class="field">
+                  <label for="fromTier">From Tier</label>
+                  <select id="fromTier"></select>
+                </div>
+                <div class="field">
+                  <label for="toStar">To Star</label>
+                  <select id="toStar"></select>
+                </div>
+                <div class="field">
+                  <label for="toTier">To Tier</label>
+                  <select id="toTier"></select>
+                </div>
+              </div>
+
+              <div class="ha-actions-inline">
+                <span class="ha-quick-label">Quick targets</span>
+                <div class="ha-quick">
+                  <button type="button" class="ha-chip-btn" data-milestone="unlock">Unlock</button>
+                  <button type="button" class="ha-chip-btn" data-milestone="star1">★1</button>
+                  <button type="button" class="ha-chip-btn" data-milestone="star2">★2</button>
+                  <button type="button" class="ha-chip-btn" data-milestone="star3">★3</button>
+                  <button type="button" class="ha-chip-btn" data-milestone="star4">★4</button>
+                  <button type="button" class="ha-chip-btn" data-milestone="star5">★5</button>
+                </div>
+                <button type="button" class="action-button action-button--quiet" id="toggleShardTable">Show Shard Table</button>
+              </div>
+
+              <div class="ha-table-wrap planner-hidden" id="shardTableWrap">
+                <table class="ha-table" id="shardTable" aria-label="Awakening shard costs">
+                  <thead>
+                    <tr>
+                      <th>Stage</th>
+                      <th>Per Tier</th>
+                      <th>Tiers</th>
+                      <th>Stage Total</th>
+                      <th>Running Total</th>
+                    </tr>
+                  </thead>
+                  <tbody id="shardTableBody"></tbody>
+                </table>
+              </div>
+            </section>
+
+            <section class="ha-section" id="section-season">
+              <p class="ha-hint">
+                Model a Season 6 awakening hero: check prerequisites, enter shards on hand, and see how much you still need.
+              </p>
+
+              <div class="ha-setup-bar">
+                <div class="field">
+                  <label for="heroSelect">Hero</label>
+                  <select id="heroSelect"></select>
+                </div>
+                <div class="field">
+                  <label for="targetMilestone">Target</label>
+                  <select id="targetMilestone"></select>
+                </div>
+              </div>
+
+              <div class="ha-setup-bar">
+                <div class="field">
+                  <label for="serverWeek">Current server week</label>
+                  <select id="serverWeek"></select>
+                </div>
+                <div class="field">
+                  <label for="heroStars">Hero stars</label>
+                  <select id="heroStars"></select>
+                </div>
+              </div>
+
+              <div class="ha-setup-bar">
+                <div class="field">
+                  <label for="weaponLevel">Exclusive Weapon level</label>
+                  <select id="weaponLevel"></select>
+                </div>
+                <div class="field">
+                  <label for="currentMilestone">Current awakening</label>
+                  <select id="currentMilestone"></select>
+                </div>
+              </div>
+
+              <div class="ha-inventory-bar">
+                <div class="field">
+                  <label for="namedShards" id="namedShardsLabel">Named shards on hand</label>
+                  <input id="namedShards" type="number" min="0" max="1580" step="1" value="0" />
+                </div>
+                <div class="field">
+                  <label for="universalShards">Universal shards on hand</label>
+                  <input id="universalShards" type="number" min="0" max="1580" step="1" value="0" />
+                </div>
+                <div class="field">
+                  <label for="bpBought">Awakening Battle Pass</label>
+                  <select id="bpBought">
+                    <option value="0">Not yet (+0)</option>
+                    <option value="1">Already bought (+70)</option>
+                  </select>
+                </div>
+                <div class="field">
+                  <label for="bpPlan">Plan to buy BP?</label>
+                  <select id="bpPlan">
+                    <option value="0">No, F2P plan</option>
+                    <option value="1">Yes, include in plan</option>
+                  </select>
+                </div>
+              </div>
+
+              <h3 class="card-title">Prerequisites</h3>
+              <div class="ha-prereq-list" id="prereqList"></div>
+
+              <div class="ha-gap-banner is-short" id="gapBanner">
+                <strong id="gapTitle">Enter your situation to calculate the shard gap.</strong>
+                <span id="gapDetail"></span>
+              </div>
+            </section>
+          </div>
+        </div>
+
+        <aside class="ha-side">
+          <div class="card">
+            <h2 class="card-title">Summary</h2>
+            <div class="ha-summary-tiles" id="summaryTiles"></div>
+            <div class="ha-copy-row">
+              <button id="copyTotalsButton" type="button" class="action-button action-button--quiet">Copy Totals</button>
+            </div>
+            <div class="details">
+              <div class="row">
+                <div class="row-key">Mode</div>
+                <div class="row-value" id="modeLabel">Upgrade Path</div>
+              </div>
+              <div class="row">
+                <div class="row-key">Range</div>
+                <div class="row-value" id="rangeLabel">Not set</div>
+              </div>
+              <div class="row">
+                <div class="row-key">Position</div>
+                <div class="row-value" id="positionLabel">—</div>
+              </div>
+            </div>
+            <div class="planner-overview" id="overviewBox">
+              <strong>Tip:</strong> The initial 50-shard unlock is named-only. Universal shards work on every tier after that.
+            </div>
+            <h3 class="card-title" id="sideListTitle">Shard Sources</h3>
+            <div id="sourceList" class="ha-source-list"></div>
+          </div>
+        </aside>
+      </section>
+    </div>
+
+    <script src="hero-awakening-data.js"></script>
+    <script>
+      (function () {
+        const data = window.LW_HERO_AWAKENING_DATA || {};
+        const tierCosts = data.tierCosts || [];
+        const stages = data.stages || [];
+        const milestones = data.milestones || [];
+        const heroes = data.heroes || [];
+        const shardSources = data.shardSources || [];
+        const prereqMeta = data.prerequisites || {};
+
+        const maxTierByStar = [1, 4, 5, 5, 5, 5];
+
+        const toolTabs = document.getElementById("toolTabs");
+        const sections = {
+          upgrade: document.getElementById("section-upgrade"),
+          season: document.getElementById("section-season"),
+        };
+
+        const stickyLabel1 = document.getElementById("stickyLabel1");
+        const stickyLabel2 = document.getElementById("stickyLabel2");
+        const stickyLabel3 = document.getElementById("stickyLabel3");
+        const stickyValue1 = document.getElementById("stickyValue1");
+        const stickyValue2 = document.getElementById("stickyValue2");
+        const stickyValue3 = document.getElementById("stickyValue3");
+        const stickyStat1 = document.getElementById("stickyStat1");
+        const stickyStat2 = document.getElementById("stickyStat2");
+        const stickyStat3 = document.getElementById("stickyStat3");
+        const stickyNext = document.getElementById("stickyNext");
+
+        const summaryTiles = document.getElementById("summaryTiles");
+        const sourceList = document.getElementById("sourceList");
+        const sideListTitle = document.getElementById("sideListTitle");
+        const modeLabel = document.getElementById("modeLabel");
+        const rangeLabel = document.getElementById("rangeLabel");
+        const positionLabel = document.getElementById("positionLabel");
+        const overviewBox = document.getElementById("overviewBox");
+        const copyTotalsButton = document.getElementById("copyTotalsButton");
+        const gapBanner = document.getElementById("gapBanner");
+        const gapTitle = document.getElementById("gapTitle");
+        const gapDetail = document.getElementById("gapDetail");
+        const prereqList = document.getElementById("prereqList");
+        const shardTableWrap = document.getElementById("shardTableWrap");
+        const shardTableBody = document.getElementById("shardTableBody");
+        const toggleShardTable = document.getElementById("toggleShardTable");
+        const namedShardsLabel = document.getElementById("namedShardsLabel");
+
+        const languageSelect = document.getElementById("languageSelect");
+        let preferredLanguage = "en";
+        const languageOptions = [
+          { code: "en", label: "English" },
+          { code: "es", label: "Spanish" },
+          { code: "fr", label: "French" },
+          { code: "de", label: "German" },
+          { code: "it", label: "Italian" },
+          { code: "pt", label: "Portuguese" },
+          { code: "ru", label: "Russian" },
+          { code: "uk", label: "Ukrainian" },
+          { code: "pl", label: "Polish" },
+          { code: "tr", label: "Turkish" },
+          { code: "ar", label: "Arabic" },
+          { code: "zh-CN", label: "Chinese (Simplified)" },
+          { code: "ja", label: "Japanese" },
+          { code: "ko", label: "Korean" },
+        ];
+
+        let activeTab = "upgrade";
+
+        function formatNumber(value) {
+          return Math.round(Number(value) || 0).toLocaleString();
+        }
+
+        function formatCompact(value) {
+          const n = Math.round(Number(value) || 0);
+          const abs = Math.abs(n);
+          if (abs >= 1e9) return trimCompact(n / 1e9) + "B";
+          if (abs >= 1e6) return trimCompact(n / 1e6) + "M";
+          if (abs >= 1e3) return trimCompact(n / 1e3) + "K";
+          return String(n);
+        }
+
+        function trimCompact(n) {
+          const fixed = Math.abs(n) >= 100 ? n.toFixed(0) : Math.abs(n) >= 10 ? n.toFixed(1) : n.toFixed(2);
+          return fixed.replace(/\.0+$/, "").replace(/(\.\d*?)0+$/, "$1");
+        }
+
+        function runningTotal(completedTiers) {
+          let total = 0;
+          for (let i = 0; i < completedTiers; i += 1) {
+            total += tierCosts[i] || 0;
+          }
+          return total;
+        }
+
+        function starTierToCompleted(star, tier) {
+          if (star === 0) return tier;
+          let completed = 1;
+          for (let s = 1; s < star; s += 1) {
+            completed += maxTierByStar[s];
+          }
+          return completed + tier;
+        }
+
+        function completedToStarTier(completed) {
+          let remaining = completed;
+          for (let star = 0; star <= 5; star += 1) {
+            const maxTier = maxTierByStar[star];
+            if (remaining <= maxTier) return { star: star, tier: remaining };
+            remaining -= maxTier;
+          }
+          return { star: 5, tier: 5 };
+        }
+
+        function describePosition(star, tier) {
+          if (star === 0 && tier === 0) return "Not awakened";
+          if (star === 0 && tier === 1) return "Awakened (unlock complete)";
+          return "Awakening ★" + star + " · tier " + tier;
+        }
+
+        function shardsBetween(fromCompleted, toCompleted) {
+          if (toCompleted <= fromCompleted) return { total: 0, named: 0, either: 0 };
+          let named = 0;
+          let either = 0;
+          for (let i = fromCompleted; i < toCompleted; i += 1) {
+            const cost = tierCosts[i] || 0;
+            if (i === 0) named += cost;
+            else either += cost;
+          }
+          return { total: named + either, named: named, either: either };
+        }
+
+        function setStickyStat(statEl, valueEl, value, isText) {
+          if (isText) {
+            statEl.classList.remove("is-zero");
+            valueEl.textContent = value;
+            return;
+          }
+          const n = Math.round(Number(value) || 0);
+          valueEl.textContent = formatCompact(n);
+          statEl.classList.toggle("is-zero", n <= 0);
+        }
+
+        function setSummaryTiles(items) {
+          summaryTiles.innerHTML = items
+            .map(function (item) {
+              return (
+                '<div class="ha-tile">' +
+                '<div class="ha-tile-key">' + item.label + "</div>" +
+                '<div class="ha-tile-value">' + item.value + "</div>" +
+                (item.sub ? '<div class="ha-tile-sub">' + item.sub + "</div>" : "") +
+                "</div>"
+              );
+            })
+            .join("");
+        }
+
+        function renderShardSources(gap, namedShortfall) {
+          sideListTitle.textContent = "Shard Sources";
+          sourceList.innerHTML = shardSources
+            .map(function (source) {
+              const yieldText = source.yield != null
+                ? "+" + source.yield
+                : "+" + source.yieldMin + "–" + source.yieldMax;
+              return (
+                '<div class="ha-source-item">' +
+                '<div class="ha-source-head"><strong>' + source.name + "</strong>" +
+                '<span class="ha-source-yield">' + yieldText + " shards</span></div>" +
+                '<div class="ha-source-meta">' + source.note + "</div>" +
+                '<div class="ha-source-tags">' +
+                '<span class="ha-tag">' + source.shardType + "</span>" +
+                '<span class="ha-tag">' + source.cost + "</span>" +
+                "</div></div>"
+              );
+            })
+            .join("");
+
+          if (gap > 0) {
+            overviewBox.innerHTML =
+              "<strong>Gap:</strong> You still need <strong>" + formatNumber(gap) +
+              "</strong> shards" +
+              (namedShortfall > 0
+                ? ", including <strong>" + formatNumber(namedShortfall) + "</strong> named shards for unlock."
+                : ".");
+          }
+        }
+
+        function fillStarSelect(select) {
+          select.innerHTML = Array.from({ length: 6 }, function (_, star) {
+            return '<option value="' + star + '">' + (star === 0 ? "0 (pre-awakening)" : "★" + star) + "</option>";
+          }).join("");
+        }
+
+        function fillTierSelect(select, star) {
+          const maxTier = maxTierByStar[Number(star) || 0];
+          select.innerHTML = Array.from({ length: maxTier + 1 }, function (_, tier) {
+            return '<option value="' + tier + '">Tier ' + tier + "</option>";
+          }).join("");
+        }
+
+        function fillMilestoneSelect(select, includeZero) {
+          const options = includeZero
+            ? [{ id: "none", label: "Not awakened", completedTiers: 0, total: 0 }]
+            : [];
+          milestones.forEach(function (m) {
+            options.push(m);
+          });
+          select.innerHTML = options
+            .map(function (m) {
+              return '<option value="' + m.id + '">' + m.label + " (" + formatNumber(m.total) + ")</option>";
+            })
+            .join("");
+        }
+
+        function getMilestoneById(id) {
+          if (id === "none") return { id: "none", label: "Not awakened", completedTiers: 0, total: 0 };
+          return milestones.find(function (m) { return m.id === id; }) || milestones[0];
+        }
+
+        function normalizeUpgradeRange() {
+          let fromStar = Number(document.getElementById("fromStar").value);
+          let fromTier = Number(document.getElementById("fromTier").value);
+          let toStar = Number(document.getElementById("toStar").value);
+          let toTier = Number(document.getElementById("toTier").value);
+
+          fillTierSelect(document.getElementById("fromTier"), fromStar);
+          fillTierSelect(document.getElementById("toTier"), toStar);
+          document.getElementById("fromTier").value = String(Math.min(fromTier, maxTierByStar[fromStar]));
+          document.getElementById("toTier").value = String(Math.min(toTier, maxTierByStar[toStar]));
+
+          fromStar = Number(document.getElementById("fromStar").value);
+          fromTier = Number(document.getElementById("fromTier").value);
+          toStar = Number(document.getElementById("toStar").value);
+          toTier = Number(document.getElementById("toTier").value);
+
+          const fromCompleted = starTierToCompleted(fromStar, fromTier);
+          let toCompleted = starTierToCompleted(toStar, toTier);
+          if (toCompleted < fromCompleted) {
+            const pos = completedToStarTier(fromCompleted + 1);
+            toStar = pos.star;
+            toTier = pos.tier;
+            document.getElementById("toStar").value = String(toStar);
+            fillTierSelect(document.getElementById("toTier"), toStar);
+            document.getElementById("toTier").value = String(toTier);
+            toCompleted = starTierToCompleted(toStar, toTier);
+          }
+
+          return { fromStar, fromTier, toStar, toTier, fromCompleted, toCompleted };
+        }
+
+        function applyMilestoneTarget(id) {
+          const milestone = getMilestoneById(id);
+          const pos = completedToStarTier(milestone.completedTiers);
+          document.getElementById("toStar").value = String(pos.star);
+          fillTierSelect(document.getElementById("toTier"), pos.star);
+          document.getElementById("toTier").value = String(pos.tier);
+          update();
+        }
+
+        function renderShardTable(fromCompleted, toCompleted) {
+          shardTableBody.innerHTML = stages
+            .map(function (stage) {
+              const inRange = stage.runningTotal > runningTotal(fromCompleted) &&
+                stage.runningTotal <= runningTotal(toCompleted);
+              const isCurrent = runningTotal(fromCompleted) === stage.runningTotal - (stage.tiers > 1 ? stage.shardsPerTier * stage.tiers : stage.shardsPerTier);
+              return (
+                '<tr class="' + (inRange ? "is-in-range" : "") + (isCurrent ? " is-current" : "") + '">' +
+                "<td>" + stage.label + (stage.namedOnly ? " · named only" : "") + "</td>" +
+                "<td>" + formatNumber(stage.shardsPerTier) + "</td>" +
+                "<td>" + stage.tiers + "</td>" +
+                "<td>" + formatNumber(stage.shardsPerTier * stage.tiers) + "</td>" +
+                "<td>" + formatNumber(stage.runningTotal) + "</td>" +
+                "</tr>"
+              );
+            })
+            .join("");
+        }
+
+        function updateUpgrade() {
+          const range = normalizeUpgradeRange();
+          const costs = shardsBetween(range.fromCompleted, range.toCompleted);
+
+          stickyLabel1.textContent = "Shards Needed";
+          stickyLabel2.textContent = "Named Required";
+          stickyLabel3.textContent = "Either / Universal";
+          setStickyStat(stickyStat1, stickyValue1, costs.total);
+          setStickyStat(stickyStat2, stickyValue2, costs.named);
+          setStickyStat(stickyStat3, stickyValue3, costs.either);
+
+          stickyNext.textContent = costs.total
+            ? describePosition(range.fromStar, range.fromTier) + " → " + describePosition(range.toStar, range.toTier)
+            : "Increase the target star/tier to calculate costs";
+
+          modeLabel.textContent = "Upgrade Path";
+          rangeLabel.textContent = describePosition(range.fromStar, range.fromTier) + " → " + describePosition(range.toStar, range.toTier);
+          positionLabel.textContent = formatNumber(runningTotal(range.fromCompleted)) + " → " + formatNumber(runningTotal(range.toCompleted)) + " shards spent";
+
+          overviewBox.innerHTML = costs.named > 0
+            ? "<strong>Named-only unlock:</strong> " + formatNumber(costs.named) + " named shards are required in this range before universal shards can be used."
+            : "<strong>Flexible upgrades:</strong> This range can be covered with named or universal shards.";
+
+          setSummaryTiles([
+            { label: "Total Shards", value: formatCompact(costs.total), sub: formatNumber(costs.total) + " exact" },
+            { label: "Named Required", value: formatCompact(costs.named), sub: costs.named ? "Unlock step only" : "Already unlocked" },
+            { label: "Either Type", value: formatCompact(costs.either), sub: "Named or universal" },
+            { label: "Full Path to ★5", value: formatCompact(1580 - runningTotal(range.fromCompleted)), sub: "From current position" },
+          ]);
+
+          renderShardTable(range.fromCompleted, range.toCompleted);
+          renderShardSources(0, 0);
+        }
+
+        function getSelectedHero() {
+          const id = document.getElementById("heroSelect").value;
+          return heroes.find(function (h) { return h.id === id; }) || heroes[0];
+        }
+
+        function getBpBonus(hero) {
+          const bought = document.getElementById("bpBought").value === "1";
+          const plan = document.getElementById("bpPlan").value === "1";
+          return bought || plan ? hero.bpShards : 0;
+        }
+
+        function renderPrereqs(hero) {
+          const heroStars = Number(document.getElementById("heroStars").value);
+          const weaponLevel = Number(document.getElementById("weaponLevel").value);
+          const serverWeek = Number(document.getElementById("serverWeek").value);
+
+          const checks = [
+            {
+              pass: heroStars >= prereqMeta.heroStars,
+              title: "Hero at 5★",
+              detail: heroStars >= prereqMeta.heroStars
+                ? "Currently " + heroStars + "★ — requirement met."
+                : "Currently " + heroStars + "★ — need 5★ (" + formatNumber(prereqMeta.urShardsToFiveStar) + " cumulative UR shards).",
+            },
+            {
+              pass: weaponLevel >= prereqMeta.exclusiveWeaponLevel,
+              title: "Exclusive Weapon Lv20+",
+              detail: weaponLevel >= prereqMeta.exclusiveWeaponLevel
+                ? "Currently Lv" + weaponLevel + " — requirement met."
+                : "Currently Lv" + weaponLevel + " — need Lv20+ before awakening.",
+            },
+            {
+              pass: serverWeek >= hero.unlockWeek,
+              title: "Server reached Week " + hero.unlockWeek,
+              detail: serverWeek >= hero.unlockWeek
+                ? "Currently Week " + serverWeek + " — " + hero.name + " awakening is available."
+                : "Currently Week " + serverWeek + " — " + hero.name + " unlocks in Week " + hero.unlockWeek + ".",
+            },
+          ];
+
+          prereqList.innerHTML = checks
+            .map(function (check) {
+              return (
+                '<div class="ha-prereq ' + (check.pass ? "is-pass" : "is-fail") + '">' +
+                '<div class="ha-prereq-icon">' + (check.pass ? "✓" : "✕") + "</div>" +
+                '<div class="ha-prereq-body"><strong>' + check.title + "</strong><span>" + check.detail + "</span></div>" +
+                "</div>"
+              );
+            })
+            .join("");
+
+          return checks.every(function (c) { return c.pass; });
+        }
+
+        function updateSeason() {
+          const hero = getSelectedHero();
+          namedShardsLabel.textContent = "Named " + hero.name + " shards on hand";
+
+          const current = getMilestoneById(document.getElementById("currentMilestone").value);
+          const target = getMilestoneById(document.getElementById("targetMilestone").value);
+          const namedOnHand = Math.max(0, Number(document.getElementById("namedShards").value) || 0);
+          const universalOnHand = Math.max(0, Number(document.getElementById("universalShards").value) || 0);
+          const bpBonus = getBpBonus(hero);
+
+          let targetCompleted = target.completedTiers;
+          let currentCompleted = current.completedTiers;
+          if (targetCompleted < currentCompleted) {
+            targetCompleted = currentCompleted;
+            document.getElementById("targetMilestone").value = current.id;
+          }
+
+          const costs = shardsBetween(currentCompleted, targetCompleted);
+          const totalHave = namedOnHand + universalOnHand + bpBonus;
+          const gap = Math.max(0, costs.total - totalHave);
+
+          const namedShortfall = currentCompleted === 0
+            ? Math.max(0, Math.min(50, costs.total) - namedOnHand - bpBonus)
+            : 0;
+
+          const prereqsPass = renderPrereqs(hero);
+
+          stickyLabel1.textContent = "Gap";
+          stickyLabel2.textContent = "Total Need";
+          stickyLabel3.textContent = "On Hand";
+          setStickyStat(stickyStat1, stickyValue1, gap);
+          setStickyStat(stickyStat2, stickyValue2, costs.total);
+          setStickyStat(stickyStat3, stickyValue3, totalHave);
+
+          stickyNext.textContent = prereqsPass
+            ? (gap > 0 ? formatNumber(gap) + " shards still needed for " + target.label : "Ready for " + target.label)
+            : "Fix prerequisites before pushing awakening";
+
+          modeLabel.textContent = "Season Plan · " + hero.name;
+          rangeLabel.textContent = current.label + " → " + target.label;
+          positionLabel.textContent = formatNumber(costs.total) + " needed · " + formatNumber(totalHave) + " available";
+
+          if (!prereqsPass) {
+            gapBanner.className = "ha-gap-banner is-short";
+            gapTitle.textContent = "Prerequisites not met yet";
+            gapDetail.textContent = "Reach 5★, Exclusive Weapon Lv20+, and the hero's unlock week before spending awakening shards.";
+          } else if (gap <= 0) {
+            gapBanner.className = "ha-gap-banner is-ready";
+            gapTitle.textContent = "You have enough shards for " + target.label;
+            gapDetail.textContent = "Named: " + formatNumber(namedOnHand) + " · Universal: " + formatNumber(universalOnHand) +
+              (bpBonus ? " · BP bonus: +" + formatNumber(bpBonus) : "") + ".";
+          } else {
+            gapBanner.className = "ha-gap-banner is-short";
+            gapTitle.textContent = formatNumber(gap) + " more shards needed for " + target.label;
+            gapDetail.textContent = namedShortfall > 0
+              ? "Named-only shortfall: " + formatNumber(namedShortfall) + " named " + hero.name + " shards required for unlock."
+              : "Stack free trials, Global Expedition, War Merit weeks, and events to close the gap.";
+          }
+
+          setSummaryTiles([
+            { label: "Target", value: target.label, sub: formatNumber(target.total) + " cumulative" },
+            { label: "Still Need", value: formatCompact(gap), sub: formatNumber(gap) + " exact" },
+            { label: "Named On Hand", value: formatCompact(namedOnHand), sub: hero.name + " shards" },
+            { label: "Universal + BP", value: formatCompact(universalOnHand + bpBonus), sub: "+" + formatNumber(bpBonus) + " from BP" },
+          ]);
+
+          renderShardSources(gap, namedShortfall);
+        }
+
+        function setTab(tab) {
+          activeTab = tab;
+          toolTabs.querySelectorAll(".ha-tab").forEach(function (button) {
+            button.classList.toggle("active", button.getAttribute("data-tab") === tab);
+          });
+          Object.keys(sections).forEach(function (key) {
+            sections[key].classList.toggle("active", key === tab);
+          });
+          update();
+        }
+
+        function update() {
+          if (activeTab === "upgrade") updateUpgrade();
+          else updateSeason();
+        }
+
+        function buildCopyText() {
+          const lines = ["Last War Hero Awakening Calculator"];
+          lines.push("Mode: " + modeLabel.textContent);
+          lines.push("Range: " + rangeLabel.textContent);
+          lines.push(stickyLabel1.textContent + ": " + stickyValue1.textContent);
+          lines.push(stickyLabel2.textContent + ": " + stickyValue2.textContent);
+          lines.push(stickyLabel3.textContent + ": " + stickyValue3.textContent);
+          lines.push("https://lastwarsurvivaltools.com/hero-awakening-calculator.html");
+          return lines.join("\n");
+        }
+
+        async function copyTotals() {
+          try {
+            await navigator.clipboard.writeText(buildCopyText());
+            copyTotalsButton.textContent = "Copied!";
+            setTimeout(function () { copyTotalsButton.textContent = "Copy Totals"; }, 1400);
+          } catch (err) {
+            copyTotalsButton.textContent = "Copy failed";
+            setTimeout(function () { copyTotalsButton.textContent = "Copy Totals"; }, 1400);
+          }
+        }
+
+        function buildLanguageOptions() {
+          languageSelect.innerHTML = languageOptions
+            .map(function (lang) { return '<option value="' + lang.code + '">' + lang.label + "</option>"; })
+            .join("");
+          languageSelect.value = preferredLanguage;
+        }
+
+        function applyGoogleLanguage(languageCode, retries) {
+          retries = retries === undefined ? 25 : retries;
+          const combo = document.querySelector(".goog-te-combo");
+          if (!combo) {
+            if (retries > 0) setTimeout(function () { applyGoogleLanguage(languageCode, retries - 1); }, 200);
+            return;
+          }
+          combo.value = languageCode;
+          combo.dispatchEvent(new Event("change"));
+        }
+
+        function loadGoogleTranslateScript() {
+          if (window.google && window.google.translate) {
+            window.googleTranslateElementInit();
+            return;
+          }
+          const script = document.createElement("script");
+          script.src = "https://translate.google.com/translate_a/element.js?cb=googleTranslateElementInit";
+          script.async = true;
+          document.body.appendChild(script);
+        }
+
+        window.googleTranslateElementInit = function () {
+          new window.google.translate.TranslateElement({ pageLanguage: "en", autoDisplay: false }, "google_translate_element");
+          applyGoogleLanguage(preferredLanguage);
+        };
+
+        function initSelects() {
+          fillStarSelect(document.getElementById("fromStar"));
+          fillStarSelect(document.getElementById("toStar"));
+          fillTierSelect(document.getElementById("fromTier"), 0);
+          fillTierSelect(document.getElementById("toTier"), 1);
+          document.getElementById("toStar").value = "1";
+          document.getElementById("toTier").value = "4";
+
+          document.getElementById("heroSelect").innerHTML = heroes
+            .map(function (hero) {
+              return '<option value="' + hero.id + '">' + hero.name + " — " + hero.role + " (Week " + hero.unlockWeek + ")</option>";
+            })
+            .join("");
+
+          fillMilestoneSelect(document.getElementById("targetMilestone"), false);
+          fillMilestoneSelect(document.getElementById("currentMilestone"), true);
+          document.getElementById("targetMilestone").value = "unlock";
+
+          document.getElementById("serverWeek").innerHTML = Array.from({ length: 12 }, function (_, i) {
+            const week = i + 1;
+            return '<option value="' + week + '">Week ' + week + "</option>";
+          }).join("");
+
+          document.getElementById("heroStars").innerHTML = Array.from({ length: 6 }, function (_, stars) {
+            return '<option value="' + stars + '">' + stars + " ★</option>";
+          }).join("");
+          document.getElementById("heroStars").value = "5";
+
+          document.getElementById("weaponLevel").innerHTML = Array.from({ length: 30 }, function (_, i) {
+            const level = i + 1;
+            return '<option value="' + level + '">Lv ' + level + "</option>";
+          }).join("");
+          document.getElementById("weaponLevel").value = "20";
+        }
+
+        buildLanguageOptions();
+        initSelects();
+        loadGoogleTranslateScript();
+
+        toolTabs.addEventListener("click", function (event) {
+          const button = event.target.closest("[data-tab]");
+          if (!button) return;
+          setTab(button.getAttribute("data-tab"));
+        });
+
+        document.body.addEventListener("input", function (event) {
+          if (event.target.matches("input, select")) update();
+        });
+
+        document.body.addEventListener("change", function (event) {
+          if (event.target.id === "fromStar") fillTierSelect(document.getElementById("fromTier"), event.target.value);
+          if (event.target.id === "toStar") fillTierSelect(document.getElementById("toTier"), event.target.value);
+          if (event.target.matches("select")) update();
+        });
+
+        document.body.addEventListener("click", function (event) {
+          const milestoneBtn = event.target.closest("[data-milestone]");
+          if (milestoneBtn) {
+            applyMilestoneTarget(milestoneBtn.getAttribute("data-milestone"));
+            return;
+          }
+        });
+
+        toggleShardTable.addEventListener("click", function () {
+          const hidden = shardTableWrap.classList.toggle("planner-hidden");
+          toggleShardTable.textContent = hidden ? "Show Shard Table" : "Hide Shard Table";
+        });
+
+        copyTotalsButton.addEventListener("click", copyTotals);
+        languageSelect.addEventListener("change", function () {
+          preferredLanguage = languageSelect.value;
+          applyGoogleLanguage(preferredLanguage);
+        });
+
+        update();
+      })();
+    </script>
+
+    <div class="support-bar">
+      <a href="https://buymeacoffee.com/dkfoy56w" class="support-link" target="_blank" rel="noopener noreferrer">Buy Me a Coffee</a>
+    </div>
+    <script src="/adsense-config.js"></script>
+    <script src="/site-legal-footer.js?v=4" defer></script>
+    <script src="/adsense-placements.js" defer></script>
+  </body>
+</html>

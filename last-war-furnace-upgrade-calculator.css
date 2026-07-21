@@ -138,6 +138,8 @@ body {
 }
 
 .page-nav {
+  position: relative;
+  z-index: 2000;
   display: flex;
   flex-wrap: wrap;
   gap: 10px;
@@ -185,7 +187,7 @@ body {
   position: absolute;
   top: calc(100% + 8px);
   left: 0;
-  z-index: 20;
+  z-index: 2100;
   min-width: 240px;
   padding: 8px;
   display: none;
