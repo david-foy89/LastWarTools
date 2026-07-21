@@ -158,28 +158,21 @@
       .hive-tool-row {
         display: flex;
         flex-wrap: wrap;
-        align-items: center;
-        gap: 8px;
-        margin-bottom: 8px;
-        padding: 8px 10px;
-        border-radius: 12px;
-        border: 1px solid var(--line-soft);
-        background: color-mix(in srgb, var(--panel-2) 90%, #000 10%);
+        align-items: stretch;
+        gap: 6px;
+        margin-bottom: 6px;
       }
       .hive-tool-row__label {
-        font-size: 0.72rem;
-        font-weight: 700;
-        letter-spacing: 0.05em;
-        text-transform: uppercase;
+        font-size: 0.76rem;
         color: var(--muted);
         align-self: center;
-        margin-right: 2px;
+        margin-right: 4px;
       }
       .hive-tool-btn {
         display: inline-flex;
         align-items: center;
-        gap: 7px;
-        padding: 6px 11px;
+        gap: 6px;
+        padding: 6px 12px;
         border-radius: 10px;
         border: 1px solid var(--line-soft);
         background: var(--panel-2);
@@ -188,111 +181,87 @@
         font-weight: 600;
         font-family: inherit;
         cursor: pointer;
-        transition: border-color 0.14s ease, background 0.14s ease, box-shadow 0.14s ease,
-          transform 0.12s ease;
+        transition: border-color 0.12s, background 0.12s;
       }
       .hive-tool-btn:hover {
         border-color: var(--accent, #64b4ff);
-        transform: translateY(-1px);
       }
       .hive-tool-btn.hive-tool-btn--active {
         border-color: var(--accent, #64b4ff);
-        background: rgba(100, 180, 255, 0.14);
+        background: rgba(100, 180, 255, 0.12);
         color: var(--text);
-        box-shadow: 0 0 0 1px rgba(100, 180, 255, 0.25);
       }
-      .hive-glyph {
-        display: inline-grid;
-        place-items: center;
-        width: 1.45rem;
-        height: 1.45rem;
-        flex: 0 0 auto;
-        border-radius: 5px;
-        font-size: 0.62rem;
-        font-weight: 800;
-        letter-spacing: -0.02em;
+      .hive-tool-r5-icon {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        width: 1.35em;
+        height: 1.35em;
+        font-size: 1.1em;
         line-height: 1;
-        color: #0f1720;
-        box-shadow:
-          inset 0 1px 0 rgba(255, 255, 255, 0.28),
-          inset 0 -1px 0 rgba(0, 0, 0, 0.22),
-          0 1px 2px rgba(0, 0, 0, 0.28);
-        position: relative;
+        color: #e8b84a;
+        text-shadow: 0 0 1px rgba(0, 0, 0, 0.5);
       }
-      .hive-glyph svg {
-        width: 0.95rem;
-        height: 0.95rem;
-        display: block;
+      .hive-tool-r4-icon {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        width: 1.35em;
+        height: 1.35em;
+        font-size: 1.1em;
+        line-height: 1;
+        color: #e85555;
+        text-shadow: 0 0 1px rgba(0, 0, 0, 0.5);
       }
-      .hive-glyph--mark {
-        width: 1.05rem;
-        height: 1.05rem;
-        border-radius: 3px;
-        background: linear-gradient(145deg, #8ad0ff, #3d9de8);
-        box-shadow:
-          inset 0 1px 0 rgba(255, 255, 255, 0.35),
-          0 0 0 1px rgba(61, 157, 232, 0.45),
-          0 1px 2px rgba(0, 0, 0, 0.28);
+      .hive-tool-r3-icon {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        width: 1.35em;
+        height: 1.35em;
+        font-size: 1.1em;
+        line-height: 1;
+        color: #b388ff;
+        text-shadow: 0 0 1px rgba(0, 0, 0, 0.5);
       }
-      .hive-glyph--r5 {
-        background: linear-gradient(145deg, #f0c45a, #c9952c);
-        color: #2a1c05;
+      .hive-tool-r2-icon {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        width: 1.35em;
+        height: 1.35em;
+        font-size: 1.1em;
+        line-height: 1;
+        color: #6eb5ff;
+        text-shadow: 0 0 1px rgba(0, 0, 0, 0.5);
       }
-      .hive-glyph--r4 {
-        background: linear-gradient(145deg, #f07878, #c93838);
-        color: #2a0808;
+      .hive-tool-r1-icon {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        width: 1.35em;
+        height: 1.35em;
+        font-size: 1.1em;
+        line-height: 1;
+        color: #e8a04a;
+        text-shadow: 0 0 1px rgba(0, 0, 0, 0.5);
       }
-      .hive-glyph--r3 {
-        background: linear-gradient(145deg, #c4a0ff, #8b5fc9);
-        color: #1e0f33;
-      }
-      .hive-glyph--r2 {
-        background: linear-gradient(145deg, #7ec0ff, #4a8fd9);
-        color: #0b1d33;
-      }
-      .hive-glyph--r1 {
-        background: linear-gradient(145deg, #f0bf6a, #d9a04a);
-        color: #2a1a06;
-      }
-      .hive-glyph--ae {
-        background: linear-gradient(145deg, #4ec9a8, #2a9d7a);
-        color: #06241a;
-      }
-      .hive-glyph--furnace {
-        background: linear-gradient(145deg, #3a3a3a, #0a0a0a);
-        color: #f0c45a;
-        box-shadow:
-          inset 0 1px 0 rgba(255, 255, 255, 0.12),
-          inset 0 0 0 1px rgba(240, 196, 90, 0.35),
-          0 1px 2px rgba(0, 0, 0, 0.35);
-      }
-      .hive-glyph--acenter {
-        width: 1.55rem;
-        height: 1.55rem;
-        border-radius: 6px;
-        background: linear-gradient(145deg, #9a8aab, #7d6b8c);
-        color: #f5e6c8;
-        box-shadow:
-          inset 0 1px 0 rgba(255, 255, 255, 0.25),
-          inset 0 0 0 1px rgba(201, 168, 108, 0.55),
-          0 1px 2px rgba(0, 0, 0, 0.3);
-      }
-      .hive-glyph--custom {
-        background: transparent;
-        color: #9aabbc;
-        border: 1.5px dashed #7a8a9a;
-        box-shadow: none;
+      .hive-tool-ae-icon {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        width: 1.35em;
+        height: 1.35em;
+        font-size: 1.1em;
+        line-height: 1;
+        color: #4ec9a8;
+        text-shadow: 0 0 1px rgba(0, 0, 0, 0.5);
       }
       .hive-tool-btn.hive-tool-btn--ae {
         flex-wrap: nowrap;
         max-width: none;
         text-align: left;
         line-height: 1.2;
-      }
-      .hive-tool-btn.hive-tool-btn--ae.hive-tool-btn--active {
-        border-color: #4ec9a8;
-        background: rgba(42, 157, 122, 0.16);
-        box-shadow: 0 0 0 1px rgba(78, 201, 168, 0.28);
       }
       .hive-tool-ae-line {
         display: inline-flex;
@@ -304,16 +273,22 @@
         font-size: 0.78rem;
         font-weight: 600;
       }
+      .hive-tool-furnace-icon {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        width: 1.35em;
+        height: 1.35em;
+        font-size: 1.1em;
+        line-height: 1;
+        color: #1a1a1a;
+        text-shadow: 0 0 1px rgba(255, 255, 255, 0.25);
+      }
       .hive-tool-btn.hive-tool-btn--furnace {
         flex-wrap: nowrap;
         max-width: none;
         text-align: left;
         line-height: 1.2;
-      }
-      .hive-tool-btn.hive-tool-btn--furnace.hive-tool-btn--active {
-        border-color: #c9a86c;
-        background: rgba(201, 168, 108, 0.12);
-        box-shadow: 0 0 0 1px rgba(201, 168, 108, 0.28);
       }
       .hive-tool-furnace-line {
         display: inline-flex;
@@ -325,16 +300,22 @@
         font-size: 0.78rem;
         font-weight: 600;
       }
+      .hive-tool-acenter-icon {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        width: 1.35em;
+        height: 1.35em;
+        font-size: 1.1em;
+        line-height: 1;
+        color: #c9a86c;
+        text-shadow: 0 0 1px rgba(0, 0, 0, 0.45);
+      }
       .hive-tool-btn.hive-tool-btn--acenter {
         flex-wrap: wrap;
         max-width: 10.5rem;
         text-align: left;
         line-height: 1.2;
-      }
-      .hive-tool-btn.hive-tool-btn--acenter.hive-tool-btn--active {
-        border-color: #c9a86c;
-        background: rgba(125, 107, 140, 0.22);
-        box-shadow: 0 0 0 1px rgba(201, 168, 108, 0.3);
       }
       .hive-tool-acenter-text {
         font-size: 0.78rem;
@@ -380,6 +361,17 @@
         font-size: 0.76rem;
         color: var(--muted);
         font-weight: 500;
+      }
+      .hive-tool-custom-icon {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        width: 1.35em;
+        height: 1.35em;
+        font-size: 1.1em;
+        line-height: 1;
+        color: #8b9aab;
+        text-shadow: 0 0 1px rgba(0, 0, 0, 0.45);
       }
       .hive-coord {
         font-size: 0.88rem;
@@ -887,7 +879,6 @@
         <div class="hive-tool-row" role="radiogroup" aria-label="Paint icons">
           <span class="hive-tool-row__label">Icons</span>
           <button type="button" id="hiveToolMark" class="hive-tool-btn hive-tool-btn--active" aria-pressed="true">
-            <span class="hive-glyph hive-glyph--mark" aria-hidden="true"></span>
             Single tile
           </button>
           <button
@@ -897,12 +888,7 @@
             aria-pressed="false"
             title="Place Alliance Exercise — 3×3 hub for coords and auto-layout"
           >
-            <span class="hive-glyph hive-glyph--ae" aria-hidden="true">
-              <svg viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
-                <path d="M8 2.2L13.2 8 8 13.8 2.8 8 8 2.2Z" fill="currentColor" opacity="0.92"/>
-                <path d="M8 5.2v5.6M5.2 8h5.6" stroke="#06241a" stroke-width="1.35" stroke-linecap="round"/>
-              </svg>
-            </span>
+            <span class="hive-tool-ae-icon" aria-hidden="true">◆</span>
             <span class="hive-tool-ae-line">
               <span class="hive-tool-ae-text">Alliance Exercise</span>
               <span class="hive-tool-sub">3×3</span>
@@ -915,12 +901,7 @@
             aria-pressed="false"
             title="Place Alliance Furnace — fills a 5×5 block (black)"
           >
-            <span class="hive-glyph hive-glyph--furnace" aria-hidden="true">
-              <svg viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
-                <path d="M8 2.4c1.5 1.7 2.2 2.9 2.2 4.2A2.2 2.2 0 0 1 8 8.8 2.2 2.2 0 0 1 5.8 6.6C5.8 5.3 6.5 4.1 8 2.4Z" fill="currentColor"/>
-                <rect x="4.2" y="9.2" width="7.6" height="4" rx="1.1" fill="currentColor" opacity="0.85"/>
-              </svg>
-            </span>
+            <span class="hive-tool-furnace-icon" aria-hidden="true">◆</span>
             <span class="hive-tool-furnace-line">
               <span class="hive-tool-furnace-text">Alliance Furnace</span>
               <span class="hive-tool-sub">5×5</span>
@@ -933,37 +914,32 @@
             aria-pressed="false"
             title="Place Alliance Center — fills a 9×9 block"
           >
-            <span class="hive-glyph hive-glyph--acenter" aria-hidden="true">
-              <svg viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
-                <rect x="2.2" y="2.2" width="11.6" height="11.6" rx="2" stroke="currentColor" stroke-width="1.4"/>
-                <path d="M8 4.6L11 8 8 11.4 5 8 8 4.6Z" fill="currentColor"/>
-              </svg>
-            </span>
+            <span class="hive-tool-acenter-icon" aria-hidden="true">◆</span>
             <span class="hive-tool-acenter-text">Alliance Center</span>
             <span class="hive-tool-sub">9×9</span>
           </button>
           <button type="button" id="hiveToolR5" class="hive-tool-btn" aria-pressed="false" title="Place R5 — fills a 3×3 block">
-            <span class="hive-glyph hive-glyph--r5" aria-hidden="true">5</span>
+            <span class="hive-tool-r5-icon" aria-hidden="true">◆</span>
             R5
             <span class="hive-tool-sub">3×3</span>
           </button>
           <button type="button" id="hiveToolR4" class="hive-tool-btn" aria-pressed="false" title="Place R4 — fills a 3×3 block (red)">
-            <span class="hive-glyph hive-glyph--r4" aria-hidden="true">4</span>
+            <span class="hive-tool-r4-icon" aria-hidden="true">◆</span>
             R4
             <span class="hive-tool-sub">3×3</span>
           </button>
           <button type="button" id="hiveToolR3" class="hive-tool-btn" aria-pressed="false" title="Place R3 — fills a 3×3 block">
-            <span class="hive-glyph hive-glyph--r3" aria-hidden="true">3</span>
+            <span class="hive-tool-r3-icon" aria-hidden="true">◆</span>
             R3
             <span class="hive-tool-sub">3×3</span>
           </button>
           <button type="button" id="hiveToolR2" class="hive-tool-btn" aria-pressed="false" title="Place R2 — fills a 3×3 block">
-            <span class="hive-glyph hive-glyph--r2" aria-hidden="true">2</span>
+            <span class="hive-tool-r2-icon" aria-hidden="true">◆</span>
             R2
             <span class="hive-tool-sub">3×3</span>
           </button>
           <button type="button" id="hiveToolR1" class="hive-tool-btn" aria-pressed="false" title="Place R1 — fills a 3×3 block">
-            <span class="hive-glyph hive-glyph--r1" aria-hidden="true">1</span>
+            <span class="hive-tool-r1-icon" aria-hidden="true">◆</span>
             R1
             <span class="hive-tool-sub">3×3</span>
           </button>
@@ -975,11 +951,7 @@
               aria-pressed="false"
               title="Place a custom block — set name and width × height, then click the map"
             >
-              <span class="hive-glyph hive-glyph--custom" aria-hidden="true">
-                <svg viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
-                  <path d="M8 3v10M3 8h10" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/>
-                </svg>
-              </span>
+              <span class="hive-tool-custom-icon" aria-hidden="true">◆</span>
               Custom
             </button>
             <label class="hive-custom-label">
@@ -1079,15 +1051,9 @@
               </div>
             </div>
             <p class="hive-settings-hint">
-<<<<<<< HEAD
               Generates from your <strong>Build around</strong> choice first, then other hubs.
               Every hub and base uses your selected gap. The 50×50 borders are map walls — edge/corner hubs pack along those walls first, then inward; with two buildings, bases stay on one spacing grid so corridors between them stay even.
               Auto prefers an edge/corner hub when one exists.
-=======
-              Packs from your <strong>Build around</strong> hub with your selected gap,
-              matching corner and side hive layouts: bases centered on open hub faces
-              (not a single wall rail). Other hubs only block cells.
->>>>>>> 1275f730eb8d73495b9653d49629e38c0ffb1ce7
             </p>
             <div class="hive-members-actions">
               <button type="button" id="hiveGenerateBtn" class="hive-tool-btn">Generate hive</button>
@@ -1228,12 +1194,7 @@
         if (!canvas || !canvas.getContext) return;
         canvas.width = PX;
         canvas.height = PX;
-        var ctx = canvas.getContext("2d", { alpha: false });
-        if (!ctx) ctx = canvas.getContext("2d");
-        /** CSS display size last applied by applyZoom (px). */
-        var displayCssSize = PX;
-        /** Cap backing-store size so huge zooms stay manageable. */
-        var MAX_BACKING = 4096;
+        var ctx = canvas.getContext("2d");
         var STATE_EMPTY = 0;
         var STATE_MARK = 1;
         var STATE_R5 = 2;
@@ -1291,50 +1252,6 @@
         var baseLayer = document.createElement("canvas");
         baseLayer.width = PX;
         baseLayer.height = PX;
-
-        function hiveDevicePixelRatio() {
-          var dpr = window.devicePixelRatio || 1;
-          if (dpr < 1) dpr = 1;
-          if (dpr > 3) dpr = 3;
-          return dpr;
-        }
-
-        /** Map logical PX coords → current canvas / baseLayer backing pixels. */
-        function applyLogicalTransform(c) {
-          if (!c) return;
-          var s = (c.canvas ? c.canvas.width : canvas.width) / PX;
-          c.setTransform(s, 0, 0, s, 0, 0);
-          c.imageSmoothingEnabled = true;
-          if ("imageSmoothingQuality" in c) c.imageSmoothingQuality = "high";
-        }
-
-        /**
-         * Match canvas backing store to on-screen CSS size × devicePixelRatio
-         * so zooms/HiDPI don't upscale a soft 800px bitmap (blurry labels).
-         */
-        function syncCanvasResolution(cssSize) {
-          cssSize = Math.max(180, cssSize | 0);
-          displayCssSize = cssSize;
-          var dpr = hiveDevicePixelRatio();
-          var bw = Math.round(cssSize * dpr);
-          if (bw < PX) bw = PX;
-          if (bw > MAX_BACKING) bw = MAX_BACKING;
-          var changed = canvas.width !== bw || canvas.height !== bw;
-          if (changed) {
-            canvas.width = bw;
-            canvas.height = bw;
-            baseLayer.width = bw;
-            baseLayer.height = bw;
-          }
-          canvas.style.width = cssSize + "px";
-          canvas.style.height = cssSize + "px";
-          applyLogicalTransform(ctx);
-          if (changed) {
-            buildBaseLayer();
-            draw();
-          }
-          return changed;
-        }
 
         function cssVar(name, fallback) {
           var v = getComputedStyle(document.documentElement).getPropertyValue(name).trim();
@@ -1547,41 +1464,17 @@
           return TILES - 1 - (hub.cy + hub.half);
         }
 
-        /** Sides where the hub footprint touches the map border. */
-        function hubFlushSides(hub) {
-          return {
-            left: hubBorderSpace(hub, "left") === 0,
-            right: hubBorderSpace(hub, "right") === 0,
-            top: hubBorderSpace(hub, "top") === 0,
-            bottom: hubBorderSpace(hub, "bottom") === 0,
-          };
-        }
-
         /**
-         * Sides too tight for a 3×3 base + gap between the hub and the map
-         * border (no seat fits “behind” the hub toward that wall).
-         * Uses `<= need` so a hub parked with exactly `need` empty tiles is
-         * still treated as an edge (cannot squeeze a base toward that wall).
+         * Sides too tight for a 3×3 base + gap (treat as edge/corner even when
+         * the hub is not flush — e.g. 1 empty tile from the map border).
          */
-        function hubCrowdedSides(hub, gap) {
+        function hubBlockedSides(hub, gap) {
           var need = 3 + Math.max(0, gap | 0);
           return {
-            left: hubBorderSpace(hub, "left") <= need,
-            right: hubBorderSpace(hub, "right") <= need,
-            top: hubBorderSpace(hub, "top") <= need,
-            bottom: hubBorderSpace(hub, "bottom") <= need,
-          };
-        }
-
-        /** Flush or crowded — used for open-face / Auto hub preference. */
-        function hubBlockedSides(hub, gap) {
-          var flush = hubFlushSides(hub);
-          var crowded = hubCrowdedSides(hub, gap);
-          return {
-            left: flush.left || crowded.left,
-            right: flush.right || crowded.right,
-            top: flush.top || crowded.top,
-            bottom: flush.bottom || crowded.bottom,
+            left: hubBorderSpace(hub, "left") < need,
+            right: hubBorderSpace(hub, "right") < need,
+            top: hubBorderSpace(hub, "top") < need,
+            bottom: hubBorderSpace(hub, "bottom") < need,
           };
         }
 
@@ -1660,56 +1553,12 @@
           return { lo: lo, hi: hi };
         }
 
-        /**
-         * Map-border clearance for bases. Only true wall-flush hub sides may
-         * park bases flush to that border; crowded-but-inset hubs keep `gap`
-         * from the map. Open sides always keep `gap`.
-         */
-        function respectsMapEdgeGap(cx, cy, gap, wallHub) {
-          var g = Math.max(0, gap | 0);
-          var flushHalf = BLOCK_HALF_3;
-          var lo = flushHalf + g;
-          var hi = TILES - 1 - flushHalf - g;
-          var minX = lo;
-          var maxX = hi;
-          var minY = lo;
-          var maxY = hi;
-          if (wallHub) {
-            var fl = hubFlushSides(wallHub);
-            if (fl.left) minX = flushHalf;
-            if (fl.right) maxX = TILES - 1 - flushHalf;
-            if (fl.top) minY = flushHalf;
-            if (fl.bottom) maxY = TILES - 1 - flushHalf;
-          }
-          return cx >= minX && cx <= maxX && cy >= minY && cy <= maxY;
-        }
-
-        function packCenterBounds(gap, wallHub) {
-          var g = Math.max(0, gap | 0);
-          var flushHalf = BLOCK_HALF_3;
-          var lo = flushHalf + g;
-          var hi = TILES - 1 - flushHalf - g;
-          var b = { loX: lo, hiX: hi, loY: lo, hiY: hi };
-          if (wallHub) {
-            var fl = hubFlushSides(wallHub);
-            if (fl.left) b.loX = flushHalf;
-            if (fl.right) b.hiX = TILES - 1 - flushHalf;
-            if (fl.top) b.loY = flushHalf;
-            if (fl.bottom) b.hiY = TILES - 1 - flushHalf;
-          }
-          return b;
-        }
-
-        /** Max number of base footprints that fit along a hub face. */
-        function fitCountAlongFace(faceLen, baseSize, gap) {
-          var g = Math.max(0, gap | 0);
-          var n = 0;
-          while ((n + 1) * baseSize + n * g <= faceLen) n++;
-          return Math.max(1, n);
+        function respectsMapEdgeGap(cx, cy, gap) {
+          var b = mapEdgeCenterBounds(gap);
+          return cx >= b.lo && cx <= b.hi && cy >= b.lo && cy <= b.hi;
         }
 
         /**
-<<<<<<< HEAD
          * Axis coords for edge/corner packs. Open directions step from the hub
          * at exact clearance; blocked directions (map wall) walk toward that
          * 50×50 border on the same phase so bases hug the wall without opening
@@ -1872,119 +1721,18 @@
           var wi;
           var cx;
           var cy;
-=======
-         * Centers of bases packed along a hub edge (centered leftover pad).
-         * For AC 9 + gap 1 + bases 3: two seats at hubCenter ± 2.
-         */
-        function centersAlongHubFace(hubCenter, hubHalf, baseHalf, gap) {
-          var faceLen = hubHalf * 2 + 1;
-          var baseSize = baseHalf * 2 + 1;
-          var g = Math.max(0, gap | 0);
-          var n = fitCountAlongFace(faceLen, baseSize, g);
-          var used = n * baseSize + (n - 1) * g;
-          var pad = Math.floor((faceLen - used) / 2);
-          var step = baseSize + g;
-          var first = hubCenter - hubHalf + pad + baseHalf;
-          var out = [];
-          var i;
-          for (i = 0; i < n; i++) out.push(first + i * step);
-          return out;
-        }
 
-        /**
-         * Centers for the open apron under/beside a hub. Allows a small
-         * overhang so an odd column count stays centered (side refs: 3
-         * columns under a 9×9 Alliance Center with gap 1).
-         */
-        function centersOpenSpan(hubCenter, hubHalf, baseHalf, gap) {
-          var faceLen = hubHalf * 2 + 1;
-          var baseSize = baseHalf * 2 + 1;
-          var g = Math.max(0, gap | 0);
-          var step = baseSize + g;
-          var n = fitCountAlongFace(faceLen, baseSize, g);
-          if (n % 2 === 0) {
-            var nOdd = n + 1;
-            var usedOdd = nOdd * baseSize + (nOdd - 1) * g;
-            if (usedOdd <= faceLen + 2) n = nOdd;
-          }
-          var out = [];
-          var i;
-          var first = hubCenter - Math.floor((n - 1) / 2) * step;
-          for (i = 0; i < n; i++) out.push(first + i * step);
-          return out;
-        }
-
-        /**
-         * Pack from the Build-around hub using the reference face geometry:
-         * seats along each open hub face are *centered on that face* (not
-         * map-flush single rails). Corner → two face arms + open quadrant.
-         * Side → under apron (odd centered span) + side shoulders on the
-         * face lattice, then expand. Gap and hub placement both scale it.
-         */
-        function generateCandidateCenters(primary, gap) {
-          var g = Math.max(0, gap | 0);
-          var step = minCenterDistForGap(BLOCK_HALF_3, BLOCK_HALF_3, g);
-          var obstacles = packHubWaves(primary);
-          if (!obstacles.length || !primary) return [];
-          var blocked = hubBlockedSides(primary, gap);
-          var edgeCount =
-            (blocked.left ? 1 : 0) +
-            (blocked.right ? 1 : 0) +
-            (blocked.top ? 1 : 0) +
-            (blocked.bottom ? 1 : 0);
-          var bounds = packCenterBounds(g, primary);
-          var clear = minCenterDistForGap(primary.half, BLOCK_HALF_3, g);
-          var dirX = blocked.left ? 1 : blocked.right ? -1 : 0;
-          var dirY = blocked.top ? 1 : blocked.bottom ? -1 : 0;
-          var faceYs = centersAlongHubFace(
-            primary.cy,
-            primary.half,
-            BLOCK_HALF_3,
-            g
-          );
-          var faceXs = centersAlongHubFace(
-            primary.cx,
-            primary.half,
-            BLOCK_HALF_3,
-            g
-          );
-          var spanXs = centersOpenSpan(
-            primary.cx,
-            primary.half,
-            BLOCK_HALF_3,
-            g
-          );
-          var spanYs = centersOpenSpan(
-            primary.cy,
-            primary.half,
-            BLOCK_HALF_3,
-            g
-          );
-          var openX =
-            dirX !== 0 ? primary.cx + dirX * clear : primary.cx;
-          var openY =
-            dirY !== 0 ? primary.cy + dirY * clear : primary.cy;
-          var railYMin = faceYs.length ? faceYs[0] : primary.cy;
-          var railYMax = faceYs.length
-            ? faceYs[faceYs.length - 1]
-            : primary.cy;
-          var railXMin = faceXs.length ? faceXs[0] : primary.cx;
-          var railXMax = faceXs.length
-            ? faceXs[faceXs.length - 1]
-            : primary.cx;
->>>>>>> 1275f730eb8d73495b9653d49629e38c0ffb1ce7
-
-          function clearsObstacles(x, y) {
+          function clearsAll(x, y) {
             var fi;
-            for (fi = 0; fi < obstacles.length; fi++) {
+            for (fi = 0; fi < waves.length; fi++) {
               if (
                 footprintsViolateGap(
                   x,
                   y,
                   BLOCK_HALF_3,
-                  obstacles[fi].cx,
-                  obstacles[fi].cy,
-                  obstacles[fi].half,
+                  waves[fi].cx,
+                  waves[fi].cy,
+                  waves[fi].half,
                   g
                 )
               ) {
@@ -1994,7 +1742,6 @@
             return true;
           }
 
-<<<<<<< HEAD
           function edgeRailHits(x, y) {
             var n = 0;
             /* Nearest lattice line to each blocked map border (not always
@@ -2106,297 +1853,10 @@
                 along: alongEdge(cx, cy),
                 soft: info0.soft,
                 edgeScore: wd.sum,
-=======
-          function behindWall(x, y) {
-            var leftOf = x < primary.cx;
-            var rightOf = x > primary.cx;
-            var above = y < primary.cy;
-            var below = y > primary.cy;
-            if (edgeCount >= 2) {
-              if (blocked.left && blocked.top && leftOf && above) return true;
-              if (blocked.right && blocked.top && rightOf && above) return true;
-              if (blocked.left && blocked.bottom && leftOf && below) return true;
-              if (blocked.right && blocked.bottom && rightOf && below) {
-                return true;
-              }
-              return false;
-            }
-            if (edgeCount === 1) {
-              if (blocked.top && y < railYMin) return true;
-              if (blocked.bottom && y > railYMax) return true;
-              if (blocked.left && x < railXMin) return true;
-              if (blocked.right && x > railXMax) return true;
-              return false;
-            }
-            return false;
-          }
-
-          var seats = [];
-          var seen = Object.create(null);
-          var maxI =
-            Math.floor(
-              Math.max(
-                bounds.hiX - bounds.loX,
-                bounds.hiY - bounds.loY,
-                step
-              ) / step
-            ) + 10;
-
-          function addSeat(x, y, prio) {
-            if (
-              x < bounds.loX ||
-              x > bounds.hiX ||
-              y < bounds.loY ||
-              y > bounds.hiY
-            ) {
-              return;
-            }
-            if (!clearsObstacles(x, y) || behindWall(x, y)) return;
-            var key = x + "," + y;
-            if (seen[key]) return;
-            seen[key] = 1;
-            var dx = Math.abs(x - primary.cx);
-            var dy = Math.abs(y - primary.cy);
-            seats.push({
-              cx: x,
-              cy: y,
-              wave: 0,
-              phase: prio | 0,
-              pack: dx > dy ? dx : dy,
-              manh: dx + dy,
-              edgeExact: 0,
-              behind: 0,
-              onAxis: dx === 0 || dy === 0 ? 0 : 1,
-              ringU: 0,
-              along: dx + dy,
-              soft: 0,
-              layer: 0,
-              ii: 0,
-              jj: 0,
-              side: 0,
-              depth: 0,
-              rail: 0,
-              prio: prio | 0,
-            });
-          }
-
-          var i;
-          var j;
-          var k;
-          var x;
-          var y;
-
-          if (edgeCount >= 2 && dirX && dirY) {
-            /* Corner: Base1 on open-X face (topmost), Base2 on open-Y face
-               (outermost toward wall), then alternate remaining face seats,
-               then extend arms + open quadrant on the base lattice. */
-            var yFace = faceYs.slice();
-            if (dirY < 0) yFace.reverse();
-            var xFace = faceXs.slice();
-            if (dirX < 0) xFace.reverse();
-            var nFace = Math.max(yFace.length, xFace.length);
-            for (i = 0; i < nFace; i++) {
-              if (i < yFace.length) addSeat(openX, yFace[i], i * 2);
-              if (i < xFace.length) addSeat(xFace[i], openY, i * 2 + 1);
-            }
-            /* Continue open-X column beyond the hub face. */
-            y = yFace.length
-              ? yFace[yFace.length - 1] + dirY * step
-              : openY;
-            for (j = 0; j <= maxI; j++) {
-              addSeat(openX, y + dirY * j * step, 20 + j);
-            }
-            /* Continue open-Y row beyond the hub face. */
-            x = xFace.length
-              ? xFace[xFace.length - 1] + dirX * step
-              : openX;
-            for (j = 0; j <= maxI; j++) {
-              addSeat(x + dirX * j * step, openY, 40 + j);
-            }
-            /* Open quadrant lattice. */
-            for (i = 0; i <= maxI; i++) {
-              for (j = 0; j <= maxI; j++) {
-                addSeat(
-                  openX + dirX * i * step,
-                  openY + dirY * j * step,
-                  60 + (i > j ? i : j) * 10 + i + j
-                );
-              }
-            }
-          } else if (edgeCount === 1) {
-            if (blocked.top || blocked.bottom) {
-              var dY = blocked.top ? 1 : -1;
-              var openYSide = primary.cy + dY * clear;
-              var underXs = spanXs.slice();
-              /* Center under first, then nearest flanks (side reference). */
-              underXs.sort(function (a, b) {
-                var da = Math.abs(a - primary.cx);
-                var db = Math.abs(b - primary.cx);
-                if (da !== db) return da - db;
-                return a - b;
->>>>>>> 1275f730eb8d73495b9653d49629e38c0ffb1ce7
               });
-              for (i = 0; i < underXs.length; i++) {
-                addSeat(underXs[i], openYSide, i);
-              }
-              /* Shoulders: exact gap beside hub, on the hub-face Y lattice. */
-              var shoulderYs = faceYs.slice();
-              if (dY < 0) shoulderYs.reverse();
-              for (i = 0; i < shoulderYs.length; i++) {
-                addSeat(primary.cx - clear, shoulderYs[i], 10 + i * 2);
-                addSeat(primary.cx + clear, shoulderYs[i], 11 + i * 2);
-              }
-              /* Deepen under U and grow wings on the lattice. */
-              for (j = 1; j <= maxI; j++) {
-                for (i = 0; i < underXs.length; i++) {
-                  addSeat(
-                    underXs[i],
-                    openYSide + dY * j * step,
-                    30 + j * 10 + i
-                  );
-                }
-              }
-              for (k = 1; k <= maxI; k++) {
-                for (i = 0; i < shoulderYs.length; i++) {
-                  addSeat(
-                    primary.cx - clear - k * step,
-                    shoulderYs[i],
-                    50 + k * 10 + i
-                  );
-                  addSeat(
-                    primary.cx + clear + k * step,
-                    shoulderYs[i],
-                    51 + k * 10 + i
-                  );
-                }
-                /* Continue shoulder columns into the open half. */
-                for (j = 0; j <= maxI; j++) {
-                  addSeat(
-                    primary.cx - clear - k * step,
-                    openYSide + dY * j * step,
-                    70 + k * 20 + j
-                  );
-                  addSeat(
-                    primary.cx + clear + k * step,
-                    openYSide + dY * j * step,
-                    71 + k * 20 + j
-                  );
-                }
-              }
-            } else {
-              var dX = blocked.left ? 1 : -1;
-              var openXSide = primary.cx + dX * clear;
-              var underYs = spanYs.slice();
-              underYs.sort(function (a, b) {
-                var da = Math.abs(a - primary.cy);
-                var db = Math.abs(b - primary.cy);
-                if (da !== db) return da - db;
-                return a - b;
-              });
-              for (i = 0; i < underYs.length; i++) {
-                addSeat(openXSide, underYs[i], i);
-              }
-              var shoulderXs = faceXs.slice();
-              if (dX < 0) shoulderXs.reverse();
-              for (i = 0; i < shoulderXs.length; i++) {
-                addSeat(shoulderXs[i], primary.cy - clear, 10 + i * 2);
-                addSeat(shoulderXs[i], primary.cy + clear, 11 + i * 2);
-              }
-              for (j = 1; j <= maxI; j++) {
-                for (i = 0; i < underYs.length; i++) {
-                  addSeat(
-                    openXSide + dX * j * step,
-                    underYs[i],
-                    30 + j * 10 + i
-                  );
-                }
-              }
-              for (k = 1; k <= maxI; k++) {
-                for (i = 0; i < shoulderXs.length; i++) {
-                  addSeat(
-                    shoulderXs[i],
-                    primary.cy - clear - k * step,
-                    50 + k * 10 + i
-                  );
-                  addSeat(
-                    shoulderXs[i],
-                    primary.cy + clear + k * step,
-                    51 + k * 10 + i
-                  );
-                }
-                for (j = 0; j <= maxI; j++) {
-                  addSeat(
-                    openXSide + dX * j * step,
-                    primary.cy - clear - k * step,
-                    70 + k * 20 + j
-                  );
-                  addSeat(
-                    openXSide + dX * j * step,
-                    primary.cy + clear + k * step,
-                    71 + k * 20 + j
-                  );
-                }
-              }
-            }
-          } else {
-            /* Interior: face-centered rings on every side. */
-            var ring;
-            var dirs = [
-              { dx: 0, dy: -1 },
-              { dx: -1, dy: 0 },
-              { dx: 1, dy: 0 },
-              { dx: 0, dy: 1 },
-            ];
-            for (ring = 0; ring <= maxI; ring++) {
-              var dist = clear + ring * step;
-              for (i = 0; i < dirs.length; i++) {
-                var d = dirs[i];
-                if (d.dx === 0) {
-                  addSeat(primary.cx, primary.cy + d.dy * dist, ring * 20 + i);
-                  for (j = 0; j < spanXs.length; j++) {
-                    if (spanXs[j] === primary.cx) continue;
-                    addSeat(
-                      spanXs[j],
-                      primary.cy + d.dy * dist,
-                      ring * 20 + i * 4 + j + 1
-                    );
-                  }
-                } else {
-                  addSeat(primary.cx + d.dx * dist, primary.cy, ring * 20 + i);
-                  for (j = 0; j < spanYs.length; j++) {
-                    if (spanYs[j] === primary.cy) continue;
-                    addSeat(
-                      primary.cx + d.dx * dist,
-                      spanYs[j],
-                      ring * 20 + i * 4 + j + 1
-                    );
-                  }
-                }
-              }
-              addSeat(
-                primary.cx - dist,
-                primary.cy - dist,
-                ring * 20 + 16
-              );
-              addSeat(
-                primary.cx + dist,
-                primary.cy - dist,
-                ring * 20 + 17
-              );
-              addSeat(
-                primary.cx - dist,
-                primary.cy + dist,
-                ring * 20 + 18
-              );
-              addSeat(
-                primary.cx + dist,
-                primary.cy + dist,
-                ring * 20 + 19
-              );
             }
           }
 
-<<<<<<< HEAD
           /* Secondary hubs: nearest rings on the same primary lattice. */
           for (wi = 1; wi < waves.length; wi++) {
             var minPack = minLatticePackForHub(waves[wi]);
@@ -2425,23 +1885,10 @@
                   edgeScore: wd2.sum,
                 });
               }
-=======
-          /* Dense fill after structured seats. */
-          var cx;
-          var cy;
-          for (cy = bounds.loY; cy <= bounds.hiY; cy++) {
-            for (cx = bounds.loX; cx <= bounds.hiX; cx++) {
-              var adx = Math.abs(cx - primary.cx);
-              var ady = Math.abs(cy - primary.cy);
-              var pack = adx > ady ? adx : ady;
-              if (pack < clear) continue;
-              addSeat(cx, cy, 500 + pack * 20 + adx + ady);
->>>>>>> 1275f730eb8d73495b9653d49629e38c0ffb1ce7
             }
           }
 
           seats.sort(function (a, b) {
-<<<<<<< HEAD
             if (a.phase !== b.phase) return a.phase - b.phase;
             if (a.wave !== b.wave) return a.wave - b.wave;
             if (corner && a.pack !== b.pack) return a.pack - b.pack;
@@ -2454,11 +1901,7 @@
               if (a.along !== b.along) return a.along - b.along;
             }
             if (a.onAxis !== b.onAxis) return a.onAxis - b.onAxis;
-=======
-            if (a.prio !== b.prio) return a.prio - b.prio;
->>>>>>> 1275f730eb8d73495b9653d49629e38c0ffb1ce7
             if (a.pack !== b.pack) return a.pack - b.pack;
-            if (a.onAxis !== b.onAxis) return a.onAxis - b.onAxis;
             if (a.manh !== b.manh) return a.manh - b.manh;
             if (onEdge && a.edgeScore !== b.edgeScore) {
               return a.edgeScore - b.edgeScore;
@@ -2466,8 +1909,10 @@
             if (a.cy !== b.cy) return a.cy - b.cy;
             return a.cx - b.cx;
           });
+
           return seats;
         }
+
 
         function layoutHubSummary(primary) {
           var waves = packHubWaves(primary);
@@ -2486,12 +1931,10 @@
           );
         }
 
-        function canPlaceMemberCenterAt(cx, cy, gap, wallHub) {
+        function canPlaceMemberCenterAt(cx, cy, gap) {
           var dx;
           var dy;
-          if (!respectsMapEdgeGap(cx, cy, gap, wallHub || getLayoutHub())) {
-            return false;
-          }
+          if (!respectsMapEdgeGap(cx, cy, gap)) return false;
           for (dy = -1; dy <= 1; dy++) {
             for (dx = -1; dx <= 1; dx++) {
               var gx = cx + dx;
@@ -2640,7 +2083,7 @@
             if (mi >= queue.length) return false;
             var key = cx + "," + cy;
             if (used[key]) return false;
-            if (!canPlaceMemberCenterAt(cx, cy, gap, hub)) return false;
+            if (!canPlaceMemberCenterAt(cx, cy, gap)) return false;
             if (!placeMember(queue[mi], { x: cx, y: cy })) return false;
             used[key] = 1;
             placedPts.push({ cx: cx, cy: cy });
@@ -2655,7 +2098,6 @@
             tryPlaceAt(cand.cx, cand.cy);
           }
 
-<<<<<<< HEAD
           /* Hole-fill: exact base-gap neighbors on the same lattice / wall rails. */
           var axesFill = primaryLatticeAxes(hub, gap);
           var bounds = axesFill.bounds;
@@ -2664,65 +2106,6 @@
           var multiHubFill = wavesFill.length > 1;
           var onEdgeFill = axesFill.onEdge;
           var cornerFill = axesFill.corner;
-=======
-          /* Hole-fill: any valid adjacent seat (dense pack). */
-          var bounds = packCenterBounds(gap, hub);
-          var blockedFill = hubBlockedSides(hub, gap);
-          var flushFill = hubFlushSides(hub);
-
-          function behindWallFill(x, y) {
-            var leftOf = x < hub.cx;
-            var rightOf = x > hub.cx;
-            var above = y < hub.cy;
-            var below = y > hub.cy;
-            var railXFill = flushFill.left
-              ? BLOCK_HALF_3
-              : flushFill.right
-                ? TILES - 1 - BLOCK_HALF_3
-                : blockedFill.left
-                  ? hub.cx - hub.half + BLOCK_HALF_3
-                  : blockedFill.right
-                    ? hub.cx + hub.half - BLOCK_HALF_3
-                    : hub.cx;
-            var railYFill = flushFill.top
-              ? BLOCK_HALF_3
-              : flushFill.bottom
-                ? TILES - 1 - BLOCK_HALF_3
-                : blockedFill.top
-                  ? hub.cy - hub.half + BLOCK_HALF_3
-                  : blockedFill.bottom
-                    ? hub.cy + hub.half - BLOCK_HALF_3
-                    : hub.cy;
-            var edgeCountFill =
-              (blockedFill.left ? 1 : 0) +
-              (blockedFill.right ? 1 : 0) +
-              (blockedFill.top ? 1 : 0) +
-              (blockedFill.bottom ? 1 : 0);
-            if (edgeCountFill >= 2) {
-              if (blockedFill.left && blockedFill.top && leftOf && above) return true;
-              if (blockedFill.right && blockedFill.top && rightOf && above) return true;
-              if (blockedFill.left && blockedFill.bottom && leftOf && below) return true;
-              if (blockedFill.right && blockedFill.bottom && rightOf && below) return true;
-              return false;
-            }
-            if (edgeCountFill === 1) {
-              if (blockedFill.top && y < railYFill) return true;
-              if (blockedFill.bottom && y > railYFill) return true;
-              if (blockedFill.left && x < railXFill) return true;
-              if (blockedFill.right && x > railXFill) return true;
-              return false;
-            }
-            return false;
-          }
-
-          function onFillLattice(x, y) {
-            var clearFill = minCenterDistForGap(hub.half, BLOCK_HALF_3, gap);
-            var dx = Math.abs(x - hub.cx);
-            var dy = Math.abs(y - hub.cy);
-            var pack = dx > dy ? dx : dy;
-            return pack >= clearFill;
-          }
->>>>>>> 1275f730eb8d73495b9653d49629e38c0ffb1ce7
 
           while (mi < queue.length && placedPts.length) {
             var best = null;
@@ -2730,10 +2113,9 @@
             var cx;
             var cy;
             var ai;
-            for (cy = bounds.loY != null ? bounds.loY : bounds.lo; cy <= (bounds.hiY != null ? bounds.hiY : bounds.hi); cy++) {
-              for (cx = bounds.loX != null ? bounds.loX : bounds.lo; cx <= (bounds.hiX != null ? bounds.hiX : bounds.hi); cx++) {
+            for (cy = bounds.lo; cy <= bounds.hi; cy++) {
+              for (cx = bounds.lo; cx <= bounds.hi; cx++) {
                 if (used[cx + "," + cy]) continue;
-<<<<<<< HEAD
                 if (!canPlaceMemberCenterAt(cx, cy, gap)) continue;
                 var onBlockedRail =
                   (blockedFill.top && cy === axesFill.ys[0]) ||
@@ -2748,11 +2130,6 @@
                 if ((onEdgeFill || multiHubFill) && !onLattice && !onBlockedRail) {
                   continue;
                 }
-=======
-                if (!onFillLattice(cx, cy)) continue;
-                if (behindWallFill(cx, cy)) continue;
-                if (!canPlaceMemberCenterAt(cx, cy, gap, hub)) continue;
->>>>>>> 1275f730eb8d73495b9653d49629e38c0ffb1ce7
                 var adjacent = false;
                 var orthAdj = false;
                 for (ai = 0; ai < placedPts.length; ai++) {
@@ -2760,13 +2137,12 @@
                   var pdx = Math.abs(cx - p.cx);
                   var pdy = Math.abs(cy - p.cy);
                   var ppack = pdx > pdy ? pdx : pdy;
-                  if (ppack >= step && ppack <= step + 2) {
+                  if (ppack === step) {
                     adjacent = true;
                     if (pdx === 0 || pdy === 0) orthAdj = true;
                   }
                 }
                 if (!adjacent) continue;
-<<<<<<< HEAD
                 var hubNear = 1e9;
                 var ringBoost = 0;
                 for (ai = 0; ai < wavesFill.length; ai++) {
@@ -2811,13 +2187,6 @@
                   score += hubNear * 10 + ringBoost;
                   if (!onLattice) score += 80;
                 }
-=======
-                var hdx = Math.abs(cx - hub.cx);
-                var hdy = Math.abs(cy - hub.cy);
-                var hpack = hdx > hdy ? hdx : hdy;
-                var score = hpack * 20 + (hdx + hdy);
-                if (!orthAdj) score += 400;
->>>>>>> 1275f730eb8d73495b9653d49629e38c0ffb1ce7
                 if (score < bestScore) {
                   bestScore = score;
                   best = { cx: cx, cy: cy };
@@ -2902,8 +2271,12 @@
           var meta = normalizeCenterMeta({ name: member.name, memberId: member.id });
           removeMemberFromMap(member.id);
           var gap = Math.max(0, hiveSettings.baseGap | 0);
+          var bounds = mapEdgeCenterBounds(gap);
           var cx = cell.x | 0;
           var cy = cell.y | 0;
+          if (cx < bounds.lo || cx > bounds.hi || cy < bounds.lo || cy > bounds.hi) {
+            return false;
+          }
           if (!canPlaceMemberCenterAt(cx, cy, gap)) return false;
           if (rank === "r5") placeR5AtCenter(cx, cy, meta);
           else if (rank === "r4") placeR4AtCenter(cx, cy, meta);
@@ -2913,81 +2286,43 @@
           return true;
         }
 
-        function drawOutlinedText(px, py, text, size, fill, stroke, strokeW) {
-          if (!text) return;
-          ctx.save();
-          ctx.font = "800 " + size + 'px "Segoe UI", system-ui, sans-serif';
+        function drawCenterText(px, py, mainText, subText, fsMain) {
+          var textFill = cssVar("--text", "#e8eef5");
+          var textStroke = cssVar("--panel-2", "#0d1520");
+          var fs = fsMain || Math.max(10, Math.floor(SCALE * 0.68));
+          var fsSub = Math.max(5, Math.floor(fs * 0.52));
+          var main = mainText || subText || "";
+          var sub = mainText && subText ? subText : "";
+          if (main.length > 16) main = main.slice(0, 15) + "…";
           ctx.textAlign = "center";
           ctx.textBaseline = "middle";
-          ctx.lineJoin = "round";
-          ctx.miterLimit = 2;
-          if (stroke) {
-            ctx.strokeStyle = stroke;
-            ctx.lineWidth =
-              strokeW != null ? strokeW : Math.max(2.2, Math.round(size * 0.28));
-            ctx.strokeText(text, px, py);
+          if (sub) {
+            var yMain = py - Math.max(2, Math.ceil(fsSub * 0.65));
+            var ySub = py + Math.max(2, Math.ceil(fs * 0.55));
+            ctx.font = "bold " + fs + 'px system-ui, "Segoe UI", sans-serif';
+            ctx.lineWidth = Math.max(2, Math.ceil(fs / 7));
+            ctx.strokeStyle = textStroke;
+            ctx.strokeText(main, px, yMain);
+            ctx.fillStyle = textFill;
+            ctx.fillText(main, px, yMain);
+            ctx.font = "bold " + fsSub + 'px system-ui, "Segoe UI", sans-serif';
+            ctx.lineWidth = Math.max(1, Math.ceil(fsSub / 6));
+            ctx.strokeText(sub, px, ySub);
+            ctx.fillStyle = textFill;
+            ctx.fillText(sub, px, ySub);
+          } else {
+            ctx.font = "bold " + fs + 'px system-ui, "Segoe UI", sans-serif';
+            ctx.lineWidth = Math.max(2, Math.ceil(fs / 7));
+            ctx.strokeStyle = textStroke;
+            ctx.strokeText(main, px, py);
+            ctx.fillStyle = textFill;
+            ctx.fillText(main, px, py);
           }
-          ctx.fillStyle = fill || "#fff";
-          ctx.fillText(text, px, py);
-          ctx.restore();
-        }
-
-        /** Stacked outlined labels — no soft pill chips (those read as blur). */
-        function drawMapStack(px, py, lines) {
-          if (!lines || !lines.length) return;
-          var gap = 2;
-          var total = 0;
-          var i;
-          for (i = 0; i < lines.length; i++) total += lines[i].size;
-          total += gap * (lines.length - 1);
-          var y = py - total / 2 + lines[0].size / 2;
-          for (i = 0; i < lines.length; i++) {
-            var L = lines[i];
-            drawOutlinedText(
-              px,
-              Math.round(y) + 0.5,
-              L.text,
-              L.size,
-              L.fill || "#f4f8fc",
-              L.stroke || "rgba(6,10,16,0.92)",
-              L.strokeW
-            );
-            if (i + 1 < lines.length) {
-              y += lines[i].size / 2 + gap + lines[i + 1].size / 2;
-            }
-          }
-        }
-
-        function drawCenterText(px, py, mainText, subText, fsMain) {
-          var fs = fsMain || Math.max(11, Math.floor(SCALE * 0.78));
-          var name = mainText || "";
-          var rank = subText || "";
-          if (name.length > 12) name = name.slice(0, 11) + "…";
-          var lines = [];
-          if (name) {
-            lines.push({
-              text: name,
-              size: Math.max(7, Math.floor(fs * 0.55)),
-              fill: "#f2f6fa",
-            });
-            if (rank) {
-              lines.push({
-                text: rank,
-                size: fs,
-                fill: "#fff8e8",
-              });
-            }
-          } else if (rank) {
-            lines.push({ text: rank, size: fs + 1, fill: "#fff8e8" });
-          }
-          drawMapStack(px, py, lines);
         }
 
         function buildBaseLayer() {
-          var bctx = baseLayer.getContext("2d", { alpha: false });
-          if (!bctx) bctx = baseLayer.getContext("2d");
+          var bctx = baseLayer.getContext("2d");
           if (!bctx) return;
-          applyLogicalTransform(bctx);
           var bg = cssVar("--panel-2", "#162434");
           var minor = cssVar("--line-soft", "#3d5670");
           var major = cssVar("--line", "#5a7a96");
@@ -3085,9 +2420,10 @@
             if (!Number.isFinite(pct) || pct < 25) pct = 100;
             var base = getBaseDisplaySize();
             var s = Math.round(base * (pct / 100));
+            canvas.style.width = s + "px";
+            canvas.style.height = s + "px";
             canvas.style.maxWidth = "none";
             canvas.style.aspectRatio = "auto";
-            syncCanvasResolution(s);
             var wrap = canvas.closest(".hive-canvas-wrap");
             if (wrap) {
               wrap.classList.toggle("hive-canvas-wrap--scroll", pct > 100);
@@ -3097,553 +2433,304 @@
           }
         }
 
-        function pathRoundRect(c, x, y, w, h, rad) {
-          var r = Math.max(0, Math.min(rad, Math.min(w, h) / 2));
-          c.beginPath();
-          if (typeof c.roundRect === "function") {
-            c.roundRect(x, y, w, h, r);
-            return;
-          }
-          c.moveTo(x + r, y);
-          c.arcTo(x + w, y, x + w, y + h, r);
-          c.arcTo(x + w, y + h, x, y + h, r);
-          c.arcTo(x, y + h, x, y, r);
-          c.arcTo(x, y, x + w, y, r);
-          c.closePath();
-        }
-
-        /** Shared palette for placed footprints (matches toolbar glyphs). */
-        function hiveFootprintStyle(kind) {
-          var styles = {
-            mark: {
-              fill: "#2a86d0",
-              fillLight: "#5eb4f0",
-              fillDark: "#145a92",
-              border: "#d8f0ff",
-              accent: "#8accf5",
-              alpha: 0.95,
-            },
-            r5: {
-              fill: "#c99628",
-              fillLight: "#e8c45a",
-              fillDark: "#7a5a10",
-              border: "#fff0b0",
-              accent: "#f0d070",
-              alpha: 0.98,
-            },
-            r4: {
-              fill: "#c93c3c",
-              fillLight: "#e86868",
-              fillDark: "#7a1818",
-              border: "#ffc8c8",
-              accent: "#f08080",
-              alpha: 0.98,
-            },
-            r3: {
-              fill: "#8458c4",
-              fillLight: "#b088e0",
-              fillDark: "#4a2880",
-              border: "#ead8ff",
-              accent: "#c8a8f0",
-              alpha: 0.98,
-            },
-            r2: {
-              fill: "#347ece",
-              fillLight: "#68a8e8",
-              fillDark: "#184888",
-              border: "#d0e8ff",
-              accent: "#88c0f0",
-              alpha: 0.98,
-            },
-            r1: {
-              fill: "#d49838",
-              fillLight: "#ecc070",
-              fillDark: "#8a5820",
-              border: "#ffe8c0",
-              accent: "#f0d090",
-              alpha: 0.98,
-            },
-            ae: {
-              fill: "#178a68",
-              fillLight: "#2eb890",
-              fillDark: "#0a4a38",
-              border: "#b8ffe0",
-              accent: "#60d8b0",
-              alpha: 0.98,
-            },
-            furnace: {
-              fill: "#141414",
-              fillLight: "#2c2c2c",
-              fillDark: "#000000",
-              border: "#e0b860",
-              accent: "#c9a050",
-              alpha: 0.99,
-            },
-            acenter: {
-              fill: "#635476",
-              fillLight: "#827094",
-              fillDark: "#3a3048",
-              border: "#ecd8a0",
-              accent: "#d4b878",
-              alpha: 0.98,
-            },
-            custom: {
-              fill: "#455668",
-              fillLight: "#6a7e92",
-              fillDark: "#2a3644",
-              border: "#d0dce8",
-              accent: "#98aabc",
-              alpha: 0.96,
-            },
-          };
-          return styles[kind] || styles.custom;
-        }
-
-        /**
-         * Flat game-map tile: opaque face, sharp rim, light watermark motif.
-         * Avoids soft gloss / shadow that looks blurry when scaled.
-         */
-        function drawFootprintPlate(left, top, w, h, style, opts) {
-          opts = opts || {};
-          var inset = Math.max(1, Math.round(SCALE * 0.06));
-          var x = left * SCALE + inset;
-          var y = top * SCALE + inset;
-          var pw = w * SCALE - inset * 2;
-          var ph = h * SCALE - inset * 2;
-          if (pw <= 1 || ph <= 1) return;
-          var rad = Math.min(SCALE * 0.22, Math.min(pw, ph) * 0.12, 4);
-          var alpha = opts.alpha != null ? opts.alpha : style.alpha;
-          ctx.save();
-          ctx.globalAlpha = alpha;
-
-          /* Hard drop (1px), not a soft blob */
-          ctx.fillStyle = "rgba(0,0,0,0.35)";
-          pathRoundRect(ctx, x + 1, y + 1, pw, ph, rad);
-          ctx.fill();
-
-          /* Face */
-          var face = ctx.createLinearGradient(x, y, x, y + ph);
-          face.addColorStop(0, style.fillLight);
-          face.addColorStop(0.55, style.fill);
-          face.addColorStop(1, style.fillDark || style.fill);
-          ctx.fillStyle = face;
-          pathRoundRect(ctx, x, y, pw, ph, rad);
-          ctx.fill();
-
-          /* Top edge catch-light (thin, not a foggy gloss sheet) */
-          ctx.strokeStyle = "rgba(255,255,255,0.35)";
-          ctx.lineWidth = 1;
-          ctx.beginPath();
-          ctx.moveTo(x + rad + 0.5, y + 1.5);
-          ctx.lineTo(x + pw - rad - 0.5, y + 1.5);
-          ctx.stroke();
-
-          /* Outer rim */
-          ctx.strokeStyle = style.border;
-          ctx.lineWidth = Math.max(1.5, SCALE * 0.1);
-          pathRoundRect(ctx, x + 0.75, y + 0.75, pw - 1.5, ph - 1.5, Math.max(0, rad - 0.5));
-          ctx.stroke();
-
-          /* Inner dark frame */
-          ctx.strokeStyle = "rgba(0,0,0,0.28)";
-          ctx.lineWidth = 1;
-          pathRoundRect(ctx, x + 2.5, y + 2.5, pw - 5, ph - 5, Math.max(0, rad - 2));
-          ctx.stroke();
-
-          var cx = x + pw / 2;
-          var cy = y + ph / 2;
-          var ix = x + 3;
-          var iy = y + 3;
-          var iw = pw - 6;
-          var ih = ph - 6;
-
-          if (opts.motif === "acenter") {
-            var br = Math.min(pw, ph) * 0.14;
-            ctx.strokeStyle = style.border;
-            ctx.lineWidth = Math.max(1.75, SCALE * 0.11);
-            ctx.lineCap = "square";
-            ctx.beginPath();
-            ctx.moveTo(ix + br, iy);
-            ctx.lineTo(ix, iy);
-            ctx.lineTo(ix, iy + br);
-            ctx.moveTo(ix + iw - br, iy);
-            ctx.lineTo(ix + iw, iy);
-            ctx.lineTo(ix + iw, iy + br);
-            ctx.moveTo(ix, iy + ih - br);
-            ctx.lineTo(ix, iy + ih);
-            ctx.lineTo(ix + br, iy + ih);
-            ctx.moveTo(ix + iw, iy + ih - br);
-            ctx.lineTo(ix + iw, iy + ih);
-            ctx.lineTo(ix + iw - br, iy + ih);
-            ctx.stroke();
-            var s = Math.min(pw, ph) * 0.2;
-            ctx.globalAlpha = alpha * 0.22;
-            ctx.fillStyle = style.border;
-            ctx.beginPath();
-            ctx.moveTo(cx, cy - s);
-            ctx.lineTo(cx + s * 0.72, cy);
-            ctx.lineTo(cx, cy + s);
-            ctx.lineTo(cx - s * 0.72, cy);
-            ctx.closePath();
-            ctx.fill();
-            ctx.globalAlpha = alpha;
-          } else if (opts.motif === "furnace") {
-            var fs = Math.min(pw, ph) * 0.11;
-            var fy = iy + ih * 0.22;
-            ctx.globalAlpha = alpha * 0.9;
-            ctx.fillStyle = style.border;
-            ctx.beginPath();
-            ctx.moveTo(cx, fy - fs * 1.35);
-            ctx.lineTo(cx + fs * 0.85, fy + fs * 0.85);
-            ctx.lineTo(cx + fs * 0.28, fy + fs * 0.35);
-            ctx.lineTo(cx + fs * 0.55, fy + fs * 1.35);
-            ctx.lineTo(cx - fs * 0.55, fy + fs * 1.35);
-            ctx.lineTo(cx - fs * 0.28, fy + fs * 0.35);
-            ctx.lineTo(cx - fs * 0.85, fy + fs * 0.85);
-            ctx.closePath();
-            ctx.fill();
-            ctx.globalAlpha = alpha;
-            ctx.fillStyle = "rgba(201,160,80,0.35)";
-            pathRoundRect(ctx, cx - fs * 1.1, fy + fs * 1.5, fs * 2.2, fs * 0.45, 2);
-            ctx.fill();
-          } else if (opts.motif === "ae") {
-            var arm = Math.min(pw, ph) * 0.28;
-            ctx.globalAlpha = alpha * 0.35;
-            ctx.strokeStyle = "#041a14";
-            ctx.lineWidth = Math.max(1.75, SCALE * 0.12);
-            ctx.lineCap = "butt";
-            ctx.beginPath();
-            ctx.arc(cx, cy, arm * 0.42, 0, Math.PI * 2);
-            ctx.stroke();
-            ctx.beginPath();
-            ctx.moveTo(cx - arm, cy);
-            ctx.lineTo(cx + arm, cy);
-            ctx.moveTo(cx, cy - arm);
-            ctx.lineTo(cx, cy + arm);
-            ctx.stroke();
-            ctx.globalAlpha = alpha;
-            ctx.strokeStyle = style.border;
-            ctx.lineWidth = 1.25;
-            ctx.beginPath();
-            ctx.arc(cx, cy, arm * 0.42, 0, Math.PI * 2);
-            ctx.stroke();
-          }
-
-          ctx.restore();
-        }
-
         function draw() {
           var fillMark = cssVar("--accent", "#64b4ff");
-          applyLogicalTransform(ctx);
+          var fillR5 = "#c9952c";
+          var fillR4 = "#c93838";
+          var fillR3 = "#8b5fc9";
+          var fillR2 = "#4a8fd9";
+          var fillR1 = "#d9a04a";
+          var fillAE = "#2a9d7a";
           ctx.clearRect(0, 0, PX, PX);
-          /* Stretch full HiDPI base into logical PX space (transform active). */
-          ctx.drawImage(
-            baseLayer,
-            0,
-            0,
-            baseLayer.width,
-            baseLayer.height,
-            0,
-            0,
-            PX,
-            PX
-          );
-
+          ctx.drawImage(baseLayer, 0, 0);
           var i;
           var x;
           var y;
           var v;
-          var markStyle = hiveFootprintStyle("mark");
-          markStyle.fill = fillMark;
-          markStyle.fillLight = fillMark;
           for (i = 0; i < TOTAL; i++) {
             v = tiles[i];
-            if (v !== STATE_MARK) continue;
+            if (v === STATE_EMPTY) continue;
             x = i % TILES;
             y = (i / TILES) | 0;
-            drawFootprintPlate(x, y, 1, 1, markStyle, { alpha: 0.7 });
+            if (v === STATE_MARK) {
+              ctx.fillStyle = fillMark;
+              ctx.globalAlpha = 0.5;
+            } else if (v === STATE_R5) {
+              ctx.fillStyle = fillR5;
+              ctx.globalAlpha = 0.55;
+            } else if (v === STATE_R4) {
+              ctx.fillStyle = fillR4;
+              ctx.globalAlpha = 0.55;
+            } else if (v === STATE_R3) {
+              ctx.fillStyle = fillR3;
+              ctx.globalAlpha = 0.55;
+            } else if (v === STATE_R2) {
+              ctx.fillStyle = fillR2;
+              ctx.globalAlpha = 0.55;
+            } else if (v === STATE_R1) {
+              ctx.fillStyle = fillR1;
+              ctx.globalAlpha = 0.55;
+            } else if (v === STATE_AE) {
+              ctx.fillStyle = fillAE;
+              ctx.globalAlpha = 0.55;
+            } else if (v === STATE_FURNACE) {
+              ctx.fillStyle = "#0a0a0a";
+              ctx.globalAlpha = 0.62;
+            } else if (v === STATE_ALLIANCE_CENTER) {
+              ctx.fillStyle = "#7d6b8c";
+              ctx.globalAlpha = 0.56;
+            } else if (v === STATE_CUSTOM) {
+              ctx.fillStyle = "#5a6d82";
+              ctx.globalAlpha = 0.58;
+            }
+            ctx.fillRect(x * SCALE, y * SCALE, SCALE, SCALE);
           }
-
+          ctx.globalAlpha = 1;
+          var textFill = cssVar("--text", "#e8eef5");
+          var textStroke = cssVar("--panel-2", "#0d1520");
+          var fs = Math.max(10, Math.floor(SCALE * 0.68));
+          ctx.font = "bold " + fs + 'px system-ui, "Segoe UI", sans-serif';
+          ctx.textAlign = "center";
+          ctx.textBaseline = "middle";
+          ctx.lineJoin = "round";
           var k;
           var c;
-          for (k = 0; k < allianceCenterCenters.length; k++) {
-            c = allianceCenterCenters[k];
-            drawFootprintPlate(
-              c.cx - BLOCK_HALF_9,
-              c.cy - BLOCK_HALF_9,
-              9,
-              9,
-              hiveFootprintStyle("acenter"),
-              { motif: "acenter" }
-            );
-          }
-          for (k = 0; k < furnaceCenters.length; k++) {
-            c = furnaceCenters[k];
-            drawFootprintPlate(
-              c.cx - BLOCK_HALF_5,
-              c.cy - BLOCK_HALF_5,
-              5,
-              5,
-              hiveFootprintStyle("furnace"),
-              { motif: "furnace" }
-            );
-          }
-          for (k = 0; k < aeCenters.length; k++) {
-            c = aeCenters[k];
-            drawFootprintPlate(
-              c.cx - BLOCK_HALF_3,
-              c.cy - BLOCK_HALF_3,
-              3,
-              3,
-              hiveFootprintStyle("ae"),
-              { motif: "ae" }
-            );
-          }
           for (k = 0; k < r5Centers.length; k++) {
             c = r5Centers[k];
-            drawFootprintPlate(
-              c.cx - BLOCK_HALF_3,
-              c.cy - BLOCK_HALF_3,
-              3,
-              3,
-              hiveFootprintStyle("r5"),
-              {}
-            );
-          }
-          for (k = 0; k < r4Centers.length; k++) {
-            c = r4Centers[k];
-            drawFootprintPlate(
-              c.cx - BLOCK_HALF_3,
-              c.cy - BLOCK_HALF_3,
-              3,
-              3,
-              hiveFootprintStyle("r4"),
-              {}
-            );
-          }
-          for (k = 0; k < r3Centers.length; k++) {
-            c = r3Centers[k];
-            drawFootprintPlate(
-              c.cx - BLOCK_HALF_3,
-              c.cy - BLOCK_HALF_3,
-              3,
-              3,
-              hiveFootprintStyle("r3"),
-              {}
-            );
-          }
-          for (k = 0; k < r2Centers.length; k++) {
-            c = r2Centers[k];
-            drawFootprintPlate(
-              c.cx - BLOCK_HALF_3,
-              c.cy - BLOCK_HALF_3,
-              3,
-              3,
-              hiveFootprintStyle("r2"),
-              {}
-            );
-          }
-          for (k = 0; k < r1Centers.length; k++) {
-            c = r1Centers[k];
-            drawFootprintPlate(
-              c.cx - BLOCK_HALF_3,
-              c.cy - BLOCK_HALF_3,
-              3,
-              3,
-              hiveFootprintStyle("r1"),
-              {}
-            );
-          }
-          for (k = 0; k < customBlocks.length; k++) {
-            var cb = customBlocks[k];
-            drawFootprintPlate(cb.left, cb.top, cb.w, cb.h, hiveFootprintStyle("custom"));
-          }
-
-          var fs = Math.max(12, Math.floor(SCALE * 0.8));
-          var k2;
-          var c2;
-          for (k2 = 0; k2 < r5Centers.length; k2++) {
-            c2 = r5Centers[k2];
             drawCenterText(
-              c2.cx * SCALE + SCALE / 2,
-              c2.cy * SCALE + SCALE / 2,
-              c2.name || "",
+              c.cx * SCALE + SCALE / 2,
+              c.cy * SCALE + SCALE / 2,
+              c.name || "",
               "R5",
               fs
             );
           }
-          for (k2 = 0; k2 < r4Centers.length; k2++) {
-            c2 = r4Centers[k2];
+          for (k = 0; k < r4Centers.length; k++) {
+            c = r4Centers[k];
             drawCenterText(
-              c2.cx * SCALE + SCALE / 2,
-              c2.cy * SCALE + SCALE / 2,
-              c2.name || "",
+              c.cx * SCALE + SCALE / 2,
+              c.cy * SCALE + SCALE / 2,
+              c.name || "",
               "R4",
               fs
             );
           }
-          for (k2 = 0; k2 < r3Centers.length; k2++) {
-            c2 = r3Centers[k2];
+          for (k = 0; k < r3Centers.length; k++) {
+            c = r3Centers[k];
             drawCenterText(
-              c2.cx * SCALE + SCALE / 2,
-              c2.cy * SCALE + SCALE / 2,
-              c2.name || "",
+              c.cx * SCALE + SCALE / 2,
+              c.cy * SCALE + SCALE / 2,
+              c.name || "",
               "R3",
               fs
             );
           }
-          for (k2 = 0; k2 < r2Centers.length; k2++) {
-            c2 = r2Centers[k2];
+          for (k = 0; k < r2Centers.length; k++) {
+            c = r2Centers[k];
             drawCenterText(
-              c2.cx * SCALE + SCALE / 2,
-              c2.cy * SCALE + SCALE / 2,
-              c2.name || "",
+              c.cx * SCALE + SCALE / 2,
+              c.cy * SCALE + SCALE / 2,
+              c.name || "",
               "R2",
               fs
             );
           }
-          for (k2 = 0; k2 < r1Centers.length; k2++) {
-            c2 = r1Centers[k2];
+          for (k = 0; k < r1Centers.length; k++) {
+            c = r1Centers[k];
             drawCenterText(
-              c2.cx * SCALE + SCALE / 2,
-              c2.cy * SCALE + SCALE / 2,
-              c2.name || "",
+              c.cx * SCALE + SCALE / 2,
+              c.cy * SCALE + SCALE / 2,
+              c.name || "",
               "R1",
               fs
             );
           }
-          for (k2 = 0; k2 < aeCenters.length; k2++) {
-            c2 = aeCenters[k2];
-            drawMapStack(c2.cx * SCALE + SCALE / 2, c2.cy * SCALE + SCALE / 2, [
-              { text: "AE", size: Math.max(13, Math.floor(SCALE * 0.88)), fill: "#f2fffa" },
-              {
-                text: "3×3",
-                size: Math.max(7, Math.floor(SCALE * 0.4)),
-                fill: "#c8f5e4",
-              },
-            ]);
+          for (k = 0; k < aeCenters.length; k++) {
+            c = aeCenters[k];
+            var pxa = c.cx * SCALE + SCALE / 2;
+            var pya = c.cy * SCALE + SCALE / 2;
+            var fsAeSub = Math.max(5, Math.floor(fs * 0.52));
+            var yAeMain = pya - Math.max(2, Math.ceil(fsAeSub * 0.65));
+            var yAeSub = pya + Math.max(2, Math.ceil(fs * 0.58));
+            ctx.lineWidth = Math.max(2, Math.ceil(fs / 7));
+            ctx.strokeStyle = textStroke;
+            ctx.strokeText("AE", pxa, yAeMain);
+            ctx.fillStyle = textFill;
+            ctx.fillText("AE", pxa, yAeMain);
+            ctx.font = "bold " + fsAeSub + 'px system-ui, "Segoe UI", sans-serif';
+            ctx.lineWidth = Math.max(1, Math.ceil(fsAeSub / 6));
+            ctx.strokeText("3×3", pxa, yAeSub);
+            ctx.fillStyle = textFill;
+            ctx.fillText("3×3", pxa, yAeSub);
+            ctx.font = "bold " + fs + 'px system-ui, "Segoe UI", sans-serif';
           }
-          for (k2 = 0; k2 < furnaceCenters.length; k2++) {
-            c2 = furnaceCenters[k2];
-            drawMapStack(
-              c2.cx * SCALE + SCALE / 2,
-              c2.cy * SCALE + SCALE / 2 + SCALE * 0.35,
-              [
-                {
-                  text: "Furnace",
-                  size: Math.max(10, Math.floor(SCALE * 0.48)),
-                  fill: "#ffe9b0",
-                },
-                {
-                  text: "5×5",
-                  size: Math.max(7, Math.floor(SCALE * 0.34)),
-                  fill: "#e0c878",
-                },
-              ]
-            );
+          for (k = 0; k < furnaceCenters.length; k++) {
+            c = furnaceCenters[k];
+            var pxf = c.cx * SCALE + SCALE / 2;
+            var pyf = c.cy * SCALE + SCALE / 2;
+            var fsFu = Math.max(9, Math.floor(SCALE * 0.4));
+            var fsFuSub = Math.max(6, Math.floor(fsFu * 0.58));
+            var yFuMain = pyf - Math.max(2, Math.ceil(fsFuSub * 0.65));
+            var yFuSub = pyf + Math.max(2, Math.ceil(fsFu * 0.58));
+            ctx.font = "bold " + fsFu + 'px system-ui, "Segoe UI", sans-serif';
+            ctx.lineWidth = Math.max(2, Math.ceil(fsFu / 7));
+            ctx.strokeStyle = textStroke;
+            ctx.strokeText("Furnace", pxf, yFuMain);
+            ctx.fillStyle = textFill;
+            ctx.fillText("Furnace", pxf, yFuMain);
+            ctx.font = "bold " + fsFuSub + 'px system-ui, "Segoe UI", sans-serif';
+            ctx.lineWidth = Math.max(1, Math.ceil(fsFuSub / 6));
+            ctx.strokeText("5×5", pxf, yFuSub);
+            ctx.fillStyle = textFill;
+            ctx.fillText("5×5", pxf, yFuSub);
           }
-          for (k2 = 0; k2 < allianceCenterCenters.length; k2++) {
-            c2 = allianceCenterCenters[k2];
-            drawMapStack(c2.cx * SCALE + SCALE / 2, c2.cy * SCALE + SCALE / 2, [
-              {
-                text: "Alliance Center",
-                size: Math.max(10, Math.floor(SCALE * 0.42)),
-                fill: "#fff4d8",
-              },
-              {
-                text: "9×9",
-                size: Math.max(8, Math.floor(SCALE * 0.32)),
-                fill: "#ecd8a8",
-              },
-            ]);
+          ctx.font = "bold " + fs + 'px system-ui, "Segoe UI", sans-serif';
+          for (k = 0; k < allianceCenterCenters.length; k++) {
+            c = allianceCenterCenters[k];
+            var pxac = c.cx * SCALE + SCALE / 2;
+            var pyac = c.cy * SCALE + SCALE / 2;
+            var fsAlc = Math.max(6, Math.floor(SCALE * 0.28));
+            var fsAlcSub = Math.max(5, Math.floor(SCALE * 0.2));
+            var yAcMain = pyac - Math.max(2, Math.ceil(fsAlcSub * 0.7));
+            var yAcSub = pyac + Math.max(2, Math.ceil(fsAlc * 0.58));
+            ctx.font = "bold " + fsAlc + 'px system-ui, "Segoe UI", sans-serif';
+            ctx.lineWidth = Math.max(1, Math.ceil(fsAlc / 6));
+            ctx.strokeStyle = textStroke;
+            ctx.strokeText("Alliance Center", pxac, yAcMain);
+            ctx.fillStyle = textFill;
+            ctx.fillText("Alliance Center", pxac, yAcMain);
+            ctx.font = "bold " + fsAlcSub + 'px system-ui, "Segoe UI", sans-serif';
+            ctx.lineWidth = Math.max(1, Math.ceil(fsAlcSub / 6));
+            ctx.strokeText("9×9", pxac, yAcSub);
+            ctx.fillStyle = textFill;
+            ctx.fillText("9×9", pxac, yAcSub);
           }
+          ctx.font = "bold " + fs + 'px system-ui, "Segoe UI", sans-serif';
           var b;
           var pxCu;
           var pyCu;
           var fsCu;
           var fsCuSub;
+          var yCuM;
+          var yCuS;
           var nm;
           var szStr;
-          for (k2 = 0; k2 < customBlocks.length; k2++) {
-            b = customBlocks[k2];
+          for (k = 0; k < customBlocks.length; k++) {
+            b = customBlocks[k];
             pxCu = (b.left + b.w / 2) * SCALE;
             pyCu = (b.top + b.h / 2) * SCALE;
-            fsCu = Math.max(6, Math.floor(Math.min(b.w, b.h) * SCALE * 0.11));
-            fsCu = Math.min(fsCu, Math.floor(SCALE * 0.4));
-            fsCuSub = Math.max(5, Math.floor(fsCu * 0.7));
+            fsCu = Math.max(
+              5,
+              Math.floor(Math.min(b.w, b.h) * SCALE * 0.09)
+            );
+            fsCu = Math.min(fsCu, Math.floor(SCALE * 0.34));
+            fsCuSub = Math.max(4, Math.floor(fsCu * 0.68));
+            yCuM = pyCu - Math.max(2, Math.ceil(fsCuSub * 0.65));
+            yCuS = pyCu + Math.max(2, Math.ceil(fsCu * 0.55));
             nm = b.name.length > 22 ? b.name.slice(0, 21) + "…" : b.name;
             szStr = b.w + "×" + b.h;
-            drawMapStack(pxCu, pyCu, [
-              { text: nm, size: fsCu, fill: "#f0f4f8" },
-              { text: szStr, size: fsCuSub, fill: "#c8d4e0" },
-            ]);
+            ctx.font = "bold " + fsCu + 'px system-ui, "Segoe UI", sans-serif';
+            ctx.lineWidth = Math.max(1, Math.ceil(fsCu / 6));
+            ctx.strokeStyle = textStroke;
+            ctx.strokeText(nm, pxCu, yCuM);
+            ctx.fillStyle = textFill;
+            ctx.fillText(nm, pxCu, yCuM);
+            ctx.font = "bold " + fsCuSub + 'px system-ui, "Segoe UI", sans-serif';
+            ctx.lineWidth = Math.max(1, Math.ceil(fsCuSub / 6));
+            ctx.strokeText(szStr, pxCu, yCuS);
+            ctx.fillStyle = textFill;
+            ctx.fillText(szStr, pxCu, yCuS);
           }
-                    if (!suppressDragOverlayForExport) drawDragPreviewOverlay();
+          ctx.font = "bold " + fs + 'px system-ui, "Segoe UI", sans-serif';
+          if (!suppressDragOverlayForExport) drawDragPreviewOverlay();
           updateHiveTileCount();
         }
 
         function drawDragPreviewOverlay() {
           if (!drag || drag.phase !== "dragging" || !drag.hoverCell) return;
           var fillMark = cssVar("--accent", "#64b4ff");
+          var fillR5 = "#c9952c";
+          var fillR4 = "#c93838";
+          var fillR3 = "#8b5fc9";
+          var fillR2 = "#4a8fd9";
+          var fillR1 = "#d9a04a";
+          var fillAE = "#2a9d7a";
+          var fillFurnace = "#0a0a0a";
+          var fillACenter = "#7d6b8c";
           var hx = drag.hoverCell.x;
           var hy = drag.hoverCell.y;
           ctx.save();
-          ctx.globalAlpha = 0.9;
+          ctx.globalAlpha = 0.42;
           if (drag.kind === "mark") {
-            var ms = hiveFootprintStyle("mark");
-            ms.fill = fillMark;
-            ms.fillLight = fillMark;
-            drawFootprintPlate(hx, hy, 1, 1, ms, { alpha: 0.55 });
+            ctx.fillStyle = fillMark;
+            ctx.fillRect(hx * SCALE, hy * SCALE, SCALE, SCALE);
           } else if (drag.kind === "acenter") {
             var nca = Math.max(ACENTER_CMIN, Math.min(ACENTER_CMAX, hx - drag.grabDx));
             var ncyac = Math.max(ACENTER_CMIN, Math.min(ACENTER_CMAX, hy - drag.grabDy));
-            drawFootprintPlate(
-              nca - BLOCK_HALF_9,
-              ncyac - BLOCK_HALF_9,
-              9,
-              9,
-              hiveFootprintStyle("acenter"),
-              { alpha: 0.55, motif: "acenter" }
-            );
-            drawMapStack(nca * SCALE + SCALE / 2, ncyac * SCALE + SCALE / 2, [
-              {
-                text: "Alliance Center",
-                size: Math.max(10, Math.floor(SCALE * 0.42)),
-                fill: "#fff4d8",
-              },
-              {
-                text: "9×9",
-                size: Math.max(8, Math.floor(SCALE * 0.32)),
-                fill: "#ecd8a8",
-              },
-            ]);
+            ctx.fillStyle = fillACenter;
+            var dxac;
+            var dyac;
+            for (dyac = -BLOCK_HALF_9; dyac <= BLOCK_HALF_9; dyac++) {
+              for (dxac = -BLOCK_HALF_9; dxac <= BLOCK_HALF_9; dxac++) {
+                ctx.fillRect((nca + dxac) * SCALE, (ncyac + dyac) * SCALE, SCALE, SCALE);
+              }
+            }
+            var pxac = nca * SCALE + SCALE / 2;
+            var pyac = ncyac * SCALE + SCALE / 2;
+            var textStrokeAc = cssVar("--panel-2", "#0d1520");
+            var textFillAc = cssVar("--text", "#e8eef5");
+            ctx.globalAlpha = 0.75;
+            var fsac = Math.max(6, Math.floor(SCALE * 0.28));
+            var fsacSub = Math.max(5, Math.floor(SCALE * 0.2));
+            var yAcM = pyac - Math.max(2, Math.ceil(fsacSub * 0.7));
+            var yAcS = pyac + Math.max(2, Math.ceil(fsac * 0.58));
+            ctx.textAlign = "center";
+            ctx.textBaseline = "middle";
+            ctx.font = "bold " + fsac + 'px system-ui, "Segoe UI", sans-serif';
+            ctx.lineWidth = Math.max(1, Math.ceil(fsac / 6));
+            ctx.strokeStyle = textStrokeAc;
+            ctx.strokeText("Alliance Center", pxac, yAcM);
+            ctx.fillStyle = textFillAc;
+            ctx.fillText("Alliance Center", pxac, yAcM);
+            ctx.font = "bold " + fsacSub + 'px system-ui, "Segoe UI", sans-serif';
+            ctx.lineWidth = Math.max(1, Math.ceil(fsacSub / 6));
+            ctx.strokeStyle = textStrokeAc;
+            ctx.strokeText("9×9", pxac, yAcS);
+            ctx.fillStyle = textFillAc;
+            ctx.fillText("9×9", pxac, yAcS);
           } else if (drag.kind === "furnace") {
             var ncf = Math.max(FURNACE_CMIN, Math.min(FURNACE_CMAX, hx - drag.grabDx));
             var ncyf = Math.max(FURNACE_CMIN, Math.min(FURNACE_CMAX, hy - drag.grabDy));
-            drawFootprintPlate(
-              ncf - BLOCK_HALF_5,
-              ncyf - BLOCK_HALF_5,
-              5,
-              5,
-              hiveFootprintStyle("furnace"),
-              { alpha: 0.55, motif: "furnace" }
-            );
-            drawMapStack(
-              ncf * SCALE + SCALE / 2,
-              ncyf * SCALE + SCALE / 2 + SCALE * 0.35,
-              [
-                {
-                  text: "Furnace",
-                  size: Math.max(10, Math.floor(SCALE * 0.48)),
-                  fill: "#ffe9b0",
-                },
-                {
-                  text: "5×5",
-                  size: Math.max(7, Math.floor(SCALE * 0.34)),
-                  fill: "#e0c878",
-                },
-              ]
-            );
+            ctx.fillStyle = fillFurnace;
+            var dxf;
+            var dyf;
+            for (dyf = -BLOCK_HALF_5; dyf <= BLOCK_HALF_5; dyf++) {
+              for (dxf = -BLOCK_HALF_5; dxf <= BLOCK_HALF_5; dxf++) {
+                ctx.fillRect((ncf + dxf) * SCALE, (ncyf + dyf) * SCALE, SCALE, SCALE);
+              }
+            }
+            var pxf = ncf * SCALE + SCALE / 2;
+            var pyf = ncyf * SCALE + SCALE / 2;
+            var textStrokeF = cssVar("--panel-2", "#0d1520");
+            var textFillF = cssVar("--text", "#e8eef5");
+            ctx.globalAlpha = 0.75;
+            var fsf = Math.max(9, Math.floor(SCALE * 0.4));
+            var fsfSub = Math.max(6, Math.floor(fsf * 0.58));
+            var yFuM = pyf - Math.max(2, Math.ceil(fsfSub * 0.65));
+            var yFuS = pyf + Math.max(2, Math.ceil(fsf * 0.58));
+            ctx.textAlign = "center";
+            ctx.textBaseline = "middle";
+            ctx.font = "bold " + fsf + 'px system-ui, "Segoe UI", sans-serif';
+            ctx.lineWidth = Math.max(2, Math.ceil(fsf / 7));
+            ctx.strokeStyle = textStrokeF;
+            ctx.strokeText("Furnace", pxf, yFuM);
+            ctx.fillStyle = textFillF;
+            ctx.fillText("Furnace", pxf, yFuM);
+            ctx.font = "bold " + fsfSub + 'px system-ui, "Segoe UI", sans-serif';
+            ctx.lineWidth = Math.max(1, Math.ceil(fsfSub / 6));
+            ctx.strokeText("5×5", pxf, yFuS);
+            ctx.fillStyle = textFillF;
+            ctx.fillText("5×5", pxf, yFuS);
           } else if (drag.kind === "custom" && drag.origCustom) {
             var ocu = drag.origCustom;
             var nLc = hx - drag.grabDx;
@@ -3652,62 +2739,107 @@
             if (nTc < 0) nTc = 0;
             if (nLc + ocu.w > TILES) nLc = TILES - ocu.w;
             if (nTc + ocu.h > TILES) nTc = TILES - ocu.h;
-            drawFootprintPlate(
-              nLc,
-              nTc,
-              ocu.w,
-              ocu.h,
-              hiveFootprintStyle("custom"),
-              { alpha: 0.55 }
-            );
+            ctx.fillStyle = "#5a6d82";
+            ctx.globalAlpha = 0.42;
+            var dxcu;
+            var dycu;
+            for (dycu = 0; dycu < ocu.h; dycu++) {
+              for (dxcu = 0; dxcu < ocu.w; dxcu++) {
+                ctx.fillRect((nLc + dxcu) * SCALE, (nTc + dycu) * SCALE, SCALE, SCALE);
+              }
+            }
+            var pxCu = (nLc + ocu.w / 2) * SCALE;
+            var pyCu = (nTc + ocu.h / 2) * SCALE;
             var fsCu = Math.max(
-              6,
-              Math.floor(Math.min(ocu.w, ocu.h) * SCALE * 0.11)
+              5,
+              Math.floor(Math.min(ocu.w, ocu.h) * SCALE * 0.09)
             );
-            fsCu = Math.min(fsCu, Math.floor(SCALE * 0.4));
-            drawMapStack((nLc + ocu.w / 2) * SCALE, (nTc + ocu.h / 2) * SCALE, [
-              {
-                text: ocu.name.length > 22 ? ocu.name.slice(0, 21) + "…" : ocu.name,
-                size: fsCu,
-                fill: "#f0f4f8",
-              },
-              {
-                text: ocu.w + "×" + ocu.h,
-                size: Math.max(5, Math.floor(fsCu * 0.7)),
-                fill: "#c8d4e0",
-              },
-            ]);
+            fsCu = Math.min(fsCu, Math.floor(SCALE * 0.34));
+            var fsCuSub = Math.max(4, Math.floor(fsCu * 0.68));
+            var yCuM = pyCu - Math.max(2, Math.ceil(fsCuSub * 0.65));
+            var yCuS = pyCu + Math.max(2, Math.ceil(fsCu * 0.55));
+            var nmv =
+              ocu.name.length > 22 ? ocu.name.slice(0, 21) + "…" : ocu.name;
+            var szStrv = ocu.w + "×" + ocu.h;
+            var textStrokeCu = cssVar("--panel-2", "#0d1520");
+            var textFillCu = cssVar("--text", "#e8eef5");
+            ctx.globalAlpha = 0.75;
+            ctx.textAlign = "center";
+            ctx.textBaseline = "middle";
+            ctx.font = "bold " + fsCu + 'px system-ui, "Segoe UI", sans-serif';
+            ctx.lineWidth = Math.max(1, Math.ceil(fsCu / 6));
+            ctx.strokeStyle = textStrokeCu;
+            ctx.strokeText(nmv, pxCu, yCuM);
+            ctx.fillStyle = textFillCu;
+            ctx.fillText(nmv, pxCu, yCuM);
+            ctx.font = "bold " + fsCuSub + 'px system-ui, "Segoe UI", sans-serif';
+            ctx.lineWidth = Math.max(1, Math.ceil(fsCuSub / 6));
+            ctx.strokeText(szStrv, pxCu, yCuS);
+            ctx.fillStyle = textFillCu;
+            ctx.fillText(szStrv, pxCu, yCuS);
           } else {
             var ncx = Math.max(1, Math.min(TILES - 2, hx - drag.grabDx));
             var ncy = Math.max(1, Math.min(TILES - 2, hy - drag.grabDy));
-            var kind = "r5";
-            if (drag.kind === "r4") kind = "r4";
-            else if (drag.kind === "r3") kind = "r3";
-            else if (drag.kind === "r2") kind = "r2";
-            else if (drag.kind === "r1") kind = "r1";
-            else if (drag.kind === "ae") kind = "ae";
-            drawFootprintPlate(
-              ncx - BLOCK_HALF_3,
-              ncy - BLOCK_HALF_3,
-              3,
-              3,
-              hiveFootprintStyle(kind),
-              { alpha: 0.55, motif: kind === "ae" ? "ae" : null }
-            );
+            var fillBlk = fillR5;
+            if (drag.kind === "r4") {
+              fillBlk = fillR4;
+            } else if (drag.kind === "r3") {
+              fillBlk = fillR3;
+            } else if (drag.kind === "r2") {
+              fillBlk = fillR2;
+            } else if (drag.kind === "r1") {
+              fillBlk = fillR1;
+            } else if (drag.kind === "ae") {
+              fillBlk = fillAE;
+            }
+            ctx.fillStyle = fillBlk;
+            var dx;
+            var dy;
+            for (dy = -1; dy <= 1; dy++) {
+              for (dx = -1; dx <= 1; dx++) {
+                ctx.fillRect((ncx + dx) * SCALE, (ncy + dy) * SCALE, SCALE, SCALE);
+              }
+            }
             var px = ncx * SCALE + SCALE / 2;
             var py = ncy * SCALE + SCALE / 2;
-            var fs = Math.max(12, Math.floor(SCALE * 0.8));
-            if (kind === "ae") {
-              drawMapStack(px, py, [
-                { text: "AE", size: Math.max(13, Math.floor(SCALE * 0.88)), fill: "#f2fffa" },
-                {
-                  text: "3×3",
-                  size: Math.max(7, Math.floor(SCALE * 0.4)),
-                  fill: "#c8f5e4",
-                },
-              ]);
+            var textStroke = cssVar("--panel-2", "#0d1520");
+            var textFill = cssVar("--text", "#e8eef5");
+            ctx.globalAlpha = 0.75;
+            var fs = Math.max(10, Math.floor(SCALE * 0.68));
+            ctx.font = "bold " + fs + 'px system-ui, "Segoe UI", sans-serif';
+            ctx.textAlign = "center";
+            ctx.textBaseline = "middle";
+            ctx.lineWidth = Math.max(2, Math.ceil(fs / 7));
+            ctx.strokeStyle = textStroke;
+            var lbl = "R5";
+            if (drag.kind === "r4") {
+              lbl = "R4";
+            } else if (drag.kind === "r3") {
+              lbl = "R3";
+            } else if (drag.kind === "r2") {
+              lbl = "R2";
+            } else if (drag.kind === "r1") {
+              lbl = "R1";
+            } else if (drag.kind === "ae") {
+              lbl = "AE";
+            }
+            if (drag.kind === "ae") {
+              var fsAeSub = Math.max(5, Math.floor(fs * 0.52));
+              var yAeM = py - Math.max(2, Math.ceil(fsAeSub * 0.65));
+              var yAeS = py + Math.max(2, Math.ceil(fs * 0.58));
+              ctx.strokeText(lbl, px, yAeM);
+              ctx.fillStyle = textFill;
+              ctx.fillText(lbl, px, yAeM);
+              ctx.font = "bold " + fsAeSub + 'px system-ui, "Segoe UI", sans-serif';
+              ctx.lineWidth = Math.max(1, Math.ceil(fsAeSub / 6));
+              ctx.strokeStyle = textStroke;
+              ctx.strokeText("3×3", px, yAeS);
+              ctx.fillStyle = textFill;
+              ctx.fillText("3×3", px, yAeS);
             } else {
-              drawCenterText(px, py, "", kind.toUpperCase(), fs);
+              ctx.strokeText(lbl, px, py);
+              ctx.fillStyle = textFill;
+              ctx.fillText(lbl, px, py);
             }
           }
           ctx.restore();
@@ -5504,26 +4636,9 @@
         function exportHiveMapPng() {
           var wasDrag = drag;
           suppressDragOverlayForExport = true;
-          var exportBw = Math.min(
-            MAX_BACKING,
-            Math.round(PX * Math.max(2, hiveDevicePixelRatio()))
-          );
-          var bumped = false;
-          if (canvas.width < exportBw) {
-            bumped = true;
-            canvas.width = exportBw;
-            canvas.height = exportBw;
-            baseLayer.width = exportBw;
-            baseLayer.height = exportBw;
-            buildBaseLayer();
-          }
           draw();
           suppressDragOverlayForExport = false;
           function finish() {
-            if (bumped) {
-              /* Restore display-sized HiDPI backing used by applyZoom. */
-              syncCanvasResolution(displayCssSize);
-            }
             if (wasDrag) drag = wasDrag;
             draw();
           }
@@ -6135,20 +5250,9 @@
           },
           listAvailableHubs: listAvailableHubs,
           generateAutoHive: generateAutoHive,
-          placeAllianceCenterAtCenter: placeAllianceCenterAtCenter,
-          placeAeAtCenter: placeAeAtCenter,
           placeMember: placeMember,
           removeMemberFromMap: removeMemberFromMap,
           getPlacedMemberIds: getPlacedMemberIds,
-          getPlacedBaseCenters: function () {
-            return memberCenterArrays().reduce(function (out, arr) {
-              return out.concat(
-                arr.map(function (c) {
-                  return { cx: c.cx | 0, cy: c.cy | 0, name: c.name || "" };
-                }),
-              );
-            }, []);
-          },
           onMembersChange: null,
           onHubsChange: null,
         };
