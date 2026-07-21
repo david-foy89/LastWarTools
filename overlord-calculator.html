@@ -1,0 +1,1072 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <!-- Google tag (gtag.js) -->
+    <script async src="https://www.googletagmanager.com/gtag/js?id=GT-5R3WG7DP"></script>
+    <script>
+      window.dataLayer = window.dataLayer || [];
+      function gtag(){dataLayer.push(arguments);}
+      gtag('js', new Date());
+      gtag('config', 'GT-5R3WG7DP');
+    </script>
+
+    <meta charset="UTF-8" />
+    <link rel="icon" href="/favicon.ico" sizes="32x32" type="image/x-icon" />
+    <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Last War Overlord Calculator — Training, Promotion, Skills</title>
+    <meta
+      name="description"
+      content="Last War Overlord Calculator for training, promotion, and skill upgrades. Calculate guidebooks, certificates, bond badges, shards, and skill badges."
+    />
+    <meta name="robots" content="index, follow" />
+    <link rel="canonical" href="https://lastwarsurvivaltools.com/overlord-calculator.html" />
+    <meta property="og:site_name" content="Last War Tools" />
+    <meta property="og:locale" content="en_US" />
+    <meta property="og:type" content="website" />
+    <meta property="og:title" content="Last War Overlord Calculator — Training, Promotion, Skills" />
+    <meta
+      property="og:description"
+      content="Plan Overlord training, promotion, and skill upgrades with local guidebook, certificate, badge, and shard totals."
+    />
+    <meta property="og:url" content="https://lastwarsurvivaltools.com/overlord-calculator.html" />
+    <meta property="og:image" content="https://lastwarsurvivaltools.com/media/lwst.png" />
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:title" content="Last War Overlord Calculator — Training, Promotion, Skills" />
+    <meta
+      name="twitter:description"
+      content="Calculate Overlord training, promotion, and skill upgrade costs in one page."
+    />
+    <meta name="twitter:image" content="https://lastwarsurvivaltools.com/media/lwst.png" />
+    <link rel="stylesheet" href="google-translate-toolbar-hide.css" />
+    <link rel="stylesheet" href="last-war-furnace-upgrade-calculator.css" />
+    <script src="page-nav-dropdown.js" defer></script>
+    <link rel="stylesheet" href="/adsense.css" />
+    <script
+      async
+      src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1014488780102797"
+      crossorigin="anonymous"
+    ></script>
+    <style>
+      .overlord-page .hero .sub {
+        max-width: 56rem;
+      }
+
+      .ol-tabs {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 8px;
+        margin: 14px 0 0;
+      }
+
+      .ol-tab {
+        appearance: none;
+        border: 1px solid var(--line);
+        border-radius: 999px;
+        background: rgba(12, 24, 37, 0.92);
+        color: var(--muted);
+        padding: 8px 14px;
+        font: inherit;
+        font-weight: 700;
+        cursor: pointer;
+      }
+
+      .ol-tab.active {
+        color: var(--accent);
+        border-color: rgba(116, 192, 252, 0.6);
+        background: rgba(18, 42, 64, 0.96);
+      }
+
+      .ol-sticky {
+        position: sticky;
+        top: 0;
+        z-index: 20;
+        display: grid;
+        grid-template-columns: repeat(3, minmax(0, 1fr)) minmax(180px, 1.2fr);
+        gap: 8px;
+        margin-bottom: 14px;
+        padding: 10px;
+        border: 1px solid rgba(116, 192, 252, 0.26);
+        border-radius: 12px;
+        background: rgba(8, 16, 25, 0.94);
+        backdrop-filter: blur(10px);
+      }
+
+      .ol-stat,
+      .ol-next {
+        border: 1px solid var(--line);
+        border-radius: 10px;
+        background: rgba(12, 24, 37, 0.92);
+        padding: 8px 10px;
+      }
+
+      .ol-stat-key,
+      .ol-next strong {
+        color: var(--muted);
+        font-size: 0.68rem;
+        text-transform: uppercase;
+        letter-spacing: 0.08em;
+      }
+
+      .ol-stat-value {
+        margin-top: 4px;
+        font-size: 1rem;
+        font-weight: 800;
+      }
+
+      .ol-next {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        min-width: 0;
+      }
+
+      .ol-next span {
+        min-width: 0;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+        font-weight: 700;
+      }
+
+      .ol-layout {
+        display: grid;
+        grid-template-columns: minmax(0, 1fr) minmax(260px, 320px);
+        gap: 16px;
+        align-items: start;
+      }
+
+      .ol-main,
+      .ol-side {
+        min-width: 0;
+      }
+
+      .ol-side {
+        position: sticky;
+        top: 74px;
+      }
+
+      .ol-section {
+        display: none;
+      }
+
+      .ol-section.active {
+        display: block;
+      }
+
+      .ol-grid-2,
+      .ol-grid-3 {
+        display: grid;
+        gap: 12px;
+      }
+
+      .ol-grid-2 {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+      }
+
+      .ol-grid-3 {
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+      }
+
+      .ol-track-card {
+        border: 1px solid var(--line);
+        border-radius: 12px;
+        background: rgba(8, 16, 25, 0.6);
+        padding: 14px;
+      }
+
+      .ol-track-head {
+        display: flex;
+        justify-content: space-between;
+        gap: 10px;
+        align-items: center;
+        margin-bottom: 10px;
+      }
+
+      .ol-track-title {
+        margin: 0;
+        font-size: 1rem;
+      }
+
+      .ol-toggle {
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        color: var(--muted);
+        font-size: 0.85rem;
+      }
+
+      .ol-toggle input {
+        width: auto;
+      }
+
+      .ol-quick {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 8px;
+        margin-top: 12px;
+      }
+
+      .ol-quick button {
+        appearance: none;
+        border: 1px solid var(--line);
+        border-radius: 8px;
+        background: rgba(12, 24, 37, 0.92);
+        color: var(--muted);
+        padding: 6px 10px;
+        font: inherit;
+        font-size: 0.78rem;
+        font-weight: 700;
+        cursor: pointer;
+      }
+
+      .ol-quick button:hover {
+        color: var(--text);
+        border-color: rgba(116, 192, 252, 0.45);
+      }
+
+      .ol-summary-tiles {
+        display: grid;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 10px;
+        margin-bottom: 12px;
+      }
+
+      .ol-tile {
+        border: 1px solid var(--line);
+        border-radius: 12px;
+        background: rgba(8, 16, 25, 0.72);
+        padding: 12px;
+      }
+
+      .ol-tile-key {
+        color: var(--muted);
+        font-size: 0.72rem;
+        text-transform: uppercase;
+        letter-spacing: 0.08em;
+      }
+
+      .ol-tile-value {
+        margin-top: 5px;
+        font-size: 1.2rem;
+        font-weight: 800;
+      }
+
+      .ol-tile-sub {
+        margin-top: 4px;
+        color: var(--muted);
+        font-size: 0.75rem;
+      }
+
+      .ol-list {
+        display: grid;
+        gap: 10px;
+      }
+
+      .ol-list-item {
+        border: 1px solid var(--line);
+        border-radius: 12px;
+        background: rgba(8, 16, 25, 0.62);
+        padding: 12px;
+      }
+
+      .ol-list-title {
+        font-weight: 800;
+      }
+
+      .ol-list-meta {
+        margin-top: 4px;
+        color: var(--muted);
+        font-size: 0.8rem;
+      }
+
+      .ol-empty {
+        padding: 14px;
+        border: 1px dashed var(--line-soft);
+        border-radius: 12px;
+        color: var(--muted);
+        text-align: center;
+        background: rgba(8, 16, 25, 0.5);
+      }
+
+      .planner-overview + .planner-overview {
+        margin-top: 10px;
+      }
+
+      @media (max-width: 920px) {
+        .ol-layout {
+          grid-template-columns: 1fr;
+        }
+
+        .ol-side {
+          position: static;
+        }
+
+        .ol-sticky {
+          grid-template-columns: repeat(2, minmax(0, 1fr));
+        }
+
+        .ol-next {
+          grid-column: 1 / -1;
+        }
+      }
+
+      @media (max-width: 640px) {
+        .ol-grid-2,
+        .ol-grid-3,
+        .ol-summary-tiles {
+          grid-template-columns: 1fr;
+        }
+      }
+    </style>
+  </head>
+  <body class="overlord-page">
+    <div class="page">
+      <div class="page-top-stack">
+        <aside class="account-promo-strip" aria-label="Optional account">
+          <p class="account-promo-strip__text">
+            <strong>No account required.</strong> Every calculator works in your browser without signing up.
+            Create a free account only if you want to sync saved data across devices.
+          </p>
+          <div class="account-promo-actions">
+            <a href="account.html" class="action-button">Create account</a>
+            <a href="account.html" class="action-button action-button--quiet">Sign in</a>
+          </div>
+        </aside>
+        <div class="page-top-controls">
+          <div class="logo-control">
+            <a href="index.html" aria-label="Go to homepage">
+              <img src="media/lwst.png" alt="LWST logo" class="site-logo" />
+            </a>
+          </div>
+          <div class="language-control">
+            <label for="languageSelect">Language</label>
+            <select id="languageSelect"></select>
+          </div>
+        </div>
+      </div>
+      <div id="google_translate_element" class="hidden-translate"></div>
+
+      <nav class="page-nav" aria-label="Calculator pages">
+        <a href="hq-upgrade-calculator.html" class="page-link">HQ Upgrade</a>
+        <details class="page-nav-dropdown" name="alliance-nav">
+          <summary class="page-link page-nav-dropdown-toggle">Alliance Tools</summary>
+          <div class="page-nav-dropdown-menu">
+            <a href="train-conductor-schedule.html" class="page-link">Train Conductor</a>
+            <a href="transfer-tracker.html" class="page-link">Transfer Tracker</a>
+            <a href="verus-tracker.html" class="page-link">Versus Tracker</a>
+            <a href="ds-tracker.html" class="page-link">Desert Storm Tracker/Planner</a>
+            <a href="server-search.html" class="page-link">Server Search</a>
+            <a href="warzone-planner.html" class="page-link">Warzone Planner</a>
+            <a href="alliance-hive.html" class="page-link">Hive Builder</a>
+          </div>
+        </details>
+        <details class="page-nav-dropdown active" name="troop-nav">
+          <summary class="page-link page-nav-dropdown-toggle">Troop Tools</summary>
+          <div class="page-nav-dropdown-menu">
+            <a href="t10-troops-calculator.html" class="page-link">T10 Troops</a>
+            <a href="t11-troops-calculator.html" class="page-link">T11 Troops</a>
+            <a href="overlord-calculator.html" class="page-link active">Overlord Calculator</a>
+          </div>
+        </details>
+        <details class="page-nav-dropdown" name="tech-nav">
+          <summary class="page-link page-nav-dropdown-toggle">Tech Tools</summary>
+          <div class="page-nav-dropdown-menu">
+            <a href="research-calculator.html" class="page-link">Research Calculator</a>
+          </div>
+        </details>
+      </nav>
+
+      <section class="hero">
+        <h1>Overlord Calculator</h1>
+        <div class="sub">
+          Plan all core Overlord progression in one place: training, bond rating, promotion,
+          and skills. Totals update instantly using local data extracted from community
+          calculator tables.
+        </div>
+        <div class="ol-tabs" id="toolTabs" role="tablist" aria-label="Overlord tools">
+          <button type="button" class="ol-tab active" data-tab="training">Training</button>
+          <button type="button" class="ol-tab" data-tab="promotion">Promotion</button>
+          <button type="button" class="ol-tab" data-tab="skill">Skill</button>
+        </div>
+      </section>
+
+      <div class="ol-sticky" aria-live="polite">
+        <div class="ol-stat">
+          <div class="ol-stat-key" id="stickyLabel1">Guidebooks</div>
+          <div class="ol-stat-value" id="stickyValue1">0</div>
+        </div>
+        <div class="ol-stat">
+          <div class="ol-stat-key" id="stickyLabel2">Certificates</div>
+          <div class="ol-stat-value" id="stickyValue2">0</div>
+        </div>
+        <div class="ol-stat">
+          <div class="ol-stat-key" id="stickyLabel3">Bond Badges</div>
+          <div class="ol-stat-value" id="stickyValue3">0</div>
+        </div>
+        <div class="ol-next"><strong>Next</strong><span id="stickyNext">Choose a target to begin</span></div>
+      </div>
+
+      <section class="ol-layout">
+        <div class="ol-main">
+          <div class="card">
+            <section class="ol-section active" id="section-training">
+              <h2 class="card-title">Training</h2>
+              <div class="ol-grid-3">
+                <article class="ol-track-card" data-track="jointAttack">
+                  <div class="ol-track-head">
+                    <h3 class="ol-track-title">Joint Attack</h3>
+                    <label class="ol-toggle"><input type="checkbox" id="jointAttack-enabled" checked /> Include</label>
+                  </div>
+                  <div class="ol-grid-2">
+                    <div class="field">
+                      <label for="jointAttack-from">From Level</label>
+                      <input id="jointAttack-from" type="number" min="1" max="799" step="1" value="1" />
+                    </div>
+                    <div class="field">
+                      <label for="jointAttack-to">To Level</label>
+                      <input id="jointAttack-to" type="number" min="2" max="800" step="1" value="20" />
+                    </div>
+                  </div>
+                </article>
+                <article class="ol-track-card" data-track="defenseSupport">
+                  <div class="ol-track-head">
+                    <h3 class="ol-track-title">Defense Support</h3>
+                    <label class="ol-toggle"><input type="checkbox" id="defenseSupport-enabled" checked /> Include</label>
+                  </div>
+                  <div class="ol-grid-2">
+                    <div class="field">
+                      <label for="defenseSupport-from">From Level</label>
+                      <input id="defenseSupport-from" type="number" min="1" max="799" step="1" value="1" />
+                    </div>
+                    <div class="field">
+                      <label for="defenseSupport-to">To Level</label>
+                      <input id="defenseSupport-to" type="number" min="2" max="800" step="1" value="20" />
+                    </div>
+                  </div>
+                </article>
+                <article class="ol-track-card" data-track="survivalTraining">
+                  <div class="ol-track-head">
+                    <h3 class="ol-track-title">Survival Training</h3>
+                    <label class="ol-toggle"><input type="checkbox" id="survivalTraining-enabled" checked /> Include</label>
+                  </div>
+                  <div class="ol-grid-2">
+                    <div class="field">
+                      <label for="survivalTraining-from">From Level</label>
+                      <input id="survivalTraining-from" type="number" min="1" max="799" step="1" value="1" />
+                    </div>
+                    <div class="field">
+                      <label for="survivalTraining-to">To Level</label>
+                      <input id="survivalTraining-to" type="number" min="2" max="800" step="1" value="20" />
+                    </div>
+                  </div>
+                </article>
+              </div>
+
+              <div class="field-group">
+                <h2 class="card-title">Bond Rating</h2>
+                <div class="ol-grid-2">
+                  <div class="field">
+                    <label for="bond-from">From Bond Rating</label>
+                    <select id="bond-from"></select>
+                  </div>
+                  <div class="field">
+                    <label for="bond-to">To Bond Rating</label>
+                    <select id="bond-to"></select>
+                  </div>
+                </div>
+                <div class="ol-quick">
+                  <button type="button" data-training-preset="50">Lv 50</button>
+                  <button type="button" data-training-preset="100">Lv 100</button>
+                  <button type="button" data-training-preset="200">Lv 200</button>
+                  <button type="button" data-training-preset="400">Lv 400</button>
+                  <button type="button" data-training-preset="800">Lv 800</button>
+                </div>
+              </div>
+            </section>
+
+            <section class="ol-section" id="section-promotion">
+              <h2 class="card-title">Promotion</h2>
+              <div class="ol-grid-2">
+                <div class="field">
+                  <label for="promotion-from">From Level</label>
+                  <input id="promotion-from" type="number" min="0" max="59" step="1" value="0" />
+                </div>
+                <div class="field">
+                  <label for="promotion-to">To Level</label>
+                  <input id="promotion-to" type="number" min="1" max="60" step="1" value="20" />
+                </div>
+              </div>
+              <div class="ol-quick">
+                <button type="button" data-promotion-preset="10">Lv 10</button>
+                <button type="button" data-promotion-preset="20">Lv 20</button>
+                <button type="button" data-promotion-preset="30">Lv 30</button>
+                <button type="button" data-promotion-preset="40">Lv 40</button>
+                <button type="button" data-promotion-preset="60">Lv 60</button>
+              </div>
+              <div class="planner-overview" id="promotionOverview">
+                Promotion rank changes and skill unlocks appear in the summary panel.
+              </div>
+            </section>
+
+            <section class="ol-section" id="section-skill">
+              <h2 class="card-title">Skill</h2>
+              <div class="ol-grid-2">
+                <div class="field">
+                  <label for="skill-from">From Level</label>
+                  <input id="skill-from" type="number" min="1" max="39" step="1" value="1" />
+                </div>
+                <div class="field">
+                  <label for="skill-to">To Level</label>
+                  <input id="skill-to" type="number" min="2" max="40" step="1" value="20" />
+                </div>
+              </div>
+              <div class="ol-quick">
+                <button type="button" data-skill-preset="10">Lv 10</button>
+                <button type="button" data-skill-preset="20">Lv 20</button>
+                <button type="button" data-skill-preset="30">Lv 30</button>
+                <button type="button" data-skill-preset="40">Lv 40</button>
+              </div>
+            </section>
+          </div>
+        </div>
+
+        <aside class="ol-side">
+          <div class="card">
+            <h2 class="card-title">Summary</h2>
+            <div class="ol-summary-tiles" id="summaryTiles"></div>
+            <div class="details">
+              <div class="row">
+                <div class="row-key">Active Tool</div>
+                <div class="row-value" id="activeToolLabel">Training</div>
+              </div>
+              <div class="row">
+                <div class="row-key">Range</div>
+                <div class="row-value" id="rangeLabel">Lv 1 to Lv 20</div>
+              </div>
+              <div class="row">
+                <div class="row-key">Focus</div>
+                <div class="row-value" id="focusLabel">Training totals</div>
+              </div>
+            </div>
+            <div class="planner-overview" id="overviewBox">
+              <strong>Next step:</strong> Increase a target level or bond rating to calculate costs.
+            </div>
+            <div class="field-group">
+              <h2 class="card-title">Unlocks / Breakdown</h2>
+              <div id="summaryList" class="ol-list"></div>
+              <div id="summaryEmpty" class="ol-empty">No unlocks or extra breakdown items yet.</div>
+            </div>
+            <p class="planner-breakdown-meta" style="margin-top: 12px;">
+              Community-sourced tables based on
+              <a href="https://lastwarvault.com/calculators/" target="_blank" rel="noopener noreferrer">Last War Vault</a>
+              and
+              <a href="https://cpt-hedge.com/calculators/overlord-training" target="_blank" rel="noopener noreferrer">Cpt Hedgehog</a>.
+            </p>
+          </div>
+        </aside>
+      </section>
+    </div>
+
+    <script src="overlord-data.js"></script>
+    <script>
+      (function () {
+        const data = window.LW_OVERLORD_DATA || {};
+        const trainingLevels = data.trainingLevels || [];
+        const bondRatingsRaw = data.bondRatings || [];
+        const promotionLevels = data.promotionLevels || [];
+        const skillLevels = data.skillLevels || [];
+
+        const toolTabs = document.getElementById("toolTabs");
+        const sections = {
+          training: document.getElementById("section-training"),
+          promotion: document.getElementById("section-promotion"),
+          skill: document.getElementById("section-skill"),
+        };
+
+        const stickyLabel1 = document.getElementById("stickyLabel1");
+        const stickyLabel2 = document.getElementById("stickyLabel2");
+        const stickyLabel3 = document.getElementById("stickyLabel3");
+        const stickyValue1 = document.getElementById("stickyValue1");
+        const stickyValue2 = document.getElementById("stickyValue2");
+        const stickyValue3 = document.getElementById("stickyValue3");
+        const stickyNext = document.getElementById("stickyNext");
+
+        const activeToolLabel = document.getElementById("activeToolLabel");
+        const rangeLabel = document.getElementById("rangeLabel");
+        const focusLabel = document.getElementById("focusLabel");
+        const overviewBox = document.getElementById("overviewBox");
+        const summaryTiles = document.getElementById("summaryTiles");
+        const summaryList = document.getElementById("summaryList");
+        const summaryEmpty = document.getElementById("summaryEmpty");
+
+        const languageSelect = document.getElementById("languageSelect");
+        let preferredLanguage = "en";
+        const languageOptions = [
+          { code: "en", label: "English" },
+          { code: "es", label: "Spanish" },
+          { code: "fr", label: "French" },
+          { code: "de", label: "German" },
+          { code: "it", label: "Italian" },
+          { code: "pt", label: "Portuguese" },
+          { code: "ru", label: "Russian" },
+          { code: "uk", label: "Ukrainian" },
+          { code: "pl", label: "Polish" },
+          { code: "tr", label: "Turkish" },
+          { code: "ar", label: "Arabic" },
+          { code: "zh-CN", label: "Chinese (Simplified)" },
+          { code: "ja", label: "Japanese" },
+          { code: "ko", label: "Korean" },
+        ];
+
+        const bondOrder = [
+          "New Partner",
+          "Rookie Partner",
+          "Trusted Friend",
+          "Reliable Partner",
+          "Loyal Friend",
+          "Bonded Partner",
+          "Perfect Sync",
+          "Strategic Pillar",
+          "Heart Bond",
+          "Team Anchor",
+          "Elite Ace",
+          "Ultimate Overlord",
+        ];
+
+        let activeTab = "training";
+
+        function toRoman(num) {
+          return ["I", "II", "III", "IV", "V", "VI", "VII", "VIII", "IX", "X"][num - 1] || String(num);
+        }
+
+        function formatNumber(value) {
+          return Math.round(Number(value) || 0).toLocaleString();
+        }
+
+        function formatCompact(value) {
+          const n = Math.round(Number(value) || 0);
+          const abs = Math.abs(n);
+          if (abs >= 1e9) return trimCompact(n / 1e9) + "B";
+          if (abs >= 1e6) return trimCompact(n / 1e6) + "M";
+          if (abs >= 1e3) return trimCompact(n / 1e3) + "K";
+          return String(n);
+        }
+
+        function trimCompact(n) {
+          const fixed = Math.abs(n) >= 100 ? n.toFixed(0) : Math.abs(n) >= 10 ? n.toFixed(1) : n.toFixed(2);
+          return fixed.replace(/\.0+$/, "").replace(/(\.\d*?)0+$/, "$1");
+        }
+
+        function buildLanguageOptions() {
+          languageSelect.innerHTML = languageOptions
+            .map(function (lang) { return '<option value="' + lang.code + '">' + lang.label + "</option>"; })
+            .join("");
+          languageSelect.value = preferredLanguage;
+        }
+
+        function applyGoogleLanguage(languageCode, retries) {
+          retries = retries === undefined ? 25 : retries;
+          const combo = document.querySelector(".goog-te-combo");
+          if (!combo) {
+            if (retries > 0) setTimeout(function () { applyGoogleLanguage(languageCode, retries - 1); }, 200);
+            return;
+          }
+          combo.value = languageCode;
+          combo.dispatchEvent(new Event("change"));
+        }
+
+        function loadGoogleTranslateScript() {
+          if (window.google && window.google.translate) {
+            window.googleTranslateElementInit();
+            return;
+          }
+          const script = document.createElement("script");
+          script.src = "https://translate.google.com/translate_a/element.js?cb=googleTranslateElementInit";
+          script.async = true;
+          document.body.appendChild(script);
+        }
+
+        window.googleTranslateElementInit = function () {
+          new window.google.translate.TranslateElement({ pageLanguage: "en", autoDisplay: false }, "google_translate_element");
+          applyGoogleLanguage(preferredLanguage);
+        };
+
+        function buildBondRatings() {
+          const mapped = bondRatingsRaw.map(function (entry) {
+            return {
+              name: entry.name,
+              tier: entry.tier,
+              badges: entry.badges || 0,
+              trainingUnlock: entry.training_unlock || 0,
+              display: entry.name === "No Rating" ? "No Rating" : entry.name + " " + toRoman(entry.tier),
+            };
+          });
+
+          mapped.sort(function (a, b) {
+            if (a.name === "No Rating") return -1;
+            if (b.name === "No Rating") return 1;
+            const nameDiff = bondOrder.indexOf(a.name) - bondOrder.indexOf(b.name);
+            return nameDiff !== 0 ? nameDiff : a.tier - b.tier;
+          });
+
+          return mapped;
+        }
+
+        const bondRatings = buildBondRatings();
+
+        function fillBondSelects() {
+          const options = bondRatings
+            .map(function (rating, index) {
+              return '<option value="' + index + '">' + rating.display + "</option>";
+            })
+            .join("");
+          document.getElementById("bond-from").innerHTML = options;
+          document.getElementById("bond-to").innerHTML = options;
+          document.getElementById("bond-from").value = "0";
+          document.getElementById("bond-to").value = "0";
+        }
+
+        function setTab(tab) {
+          activeTab = tab;
+          toolTabs.querySelectorAll(".ol-tab").forEach(function (button) {
+            button.classList.toggle("active", button.getAttribute("data-tab") === tab);
+          });
+          Object.keys(sections).forEach(function (key) {
+            sections[key].classList.toggle("active", key === tab);
+          });
+          update();
+        }
+
+        function getLevelCost(table, fromLevel, toLevel, key) {
+          let total = 0;
+          for (let level = fromLevel + 1; level <= toLevel; level += 1) {
+            const row = table[level - 1];
+            total += row && row[key] ? row[key] : 0;
+          }
+          return total;
+        }
+
+        function getBondBadges(fromIndex, toIndex) {
+          let total = 0;
+          for (let i = fromIndex; i < toIndex; i += 1) {
+            total += bondRatings[i] ? bondRatings[i].badges : 0;
+          }
+          return total;
+        }
+
+        function highestBondIndexForLevel(level) {
+          if (level < 50) return 0;
+          const eligible = bondRatings.filter(function (rating) {
+            return rating.trainingUnlock && rating.trainingUnlock <= level;
+          });
+          if (!eligible.length) return 0;
+          const latest = eligible[eligible.length - 1];
+          return bondRatings.findIndex(function (rating) {
+            return rating.name === latest.name && rating.tier === latest.tier;
+          });
+        }
+
+        function clampInput(id, min, max) {
+          const input = document.getElementById(id);
+          const value = Math.max(min, Math.min(max, Number(input.value) || min));
+          input.value = String(value);
+          return value;
+        }
+
+        function normalizeTrainingTrack(prefix) {
+          const from = clampInput(prefix + "-from", 1, 799);
+          const to = clampInput(prefix + "-to", 2, 800);
+          if (to <= from) {
+            document.getElementById(prefix + "-to").value = String(Math.min(800, from + 1));
+          }
+        }
+
+        function normalizeTrainingState() {
+          ["jointAttack", "defenseSupport", "survivalTraining"].forEach(normalizeTrainingTrack);
+          const from = Math.max(0, Math.min(bondRatings.length - 1, Number(document.getElementById("bond-from").value) || 0));
+          let to = Math.max(0, Math.min(bondRatings.length - 1, Number(document.getElementById("bond-to").value) || 0));
+          if (to < from) to = from;
+          document.getElementById("bond-from").value = String(from);
+          document.getElementById("bond-to").value = String(to);
+        }
+
+        function normalizePromotionState() {
+          const from = clampInput("promotion-from", 0, 59);
+          const to = clampInput("promotion-to", 1, 60);
+          if (to <= from) {
+            document.getElementById("promotion-to").value = String(Math.min(60, from + 1));
+          }
+        }
+
+        function normalizeSkillState() {
+          const from = clampInput("skill-from", 1, 39);
+          const to = clampInput("skill-to", 2, 40);
+          if (to <= from) {
+            document.getElementById("skill-to").value = String(Math.min(40, from + 1));
+          }
+        }
+
+        function setSummaryTiles(items) {
+          summaryTiles.innerHTML = items
+            .map(function (item) {
+              return (
+                '<div class="ol-tile">' +
+                '<div class="ol-tile-key">' + item.label + "</div>" +
+                '<div class="ol-tile-value">' + item.value + "</div>" +
+                (item.sub ? '<div class="ol-tile-sub">' + item.sub + "</div>" : "") +
+                "</div>"
+              );
+            })
+            .join("");
+        }
+
+        function setSummaryList(items) {
+          summaryList.innerHTML = items
+            .map(function (item) {
+              return (
+                '<div class="ol-list-item">' +
+                '<div class="ol-list-title">' + item.title + "</div>" +
+                '<div class="ol-list-meta">' + item.meta + "</div>" +
+                "</div>"
+              );
+            })
+            .join("");
+          summaryEmpty.style.display = items.length ? "none" : "";
+        }
+
+        function updateTraining() {
+          normalizeTrainingState();
+          const tracks = [
+            { id: "jointAttack", label: "Joint Attack" },
+            { id: "defenseSupport", label: "Defense Support" },
+            { id: "survivalTraining", label: "Survival Training" },
+          ];
+
+          let guidebooks = 0;
+          let certificates = 0;
+          let highestTarget = 0;
+          let enabledCount = 0;
+          const summaryItems = [];
+
+          tracks.forEach(function (track) {
+            const enabled = document.getElementById(track.id + "-enabled").checked;
+            const fromLevel = Number(document.getElementById(track.id + "-from").value);
+            const toLevel = Number(document.getElementById(track.id + "-to").value);
+            highestTarget = Math.max(highestTarget, toLevel);
+            if (!enabled) return;
+            enabledCount += 1;
+            const g = getLevelCost(trainingLevels, fromLevel, toLevel, "guidebooks");
+            const c = getLevelCost(trainingLevels, fromLevel, toLevel, "certificates");
+            guidebooks += g;
+            certificates += c;
+            summaryItems.push({
+              title: track.label,
+              meta: "Lv " + fromLevel + " to Lv " + toLevel + " · " + formatNumber(g) + " guidebooks · " + formatNumber(c) + " certificates",
+            });
+          });
+
+          const bondFrom = Number(document.getElementById("bond-from").value);
+          const bondTo = Number(document.getElementById("bond-to").value);
+          const bondBadges = getBondBadges(bondFrom, bondTo);
+          const requiredBondIndex = highestBondIndexForLevel(highestTarget);
+          const requiredBond = bondRatings[requiredBondIndex];
+          const selectedBond = bondRatings[bondTo];
+
+          if (bondTo > bondFrom) {
+            summaryItems.push({
+              title: "Bond Rating",
+              meta: bondRatings[bondFrom].display + " to " + selectedBond.display + " · " + formatNumber(bondBadges) + " bond badges",
+            });
+          }
+
+          stickyLabel1.textContent = "Guidebooks";
+          stickyLabel2.textContent = "Certificates";
+          stickyLabel3.textContent = "Bond Badges";
+          stickyValue1.textContent = formatCompact(guidebooks);
+          stickyValue2.textContent = formatCompact(certificates);
+          stickyValue3.textContent = formatCompact(bondBadges);
+          stickyNext.textContent = requiredBond
+            ? "Highest selected training target is Lv " + highestTarget + " · bond gate " + requiredBond.display
+            : "Choose a target to begin";
+
+          activeToolLabel.textContent = "Training";
+          rangeLabel.textContent = enabledCount
+            ? enabledCount + " training line(s) active"
+            : "No training lines active";
+          focusLabel.textContent = "Guidebooks, certificates, and bond badges";
+          overviewBox.innerHTML =
+            "<strong>Next step:</strong> " +
+            (requiredBond
+              ? "Training past Lv " + (requiredBond.trainingUnlock || highestTarget) + " needs " + requiredBond.display + "."
+              : "Increase a training target to calculate costs.");
+
+          setSummaryTiles([
+            { label: "Guidebooks", value: formatCompact(guidebooks), sub: formatNumber(guidebooks) + " exact" },
+            { label: "Certificates", value: formatCompact(certificates), sub: formatNumber(certificates) + " exact" },
+            { label: "Bond Badges", value: formatCompact(bondBadges), sub: formatNumber(bondBadges) + " exact" },
+            { label: "Recommended Bond Gate", value: requiredBond ? requiredBond.display : "None", sub: "Based on highest target level" },
+          ]);
+          setSummaryList(summaryItems);
+        }
+
+        function updatePromotion() {
+          normalizePromotionState();
+          const fromLevel = Number(document.getElementById("promotion-from").value);
+          const toLevel = Number(document.getElementById("promotion-to").value);
+
+          let shards = 0;
+          const rankChanges = [];
+          const unlocks = [];
+
+          for (let level = fromLevel; level < toLevel; level += 1) {
+            const current = promotionLevels[level];
+            const next = promotionLevels[level + 1];
+            shards += current && current.shards ? current.shards : 0;
+
+            if (next && current && next.name !== current.name) {
+              rankChanges.push({
+                title: "Rank change at Lv " + next.level,
+                meta: current.name + " to " + next.name,
+              });
+            }
+
+            if (next && next.unlocks && next.unlocks.length) {
+              next.unlocks.forEach(function (unlock) {
+                unlocks.push({
+                  title: "Lv " + next.level + " unlock",
+                  meta: unlock.name + " ★" + unlock.stars,
+                });
+              });
+            }
+          }
+
+          stickyLabel1.textContent = "Shards";
+          stickyLabel2.textContent = "Rank";
+          stickyLabel3.textContent = "Unlocks";
+          stickyValue1.textContent = formatCompact(shards);
+          stickyValue2.textContent = promotionLevels[toLevel] ? promotionLevels[toLevel].name : "-";
+          stickyValue3.textContent = String(unlocks.length);
+          stickyNext.textContent = "Promotion target Lv " + toLevel + " reaches rank " + (promotionLevels[toLevel] ? promotionLevels[toLevel].name : "-");
+
+          activeToolLabel.textContent = "Promotion";
+          rangeLabel.textContent = "Lv " + fromLevel + " to Lv " + toLevel;
+          focusLabel.textContent = "Shards, rank jumps, and skill unlocks";
+          overviewBox.innerHTML =
+            "<strong>Next step:</strong> " +
+            (unlocks.length
+              ? "Your next unlock appears in this range."
+              : "Raise the target further to surface new unlocks.");
+
+          setSummaryTiles([
+            { label: "Overlord Shards", value: formatCompact(shards), sub: formatNumber(shards) + " exact" },
+            { label: "Current Rank", value: promotionLevels[fromLevel] ? promotionLevels[fromLevel].name : "-" },
+            { label: "Target Rank", value: promotionLevels[toLevel] ? promotionLevels[toLevel].name : "-" },
+            { label: "Unlock Events", value: String(unlocks.length), sub: String(rankChanges.length) + " rank change(s)" },
+          ]);
+          setSummaryList(rankChanges.concat(unlocks));
+        }
+
+        function updateSkill() {
+          normalizeSkillState();
+          const fromLevel = Number(document.getElementById("skill-from").value);
+          const toLevel = Number(document.getElementById("skill-to").value);
+          let badges = 0;
+          const breakdown = [];
+
+          for (let level = fromLevel; level < toLevel; level += 1) {
+            const row = skillLevels.find(function (item) { return item.level === level; });
+            if (!row) continue;
+            badges += row.badges || 0;
+            if (level === fromLevel || level === toLevel - 1 || level % 5 === 0) {
+              breakdown.push({
+                title: "Lv " + level + " to Lv " + (level + 1),
+                meta: formatNumber(row.badges) + " skill badges",
+              });
+            }
+          }
+
+          stickyLabel1.textContent = "Skill Badges";
+          stickyLabel2.textContent = "From";
+          stickyLabel3.textContent = "To";
+          stickyValue1.textContent = formatCompact(badges);
+          stickyValue2.textContent = "Lv " + fromLevel;
+          stickyValue3.textContent = "Lv " + toLevel;
+          stickyNext.textContent = "Upgrade any one Overlord skill from Lv " + fromLevel + " to Lv " + toLevel;
+
+          activeToolLabel.textContent = "Skill";
+          rangeLabel.textContent = "Lv " + fromLevel + " to Lv " + toLevel;
+          focusLabel.textContent = "Skill badge totals";
+          overviewBox.innerHTML =
+            "<strong>Next step:</strong> Skills get much more expensive after Lv 30, so save large pushes for planned events.";
+
+          setSummaryTiles([
+            { label: "Skill Badges", value: formatCompact(badges), sub: formatNumber(badges) + " exact" },
+            { label: "Levels Covered", value: String(toLevel - fromLevel), sub: "Upgrade steps in this plan" },
+            { label: "From", value: "Lv " + fromLevel },
+            { label: "To", value: "Lv " + toLevel },
+          ]);
+          setSummaryList(breakdown);
+        }
+
+        function update() {
+          if (activeTab === "training") updateTraining();
+          if (activeTab === "promotion") updatePromotion();
+          if (activeTab === "skill") updateSkill();
+        }
+
+        buildLanguageOptions();
+        fillBondSelects();
+        loadGoogleTranslateScript();
+
+        toolTabs.addEventListener("click", function (event) {
+          const button = event.target.closest("[data-tab]");
+          if (!button) return;
+          setTab(button.getAttribute("data-tab"));
+        });
+
+        document.body.addEventListener("input", function (event) {
+          if (event.target.matches("input, select")) update();
+        });
+
+        document.body.addEventListener("click", function (event) {
+          const button = event.target.closest("[data-training-preset], [data-promotion-preset], [data-skill-preset]");
+          if (!button) return;
+
+          if (button.hasAttribute("data-training-preset")) {
+            const target = Number(button.getAttribute("data-training-preset"));
+            ["jointAttack", "defenseSupport", "survivalTraining"].forEach(function (track) {
+              document.getElementById(track + "-to").value = String(target);
+            });
+            const recommendedBond = highestBondIndexForLevel(target);
+            document.getElementById("bond-to").value = String(recommendedBond);
+          }
+
+          if (button.hasAttribute("data-promotion-preset")) {
+            document.getElementById("promotion-to").value = button.getAttribute("data-promotion-preset");
+          }
+
+          if (button.hasAttribute("data-skill-preset")) {
+            document.getElementById("skill-to").value = button.getAttribute("data-skill-preset");
+          }
+
+          update();
+        });
+
+        languageSelect.addEventListener("change", function () {
+          preferredLanguage = languageSelect.value;
+          applyGoogleLanguage(preferredLanguage);
+        });
+
+        update();
+      })();
+    </script>
+
+    <div class="support-bar">
+      <a href="https://buymeacoffee.com/dkfoy56w" class="support-link" target="_blank" rel="noopener noreferrer">Buy Me a Coffee</a>
+    </div>
+    <script src="/adsense-config.js"></script>
+    <script src="/site-legal-footer.js?v=4" defer></script>
+    <script src="/adsense-placements.js" defer></script>
+  </body>
+</html>
