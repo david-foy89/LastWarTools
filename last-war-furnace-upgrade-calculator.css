@@ -142,12 +142,14 @@ body {
   z-index: 2000;
   display: flex;
   flex-wrap: wrap;
+  align-items: flex-start;
   gap: 10px;
   margin-bottom: 18px;
 }
 
 .page-nav-dropdown {
   position: relative;
+  align-self: flex-start;
 }
 
 .page-nav-dropdown-toggle {
