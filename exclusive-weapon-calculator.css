@@ -1,0 +1,61 @@
+/* Exclusive Weapon Calculator — extends hero-exp layout classes */
+
+.ew-check-row {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin-bottom: 10px;
+  padding: 10px 12px;
+  border: 1px solid rgba(116, 192, 252, 0.22);
+  border-radius: 10px;
+  background: rgba(18, 35, 53, 0.45);
+}
+
+.ew-check {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  width: 100%;
+  margin: 0;
+  color: var(--text);
+  font-size: 0.9rem;
+  font-weight: 600;
+  line-height: 1.4;
+  letter-spacing: normal;
+  text-transform: none;
+  cursor: pointer;
+}
+
+.ew-check input {
+  margin-top: 3px;
+  flex: 0 0 auto;
+  width: 1rem;
+  height: 1rem;
+}
+
+.ew-check > span {
+  flex: 1 1 auto;
+  min-width: 0;
+}
+
+.ew-check span strong {
+  color: var(--accent);
+  font-weight: 800;
+}
+
+.ew-note {
+  margin: 0;
+  padding-left: calc(1rem + 10px);
+  color: var(--muted);
+  font-size: 0.78rem;
+  line-height: 1.4;
+}
+
+.ew-band-table td:nth-child(2),
+.ew-band-table td:nth-child(3),
+.ew-band-table td:nth-child(4),
+.ew-band-table th:nth-child(2),
+.ew-band-table th:nth-child(3),
+.ew-band-table th:nth-child(4) {
+  text-align: right;
+}
