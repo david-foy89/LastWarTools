@@ -10,5 +10,7 @@ Disallow: /season-5/
 Disallow: /season-6/
 Disallow: /troop-tools/
 Disallow: /transfer-submit.html
+Disallow: /image-guides.html
+Disallow: /tech-tools.html
 
 Sitemap: https://lastwarsurvivaltools.com/sitemap.xml
