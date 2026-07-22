@@ -17,7 +17,7 @@
     <title>Last War Hero EXP Calculator — Level Up Costs &amp; HQ Gates</title>
     <meta
       name="description"
-      content="Free Last War Hero EXP calculator. Plan experience needed from any level to 175, scale costs for 1–15 heroes, check HQ requirements, and track EXP deficits."
+      content="Free Last War Hero EXP calculator. Plan experience needed from any level to 175, scale costs for 1–25 heroes, check HQ requirements, and track EXP deficits."
     />
     <meta name="robots" content="index, follow" />
     <meta name="keywords" content="Last War Hero EXP calculator, hero experience, hero level up cost, HQ hero level cap, Last War Survival EXP" />
@@ -37,7 +37,7 @@
     <meta name="twitter:title" content="Last War Hero EXP Calculator — Level Up Costs &amp; HQ Gates" />
     <meta
       name="twitter:description"
-      content="Calculate Hero EXP for one hero or up to 15 heroes, with HQ requirements."
+      content="Calculate Hero EXP for one hero or up to 25 heroes, with HQ requirements."
     />
     <meta name="twitter:image" content="https://lastwarsurvivaltools.com/media/lwst.png" />
     <script type="application/ld+json">
@@ -47,7 +47,7 @@
     {
       "@type": "WebApplication",
       "name": "Last War Hero EXP Calculator — Level Up Costs & HQ Gates",
-      "description": "Free Last War Hero EXP calculator. Plan experience needed from any level to 175, scale costs for 1–15 heroes, and check HQ requirements.",
+      "description": "Free Last War Hero EXP calculator. Plan experience needed from any level to 175, scale costs for 1–25 heroes, and check HQ requirements.",
       "url": "https://lastwarsurvivaltools.com/hero-exp-calculator.html",
       "image": "https://lastwarsurvivaltools.com/media/lwst.png",
       "applicationCategory": "GameApplication",
@@ -89,7 +89,7 @@
           "name": "Should I level one hero or the whole squad?",
           "acceptedAnswer": {
             "@type": "Answer",
-            "text": "This calculator shows EXP for one hero and for up to 15 heroes so you can compare pushing a carry versus raising a full march or multiple marches evenly before spending EXP items."
+            "text": "This calculator shows EXP for one hero and for up to 25 heroes so you can compare pushing a carry versus raising a full march or multiple marches evenly before spending EXP items."
           }
         }
       ]
@@ -163,8 +163,9 @@
             <a href="hero-exp-calculator.html" class="page-link active">Hero EXP</a>
             <a href="hero-awakening-calculator.html" class="page-link">Hero Awakening</a>
             <a href="exclusive-weapon-calculator.html" class="page-link">Exclusive Weapon</a>
+            <a href="skill-medals-calculator.html" class="page-link">Skill Medals</a>
           </div>
-        </details>
+</details>
         <details class="page-nav-dropdown" name="tech-nav">
           <summary class="page-link page-nav-dropdown-toggle">Tech Tools</summary>
           <div class="page-nav-dropdown-menu">
@@ -292,6 +293,16 @@
                   <option value="13">13 heroes</option>
                   <option value="14">14 heroes</option>
                   <option value="15">15 heroes (3 squads)</option>
+                  <option value="16">16 heroes</option>
+                  <option value="17">17 heroes</option>
+                  <option value="18">18 heroes</option>
+                  <option value="19">19 heroes</option>
+                  <option value="20">20 heroes (4 squads)</option>
+                  <option value="21">21 heroes</option>
+                  <option value="22">22 heroes</option>
+                  <option value="23">23 heroes</option>
+                  <option value="24">24 heroes</option>
+                  <option value="25">25 heroes (5 squads)</option>
                 </select>
               </div>
             </div>
@@ -383,7 +394,7 @@
           </li>
           <li>
             <strong>One carry or the whole squad?</strong>
-            Compare 1-hero vs multi-hero totals (up to 15) here before spending books so you do not overinvest in a single hero.
+            Compare 1-hero vs multi-hero totals (up to 25) here before spending books so you do not overinvest in a single hero.
           </li>
         </ol>
       </section>
@@ -487,7 +498,7 @@
           fromLevel.value = String(from);
           toLevel.value = String(to);
           expOwned.value = String(Math.max(0, Number(expOwned.value) || 0));
-          return { from: from, to: to, count: clamp(heroCount.value, 1, 15), owned: Math.max(0, Number(expOwned.value) || 0) };
+          return { from: from, to: to, count: clamp(heroCount.value, 1, 25), owned: Math.max(0, Number(expOwned.value) || 0) };
         }
 
         function setSticky(statEl, valueEl, text, isZero) {

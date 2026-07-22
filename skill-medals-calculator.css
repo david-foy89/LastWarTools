@@ -1,0 +1,87 @@
+/* Skill Medals Calculator — extends hero-exp layout classes */
+
+.sm-tier-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  align-items: center;
+  margin-bottom: 10px;
+}
+
+.sm-tier-label {
+  color: var(--muted);
+  font-size: 0.74rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  margin-right: 2px;
+}
+
+.sm-tier-btn {
+  appearance: none;
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  background: rgba(12, 24, 37, 0.9);
+  color: var(--muted);
+  font: inherit;
+  font-size: 0.8rem;
+  font-weight: 800;
+  padding: 6px 14px;
+  cursor: pointer;
+}
+
+.sm-tier-btn:hover {
+  border-color: rgba(116, 192, 252, 0.45);
+  color: var(--accent);
+}
+
+.sm-tier-btn.is-active {
+  border-color: rgba(116, 192, 252, 0.7);
+  background: rgba(116, 192, 252, 0.16);
+  color: var(--accent);
+}
+
+.sm-tier-note {
+  margin: 0 0 10px;
+  color: var(--muted);
+  font-size: 0.78rem;
+  line-height: 1.4;
+}
+
+.sm-compare {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 8px;
+  margin-top: 10px;
+}
+
+.sm-compare-item {
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  background: rgba(8, 16, 25, 0.55);
+  padding: 8px 10px;
+}
+
+.sm-compare-item.is-active {
+  border-color: rgba(116, 192, 252, 0.55);
+  background: rgba(116, 192, 252, 0.1);
+}
+
+.sm-compare-key {
+  color: var(--muted);
+  font-size: 0.68rem;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+}
+
+.sm-compare-value {
+  margin-top: 2px;
+  font-weight: 800;
+  font-size: 0.92rem;
+}
+
+@media (max-width: 640px) {
+  .sm-compare {
+    grid-template-columns: 1fr;
+  }
+}
