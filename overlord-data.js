@@ -4520,102 +4520,104 @@ window.LW_OVERLORD_DATA = {
     },
     {
       "name": "Elite Ace",
-      "badges": 0,
-      "tier": 1
+      "badges": 60,
+      "tier": 1,
+      "training_unlock": 550
     },
     {
       "name": "Elite Ace",
-      "badges": 0,
+      "badges": 60,
       "tier": 2
     },
     {
       "name": "Elite Ace",
-      "badges": 0,
+      "badges": 60,
       "tier": 3
     },
     {
       "name": "Elite Ace",
-      "badges": 0,
+      "badges": 60,
       "tier": 4
     },
     {
       "name": "Elite Ace",
-      "badges": 0,
+      "badges": 60,
       "tier": 5
     },
     {
       "name": "Elite Ace",
-      "badges": 0,
+      "badges": 60,
       "tier": 6
     },
     {
       "name": "Elite Ace",
-      "badges": 0,
+      "badges": 60,
       "tier": 7
     },
     {
       "name": "Elite Ace",
-      "badges": 0,
+      "badges": 60,
       "tier": 8
     },
     {
       "name": "Elite Ace",
-      "badges": 0,
+      "badges": 60,
       "tier": 9
     },
     {
       "name": "Elite Ace",
-      "badges": 0,
+      "badges": 60,
       "tier": 10
     },
     {
       "name": "Ultimate Overlord",
-      "badges": 0,
-      "tier": 1
+      "badges": 80,
+      "tier": 1,
+      "training_unlock": 600
     },
     {
       "name": "Ultimate Overlord",
-      "badges": 0,
+      "badges": 80,
       "tier": 2
     },
     {
       "name": "Ultimate Overlord",
-      "badges": 0,
+      "badges": 80,
       "tier": 3
     },
     {
       "name": "Ultimate Overlord",
-      "badges": 0,
+      "badges": 80,
       "tier": 4
     },
     {
       "name": "Ultimate Overlord",
-      "badges": 0,
+      "badges": 80,
       "tier": 5
     },
     {
       "name": "Ultimate Overlord",
-      "badges": 0,
+      "badges": 80,
       "tier": 6
     },
     {
       "name": "Ultimate Overlord",
-      "badges": 0,
+      "badges": 80,
       "tier": 7
     },
     {
       "name": "Ultimate Overlord",
-      "badges": 0,
+      "badges": 80,
       "tier": 8
     },
     {
       "name": "Ultimate Overlord",
-      "badges": 0,
+      "badges": 80,
       "tier": 9
     },
     {
       "name": "Ultimate Overlord",
-      "badges": 0,
+      "badges": 80,
       "tier": 10
     }
   ],

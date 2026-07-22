@@ -482,6 +482,43 @@
   margin-top: 10px;
 }
 
+.ol-ref-table-wrap {
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  overflow: auto;
+  max-height: min(50vh, 480px);
+  background: rgba(8, 16, 25, 0.55);
+  margin-top: 8px;
+}
+
+.ol-ref-table {
+  width: 100%;
+  border-collapse: separate;
+  border-spacing: 0;
+  min-width: 420px;
+}
+
+.ol-ref-table thead th {
+  position: sticky;
+  top: 0;
+  z-index: 2;
+  padding: 8px 10px;
+  background: #0d1a28;
+  border-bottom: 1px solid var(--line);
+  color: var(--muted);
+  font-size: 0.68rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  text-align: left;
+}
+
+.ol-ref-table tbody td {
+  padding: 7px 10px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.04);
+  font-size: 0.84rem;
+}
+
 @media (max-width: 920px) {
   .ol-layout {
     grid-template-columns: 1fr;

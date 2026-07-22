@@ -266,7 +266,7 @@
       <section class="hero">
         <h1>Overlord Calculator</h1>
         <div class="sub">
-          Set your current and target levels for training, promotion, or skills. Totals update instantly as you type.
+          Calculate Overlord training (to Lv 800), bond ratings, promotion shards (to Lv 60), and skill badges (to Lv 40) — the same three tools as Training, Promotion, and Skill calculators in one page.
         </div>
       </section>
 
@@ -290,9 +290,9 @@
         <div class="ol-main">
           <div class="card">
             <div class="ol-tab-bar" id="toolTabs" role="tablist" aria-label="Overlord tools">
-              <button type="button" class="ol-tab active" data-tab="training">Training</button>
+              <button type="button" class="ol-tab active" data-tab="training">Training &amp; Bond</button>
               <button type="button" class="ol-tab" data-tab="promotion">Promotion</button>
-              <button type="button" class="ol-tab" data-tab="skill">Skill</button>
+              <button type="button" class="ol-tab" data-tab="skill">Skill Badges</button>
             </div>
 
             <section class="ol-section active" id="section-training">
@@ -410,11 +410,43 @@
                 </div>
                 <button type="button" class="action-button action-button--quiet" id="applyRecommendedBond">Use recommended bond</button>
               </div>
+              <p class="ol-hint" style="margin-top: 8px">
+                Bond ranks unlock every 50 training levels (New Partner at 50, Rookie Partner at 100, … Ultimate Overlord at 600). Badges are spent between ranks.
+              </p>
+              <div class="ol-actions-inline">
+                <button type="button" class="action-button action-button--quiet" id="toggleTrainingTableBtn">Show Training &amp; Bond Tables</button>
+              </div>
+              <div id="trainingTablePanel" class="planner-hidden">
+                <div class="ol-ref-table-wrap">
+                  <table class="ol-ref-table" aria-label="Training cost sample">
+                    <thead>
+                      <tr>
+                        <th>Training band</th>
+                        <th>Guidebooks / level</th>
+                        <th>Certificates (every 5)</th>
+                      </tr>
+                    </thead>
+                    <tbody id="trainingBandBody"></tbody>
+                  </table>
+                </div>
+                <div class="ol-ref-table-wrap" style="margin-top: 10px">
+                  <table class="ol-ref-table" aria-label="Bond rating costs">
+                    <thead>
+                      <tr>
+                        <th>Bond rank</th>
+                        <th>Training unlock</th>
+                        <th>Badges / step</th>
+                      </tr>
+                    </thead>
+                    <tbody id="bondTableBody"></tbody>
+                  </table>
+                </div>
+              </div>
             </section>
 
             <section class="ol-section" id="section-promotion">
               <p class="ol-hint">
-                Promotion tracks rank changes and skill unlocks. Enter your current and target promotion level.
+                Promotion tracks Overlord shards, rank changes, and skill unlocks up to level 60 — matching the standalone Overlord Promotion calculator.
               </p>
               <div class="ol-range-bar">
                 <div class="field">
@@ -436,12 +468,28 @@
               </div>
               <div class="ol-actions-inline">
                 <button type="button" class="action-button action-button--quiet" id="resetPromotionBtn">Reset Promotion</button>
+                <button type="button" class="action-button action-button--quiet" id="togglePromotionTableBtn">Show Promotion Table</button>
+              </div>
+              <div id="promotionTablePanel" class="planner-hidden">
+                <div class="ol-ref-table-wrap">
+                  <table class="ol-ref-table" aria-label="Promotion table">
+                    <thead>
+                      <tr>
+                        <th>Level</th>
+                        <th>Rank</th>
+                        <th>Shards to next</th>
+                        <th>Unlocks</th>
+                      </tr>
+                    </thead>
+                    <tbody id="promotionTableBody"></tbody>
+                  </table>
+                </div>
               </div>
             </section>
 
             <section class="ol-section" id="section-skill">
               <p class="ol-hint">
-                Skill upgrades get expensive after Lv 30. This tab covers one skill line from Now to Want.
+                Skill badges level Overlord skills to 40. Expert Overlord unlocks from promotion and does not use badges — plan the other upgradeable skills here.
               </p>
               <div class="ol-range-bar">
                 <div class="field">
@@ -452,16 +500,40 @@
                   <label for="skill-to">Want</label>
                   <input id="skill-to" type="number" min="2" max="40" step="1" value="20" />
                 </div>
+                <div class="field">
+                  <label for="skillCount">Number of Skills</label>
+                  <select id="skillCount">
+                    <option value="1" selected>1 skill</option>
+                    <option value="2">2 skills</option>
+                    <option value="3">3 skills</option>
+                    <option value="4">4 skills</option>
+                  </select>
+                </div>
+              </div>
+              <div class="ol-actions-inline">
+                <span class="ol-quick-label">Targets</span>
                 <div class="ol-quick">
-                  <span class="ol-quick-label">Targets</span>
                   <button type="button" class="ol-chip-btn" data-skill-preset="10">Lv 10</button>
                   <button type="button" class="ol-chip-btn" data-skill-preset="20">Lv 20</button>
                   <button type="button" class="ol-chip-btn" data-skill-preset="30">Lv 30</button>
                   <button type="button" class="ol-chip-btn" data-skill-preset="40">Lv 40</button>
                 </div>
-              </div>
-              <div class="ol-actions-inline">
                 <button type="button" class="action-button action-button--quiet" id="resetSkillBtn">Reset Skill</button>
+                <button type="button" class="action-button action-button--quiet" id="toggleSkillTableBtn">Show Skill Table</button>
+              </div>
+              <div id="skillTablePanel" class="planner-hidden">
+                <div class="ol-ref-table-wrap">
+                  <table class="ol-ref-table" aria-label="Skill badge table">
+                    <thead>
+                      <tr>
+                        <th>Level</th>
+                        <th>Badges for step</th>
+                        <th>Cumulative (from Lv 1)</th>
+                      </tr>
+                    </thead>
+                    <tbody id="skillTableBody"></tbody>
+                  </table>
+                </div>
               </div>
             </section>
           </div>
@@ -503,8 +575,8 @@
         <ol class="helper-list">
           <li>
             <strong>What does this calculator include?</strong>
-            Training (Joint Attack, Defense Support, Survival Training), bond rating,
-            promotion shards/unlocks, and skill badge totals.
+            All three Overlord tools in one place: Training &amp; Bond (guidebooks, certificates, bond badges to Lv 800),
+            Promotion (shards and skill unlocks to Lv 60), and Skill Badges (to Lv 40).
           </li>
           <li>
             <strong>What resources does Overlord training use?</strong>
@@ -513,6 +585,11 @@
           <li>
             <strong>What does Overlord promotion cost?</strong>
             Promotion spends Overlord Shards and can unlock ranks and skills as you raise the level toward 60.
+          </li>
+          <li>
+            <strong>How do skill badges work?</strong>
+            Upgradeable Overlord skills use skill badges up to Lv 40. Expert Overlord unlocks from promotion and does not consume badges.
+            Open a tab directly with <code>#training</code>, <code>#promotion</code>, or <code>#skill</code>.
           </li>
         </ol>
       </section>
@@ -654,12 +731,15 @@
 
         function buildBondRatings() {
           const mapped = bondRatingsRaw.map(function (entry) {
+            const unlock = entry.training_unlock || 0;
+            const base =
+              entry.name === "No Rating" ? "No Rating" : entry.name + " " + toRoman(entry.tier);
             return {
               name: entry.name,
               tier: entry.tier,
               badges: entry.badges || 0,
-              trainingUnlock: entry.training_unlock || 0,
-              display: entry.name === "No Rating" ? "No Rating" : entry.name + " " + toRoman(entry.tier),
+              trainingUnlock: unlock,
+              display: unlock ? base + " (Unlocks Lv " + unlock + ")" : base,
             };
           });
 
@@ -695,6 +775,11 @@
           Object.keys(sections).forEach(function (key) {
             sections[key].classList.toggle("active", key === tab);
           });
+          if (window.history && window.history.replaceState) {
+            window.history.replaceState(null, "", "#" + tab);
+          } else {
+            window.location.hash = tab;
+          }
           update();
         }
 
@@ -846,7 +931,78 @@
         function resetSkill() {
           document.getElementById("skill-from").value = "1";
           document.getElementById("skill-to").value = "20";
+          document.getElementById("skillCount").value = "1";
           update();
+        }
+
+        function buildReferenceTables() {
+          const bands = [
+            { label: "1–20", guidebooks: 600, certificates: 10 },
+            { label: "21–40", guidebooks: 800, certificates: 20 },
+            { label: "41–60", guidebooks: 1000, certificates: 30 },
+            { label: "61–80", guidebooks: 1200, certificates: 40 },
+            { label: "81–100", guidebooks: 1400, certificates: 50 },
+            { label: "… up to 800", guidebooks: "scales up", certificates: "every 5 lv" },
+          ];
+          document.getElementById("trainingBandBody").innerHTML = bands
+            .map(function (band) {
+              return (
+                "<tr><td>" + band.label + "</td><td>" + band.guidebooks + "</td><td>" + band.certificates + "</td></tr>"
+              );
+            })
+            .join("");
+
+          const bondRows = [];
+          bondRatings.forEach(function (rating) {
+            if (rating.name === "No Rating" || rating.tier === 1) {
+              bondRows.push(rating);
+            }
+          });
+          document.getElementById("bondTableBody").innerHTML = bondRows
+            .map(function (rating) {
+              return (
+                "<tr><td>" +
+                (rating.name === "No Rating" ? "No Rating" : rating.name + " I–X") +
+                "</td><td>" +
+                (rating.trainingUnlock ? "Lv " + rating.trainingUnlock : "—") +
+                "</td><td>" +
+                formatNumber(rating.badges) +
+                "</td></tr>"
+              );
+            })
+            .join("");
+
+          document.getElementById("promotionTableBody").innerHTML = promotionLevels
+            .map(function (row, index) {
+              const unlockText = (row.unlocks || [])
+                .map(function (u) { return u.name + " ★" + u.stars; })
+                .join(", ");
+              return (
+                "<tr data-level=\"" + row.level + "\"><td>Lv " + row.level + "</td><td>" + row.name +
+                "</td><td>" + (index < promotionLevels.length - 1 ? formatNumber(row.shards) : "—") +
+                "</td><td>" + (unlockText || "—") + "</td></tr>"
+              );
+            })
+            .join("");
+
+          let cumulative = 0;
+          document.getElementById("skillTableBody").innerHTML = skillLevels
+            .map(function (row) {
+              cumulative += row.badges || 0;
+              return (
+                "<tr><td>Lv " + row.level + " → " + (row.level + 1) +
+                "</td><td>" + formatNumber(row.badges) +
+                "</td><td>" + formatNumber(cumulative) + "</td></tr>"
+              );
+            })
+            .join("");
+        }
+
+        function togglePanel(panelId, buttonId, showLabel, hideLabel) {
+          const panel = document.getElementById(panelId);
+          const button = document.getElementById(buttonId);
+          const hidden = panel.classList.toggle("planner-hidden");
+          button.textContent = hidden ? showLabel : hideLabel;
         }
 
         function buildCopyText() {
@@ -1053,42 +1209,44 @@
           normalizeSkillState();
           const fromLevel = Number(document.getElementById("skill-from").value);
           const toLevel = Number(document.getElementById("skill-to").value);
-          let badges = 0;
+          const skillCount = Math.max(1, Math.min(4, Number(document.getElementById("skillCount").value) || 1));
+          let badgesPerSkill = 0;
           const breakdown = [];
 
           for (let level = fromLevel; level < toLevel; level += 1) {
             const row = skillLevels.find(function (item) { return item.level === level; });
             if (!row) continue;
-            badges += row.badges || 0;
+            badgesPerSkill += row.badges || 0;
             if (level === fromLevel || level === toLevel - 1 || level % 5 === 0) {
               breakdown.push({
                 title: "Lv " + level + " to Lv " + (level + 1),
-                meta: formatNumber(row.badges) + " skill badges",
+                meta: formatNumber(row.badges) + " skill badges / skill",
               });
             }
           }
 
-          stickyLabel1.textContent = "Skill Badges";
-          stickyLabel2.textContent = "From";
-          stickyLabel3.textContent = "To";
-          setStickyStat(stickyStat1, stickyValue1, badges);
-          stickyStat2.classList.remove("is-zero");
-          stickyStat3.classList.remove("is-zero");
-          stickyValue2.textContent = "Lv " + fromLevel;
-          stickyValue3.textContent = "Lv " + toLevel;
-          stickyNext.textContent = "One skill · Lv " + fromLevel + " → Lv " + toLevel;
+          const badges = badgesPerSkill * skillCount;
 
-          activeToolLabel.textContent = "Skill";
+          stickyLabel1.textContent = "Skill Badges";
+          stickyLabel2.textContent = "Per Skill";
+          stickyLabel3.textContent = "Skills";
+          setStickyStat(stickyStat1, stickyValue1, badges);
+          setStickyStat(stickyStat2, stickyValue2, badgesPerSkill);
+          stickyStat3.classList.remove("is-zero");
+          stickyValue3.textContent = String(skillCount);
+          stickyNext.textContent = skillCount + " skill" + (skillCount > 1 ? "s" : "") + " · Lv " + fromLevel + " → Lv " + toLevel;
+
+          activeToolLabel.textContent = "Skill Badges";
           rangeLabel.textContent = "Lv " + fromLevel + " → Lv " + toLevel;
-          focusLabel.textContent = "Skill badge totals";
+          focusLabel.textContent = "Skill badge totals × " + skillCount;
           overviewBox.innerHTML =
-            "<strong>Next step:</strong> Skills get much more expensive after Lv 30, so save large pushes for planned events.";
+            "<strong>Next step:</strong> Skills get much more expensive after Lv 30. Brutal Roar is usually the first skill to push.";
 
           setSummaryTiles([
-            { label: "Skill Badges", value: formatCompact(badges), sub: formatNumber(badges) + " exact" },
-            { label: "Levels Covered", value: String(toLevel - fromLevel), sub: "Upgrade steps in this plan" },
-            { label: "From", value: "Lv " + fromLevel },
-            { label: "To", value: "Lv " + toLevel },
+            { label: "Total Badges", value: formatCompact(badges), sub: formatNumber(badges) + " exact" },
+            { label: "Per Skill", value: formatCompact(badgesPerSkill), sub: formatNumber(badgesPerSkill) + " exact" },
+            { label: "Skills", value: String(skillCount), sub: "Upgradeable lines (not Expert Overlord)" },
+            { label: "Levels", value: String(toLevel - fromLevel), sub: "Lv " + fromLevel + " → Lv " + toLevel },
           ]);
           setSummaryList(breakdown);
         }
@@ -1101,10 +1259,16 @@
 
         buildLanguageOptions();
         fillBondSelects();
+        buildReferenceTables();
         loadGoogleTranslateScript();
         trainingTracks.forEach(function (track) {
           updateTrackRowState(track.id);
         });
+
+        const initialHash = (window.location.hash || "").replace("#", "");
+        if (initialHash === "training" || initialHash === "promotion" || initialHash === "skill") {
+          setTab(initialHash);
+        }
 
         toolTabs.addEventListener("click", function (event) {
           const button = event.target.closest("[data-tab]");
@@ -1118,6 +1282,15 @@
         document.getElementById("resetTrainingBtn").addEventListener("click", resetTraining);
         document.getElementById("resetPromotionBtn").addEventListener("click", resetPromotion);
         document.getElementById("resetSkillBtn").addEventListener("click", resetSkill);
+        document.getElementById("toggleTrainingTableBtn").addEventListener("click", function () {
+          togglePanel("trainingTablePanel", "toggleTrainingTableBtn", "Show Training & Bond Tables", "Hide Training & Bond Tables");
+        });
+        document.getElementById("togglePromotionTableBtn").addEventListener("click", function () {
+          togglePanel("promotionTablePanel", "togglePromotionTableBtn", "Show Promotion Table", "Hide Promotion Table");
+        });
+        document.getElementById("toggleSkillTableBtn").addEventListener("click", function () {
+          togglePanel("skillTablePanel", "toggleSkillTableBtn", "Show Skill Table", "Hide Skill Table");
+        });
         copyTotalsButton.addEventListener("click", copyTotals);
 
         document.body.addEventListener("input", function (event) {
