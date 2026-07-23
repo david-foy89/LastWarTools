@@ -6450,6 +6450,201 @@ window.LW_RESEARCH_TREES["tactical-weapon"] = {
               ]
             },
             {
+              "level": 2,
+              "iron": 317680000,
+              "food": 317680000,
+              "gold": 953260000,
+              "valor": 3250,
+              "requirements": [
+                {
+                  "elementId": "support-hero-hp-4",
+                  "minLevel": 1
+                }
+              ]
+            },
+            {
+              "level": 3,
+              "iron": 317680000,
+              "food": 317680000,
+              "gold": 953260000,
+              "valor": 3250,
+              "requirements": [
+                {
+                  "elementId": "support-hero-hp-4",
+                  "minLevel": 1
+                }
+              ]
+            },
+            {
+              "level": 4,
+              "iron": 317680000,
+              "food": 317680000,
+              "gold": 953260000,
+              "valor": 3250,
+              "requirements": [
+                {
+                  "elementId": "support-hero-hp-4",
+                  "minLevel": 1
+                }
+              ]
+            },
+            {
+              "level": 5,
+              "iron": 333670000,
+              "food": 333670000,
+              "gold": 1001000000,
+              "valor": 3500,
+              "requirements": [
+                {
+                  "elementId": "support-hero-hp-4",
+                  "minLevel": 1
+                }
+              ]
+            },
+            {
+              "level": 6,
+              "iron": 333670000,
+              "food": 333670000,
+              "gold": 1001000000,
+              "valor": 3500,
+              "requirements": [
+                {
+                  "elementId": "support-hero-hp-4",
+                  "minLevel": 1
+                }
+              ]
+            },
+            {
+              "level": 7,
+              "iron": 333670000,
+              "food": 333670000,
+              "gold": 1001000000,
+              "valor": 3500,
+              "requirements": [
+                {
+                  "elementId": "support-hero-hp-4",
+                  "minLevel": 1
+                }
+              ]
+            },
+            {
+              "level": 8,
+              "iron": 333670000,
+              "food": 333670000,
+              "gold": 1001000000,
+              "valor": 3500,
+              "requirements": [
+                {
+                  "elementId": "support-hero-hp-4",
+                  "minLevel": 1
+                }
+              ]
+            },
+            {
+              "level": 9,
+              "iron": 347000000,
+              "food": 347000000,
+              "gold": 1041000000,
+              "valor": 3750,
+              "requirements": [
+                {
+                  "elementId": "support-hero-hp-4",
+                  "minLevel": 1
+                }
+              ]
+            },
+            {
+              "level": 10,
+              "iron": 347000000,
+              "food": 347000000,
+              "gold": 1041000000,
+              "valor": 3750,
+              "requirements": [
+                {
+                  "elementId": "support-hero-hp-4",
+                  "minLevel": 1
+                }
+              ]
+            },
+            {
+              "level": 11,
+              "iron": 347000000,
+              "food": 347000000,
+              "gold": 1041000000,
+              "valor": 3750,
+              "requirements": [
+                {
+                  "elementId": "support-hero-hp-4",
+                  "minLevel": 1
+                }
+              ]
+            },
+            {
+              "level": 12,
+              "iron": 347000000,
+              "food": 347000000,
+              "gold": 1041000000,
+              "valor": 3750,
+              "requirements": [
+                {
+                  "elementId": "support-hero-hp-4",
+                  "minLevel": 1
+                }
+              ]
+            },
+            {
+              "level": 13,
+              "iron": 357330000,
+              "food": 357330000,
+              "gold": 1071990000,
+              "valor": 4000,
+              "requirements": [
+                {
+                  "elementId": "support-hero-hp-4",
+                  "minLevel": 1
+                }
+              ]
+            },
+            {
+              "level": 14,
+              "iron": 357330000,
+              "food": 357330000,
+              "gold": 1071990000,
+              "valor": 4000,
+              "requirements": [
+                {
+                  "elementId": "support-hero-hp-4",
+                  "minLevel": 1
+                }
+              ]
+            },
+            {
+              "level": 15,
+              "iron": 357330000,
+              "food": 357330000,
+              "gold": 1071990000,
+              "valor": 4000,
+              "requirements": [
+                {
+                  "elementId": "support-hero-hp-4",
+                  "minLevel": 1
+                }
+              ]
+            },
+            {
+              "level": 16,
+              "iron": 357330000,
+              "food": 357330000,
+              "gold": 1071990000,
+              "valor": 4000,
+              "requirements": [
+                {
+                  "elementId": "support-hero-hp-4",
+                  "minLevel": 1
+                }
+              ]
+            },
+            {
               "level": 17,
               "iron": 365000000,
               "food": 365000000,
@@ -6516,6 +6711,110 @@ window.LW_RESEARCH_TREES["tactical-weapon"] = {
             },
             {
               "level": 22,
+              "iron": 365000000,
+              "food": 365000000,
+              "gold": 1100000000,
+              "valor": 4250,
+              "requirements": [
+                {
+                  "elementId": "support-hero-hp-4",
+                  "minLevel": 1
+                }
+              ]
+            },
+            {
+              "level": 23,
+              "iron": 365000000,
+              "food": 365000000,
+              "gold": 1100000000,
+              "valor": 4250,
+              "requirements": [
+                {
+                  "elementId": "support-hero-hp-4",
+                  "minLevel": 1
+                }
+              ]
+            },
+            {
+              "level": 24,
+              "iron": 365000000,
+              "food": 365000000,
+              "gold": 1100000000,
+              "valor": 4250,
+              "requirements": [
+                {
+                  "elementId": "support-hero-hp-4",
+                  "minLevel": 1
+                }
+              ]
+            },
+            {
+              "level": 25,
+              "iron": 365000000,
+              "food": 365000000,
+              "gold": 1100000000,
+              "valor": 4250,
+              "requirements": [
+                {
+                  "elementId": "support-hero-hp-4",
+                  "minLevel": 1
+                }
+              ]
+            },
+            {
+              "level": 26,
+              "iron": 365000000,
+              "food": 365000000,
+              "gold": 1100000000,
+              "valor": 4250,
+              "requirements": [
+                {
+                  "elementId": "support-hero-hp-4",
+                  "minLevel": 1
+                }
+              ]
+            },
+            {
+              "level": 27,
+              "iron": 365000000,
+              "food": 365000000,
+              "gold": 1100000000,
+              "valor": 4250,
+              "requirements": [
+                {
+                  "elementId": "support-hero-hp-4",
+                  "minLevel": 1
+                }
+              ]
+            },
+            {
+              "level": 28,
+              "iron": 365000000,
+              "food": 365000000,
+              "gold": 1100000000,
+              "valor": 4250,
+              "requirements": [
+                {
+                  "elementId": "support-hero-hp-4",
+                  "minLevel": 1
+                }
+              ]
+            },
+            {
+              "level": 29,
+              "iron": 365000000,
+              "food": 365000000,
+              "gold": 1100000000,
+              "valor": 4250,
+              "requirements": [
+                {
+                  "elementId": "support-hero-hp-4",
+                  "minLevel": 1
+                }
+              ]
+            },
+            {
+              "level": 30,
               "iron": 365000000,
               "food": 365000000,
               "gold": 1100000000,
@@ -6548,6 +6847,201 @@ window.LW_RESEARCH_TREES["tactical-weapon"] = {
               ]
             },
             {
+              "level": 2,
+              "iron": 317680000,
+              "food": 317680000,
+              "gold": 953260000,
+              "valor": 3250,
+              "requirements": [
+                {
+                  "elementId": "support-hero-attack-4",
+                  "minLevel": 1
+                }
+              ]
+            },
+            {
+              "level": 3,
+              "iron": 317680000,
+              "food": 317680000,
+              "gold": 953260000,
+              "valor": 3250,
+              "requirements": [
+                {
+                  "elementId": "support-hero-attack-4",
+                  "minLevel": 1
+                }
+              ]
+            },
+            {
+              "level": 4,
+              "iron": 317680000,
+              "food": 317680000,
+              "gold": 953260000,
+              "valor": 3250,
+              "requirements": [
+                {
+                  "elementId": "support-hero-attack-4",
+                  "minLevel": 1
+                }
+              ]
+            },
+            {
+              "level": 5,
+              "iron": 333670000,
+              "food": 333670000,
+              "gold": 1001000000,
+              "valor": 3500,
+              "requirements": [
+                {
+                  "elementId": "support-hero-attack-4",
+                  "minLevel": 1
+                }
+              ]
+            },
+            {
+              "level": 6,
+              "iron": 333670000,
+              "food": 333670000,
+              "gold": 1001000000,
+              "valor": 3500,
+              "requirements": [
+                {
+                  "elementId": "support-hero-attack-4",
+                  "minLevel": 1
+                }
+              ]
+            },
+            {
+              "level": 7,
+              "iron": 333670000,
+              "food": 333670000,
+              "gold": 1001000000,
+              "valor": 3500,
+              "requirements": [
+                {
+                  "elementId": "support-hero-attack-4",
+                  "minLevel": 1
+                }
+              ]
+            },
+            {
+              "level": 8,
+              "iron": 333670000,
+              "food": 333670000,
+              "gold": 1001000000,
+              "valor": 3500,
+              "requirements": [
+                {
+                  "elementId": "support-hero-attack-4",
+                  "minLevel": 1
+                }
+              ]
+            },
+            {
+              "level": 9,
+              "iron": 347000000,
+              "food": 347000000,
+              "gold": 1041000000,
+              "valor": 3750,
+              "requirements": [
+                {
+                  "elementId": "support-hero-attack-4",
+                  "minLevel": 1
+                }
+              ]
+            },
+            {
+              "level": 10,
+              "iron": 347000000,
+              "food": 347000000,
+              "gold": 1041000000,
+              "valor": 3750,
+              "requirements": [
+                {
+                  "elementId": "support-hero-attack-4",
+                  "minLevel": 1
+                }
+              ]
+            },
+            {
+              "level": 11,
+              "iron": 347000000,
+              "food": 347000000,
+              "gold": 1041000000,
+              "valor": 3750,
+              "requirements": [
+                {
+                  "elementId": "support-hero-attack-4",
+                  "minLevel": 1
+                }
+              ]
+            },
+            {
+              "level": 12,
+              "iron": 347000000,
+              "food": 347000000,
+              "gold": 1041000000,
+              "valor": 3750,
+              "requirements": [
+                {
+                  "elementId": "support-hero-attack-4",
+                  "minLevel": 1
+                }
+              ]
+            },
+            {
+              "level": 13,
+              "iron": 357330000,
+              "food": 357330000,
+              "gold": 1071990000,
+              "valor": 4000,
+              "requirements": [
+                {
+                  "elementId": "support-hero-attack-4",
+                  "minLevel": 1
+                }
+              ]
+            },
+            {
+              "level": 14,
+              "iron": 357330000,
+              "food": 357330000,
+              "gold": 1071990000,
+              "valor": 4000,
+              "requirements": [
+                {
+                  "elementId": "support-hero-attack-4",
+                  "minLevel": 1
+                }
+              ]
+            },
+            {
+              "level": 15,
+              "iron": 357330000,
+              "food": 357330000,
+              "gold": 1071990000,
+              "valor": 4000,
+              "requirements": [
+                {
+                  "elementId": "support-hero-attack-4",
+                  "minLevel": 1
+                }
+              ]
+            },
+            {
+              "level": 16,
+              "iron": 357330000,
+              "food": 357330000,
+              "gold": 1071990000,
+              "valor": 4000,
+              "requirements": [
+                {
+                  "elementId": "support-hero-attack-4",
+                  "minLevel": 1
+                }
+              ]
+            },
+            {
               "level": 17,
               "iron": 365000000,
               "food": 365000000,
@@ -6614,6 +7108,110 @@ window.LW_RESEARCH_TREES["tactical-weapon"] = {
             },
             {
               "level": 22,
+              "iron": 365000000,
+              "food": 365000000,
+              "gold": 1100000000,
+              "valor": 4250,
+              "requirements": [
+                {
+                  "elementId": "support-hero-attack-4",
+                  "minLevel": 1
+                }
+              ]
+            },
+            {
+              "level": 23,
+              "iron": 365000000,
+              "food": 365000000,
+              "gold": 1100000000,
+              "valor": 4250,
+              "requirements": [
+                {
+                  "elementId": "support-hero-attack-4",
+                  "minLevel": 1
+                }
+              ]
+            },
+            {
+              "level": 24,
+              "iron": 365000000,
+              "food": 365000000,
+              "gold": 1100000000,
+              "valor": 4250,
+              "requirements": [
+                {
+                  "elementId": "support-hero-attack-4",
+                  "minLevel": 1
+                }
+              ]
+            },
+            {
+              "level": 25,
+              "iron": 365000000,
+              "food": 365000000,
+              "gold": 1100000000,
+              "valor": 4250,
+              "requirements": [
+                {
+                  "elementId": "support-hero-attack-4",
+                  "minLevel": 1
+                }
+              ]
+            },
+            {
+              "level": 26,
+              "iron": 365000000,
+              "food": 365000000,
+              "gold": 1100000000,
+              "valor": 4250,
+              "requirements": [
+                {
+                  "elementId": "support-hero-attack-4",
+                  "minLevel": 1
+                }
+              ]
+            },
+            {
+              "level": 27,
+              "iron": 365000000,
+              "food": 365000000,
+              "gold": 1100000000,
+              "valor": 4250,
+              "requirements": [
+                {
+                  "elementId": "support-hero-attack-4",
+                  "minLevel": 1
+                }
+              ]
+            },
+            {
+              "level": 28,
+              "iron": 365000000,
+              "food": 365000000,
+              "gold": 1100000000,
+              "valor": 4250,
+              "requirements": [
+                {
+                  "elementId": "support-hero-attack-4",
+                  "minLevel": 1
+                }
+              ]
+            },
+            {
+              "level": 29,
+              "iron": 365000000,
+              "food": 365000000,
+              "gold": 1100000000,
+              "valor": 4250,
+              "requirements": [
+                {
+                  "elementId": "support-hero-attack-4",
+                  "minLevel": 1
+                }
+              ]
+            },
+            {
+              "level": 30,
               "iron": 365000000,
               "food": 365000000,
               "gold": 1100000000,
@@ -6646,6 +7244,201 @@ window.LW_RESEARCH_TREES["tactical-weapon"] = {
               ]
             },
             {
+              "level": 2,
+              "iron": 317680000,
+              "food": 317680000,
+              "gold": 953260000,
+              "valor": 3250,
+              "requirements": [
+                {
+                  "elementId": "support-hero-defense-4",
+                  "minLevel": 1
+                }
+              ]
+            },
+            {
+              "level": 3,
+              "iron": 317680000,
+              "food": 317680000,
+              "gold": 953260000,
+              "valor": 3250,
+              "requirements": [
+                {
+                  "elementId": "support-hero-defense-4",
+                  "minLevel": 1
+                }
+              ]
+            },
+            {
+              "level": 4,
+              "iron": 317680000,
+              "food": 317680000,
+              "gold": 953260000,
+              "valor": 3250,
+              "requirements": [
+                {
+                  "elementId": "support-hero-defense-4",
+                  "minLevel": 1
+                }
+              ]
+            },
+            {
+              "level": 5,
+              "iron": 333670000,
+              "food": 333670000,
+              "gold": 1001000000,
+              "valor": 3500,
+              "requirements": [
+                {
+                  "elementId": "support-hero-defense-4",
+                  "minLevel": 1
+                }
+              ]
+            },
+            {
+              "level": 6,
+              "iron": 333670000,
+              "food": 333670000,
+              "gold": 1001000000,
+              "valor": 3500,
+              "requirements": [
+                {
+                  "elementId": "support-hero-defense-4",
+                  "minLevel": 1
+                }
+              ]
+            },
+            {
+              "level": 7,
+              "iron": 333670000,
+              "food": 333670000,
+              "gold": 1001000000,
+              "valor": 3500,
+              "requirements": [
+                {
+                  "elementId": "support-hero-defense-4",
+                  "minLevel": 1
+                }
+              ]
+            },
+            {
+              "level": 8,
+              "iron": 333670000,
+              "food": 333670000,
+              "gold": 1001000000,
+              "valor": 3500,
+              "requirements": [
+                {
+                  "elementId": "support-hero-defense-4",
+                  "minLevel": 1
+                }
+              ]
+            },
+            {
+              "level": 9,
+              "iron": 347000000,
+              "food": 347000000,
+              "gold": 1041000000,
+              "valor": 3750,
+              "requirements": [
+                {
+                  "elementId": "support-hero-defense-4",
+                  "minLevel": 1
+                }
+              ]
+            },
+            {
+              "level": 10,
+              "iron": 347000000,
+              "food": 347000000,
+              "gold": 1041000000,
+              "valor": 3750,
+              "requirements": [
+                {
+                  "elementId": "support-hero-defense-4",
+                  "minLevel": 1
+                }
+              ]
+            },
+            {
+              "level": 11,
+              "iron": 347000000,
+              "food": 347000000,
+              "gold": 1041000000,
+              "valor": 3750,
+              "requirements": [
+                {
+                  "elementId": "support-hero-defense-4",
+                  "minLevel": 1
+                }
+              ]
+            },
+            {
+              "level": 12,
+              "iron": 347000000,
+              "food": 347000000,
+              "gold": 1041000000,
+              "valor": 3750,
+              "requirements": [
+                {
+                  "elementId": "support-hero-defense-4",
+                  "minLevel": 1
+                }
+              ]
+            },
+            {
+              "level": 13,
+              "iron": 357330000,
+              "food": 357330000,
+              "gold": 1071990000,
+              "valor": 4000,
+              "requirements": [
+                {
+                  "elementId": "support-hero-defense-4",
+                  "minLevel": 1
+                }
+              ]
+            },
+            {
+              "level": 14,
+              "iron": 357330000,
+              "food": 357330000,
+              "gold": 1071990000,
+              "valor": 4000,
+              "requirements": [
+                {
+                  "elementId": "support-hero-defense-4",
+                  "minLevel": 1
+                }
+              ]
+            },
+            {
+              "level": 15,
+              "iron": 357330000,
+              "food": 357330000,
+              "gold": 1071990000,
+              "valor": 4000,
+              "requirements": [
+                {
+                  "elementId": "support-hero-defense-4",
+                  "minLevel": 1
+                }
+              ]
+            },
+            {
+              "level": 16,
+              "iron": 357330000,
+              "food": 357330000,
+              "gold": 1071990000,
+              "valor": 4000,
+              "requirements": [
+                {
+                  "elementId": "support-hero-defense-4",
+                  "minLevel": 1
+                }
+              ]
+            },
+            {
               "level": 17,
               "iron": 365000000,
               "food": 365000000,
@@ -6712,6 +7505,110 @@ window.LW_RESEARCH_TREES["tactical-weapon"] = {
             },
             {
               "level": 22,
+              "iron": 365000000,
+              "food": 365000000,
+              "gold": 1100000000,
+              "valor": 4250,
+              "requirements": [
+                {
+                  "elementId": "support-hero-defense-4",
+                  "minLevel": 1
+                }
+              ]
+            },
+            {
+              "level": 23,
+              "iron": 365000000,
+              "food": 365000000,
+              "gold": 1100000000,
+              "valor": 4250,
+              "requirements": [
+                {
+                  "elementId": "support-hero-defense-4",
+                  "minLevel": 1
+                }
+              ]
+            },
+            {
+              "level": 24,
+              "iron": 365000000,
+              "food": 365000000,
+              "gold": 1100000000,
+              "valor": 4250,
+              "requirements": [
+                {
+                  "elementId": "support-hero-defense-4",
+                  "minLevel": 1
+                }
+              ]
+            },
+            {
+              "level": 25,
+              "iron": 365000000,
+              "food": 365000000,
+              "gold": 1100000000,
+              "valor": 4250,
+              "requirements": [
+                {
+                  "elementId": "support-hero-defense-4",
+                  "minLevel": 1
+                }
+              ]
+            },
+            {
+              "level": 26,
+              "iron": 365000000,
+              "food": 365000000,
+              "gold": 1100000000,
+              "valor": 4250,
+              "requirements": [
+                {
+                  "elementId": "support-hero-defense-4",
+                  "minLevel": 1
+                }
+              ]
+            },
+            {
+              "level": 27,
+              "iron": 365000000,
+              "food": 365000000,
+              "gold": 1100000000,
+              "valor": 4250,
+              "requirements": [
+                {
+                  "elementId": "support-hero-defense-4",
+                  "minLevel": 1
+                }
+              ]
+            },
+            {
+              "level": 28,
+              "iron": 365000000,
+              "food": 365000000,
+              "gold": 1100000000,
+              "valor": 4250,
+              "requirements": [
+                {
+                  "elementId": "support-hero-defense-4",
+                  "minLevel": 1
+                }
+              ]
+            },
+            {
+              "level": 29,
+              "iron": 365000000,
+              "food": 365000000,
+              "gold": 1100000000,
+              "valor": 4250,
+              "requirements": [
+                {
+                  "elementId": "support-hero-defense-4",
+                  "minLevel": 1
+                }
+              ]
+            },
+            {
+              "level": 30,
               "iron": 365000000,
               "food": 365000000,
               "gold": 1100000000,
