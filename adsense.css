@@ -1,5 +1,49 @@
 /* Ad containers + site legal footer (matches Last War Tools theme) */
 
+/* Keep Auto ads from causing horizontal page shift */
+html {
+  overflow-x: clip;
+}
+
+body {
+  overflow-x: clip;
+}
+
+/* Bottom host: Auto ads relocated out of headers/nav/tools land here */
+.lw-ad-host {
+  display: none;
+  width: 100%;
+  max-width: 980px;
+  margin: 16px auto 8px;
+  padding: 8px 16px;
+  box-sizing: border-box;
+  text-align: center;
+}
+
+.lw-ad-host.has-ads {
+  display: block;
+}
+
+.lw-ad-host__item {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  width: 100%;
+  max-width: 728px;
+  margin: 0 auto 12px;
+  overflow: hidden;
+}
+
+.lw-ad-host__item:last-child {
+  margin-bottom: 0;
+}
+
+.lw-ad-host .google-auto-placed,
+.lw-ad-host ins.adsbygoogle,
+.lw-ad-host iframe {
+  max-width: 100% !important;
+}
+
 .lw-ad-slot {
   display: flex;
   justify-content: center;
@@ -28,6 +72,27 @@
   min-height: 0;
   padding: 0;
   margin: 0;
+}
+
+/*
+ * Hide Auto ads that Google injects into critical UI until/unless JS moves them
+ * to #lw-ad-host. Prevents covering Language / nav / train conductor controls.
+ */
+.page-top-stack .google-auto-placed,
+.page-top-stack ins.adsbygoogle,
+.page-top-controls .google-auto-placed,
+.page-top-controls ins.adsbygoogle,
+.account-promo-strip .google-auto-placed,
+.account-promo-strip ins.adsbygoogle,
+.page-nav .google-auto-placed,
+.page-nav ins.adsbygoogle,
+.hero .google-auto-placed,
+.hero ins.adsbygoogle,
+.conductor-layout .google-auto-placed,
+.conductor-layout ins.adsbygoogle,
+.schedule-header .google-auto-placed,
+.schedule-header ins.adsbygoogle {
+  display: none !important;
 }
 
 /* Align bottom chrome with .page width */
@@ -170,6 +235,55 @@
   display: none;
 }
 
+/* Back to top — injected by site-legal-footer.js */
+.lw-back-to-top {
+  position: fixed;
+  right: max(16px, env(safe-area-inset-right, 16px));
+  bottom: max(16px, env(safe-area-inset-bottom, 16px));
+  z-index: 11000;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 44px;
+  height: 44px;
+  margin: 0;
+  padding: 0;
+  border: 1px solid var(--line-soft, #37506a);
+  border-radius: 999px;
+  background: linear-gradient(180deg, var(--panel, #111c28) 0%, var(--panel-2, #162434) 100%);
+  color: var(--text, #e4edf7);
+  font-family: "Bahnschrift", "Trebuchet MS", "Segoe UI", Tahoma, sans-serif;
+  font-size: 1.15rem;
+  font-weight: 700;
+  line-height: 1;
+  cursor: pointer;
+  box-shadow: 0 12px 28px rgba(0, 0, 0, 0.32);
+  opacity: 0;
+  visibility: hidden;
+  pointer-events: none;
+  transform: translateY(8px);
+  transition:
+    opacity 160ms ease,
+    visibility 160ms ease,
+    transform 160ms ease,
+    border-color 140ms ease,
+    color 140ms ease;
+}
+
+.lw-back-to-top.is-visible {
+  opacity: 1;
+  visibility: visible;
+  pointer-events: auto;
+  transform: translateY(0);
+}
+
+.lw-back-to-top:hover,
+.lw-back-to-top:focus-visible {
+  border-color: rgba(116, 192, 252, 0.55);
+  color: var(--accent, #74c0fc);
+  outline: none;
+}
+
 @media (max-width: 600px) {
   .site-legal-bar {
     flex-direction: column;
@@ -183,5 +297,15 @@
   .lw-cookie-notice {
     bottom: max(12px, env(safe-area-inset-bottom, 12px));
     width: calc(100% - 24px);
+  }
+
+  .lw-back-to-top {
+    right: max(12px, env(safe-area-inset-right, 12px));
+    bottom: max(12px, env(safe-area-inset-bottom, 12px));
+  }
+
+  /* Sit above the cookie notice while it is visible */
+  body:has(.lw-cookie-notice:not(.is-hidden)) .lw-back-to-top {
+    bottom: calc(max(12px, env(safe-area-inset-bottom, 12px)) + 140px);
   }
 }

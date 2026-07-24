@@ -164,9 +164,50 @@
     document.body.appendChild(box);
   }
 
+  function injectBackToTop() {
+    if (document.querySelector(".lw-back-to-top")) return;
+
+    const button = document.createElement("button");
+    button.type = "button";
+    button.className = "lw-back-to-top";
+    button.setAttribute("aria-label", "Back to top");
+    button.setAttribute("title", "Back to top");
+    button.innerHTML = "<span aria-hidden=\"true\">↑</span>";
+
+    button.addEventListener("click", function () {
+      const reduceMotion =
+        typeof window.matchMedia === "function" &&
+        window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+      window.scrollTo({ top: 0, behavior: reduceMotion ? "auto" : "smooth" });
+    });
+
+    document.body.appendChild(button);
+
+    const SHOW_AFTER_PX = 400;
+    let ticking = false;
+
+    function updateVisibility() {
+      ticking = false;
+      const show = window.scrollY > SHOW_AFTER_PX;
+      button.classList.toggle("is-visible", show);
+      button.setAttribute("aria-hidden", show ? "false" : "true");
+      button.tabIndex = show ? 0 : -1;
+    }
+
+    function onScroll() {
+      if (ticking) return;
+      ticking = true;
+      window.requestAnimationFrame(updateVisibility);
+    }
+
+    window.addEventListener("scroll", onScroll, { passive: true });
+    updateVisibility();
+  }
+
   function run() {
     injectLegalBar();
     injectCookieNotice();
+    injectBackToTop();
   }
 
   if (document.readyState === "loading") {
