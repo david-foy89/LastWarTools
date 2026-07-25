@@ -112,6 +112,25 @@
         font-weight: 700;
       }
 
+      .data-source {
+        margin: 12px 0 0;
+        font-size: 0.82rem;
+        color: var(--muted);
+        line-height: 1.45;
+      }
+
+      .data-source a {
+        color: var(--accent);
+        font-weight: 600;
+        text-decoration: none;
+      }
+
+      .data-source a:hover,
+      .data-source a:focus-visible {
+        text-decoration: underline;
+        outline: none;
+      }
+
       .search-mode-row {
         display: flex;
         gap: 8px;
@@ -521,6 +540,16 @@
           it belongs to. Data is pulled live from the community alliance
           registry.
         </div>
+        <p class="data-source">
+          Source:
+          <a
+            href="https://discord.gg/coordinateslist"
+            target="_blank"
+            rel="noopener noreferrer"
+            >Coordinates List</a
+          >
+          Discord
+        </p>
       </section>
 
       <!-- Search card -->
