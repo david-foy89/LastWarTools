@@ -135,8 +135,11 @@ body {
   width: 100%;
 }
 
-/* Standalone support bar removed — link lives in footer nav */
-.support-bar {
+/* Standalone support bar / Buy Me a Coffee — hidden */
+.support-bar,
+.support-link,
+.site-legal-bar nav .page-link--support,
+a[href*="buymeacoffee.com"] {
   display: none !important;
 }
 
@@ -165,19 +168,6 @@ body {
   color: var(--text, #e4edf7);
   border-color: rgba(116, 192, 252, 0.42);
   outline: none;
-}
-
-.site-legal-bar nav .page-link--support {
-  border-color: rgba(255, 146, 43, 0.45);
-  background: rgba(255, 146, 43, 0.1);
-  color: #ffd8a8;
-}
-
-.site-legal-bar nav .page-link--support:hover,
-.site-legal-bar nav .page-link--support:focus-visible {
-  color: #ffe8cc;
-  border-color: rgba(255, 146, 43, 0.8);
-  background: rgba(255, 146, 43, 0.2);
 }
 
 /* Cookie / ads consent — same panel + buttons as the rest of the site */

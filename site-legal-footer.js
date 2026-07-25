@@ -1,5 +1,5 @@
 /**
- * Site footer: Privacy, Home, Contact, Buy Me a Coffee. Optional cookie popup.
+ * Site footer: Privacy, Home, Contact. Optional cookie popup.
  */
 (function () {
   "use strict";
@@ -7,7 +7,6 @@
   const CONSENT_KEY = "lastWarSiteConsentV1";
   const PRIVACY_HREF = "/privacy-policy.html";
   const CONTACT_EMAIL = "support@lastwarsurvivaltools.com";
-  const BUY_ME_COFFEE_URL = "https://buymeacoffee.com/dkfoy56w";
 
   function privacyUrl() {
     try {
@@ -52,6 +51,23 @@
     });
   }
 
+  function removeBuyMeACoffeeLinks(root) {
+    const scope = root || document;
+    scope.querySelectorAll("a").forEach((a) => {
+      const href = String(a.getAttribute("href") || "");
+      const text = (a.textContent || "").trim();
+      if (
+        /buymeacoffee\.com/i.test(href) ||
+        /^Buy Me a Coffee$/i.test(text) ||
+        a.classList.contains("page-link--support") ||
+        a.classList.contains("support-link")
+      ) {
+        a.remove();
+      }
+    });
+    scope.querySelectorAll(".support-bar").forEach((el) => el.remove());
+  }
+
   function ensureFooterNav(footer) {
     let nav = footer.querySelector("nav");
     if (!nav) {
@@ -59,6 +75,9 @@
       nav.setAttribute("aria-label", "Site footer");
       footer.appendChild(nav);
     }
+
+    removeBuyMeACoffeeLinks(footer);
+    removeBuyMeACoffeeLinks(document);
 
     const homeLink = ensureNavLink(
       nav,
@@ -79,23 +98,7 @@
       "page-link",
     );
 
-    const supportBar = document.querySelector(".support-bar");
-    const coffeeHref =
-      supportBar && supportBar.querySelector(".support-link")
-        ? supportBar.querySelector(".support-link").href
-        : BUY_ME_COFFEE_URL;
-
-    const coffeeLink = ensureNavLink(
-      nav,
-      coffeeHref,
-      "Buy Me a Coffee",
-      "page-link page-link--support",
-      { external: true },
-    );
-
-    nav.append(homeLink, privacyLink, contactLink, coffeeLink);
-
-    if (supportBar) supportBar.remove();
+    nav.append(homeLink, privacyLink, contactLink);
 
     stripLegacyFooterCopy(footer);
     return nav;
