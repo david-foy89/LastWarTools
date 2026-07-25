@@ -593,17 +593,18 @@
 
     <script>
       // ── Config ────────────────────────────────────────────────────────────────
+      // Coordinates List sheet (Alliance Tags tab):
+      //   A = server #, B–K = up to 10 alliance tags, L = last-updated date
       const SHEET_ID = "1JWa6CzPfT2hRRKwv9zJCZ-nV5Xy9r1ydFf8YEPbO0KI";
       const GID = "0";
-      const SERVER_NUMBER_OFFSET = 3;
+      const TAG_COL_START = 1; // B
+      const TAG_COL_END = 10; // K (inclusive)
+      const DATE_COL = 11; // L
+      const MAX_TAG_LEN = 12;
 
       // ── State ─────────────────────────────────────────────────────────────────
-      // gviz returns row 1 of the sheet (headers / tips) as the first row; the first
-      // server row (server 3) is the second row. We slice that header off so
-      // sheetRows[i] lines up with server number i + SERVER_NUMBER_OFFSET.
-      // Each row: indices 0–9 = alliance tags (cols A–J), index 10 = date (col K),
-      // index 11 = SN (col L) when present.
-      let sheetRows = [];
+      // Map of serverNumber (number) → { serverNum, closed, tags, dateStr }
+      let serverByNum = new Map();
       let dataReady = false;
       let searchMode = "server"; // 'server' | 'alliance'
 
@@ -632,6 +633,38 @@
           .replace(/</g, "&lt;")
           .replace(/>/g, "&gt;")
           .replace(/"/g, "&quot;");
+      }
+
+      function cellText(cell) {
+        if (!cell || cell.v === null || cell.v === undefined) return "";
+        return String(cell.f != null && cell.f !== "" ? cell.f : cell.v).trim();
+      }
+
+      function isValidAllianceTag(v) {
+        if (!v) return false;
+        if (v === "-" || v === "–" || v === "—") return false;
+        if (/^closed server$/i.test(v)) return false;
+        if (/^\(no alliances\)$/i.test(v)) return false;
+        if (/editor tips?/i.test(v)) return false;
+        if (v.length > MAX_TAG_LEN) return false;
+        return true;
+      }
+
+      function parseServerRow(cells) {
+        const serverRaw = cells[0] || "";
+        const serverNum = parseInt(String(serverRaw).replace(/^[Ss]/, ""), 10);
+        if (!Number.isFinite(serverNum) || serverNum < 1) return null;
+
+        const closed = /^closed server$/i.test(cells[1] || "");
+        const tags = [];
+        if (!closed) {
+          for (let i = TAG_COL_START; i <= TAG_COL_END; i++) {
+            const tag = cells[i] || "";
+            if (isValidAllianceTag(tag)) tags.push(tag);
+          }
+        }
+        const dateStr = cells[DATE_COL] || "";
+        return { serverNum: serverNum, closed: closed, tags: tags, dateStr: dateStr };
       }
 
       // ── Mode toggle ───────────────────────────────────────────────────────────
@@ -684,44 +717,37 @@
         }
 
         const table = payload.table;
-        const rawRows = (table.rows || []).map((row) =>
-          table.cols.map((_, i) => {
-            const cell = row.c?.[i];
-            if (!cell || cell.v === null || cell.v === undefined) return "";
-            return String(cell.f ?? cell.v);
-          }),
-        );
-        // First row is the sheet header, not a server entry (see comment above).
-        sheetRows = rawRows.slice(1);
+        const next = new Map();
+        (table.rows || []).forEach((row) => {
+          const cells = table.cols.map((_, i) => cellText(row.c?.[i]));
+          const parsed = parseServerRow(cells);
+          if (parsed) next.set(parsed.serverNum, parsed);
+        });
 
+        if (!next.size) {
+          throw new Error("No server rows found in the spreadsheet.");
+        }
+
+        serverByNum = next;
         dataReady = true;
       }
 
-      // ── Alliance tags from a row (columns 0–9, skip blanks and dashes) ────────
-      function getAllianceTags(row) {
-        return row.slice(0, 10).filter((v) => v && v !== "-");
-      }
-
       // ── Build a result card DOM element ───────────────────────────────────────
-      function buildServerCard(serverNum, row, highlightTag) {
-        const isClosed = row[0] === "Closed server";
-        const tags = isClosed ? [] : getAllianceTags(row);
-        const dateStr = row[10] || "";
-
+      function buildServerCard(entry, highlightTag) {
         const card = document.createElement("div");
-        card.className = "result-card" + (isClosed ? " closed" : "");
+        card.className = "result-card" + (entry.closed ? " closed" : "");
 
         const label = document.createElement("div");
         label.className = "result-server-label";
-        label.textContent = "Server " + serverNum;
+        label.textContent = "Server " + entry.serverNum;
         card.appendChild(label);
 
-        if (isClosed) {
+        if (entry.closed) {
           const cl = document.createElement("div");
           cl.className = "closed-label";
           cl.textContent = "Closed server \u2014 no alliances";
           card.appendChild(cl);
-        } else if (tags.length === 0) {
+        } else if (!entry.tags.length) {
           const cl = document.createElement("div");
           cl.className = "closed-label";
           cl.textContent = "No alliances listed for this server yet.";
@@ -729,7 +755,7 @@
         } else {
           const chips = document.createElement("div");
           chips.className = "alliance-chips";
-          tags.forEach((tag) => {
+          entry.tags.forEach((tag) => {
             const chip = document.createElement("span");
             chip.className =
               "alliance-chip" +
@@ -742,10 +768,10 @@
           card.appendChild(chips);
         }
 
-        if (dateStr) {
+        if (entry.dateStr) {
           const d = document.createElement("div");
           d.className = "result-date";
-          d.textContent = "Last updated: " + dateStr;
+          d.textContent = "Last updated: " + entry.dateStr;
           card.appendChild(d);
         }
 
@@ -777,26 +803,25 @@
             setStatus("Please enter a valid server number.", "info");
             return;
           }
-          const rowIndex = serverNum - SERVER_NUMBER_OFFSET;
-          if (rowIndex < 0 || rowIndex >= sheetRows.length) {
+          const entry = serverByNum.get(serverNum);
+          if (!entry) {
             const msg = document.createElement("div");
             msg.className = "no-results-msg";
             msg.textContent =
               "Server " + serverNum + " is not in the registry yet.";
             resultsArea.appendChild(msg);
           } else {
-            resultsArea.appendChild(
-              buildServerCard(serverNum, sheetRows[rowIndex], null),
-            );
+            resultsArea.appendChild(buildServerCard(entry, null));
           }
         } else {
           const query = raw.toLowerCase();
           const matches = [];
-          sheetRows.forEach((row, idx) => {
-            if (getAllianceTags(row).some((t) => t.toLowerCase() === query)) {
-              matches.push({ serverNum: idx + SERVER_NUMBER_OFFSET, row });
+          serverByNum.forEach((entry) => {
+            if (entry.tags.some((t) => t.toLowerCase() === query)) {
+              matches.push(entry);
             }
           });
+          matches.sort((a, b) => a.serverNum - b.serverNum);
           if (matches.length === 0) {
             const msg = document.createElement("div");
             msg.className = "no-results-msg";
@@ -806,8 +831,8 @@
               "\u201d.";
             resultsArea.appendChild(msg);
           } else {
-            matches.forEach(({ serverNum, row }) => {
-              resultsArea.appendChild(buildServerCard(serverNum, row, raw));
+            matches.forEach((entry) => {
+              resultsArea.appendChild(buildServerCard(entry, raw));
             });
           }
         }
