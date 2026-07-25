@@ -158,9 +158,9 @@
       .hive-tool-row {
         display: flex;
         flex-wrap: wrap;
-        align-items: stretch;
-        gap: 6px;
-        margin-bottom: 6px;
+        align-items: center;
+        gap: 8px;
+        margin-bottom: 8px;
       }
       .hive-tool-row__label {
         font-size: 0.76rem;
@@ -168,191 +168,213 @@
         align-self: center;
         margin-right: 4px;
       }
+      /* Generic actions (export / generate) — site panel buttons. */
       .hive-tool-btn {
         display: inline-flex;
         align-items: center;
-        gap: 6px;
-        padding: 6px 12px;
+        gap: 8px;
+        padding: 7px 12px;
         border-radius: 10px;
         border: 1px solid var(--line-soft);
-        background: var(--panel-2);
+        background: linear-gradient(180deg, var(--panel) 0%, var(--panel-2) 100%);
         color: var(--text);
         font-size: 0.82rem;
         font-weight: 600;
         font-family: inherit;
         cursor: pointer;
-        transition: border-color 0.12s, background 0.12s;
+        transition: border-color 0.12s, box-shadow 0.12s;
+        box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.04);
       }
       .hive-tool-btn:hover {
-        border-color: var(--accent, #64b4ff);
+        border-color: rgba(116, 192, 252, 0.55);
       }
-      .hive-tool-btn.hive-tool-btn--active {
-        border-color: var(--accent, #64b4ff);
-        background: rgba(100, 180, 255, 0.12);
+
+      /* Tool swatches — horizontal site-style bar, large 2.5D cubes. */
+      .hive-icon-menu {
+        display: flex;
+        flex-wrap: wrap;
+        align-items: center;
+        gap: 8px 10px;
+        margin-bottom: 10px;
+        padding: 10px 12px;
+        border-radius: 12px;
+        border: 1px solid var(--line-soft);
+        background: linear-gradient(180deg, var(--panel) 0%, var(--panel-2) 100%);
+        box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.04);
+      }
+      .hive-icon-menu__divider {
+        width: 1px;
+        align-self: stretch;
+        min-height: 2.5rem;
+        background: var(--line-soft);
+        opacity: 0.85;
+        margin: 0 2px;
+        flex: 0 0 auto;
+      }
+      .hive-tool-chip {
+        --hive-tool-accent: var(--accent);
+        display: inline-flex;
+        flex-direction: row;
+        align-items: center;
+        gap: 10px;
+        min-height: 2.85rem;
+        padding: 6px 12px 6px 8px;
+        border-radius: 10px;
+        border: 1px solid var(--line-soft);
+        background: linear-gradient(
+          180deg,
+          rgba(18, 35, 53, 0.95),
+          rgba(12, 24, 37, 0.9)
+        );
+        color: var(--text);
+        font-family: inherit;
+        cursor: pointer;
+        transition: border-color 0.12s, box-shadow 0.12s;
+        box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.04);
+      }
+      .hive-tool-chip:hover {
+        border-color: var(--hive-tool-accent);
+      }
+      .hive-tool-chip.hive-tool-chip--active {
+        border-color: var(--hive-tool-accent);
+        box-shadow:
+          inset 0 1px 0 rgba(255, 255, 255, 0.06),
+          0 0 0 2px rgba(116, 192, 252, 0.16);
+      }
+      .hive-tool-chip__text {
+        display: flex;
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 1px;
+        line-height: 1.15;
+      }
+      .hive-tool-chip__label {
+        font-size: 0.84rem;
+        font-weight: 700;
         color: var(--text);
       }
-      .hive-tool-r5-icon {
-        display: inline-flex;
-        align-items: center;
-        justify-content: center;
-        width: 1.35em;
-        height: 1.35em;
-        font-size: 1.1em;
-        line-height: 1;
-        color: #e8b84a;
-        text-shadow: 0 0 1px rgba(0, 0, 0, 0.5);
-      }
-      .hive-tool-r4-icon {
-        display: inline-flex;
-        align-items: center;
-        justify-content: center;
-        width: 1.35em;
-        height: 1.35em;
-        font-size: 1.1em;
-        line-height: 1;
-        color: #e85555;
-        text-shadow: 0 0 1px rgba(0, 0, 0, 0.5);
-      }
-      .hive-tool-r3-icon {
-        display: inline-flex;
-        align-items: center;
-        justify-content: center;
-        width: 1.35em;
-        height: 1.35em;
-        font-size: 1.1em;
-        line-height: 1;
-        color: #b388ff;
-        text-shadow: 0 0 1px rgba(0, 0, 0, 0.5);
-      }
-      .hive-tool-r2-icon {
-        display: inline-flex;
-        align-items: center;
-        justify-content: center;
-        width: 1.35em;
-        height: 1.35em;
-        font-size: 1.1em;
-        line-height: 1;
-        color: #6eb5ff;
-        text-shadow: 0 0 1px rgba(0, 0, 0, 0.5);
-      }
-      .hive-tool-r1-icon {
-        display: inline-flex;
-        align-items: center;
-        justify-content: center;
-        width: 1.35em;
-        height: 1.35em;
-        font-size: 1.1em;
-        line-height: 1;
-        color: #e8a04a;
-        text-shadow: 0 0 1px rgba(0, 0, 0, 0.5);
-      }
-      .hive-tool-ae-icon {
-        display: inline-flex;
-        align-items: center;
-        justify-content: center;
-        width: 1.35em;
-        height: 1.35em;
-        font-size: 1.1em;
-        line-height: 1;
-        color: #4ec9a8;
-        text-shadow: 0 0 1px rgba(0, 0, 0, 0.5);
-      }
-      .hive-tool-btn.hive-tool-btn--ae {
-        flex-wrap: nowrap;
-        max-width: none;
-        text-align: left;
-        line-height: 1.2;
-      }
-      .hive-tool-ae-line {
-        display: inline-flex;
-        align-items: baseline;
-        flex-wrap: nowrap;
-        gap: 0.4em;
-      }
-      .hive-tool-ae-text {
-        font-size: 0.78rem;
+      .hive-tool-chip__meta {
+        font-size: 0.7rem;
         font-weight: 600;
-      }
-      .hive-tool-furnace-icon {
-        display: inline-flex;
-        align-items: center;
-        justify-content: center;
-        width: 1.35em;
-        height: 1.35em;
-        font-size: 1.1em;
-        line-height: 1;
-        color: #1a1a1a;
-        text-shadow: 0 0 1px rgba(255, 255, 255, 0.25);
-      }
-      .hive-tool-btn.hive-tool-btn--furnace {
-        flex-wrap: nowrap;
-        max-width: none;
-        text-align: left;
-        line-height: 1.2;
-      }
-      .hive-tool-furnace-line {
-        display: inline-flex;
-        align-items: baseline;
-        flex-wrap: nowrap;
-        gap: 0.4em;
-      }
-      .hive-tool-furnace-text {
-        font-size: 0.78rem;
-        font-weight: 600;
-      }
-      .hive-tool-acenter-icon {
-        display: inline-flex;
-        align-items: center;
-        justify-content: center;
-        width: 1.35em;
-        height: 1.35em;
-        font-size: 1.1em;
-        line-height: 1;
-        color: #c9a86c;
-        text-shadow: 0 0 1px rgba(0, 0, 0, 0.45);
-      }
-      .hive-tool-btn.hive-tool-btn--acenter {
-        flex-wrap: wrap;
-        max-width: 10.5rem;
-        text-align: left;
-        line-height: 1.2;
-      }
-      .hive-tool-acenter-text {
-        font-size: 0.78rem;
-        font-weight: 600;
-      }
-      .hive-tool-sub {
-        font-size: 0.72rem;
-        font-weight: 500;
         color: var(--muted);
+      }
+
+      /* 2.5D cube — site panel face + hard extrusion + accent rim all around. */
+      .hive-ico {
+        --hive-ico-accent: var(--accent);
+        --hive-ico-depth: #05090e;
+        position: relative;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        width: 2.4rem;
+        height: 2.25rem;
+        margin: 0 0 4px;
+        flex-shrink: 0;
+        border-radius: 7px;
+        border: 2px solid var(--hive-ico-accent);
+        background: linear-gradient(180deg, #1a2b3d 0%, #101b28 100%);
+        color: var(--hive-ico-accent);
+        font-size: 0.86rem;
+        font-weight: 800;
+        letter-spacing: 0.02em;
+        line-height: 1;
+        font-variant-numeric: tabular-nums;
+        text-shadow: none;
+        filter: none;
+        box-shadow:
+          0 4px 0 var(--hive-ico-depth),
+          inset 0 1px 0 rgba(255, 255, 255, 0.1);
+        user-select: none;
+      }
+      .hive-ico--mark {
+        --hive-ico-accent: #15aabf;
+        font-size: 1.25rem;
+        font-weight: 700;
+      }
+      .hive-ico--ae { --hive-ico-accent: #40c057; }
+      .hive-ico--furnace { --hive-ico-accent: #fd7e14; }
+      .hive-ico--acenter { --hive-ico-accent: #fab005; }
+      .hive-ico--r5 { --hive-ico-accent: #e64980; }
+      .hive-ico--r4 { --hive-ico-accent: #fa5252; }
+      .hive-ico--r3 { --hive-ico-accent: #7950f2; }
+      .hive-ico--r2 { --hive-ico-accent: #339af0; }
+      .hive-ico--r1 { --hive-ico-accent: #be4bdb; }
+      .hive-ico--custom { --hive-ico-accent: #868e96; }
+      #hiveToolMark { --hive-tool-accent: #15aabf; }
+      #hiveToolAE { --hive-tool-accent: #40c057; }
+      #hiveToolFurnace { --hive-tool-accent: #fd7e14; }
+      #hiveToolACenter { --hive-tool-accent: #fab005; }
+      #hiveToolR5 { --hive-tool-accent: #e64980; }
+      #hiveToolR4 { --hive-tool-accent: #fa5252; }
+      #hiveToolR3 { --hive-tool-accent: #7950f2; }
+      #hiveToolR2 { --hive-tool-accent: #339af0; }
+      #hiveToolR1 { --hive-tool-accent: #be4bdb; }
+      #hiveToolCustom { --hive-tool-accent: #868e96; }
+      .hive-tool-chip.hive-tool-chip--active#hiveToolMark {
+        box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.06), 0 0 0 2px rgba(21, 170, 191, 0.28);
+      }
+      .hive-tool-chip.hive-tool-chip--active#hiveToolAE {
+        box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.06), 0 0 0 2px rgba(64, 192, 87, 0.28);
+      }
+      .hive-tool-chip.hive-tool-chip--active#hiveToolFurnace {
+        box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.06), 0 0 0 2px rgba(253, 126, 20, 0.28);
+      }
+      .hive-tool-chip.hive-tool-chip--active#hiveToolACenter {
+        box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.06), 0 0 0 2px rgba(250, 176, 5, 0.28);
+      }
+      .hive-tool-chip.hive-tool-chip--active#hiveToolR5 {
+        box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.06), 0 0 0 2px rgba(230, 73, 128, 0.28);
+      }
+      .hive-tool-chip.hive-tool-chip--active#hiveToolR4 {
+        box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.06), 0 0 0 2px rgba(250, 82, 82, 0.28);
+      }
+      .hive-tool-chip.hive-tool-chip--active#hiveToolR3 {
+        box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.06), 0 0 0 2px rgba(121, 80, 242, 0.28);
+      }
+      .hive-tool-chip.hive-tool-chip--active#hiveToolR2 {
+        box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.06), 0 0 0 2px rgba(51, 154, 240, 0.28);
+      }
+      .hive-tool-chip.hive-tool-chip--active#hiveToolR1 {
+        box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.06), 0 0 0 2px rgba(190, 75, 219, 0.28);
+      }
+      .hive-tool-chip.hive-tool-chip--active#hiveToolCustom {
+        box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.06), 0 0 0 2px rgba(134, 142, 150, 0.28);
       }
       .hive-custom-tool-wrap {
         display: inline-flex;
         flex-wrap: wrap;
         align-items: center;
-        gap: 6px 10px;
+        gap: 8px;
       }
       .hive-custom-input {
         width: 7.25rem;
         max-width: 100%;
-        padding: 4px 8px;
+        padding: 7px 10px;
         border-radius: 8px;
         border: 1px solid var(--line-soft);
         background: var(--panel);
         color: var(--text);
-        font-size: 0.8rem;
+        font-size: 0.82rem;
         font-family: inherit;
       }
       .hive-custom-num {
-        width: 3rem;
-        padding: 4px 6px;
+        width: 3.1rem;
+        padding: 7px 6px;
         border-radius: 8px;
         border: 1px solid var(--line-soft);
         background: var(--panel);
         color: var(--text);
-        font-size: 0.8rem;
+        font-size: 0.82rem;
         font-family: inherit;
         font-variant-numeric: tabular-nums;
+        -moz-appearance: textfield;
+        appearance: textfield;
+      }
+      .hive-custom-num::-webkit-outer-spin-button,
+      .hive-custom-num::-webkit-inner-spin-button {
+        -webkit-appearance: none;
+        margin: 0;
       }
       .hive-custom-label {
         display: inline-flex;
@@ -360,18 +382,7 @@
         gap: 4px;
         font-size: 0.76rem;
         color: var(--muted);
-        font-weight: 500;
-      }
-      .hive-tool-custom-icon {
-        display: inline-flex;
-        align-items: center;
-        justify-content: center;
-        width: 1.35em;
-        height: 1.35em;
-        font-size: 1.1em;
-        line-height: 1;
-        color: #8b9aab;
-        text-shadow: 0 0 1px rgba(0, 0, 0, 0.45);
+        font-weight: 600;
       }
       .hive-coord {
         font-size: 0.88rem;
@@ -551,10 +562,65 @@
         flex-direction: column;
         gap: 4px;
       }
-      .hive-settings-field label {
+      .hive-settings-field__label,
+      .hive-settings-field > label {
         font-size: 0.72rem;
         color: var(--muted);
         font-weight: 600;
+      }
+      .hive-rank-counts {
+        display: grid;
+        grid-template-columns: repeat(5, minmax(0, 1fr));
+        gap: 6px;
+      }
+      .hive-rank-count {
+        display: flex;
+        flex-direction: column;
+        gap: 3px;
+        font-size: 0.7rem;
+        font-weight: 700;
+        color: var(--muted);
+      }
+      .hive-rank-count input {
+        width: 100%;
+        padding: 6px 4px;
+        border-radius: 8px;
+        border: 1px solid var(--line-soft);
+        background: var(--panel);
+        color: var(--text);
+        font: inherit;
+        font-size: 0.82rem;
+        font-variant-numeric: tabular-nums;
+        text-align: center;
+        -moz-appearance: textfield;
+        appearance: textfield;
+      }
+      .hive-rank-count input::-webkit-outer-spin-button,
+      .hive-rank-count input::-webkit-inner-spin-button {
+        -webkit-appearance: none;
+        margin: 0;
+      }
+      .hive-settings-field input[type="number"] {
+        -moz-appearance: textfield;
+        appearance: textfield;
+      }
+      .hive-settings-field input[type="number"]::-webkit-outer-spin-button,
+      .hive-settings-field input[type="number"]::-webkit-inner-spin-button {
+        -webkit-appearance: none;
+        margin: 0;
+      }
+      .hive-rank-count input:disabled {
+        opacity: 0.75;
+        cursor: not-allowed;
+      }
+      .hive-rank-counts__total {
+        margin: 4px 0 0;
+        font-size: 0.72rem;
+        font-weight: 600;
+        color: var(--muted);
+      }
+      .hive-rank-counts__total--over {
+        color: #ff8787;
       }
       .hive-settings-field input,
       .hive-settings-field select {
@@ -666,15 +732,21 @@
       .hive-member-rank {
         font-size: 0.68rem;
         font-weight: 800;
-        padding: 2px 6px;
-        border-radius: 999px;
+        padding: 3px 8px;
+        border-radius: 6px;
         border: 1px solid var(--line-soft);
+        letter-spacing: 0.03em;
+        color: var(--hive-rank-accent, var(--accent));
+        background: linear-gradient(180deg, #1c2c3e 0%, #111c28 100%);
+        font-variant-numeric: tabular-nums;
+        box-shadow: 0 2px 0 #0a121c, inset 0 1px 0 rgba(255, 255, 255, 0.06);
+        text-shadow: none;
       }
-      .hive-member-rank--r5 { color: #e8b84a; }
-      .hive-member-rank--r4 { color: #e85555; }
-      .hive-member-rank--r3 { color: #b388ff; }
-      .hive-member-rank--r2 { color: #6eb5ff; }
-      .hive-member-rank--r1 { color: #d9a04a; }
+      .hive-member-rank--r5 { --hive-rank-accent: #e64980; border-color: rgba(230, 73, 128, 0.5); }
+      .hive-member-rank--r4 { --hive-rank-accent: #fa5252; border-color: rgba(250, 82, 82, 0.5); }
+      .hive-member-rank--r3 { --hive-rank-accent: #7950f2; border-color: rgba(121, 80, 242, 0.5); }
+      .hive-member-rank--r2 { --hive-rank-accent: #339af0; border-color: rgba(51, 154, 240, 0.5); }
+      .hive-member-rank--r1 { --hive-rank-accent: #be4bdb; border-color: rgba(190, 75, 219, 0.5); }
       .hive-member-name {
         font-size: 0.78rem;
         font-weight: 600;
@@ -867,7 +939,7 @@
       <section class="hero">
         <h1>Hive Builder</h1>
         <div class="sub">
-          50×50 hive planner — place <strong>Alliance Exercise</strong> / Furnace / Center, pick how many bases to lay out, then <strong>Generate hive</strong>. Import members optionally. Right-click or long-press to clear.
+          50×50 hive planner — place <strong>Alliance Exercise</strong> / Furnace / Center, set R4–R1 counts (1 R5 + up to 10 R4), then <strong>Generate hive</strong>. Import members optionally. Right-click or long-press to clear.
         </div>
       </section>
 
@@ -887,120 +959,92 @@
           <span class="hive-planner-bar__sep">·</span>
           <span class="hive-planner-bar__item">Grid: <strong>50×50</strong></span>
         </div>
-        <div class="hive-tool-row" role="radiogroup" aria-label="Paint icons">
-          <span class="hive-tool-row__label">Icons</span>
-          <button type="button" id="hiveToolMark" class="hive-tool-btn hive-tool-btn--active" aria-pressed="true">
-            Single tile
-          </button>
-          <button
-            type="button"
-            id="hiveToolAE"
-            class="hive-tool-btn hive-tool-btn--ae"
-            aria-pressed="false"
-            title="Place Alliance Exercise — 3×3 hub for coords and auto-layout"
-          >
-            <span class="hive-tool-ae-icon" aria-hidden="true">◆</span>
-            <span class="hive-tool-ae-line">
-              <span class="hive-tool-ae-text">Alliance Exercise</span>
-              <span class="hive-tool-sub">3×3</span>
-            </span>
-          </button>
-          <button
-            type="button"
-            id="hiveToolFurnace"
-            class="hive-tool-btn hive-tool-btn--furnace"
-            aria-pressed="false"
-            title="Place Alliance Furnace — fills a 5×5 block (black)"
-          >
-            <span class="hive-tool-furnace-icon" aria-hidden="true">◆</span>
-            <span class="hive-tool-furnace-line">
-              <span class="hive-tool-furnace-text">Alliance Furnace</span>
-              <span class="hive-tool-sub">5×5</span>
-            </span>
-          </button>
-          <button
-            type="button"
-            id="hiveToolACenter"
-            class="hive-tool-btn hive-tool-btn--acenter"
-            aria-pressed="false"
-            title="Place Alliance Center — fills a 9×9 block"
-          >
-            <span class="hive-tool-acenter-icon" aria-hidden="true">◆</span>
-            <span class="hive-tool-acenter-text">Alliance Center</span>
-            <span class="hive-tool-sub">9×9</span>
-          </button>
-          <button type="button" id="hiveToolR5" class="hive-tool-btn" aria-pressed="false" title="Place R5 — fills a 3×3 block">
-            <span class="hive-tool-r5-icon" aria-hidden="true">◆</span>
-            R5
-            <span class="hive-tool-sub">3×3</span>
-          </button>
-          <button type="button" id="hiveToolR4" class="hive-tool-btn" aria-pressed="false" title="Place R4 — fills a 3×3 block (red)">
-            <span class="hive-tool-r4-icon" aria-hidden="true">◆</span>
-            R4
-            <span class="hive-tool-sub">3×3</span>
-          </button>
-          <button type="button" id="hiveToolR3" class="hive-tool-btn" aria-pressed="false" title="Place R3 — fills a 3×3 block">
-            <span class="hive-tool-r3-icon" aria-hidden="true">◆</span>
-            R3
-            <span class="hive-tool-sub">3×3</span>
-          </button>
-          <button type="button" id="hiveToolR2" class="hive-tool-btn" aria-pressed="false" title="Place R2 — fills a 3×3 block">
-            <span class="hive-tool-r2-icon" aria-hidden="true">◆</span>
-            R2
-            <span class="hive-tool-sub">3×3</span>
-          </button>
-          <button type="button" id="hiveToolR1" class="hive-tool-btn" aria-pressed="false" title="Place R1 — fills a 3×3 block">
-            <span class="hive-tool-r1-icon" aria-hidden="true">◆</span>
-            R1
-            <span class="hive-tool-sub">3×3</span>
-          </button>
-          <div class="hive-custom-tool-wrap">
-            <button
-              type="button"
-              id="hiveToolCustom"
-              class="hive-tool-btn"
-              aria-pressed="false"
-              title="Place a custom block — set name and width × height, then click the map"
-            >
-              <span class="hive-tool-custom-icon" aria-hidden="true">◆</span>
-              Custom
-            </button>
-            <label class="hive-custom-label">
-              <input
-                type="text"
-                id="hiveCustomName"
-                class="hive-custom-input"
-                maxlength="40"
-                placeholder="Name"
-                autocomplete="off"
-                aria-label="Custom block name"
-              />
-            </label>
-            <label class="hive-custom-label">
-              W
-              <input
-                type="number"
-                id="hiveCustomW"
-                class="hive-custom-num"
-                min="1"
-                max="50"
-                value="3"
-                aria-label="Custom block width in cells"
-              />
-            </label>
-            <label class="hive-custom-label">
-              H
-              <input
-                type="number"
-                id="hiveCustomH"
-                class="hive-custom-num"
-                min="1"
-                max="50"
-                value="3"
-                aria-label="Custom block height in cells"
-              />
-            </label>
-          </div>
+        <div class="hive-icon-menu" role="radiogroup" aria-label="Paint icons">
+              <button type="button" id="hiveToolMark" class="hive-tool-chip hive-tool-chip--active" aria-pressed="true" title="Single tile mark">
+                <span class="hive-ico hive-ico--mark" aria-hidden="true">+</span>
+                <span class="hive-tool-chip__text">
+                  <span class="hive-tool-chip__label">Mark</span>
+                  <span class="hive-tool-chip__meta">1×1</span>
+                </span>
+              </button>
+              <button type="button" id="hiveToolAE" class="hive-tool-chip" aria-pressed="false" title="Alliance Exercise — 3×3 hub">
+                <span class="hive-ico hive-ico--ae" aria-hidden="true">AE</span>
+                <span class="hive-tool-chip__text">
+                  <span class="hive-tool-chip__label">Exercise</span>
+                  <span class="hive-tool-chip__meta">3×3</span>
+                </span>
+              </button>
+              <button type="button" id="hiveToolFurnace" class="hive-tool-chip" aria-pressed="false" title="Alliance Furnace — 5×5">
+                <span class="hive-ico hive-ico--furnace" aria-hidden="true">AF</span>
+                <span class="hive-tool-chip__text">
+                  <span class="hive-tool-chip__label">Furnace</span>
+                  <span class="hive-tool-chip__meta">5×5</span>
+                </span>
+              </button>
+              <button type="button" id="hiveToolACenter" class="hive-tool-chip" aria-pressed="false" title="Alliance Center — 9×9">
+                <span class="hive-ico hive-ico--acenter" aria-hidden="true">AC</span>
+                <span class="hive-tool-chip__text">
+                  <span class="hive-tool-chip__label">Center</span>
+                  <span class="hive-tool-chip__meta">9×9</span>
+                </span>
+              </button>
+            <span class="hive-icon-menu__divider" aria-hidden="true"></span>
+              <button type="button" id="hiveToolR5" class="hive-tool-chip" aria-pressed="false" title="Place R5 — 3×3">
+                <span class="hive-ico hive-ico--r5" aria-hidden="true">R5</span>
+                <span class="hive-tool-chip__text">
+                  <span class="hive-tool-chip__label">R5</span>
+                  <span class="hive-tool-chip__meta">3×3</span>
+                </span>
+              </button>
+              <button type="button" id="hiveToolR4" class="hive-tool-chip" aria-pressed="false" title="Place R4 — 3×3">
+                <span class="hive-ico hive-ico--r4" aria-hidden="true">R4</span>
+                <span class="hive-tool-chip__text">
+                  <span class="hive-tool-chip__label">R4</span>
+                  <span class="hive-tool-chip__meta">3×3</span>
+                </span>
+              </button>
+              <button type="button" id="hiveToolR3" class="hive-tool-chip" aria-pressed="false" title="Place R3 — 3×3">
+                <span class="hive-ico hive-ico--r3" aria-hidden="true">R3</span>
+                <span class="hive-tool-chip__text">
+                  <span class="hive-tool-chip__label">R3</span>
+                  <span class="hive-tool-chip__meta">3×3</span>
+                </span>
+              </button>
+              <button type="button" id="hiveToolR2" class="hive-tool-chip" aria-pressed="false" title="Place R2 — 3×3">
+                <span class="hive-ico hive-ico--r2" aria-hidden="true">R2</span>
+                <span class="hive-tool-chip__text">
+                  <span class="hive-tool-chip__label">R2</span>
+                  <span class="hive-tool-chip__meta">3×3</span>
+                </span>
+              </button>
+              <button type="button" id="hiveToolR1" class="hive-tool-chip" aria-pressed="false" title="Place R1 — 3×3">
+                <span class="hive-ico hive-ico--r1" aria-hidden="true">R1</span>
+                <span class="hive-tool-chip__text">
+                  <span class="hive-tool-chip__label">R1</span>
+                  <span class="hive-tool-chip__meta">3×3</span>
+                </span>
+              </button>
+            <span class="hive-icon-menu__divider" aria-hidden="true"></span>
+            <div class="hive-custom-tool-wrap">
+              <button type="button" id="hiveToolCustom" class="hive-tool-chip" aria-pressed="false" title="Place a custom block">
+                <span class="hive-ico hive-ico--custom" aria-hidden="true">Cu</span>
+                <span class="hive-tool-chip__text">
+                  <span class="hive-tool-chip__label">Custom</span>
+                  <span class="hive-tool-chip__meta">W×H</span>
+                </span>
+              </button>
+              <label class="hive-custom-label">
+                <input type="text" id="hiveCustomName" class="hive-custom-input" maxlength="40" placeholder="Name" autocomplete="off" aria-label="Custom block name" />
+              </label>
+              <label class="hive-custom-label">
+                W
+                <input type="number" id="hiveCustomW" class="hive-custom-num" min="1" max="50" value="3" aria-label="Custom block width in cells" />
+              </label>
+              <label class="hive-custom-label">
+                H
+                <input type="number" id="hiveCustomH" class="hive-custom-num" min="1" max="50" value="3" aria-label="Custom block height in cells" />
+              </label>
+            </div>
         </div>
         <div class="hive-toolbar">
           <button type="button" id="hiveClearBtn" class="action-button">Clear all tiles</button>
@@ -1057,12 +1101,44 @@
                 </select>
               </div>
               <div class="hive-settings-field">
-                <label for="hiveGenerateCount">Bases to place</label>
-                <input type="number" id="hiveGenerateCount" min="1" max="150" value="40" />
+                <label for="hiveElitePlacement">R5 / R4 placement</label>
+                <select id="hiveElitePlacement" aria-label="Place R5 and R4 inside or outside on the hive pack">
+                  <option value="inside">Inside (closest to building)</option>
+                  <option value="outside">Outside (outer fringe of hive)</option>
+                </select>
+              </div>
+              <div class="hive-settings-field">
+                <span class="hive-settings-field__label">Bases to generate</span>
+                <div class="hive-rank-counts" role="group" aria-label="Rank counts for generate">
+                  <label class="hive-rank-count">
+                    <span>R5</span>
+                    <input type="number" id="hiveGenR5" value="1" min="1" max="1" disabled title="Always 1 R5" aria-label="R5 count (fixed at 1)" />
+                  </label>
+                  <label class="hive-rank-count">
+                    <span>R4</span>
+                    <input type="number" id="hiveGenR4" min="0" max="10" value="10" title="Up to 10 R4 bases" aria-label="R4 count (0 to 10)" />
+                  </label>
+                  <label class="hive-rank-count">
+                    <span>R3</span>
+                    <input type="number" id="hiveGenR3" min="0" max="99" value="20" aria-label="R3 count" />
+                  </label>
+                  <label class="hive-rank-count">
+                    <span>R2</span>
+                    <input type="number" id="hiveGenR2" min="0" max="99" value="30" aria-label="R2 count" />
+                  </label>
+                  <label class="hive-rank-count">
+                    <span>R1</span>
+                    <input type="number" id="hiveGenR1" min="0" max="99" value="39" aria-label="R1 count" />
+                  </label>
+                </div>
+                <p id="hiveGenTotal" class="hive-rank-counts__total" aria-live="polite">Total: 100 / 100</p>
               </div>
             </div>
             <p class="hive-settings-hint">
-              Generates from your <strong>Build around</strong> choice first, then other hubs.
+              Generate places <strong>1 R5</strong> and up to <strong>10 R4</strong>, plus your R3 / R2 / R1 counts — <strong>100 bases max</strong> (default 100).
+              Uses imported members of each rank first, then fills the rest with placeholders.
+              Packs from your <strong>Build around</strong> choice first, then other hubs.
+              Choose whether <strong>R5 / R4</strong> sit on the <strong>inside</strong> (closest to the building) or <strong>outside</strong> (outer fringe of the same hive pack).
               Every hub and base uses your selected gap. The 50×50 borders are map walls — edge/corner hubs pack along those walls first, then inward; with two buildings, bases stay on one spacing grid so corridors between them stay even.
               Auto prefers an edge/corner hub when one exists.
             </p>
@@ -1165,8 +1241,8 @@
       (function () {
         /** Same grid count as typical Last War hive planners (e.g. cpt-hedge.com/maps/planner). */
         var TILES = 50;
-        /** Device pixels per logical cell — 50×16 = 800px map, lines stay visible when zoomed. */
-        var SCALE = 16;
+        /** Device pixels per logical cell — higher = sharper when CSS-scaled to the column. */
+        var SCALE = 32;
         var PX = TILES * SCALE;
         var TOTAL = TILES * TILES;
         var MAJOR = 10;
@@ -1205,7 +1281,9 @@
         if (!canvas || !canvas.getContext) return;
         canvas.width = PX;
         canvas.height = PX;
-        var ctx = canvas.getContext("2d");
+        var ctx = canvas.getContext("2d", { alpha: false });
+        ctx.imageSmoothingEnabled = true;
+        if ("imageSmoothingQuality" in ctx) ctx.imageSmoothingQuality = "high";
         var STATE_EMPTY = 0;
         var STATE_MARK = 1;
         var STATE_R5 = 2;
@@ -1246,7 +1324,12 @@
         var hiveSettings = {
           baseGap: 1,
           hubPreference: "auto",
-          generateCount: 40,
+          elitePlacement: "inside",
+          r5Count: 1,
+          r4Count: 10,
+          r3Count: 20,
+          r2Count: 30,
+          r1Count: 39,
           anchorWorldX: null,
           anchorWorldY: null,
           anchorGridCol: null,
@@ -1407,42 +1490,94 @@
           );
         }
 
-        function buildGenerateQueue(targetCount) {
+        function normalizeRankCounts(src) {
+          src = src || {};
+          var r5 = 1;
+          var r4 = Math.max(0, Math.min(10, src.r4Count != null ? src.r4Count | 0 : 10));
+          var r3 = Math.max(0, Math.min(99, src.r3Count != null ? src.r3Count | 0 : 20));
+          var r2 = Math.max(0, Math.min(99, src.r2Count != null ? src.r2Count | 0 : 30));
+          var r1 = Math.max(0, Math.min(99, src.r1Count != null ? src.r1Count | 0 : 39));
+          var maxTotal = 100;
+          var overflow = r5 + r4 + r3 + r2 + r1 - maxTotal;
+          if (overflow > 0) {
+            var cut = Math.min(r1, overflow);
+            r1 -= cut;
+            overflow -= cut;
+          }
+          if (overflow > 0) {
+            var cut2 = Math.min(r2, overflow);
+            r2 -= cut2;
+            overflow -= cut2;
+          }
+          if (overflow > 0) {
+            var cut3 = Math.min(r3, overflow);
+            r3 -= cut3;
+            overflow -= cut3;
+          }
+          if (overflow > 0) {
+            r4 = Math.max(0, r4 - overflow);
+          }
+          return { r5Count: r5, r4Count: r4, r3Count: r3, r2Count: r2, r1Count: r1 };
+        }
+
+        function getGenerateRankCounts() {
+          var n = normalizeRankCounts(hiveSettings);
+          return {
+            r5: n.r5Count,
+            r4: n.r4Count,
+            r3: n.r3Count,
+            r2: n.r2Count,
+            r1: n.r1Count,
+          };
+        }
+
+        function isGeneratedPlaceholder(m) {
+          if (!m) return false;
+          if (String(m.id || "").indexOf("gen_") === 0) return true;
+          return /^Base\s+\d+$/i.test(String(m.name || ""));
+        }
+
+        function buildGenerateQueue() {
+          /* Drop prior auto placeholders so names stay in 1–100 each generate. */
+          var kept = [];
+          var mi;
+          for (mi = 0; mi < members.length; mi++) {
+            if (!isGeneratedPlaceholder(members[mi])) kept.push(members[mi]);
+          }
+          members = kept;
+
           var placedIds = getPlacedMemberIds();
+          var counts = getGenerateRankCounts();
           var rankOrder = ["r5", "r4", "r3", "r2", "r1"];
           var queue = [];
+          var baseNum = 1;
           var ri;
-          var mi;
           for (ri = 0; ri < rankOrder.length; ri++) {
             var rank = rankOrder[ri];
-            for (mi = 0; mi < members.length; mi++) {
+            var need = counts[rank] | 0;
+            var taken = 0;
+            for (mi = 0; mi < members.length && taken < need; mi++) {
               var m = members[mi];
               if (m.rank === rank && m.id && !placedIds.has(m.id)) {
                 queue.push(m);
+                placedIds.add(m.id);
+                taken++;
               }
             }
-          }
-          var need = Math.max(0, (targetCount | 0) - countPlacedBases());
-          if (need <= 0) return [];
-          var nextBase = 1;
-          members.forEach(function (m) {
-            var match = String(m.name || "").match(/^Base\s+(\d+)$/i);
-            if (match) {
-              var n = parseInt(match[1], 10);
-              if (Number.isFinite(n) && n >= nextBase) nextBase = n + 1;
+            while (taken < need && baseNum <= 100) {
+              var ph = {
+                id: newGeneratedMemberId(),
+                name: String(baseNum),
+                rank: rank,
+              };
+              baseNum++;
+              members.push(ph);
+              queue.push(ph);
+              placedIds.add(ph.id);
+              taken++;
             }
-          });
-          while (queue.length < need) {
-            var ph = {
-              id: newGeneratedMemberId(),
-              name: "Base " + nextBase,
-              rank: "r1",
-            };
-            nextBase++;
-            members.push(ph);
-            queue.push(ph);
           }
-          return queue.slice(0, need);
+          return queue;
         }
 
         function memberCenterArrays() {
@@ -1924,6 +2059,9 @@
           return seats;
         }
 
+        function normalizeElitePlacement(v) {
+          return v === "outside" ? "outside" : "inside";
+        }
 
         function layoutHubSummary(primary) {
           var waves = packHubWaves(primary);
@@ -2037,9 +2175,22 @@
           if (opts.baseGap != null && Number.isFinite(opts.baseGap)) {
             hiveSettings.baseGap = Math.max(0, Math.min(10, opts.baseGap | 0));
           }
-          if (opts.count != null && Number.isFinite(opts.count)) {
-            hiveSettings.generateCount = Math.max(1, Math.min(150, opts.count | 0));
+          if (opts.elitePlacement === "inside" || opts.elitePlacement === "outside") {
+            hiveSettings.elitePlacement = opts.elitePlacement;
           }
+          var elitePlacement = normalizeElitePlacement(hiveSettings.elitePlacement);
+          hiveSettings.elitePlacement = elitePlacement;
+          var normalizedOpts = normalizeRankCounts({
+            r4Count: opts.r4Count != null ? opts.r4Count : hiveSettings.r4Count,
+            r3Count: opts.r3Count != null ? opts.r3Count : hiveSettings.r3Count,
+            r2Count: opts.r2Count != null ? opts.r2Count : hiveSettings.r2Count,
+            r1Count: opts.r1Count != null ? opts.r1Count : hiveSettings.r1Count,
+          });
+          hiveSettings.r5Count = normalizedOpts.r5Count;
+          hiveSettings.r4Count = normalizedOpts.r4Count;
+          hiveSettings.r3Count = normalizedOpts.r3Count;
+          hiveSettings.r2Count = normalizedOpts.r2Count;
+          hiveSettings.r1Count = normalizedOpts.r1Count;
 
           var hub = getLayoutHub();
           if (!hub) {
@@ -2070,46 +2221,76 @@
 
           syncAnchorFromMap();
           var gap = Math.max(0, hiveSettings.baseGap | 0);
-          var target = Math.max(1, Math.min(150, hiveSettings.generateCount | 0));
-          var queue = buildGenerateQueue(target);
+          var counts = getGenerateRankCounts();
+          var target =
+            counts.r5 + counts.r4 + counts.r3 + counts.r2 + counts.r1;
+          var queue = buildGenerateQueue();
           if (!queue.length) {
             return {
               placed: 0,
               skipped: 0,
               hub: layoutHubSummary(hub),
               target: target,
-              message: "Nothing to place.",
+              message: "Nothing to place — set R4–R1 counts above zero.",
             };
+          }
+          var eliteQ = [];
+          var restQ = [];
+          var qi;
+          for (qi = 0; qi < queue.length; qi++) {
+            if (queue[qi].rank === "r5" || queue[qi].rank === "r4") {
+              eliteQ.push(queue[qi]);
+            } else {
+              restQ.push(queue[qi]);
+            }
           }
           var candidates = generateCandidateCenters(hub, gap);
           var step = minCenterDistForGap(BLOCK_HALF_3, BLOCK_HALF_3, gap);
-          var placed = 0;
-          var skipped = 0;
-          var mi = 0;
-          var candIdx = 0;
+          var needSeats = queue.length;
           var used = Object.create(null);
-          var placedPts = [];
+          var seatPts = [];
+          var softCenters = [];
 
-          function tryPlaceAt(cx, cy) {
-            if (mi >= queue.length) return false;
-            var key = cx + "," + cy;
-            if (used[key]) return false;
+          function canSeatCenterAt(cx, cy) {
             if (!canPlaceMemberCenterAt(cx, cy, gap)) return false;
-            if (!placeMember(queue[mi], { x: cx, y: cy })) return false;
-            used[key] = 1;
-            placedPts.push({ cx: cx, cy: cy });
-            placed++;
-            mi++;
+            var si;
+            for (si = 0; si < softCenters.length; si++) {
+              var sc = softCenters[si];
+              if (
+                footprintsViolateGap(
+                  cx,
+                  cy,
+                  BLOCK_HALF_3,
+                  sc.cx,
+                  sc.cy,
+                  BLOCK_HALF_3,
+                  gap
+                )
+              ) {
+                return false;
+              }
+            }
             return true;
           }
 
-          /* Exact-gap seats: edge rails (if hub on side/corner), hub rings, fill. */
-          while (mi < queue.length && candIdx < candidates.length) {
-            var cand = candidates[candIdx++];
-            tryPlaceAt(cand.cx, cand.cy);
+          function trySeatAt(cx, cy) {
+            if (seatPts.length >= needSeats) return false;
+            var key = cx + "," + cy;
+            if (used[key]) return false;
+            if (!canSeatCenterAt(cx, cy)) return false;
+            used[key] = 1;
+            softCenters.push({ cx: cx, cy: cy });
+            seatPts.push({ cx: cx, cy: cy });
+            return true;
           }
 
-          /* Hole-fill: exact base-gap neighbors on the same lattice / wall rails. */
+          var candIdx = 0;
+          while (seatPts.length < needSeats && candIdx < candidates.length) {
+            var cand = candidates[candIdx++];
+            trySeatAt(cand.cx, cand.cy);
+          }
+
+          /* Hole-fill contiguous seats (same pack as normal generate). */
           var axesFill = primaryLatticeAxes(hub, gap);
           var bounds = axesFill.bounds;
           var blockedFill = axesFill.blocked;
@@ -2118,7 +2299,7 @@
           var onEdgeFill = axesFill.onEdge;
           var cornerFill = axesFill.corner;
 
-          while (mi < queue.length && placedPts.length) {
+          while (seatPts.length < needSeats && seatPts.length) {
             var best = null;
             var bestScore = 1e9;
             var cx;
@@ -2127,7 +2308,7 @@
             for (cy = bounds.lo; cy <= bounds.hi; cy++) {
               for (cx = bounds.lo; cx <= bounds.hi; cx++) {
                 if (used[cx + "," + cy]) continue;
-                if (!canPlaceMemberCenterAt(cx, cy, gap)) continue;
+                if (!canSeatCenterAt(cx, cy)) continue;
                 var onBlockedRail =
                   (blockedFill.top && cy === axesFill.ys[0]) ||
                   (blockedFill.bottom &&
@@ -2137,14 +2318,13 @@
                     cx === axesFill.xs[axesFill.xs.length - 1]);
                 var onLattice =
                   !!axesFill.xsSet[cx] && !!axesFill.ysSet[cy];
-                /* Edge/corner and multi-hub stay on the shared wall/hub lattice. */
                 if ((onEdgeFill || multiHubFill) && !onLattice && !onBlockedRail) {
                   continue;
                 }
                 var adjacent = false;
                 var orthAdj = false;
-                for (ai = 0; ai < placedPts.length; ai++) {
-                  var p = placedPts[ai];
+                for (ai = 0; ai < seatPts.length; ai++) {
+                  var p = seatPts[ai];
                   var pdx = Math.abs(cx - p.cx);
                   var pdy = Math.abs(cy - p.cy);
                   var ppack = pdx > pdy ? pdx : pdy;
@@ -2168,7 +2348,6 @@
                 }
                 var score = orthAdj ? 0 : 400;
                 if (onEdgeFill) {
-                  /* Side and corner: fill map-wall rails first, then inward. */
                   if (onBlockedRail) score -= 5000;
                   else {
                     score += hubNear * 10 + ringBoost;
@@ -2204,10 +2383,53 @@
                 }
               }
             }
-            if (!best || !tryPlaceAt(best.cx, best.cy)) break;
+            if (!best || !trySeatAt(best.cx, best.cy)) break;
           }
 
-          if (mi < queue.length) skipped = queue.length - mi;
+          function seatHubDist(s) {
+            var dx = Math.abs(s.cx - hub.cx);
+            var dy = Math.abs(s.cy - hub.cy);
+            return (dx > dy ? dx : dy) * 1000 + dx + dy;
+          }
+          seatPts.sort(function (a, b) {
+            return seatHubDist(a) - seatHubDist(b);
+          });
+
+          /* Assign ranks onto the same contiguous seats: inside = near hub, outside = outer fringe. */
+          var eliteN = Math.min(eliteQ.length, seatPts.length);
+          var eliteSeats;
+          var restSeats;
+          if (elitePlacement === "outside") {
+            restSeats = seatPts.slice(0, seatPts.length - eliteN);
+            eliteSeats = seatPts.slice(seatPts.length - eliteN).reverse();
+          } else {
+            eliteSeats = seatPts.slice(0, eliteN);
+            restSeats = seatPts.slice(eliteN);
+          }
+          var assignments = [];
+          for (ai = 0; ai < eliteQ.length && ai < eliteSeats.length; ai++) {
+            assignments.push({
+              member: eliteQ[ai],
+              cx: eliteSeats[ai].cx,
+              cy: eliteSeats[ai].cy,
+            });
+          }
+          for (ai = 0; ai < restQ.length && ai < restSeats.length; ai++) {
+            assignments.push({
+              member: restQ[ai],
+              cx: restSeats[ai].cx,
+              cy: restSeats[ai].cy,
+            });
+          }
+
+          var placed = 0;
+          var skipped = 0;
+          for (ai = 0; ai < assignments.length; ai++) {
+            var a = assignments[ai];
+            if (placeMember(a.member, { x: a.cx, y: a.cy })) placed++;
+            else skipped++;
+          }
+          skipped += Math.max(0, queue.length - assignments.length);
           hiveTabData[currentHiveTab] = captureHiveSnapshot();
           persistHiveTabsStorage();
           draw();
@@ -2297,43 +2519,156 @@
           return true;
         }
 
-        function drawCenterText(px, py, mainText, subText, fsMain) {
-          var textFill = cssVar("--text", "#e8eef5");
-          var textStroke = cssVar("--panel-2", "#0d1520");
-          var fs = fsMain || Math.max(10, Math.floor(SCALE * 0.68));
-          var fsSub = Math.max(5, Math.floor(fs * 0.52));
+        function drawCenterText(px, py, mainText, subText, fsMain, ink) {
+          var textFill = ink || "#74c0fc";
+          var fs = fsMain || Math.max(13, Math.floor(SCALE * 0.55));
+          var fsSub = Math.max(10, Math.floor(fs * 0.58));
           var main = mainText || subText || "";
           var sub = mainText && subText ? subText : "";
           if (main.length > 16) main = main.slice(0, 15) + "…";
           ctx.textAlign = "center";
           ctx.textBaseline = "middle";
-          if (sub) {
-            var yMain = py - Math.max(2, Math.ceil(fsSub * 0.65));
-            var ySub = py + Math.max(2, Math.ceil(fs * 0.55));
-            ctx.font = "bold " + fs + 'px system-ui, "Segoe UI", sans-serif';
-            ctx.lineWidth = Math.max(2, Math.ceil(fs / 7));
-            ctx.strokeStyle = textStroke;
-            ctx.strokeText(main, px, yMain);
+          function hardLabel(text, x, y, size, weight) {
+            ctx.font = weight + " " + size + 'px "Bahnschrift", "Segoe UI", system-ui, sans-serif';
+            ctx.fillStyle = "rgba(5,9,14,0.9)";
+            ctx.fillText(text, Math.round(x) + 1, Math.round(y) + 1);
             ctx.fillStyle = textFill;
-            ctx.fillText(main, px, yMain);
-            ctx.font = "bold " + fsSub + 'px system-ui, "Segoe UI", sans-serif';
-            ctx.lineWidth = Math.max(1, Math.ceil(fsSub / 6));
-            ctx.strokeText(sub, px, ySub);
-            ctx.fillStyle = textFill;
-            ctx.fillText(sub, px, ySub);
-          } else {
-            ctx.font = "bold " + fs + 'px system-ui, "Segoe UI", sans-serif';
-            ctx.lineWidth = Math.max(2, Math.ceil(fs / 7));
-            ctx.strokeStyle = textStroke;
-            ctx.strokeText(main, px, py);
-            ctx.fillStyle = textFill;
-            ctx.fillText(main, px, py);
+            ctx.fillText(text, Math.round(x), Math.round(y));
           }
+          if (sub) {
+            var yMain = py - Math.max(2, Math.ceil(fsSub * 0.55));
+            var ySub = py + Math.max(4, Math.ceil(fs * 0.42));
+            hardLabel(main, px, yMain, fs, "800");
+            hardLabel(sub, px, ySub, fsSub, "700");
+          } else {
+            hardLabel(main, px, py, fs, "800");
+          }
+        }
+
+        function hiveTheme(kind) {
+          /* Match menu .hive-ico: shared dark panel face, accent bar + ink only. */
+          var accents = {
+            mark: "#15aabf",
+            ae: "#40c057",
+            furnace: "#fd7e14",
+            acenter: "#fab005",
+            r5: "#e64980",
+            r4: "#fa5252",
+            r3: "#7950f2",
+            r2: "#339af0",
+            r1: "#be4bdb",
+            custom: "#868e96",
+          };
+          var accent = accents[kind] || accents.custom;
+          return {
+            faceHi: "#1a2b3d",
+            faceLo: "#101b28",
+            depth: "#05090e",
+            accent: accent,
+            ink: accent,
+          };
+        }
+
+        function roundRectPath(x, y, w, h, r) {
+          var rr = Math.max(0, Math.min(r, w / 2, h / 2));
+          ctx.beginPath();
+          if (typeof ctx.roundRect === "function") {
+            ctx.roundRect(x, y, w, h, rr);
+            return;
+          }
+          ctx.moveTo(x + rr, y);
+          ctx.arcTo(x + w, y, x + w, y + h, rr);
+          ctx.arcTo(x + w, y + h, x, y + h, rr);
+          ctx.arcTo(x, y + h, x, y, rr);
+          ctx.arcTo(x, y, x + w, y, rr);
+          ctx.closePath();
+        }
+
+        function paintEmbossedPlate(x0, y0, w, h, theme, alpha) {
+          var a = alpha == null ? 1 : alpha;
+          var x = Math.round(x0);
+          var y = Math.round(y0);
+          var ww = Math.round(w);
+          var hh = Math.round(h);
+          var d = Math.max(3, Math.round(SCALE * 0.125));
+          var rim = Math.max(2, Math.round(SCALE * 0.08));
+          var r = Math.max(4, Math.round(Math.min(ww, hh) * 0.08));
+          ctx.save();
+          ctx.globalAlpha = a;
+          ctx.shadowBlur = 0;
+
+          /* Hard depth slab (same as menu box-shadow: 0 4px 0). */
+          roundRectPath(x + d, y + d, ww, hh, r);
+          ctx.fillStyle = theme.depth;
+          ctx.fill();
+
+          /* Shared menu face gradient. */
+          var face = ctx.createLinearGradient(x, y, x, y + hh);
+          face.addColorStop(0, theme.faceHi);
+          face.addColorStop(1, theme.faceLo);
+          roundRectPath(x, y, ww, hh, r);
+          ctx.fillStyle = face;
+          ctx.fill();
+
+          /* Accent border all the way around (matches menu cube). */
+          roundRectPath(x + rim / 2, y + rim / 2, ww - rim, hh - rim, Math.max(1, r - rim / 2));
+          ctx.strokeStyle = theme.accent;
+          ctx.lineWidth = rim;
+          ctx.stroke();
+
+          /* Inner highlight. */
+          roundRectPath(x + rim + 1.5, y + rim + 1.5, ww - (rim + 1.5) * 2, hh - (rim + 1.5) * 2, Math.max(1, r - rim));
+          ctx.strokeStyle = "rgba(255,255,255,0.08)";
+          ctx.lineWidth = 1;
+          ctx.stroke();
+
+          ctx.restore();
+        }
+
+        function drawFootprintPlate(cx, cy, half, kind, alpha) {
+          var theme = hiveTheme(kind);
+          var d = Math.max(3, Math.round(SCALE * 0.125));
+          var x0 = (cx - half) * SCALE;
+          var y0 = (cy - half) * SCALE;
+          var w = (half * 2 + 1) * SCALE - d;
+          var h = w;
+          paintEmbossedPlate(x0, y0, w, h, theme, alpha);
+        }
+
+        function drawCustomPlate(left, top, bw, bh, kind, alpha) {
+          var theme = hiveTheme(kind || "custom");
+          var d = Math.max(3, Math.round(SCALE * 0.125));
+          var x0 = left * SCALE;
+          var y0 = top * SCALE;
+          var w = bw * SCALE - d;
+          var h = bh * SCALE - d;
+          paintEmbossedPlate(x0, y0, w, h, theme, alpha);
+        }
+
+        function drawMarkTile(x, y, alpha) {
+          var theme = hiveTheme("mark");
+          var pad = 2;
+          var d = Math.max(2, Math.round(SCALE * 0.1));
+          var x0 = x * SCALE + pad;
+          var y0 = y * SCALE + pad;
+          var s = SCALE - pad * 2 - d;
+          paintEmbossedPlate(x0, y0, s, s, theme, alpha == null ? 1 : alpha);
+          var cx = Math.round(x0 + s / 2);
+          var cy = Math.round(y0 + s / 2 + Math.max(1, SCALE * 0.04));
+          var arm = Math.max(4, Math.round(SCALE * 0.2));
+          var t = Math.max(2, Math.round(SCALE * 0.08));
+          ctx.save();
+          ctx.globalAlpha = alpha == null ? 1 : alpha;
+          ctx.fillStyle = theme.accent;
+          ctx.fillRect(cx - arm, cy - Math.floor(t / 2), arm * 2, t);
+          ctx.fillRect(cx - Math.floor(t / 2), cy - arm, t, arm * 2);
+          ctx.restore();
         }
 
         function buildBaseLayer() {
           var bctx = baseLayer.getContext("2d");
           if (!bctx) return;
+          bctx.imageSmoothingEnabled = true;
           var bg = cssVar("--panel-2", "#162434");
           var minor = cssVar("--line-soft", "#3d5670");
           var major = cssVar("--line", "#5a7a96");
@@ -2445,13 +2780,7 @@
         }
 
         function draw() {
-          var fillMark = cssVar("--accent", "#64b4ff");
-          var fillR5 = "#c9952c";
-          var fillR4 = "#c93838";
-          var fillR3 = "#8b5fc9";
-          var fillR2 = "#4a8fd9";
-          var fillR1 = "#d9a04a";
-          var fillAE = "#2a9d7a";
+          ctx.imageSmoothingEnabled = true;
           ctx.clearRect(0, 0, PX, PX);
           ctx.drawImage(baseLayer, 0, 0);
           var i;
@@ -2460,50 +2789,52 @@
           var v;
           for (i = 0; i < TOTAL; i++) {
             v = tiles[i];
-            if (v === STATE_EMPTY) continue;
+            if (v !== STATE_MARK) continue;
             x = i % TILES;
             y = (i / TILES) | 0;
-            if (v === STATE_MARK) {
-              ctx.fillStyle = fillMark;
-              ctx.globalAlpha = 0.5;
-            } else if (v === STATE_R5) {
-              ctx.fillStyle = fillR5;
-              ctx.globalAlpha = 0.55;
-            } else if (v === STATE_R4) {
-              ctx.fillStyle = fillR4;
-              ctx.globalAlpha = 0.55;
-            } else if (v === STATE_R3) {
-              ctx.fillStyle = fillR3;
-              ctx.globalAlpha = 0.55;
-            } else if (v === STATE_R2) {
-              ctx.fillStyle = fillR2;
-              ctx.globalAlpha = 0.55;
-            } else if (v === STATE_R1) {
-              ctx.fillStyle = fillR1;
-              ctx.globalAlpha = 0.55;
-            } else if (v === STATE_AE) {
-              ctx.fillStyle = fillAE;
-              ctx.globalAlpha = 0.55;
-            } else if (v === STATE_FURNACE) {
-              ctx.fillStyle = "#0a0a0a";
-              ctx.globalAlpha = 0.62;
-            } else if (v === STATE_ALLIANCE_CENTER) {
-              ctx.fillStyle = "#7d6b8c";
-              ctx.globalAlpha = 0.56;
-            } else if (v === STATE_CUSTOM) {
-              ctx.fillStyle = "#5a6d82";
-              ctx.globalAlpha = 0.58;
-            }
-            ctx.fillRect(x * SCALE, y * SCALE, SCALE, SCALE);
+            drawMarkTile(x, y, 0.8);
+          }
+          var kPlate;
+          var cPlate;
+          for (kPlate = 0; kPlate < r5Centers.length; kPlate++) {
+            cPlate = r5Centers[kPlate];
+            drawFootprintPlate(cPlate.cx, cPlate.cy, BLOCK_HALF_3, "r5");
+          }
+          for (kPlate = 0; kPlate < r4Centers.length; kPlate++) {
+            cPlate = r4Centers[kPlate];
+            drawFootprintPlate(cPlate.cx, cPlate.cy, BLOCK_HALF_3, "r4");
+          }
+          for (kPlate = 0; kPlate < r3Centers.length; kPlate++) {
+            cPlate = r3Centers[kPlate];
+            drawFootprintPlate(cPlate.cx, cPlate.cy, BLOCK_HALF_3, "r3");
+          }
+          for (kPlate = 0; kPlate < r2Centers.length; kPlate++) {
+            cPlate = r2Centers[kPlate];
+            drawFootprintPlate(cPlate.cx, cPlate.cy, BLOCK_HALF_3, "r2");
+          }
+          for (kPlate = 0; kPlate < r1Centers.length; kPlate++) {
+            cPlate = r1Centers[kPlate];
+            drawFootprintPlate(cPlate.cx, cPlate.cy, BLOCK_HALF_3, "r1");
+          }
+          for (kPlate = 0; kPlate < aeCenters.length; kPlate++) {
+            cPlate = aeCenters[kPlate];
+            drawFootprintPlate(cPlate.cx, cPlate.cy, BLOCK_HALF_3, "ae");
+          }
+          for (kPlate = 0; kPlate < furnaceCenters.length; kPlate++) {
+            cPlate = furnaceCenters[kPlate];
+            drawFootprintPlate(cPlate.cx, cPlate.cy, BLOCK_HALF_5, "furnace");
+          }
+          for (kPlate = 0; kPlate < allianceCenterCenters.length; kPlate++) {
+            cPlate = allianceCenterCenters[kPlate];
+            drawFootprintPlate(cPlate.cx, cPlate.cy, BLOCK_HALF_9, "acenter");
+          }
+          for (kPlate = 0; kPlate < customBlocks.length; kPlate++) {
+            cPlate = customBlocks[kPlate];
+            drawCustomPlate(cPlate.left, cPlate.top, cPlate.w, cPlate.h, "custom");
           }
           ctx.globalAlpha = 1;
-          var textFill = cssVar("--text", "#e8eef5");
-          var textStroke = cssVar("--panel-2", "#0d1520");
-          var fs = Math.max(10, Math.floor(SCALE * 0.68));
-          ctx.font = "bold " + fs + 'px system-ui, "Segoe UI", sans-serif';
-          ctx.textAlign = "center";
-          ctx.textBaseline = "middle";
           ctx.lineJoin = "round";
+          var fs = Math.max(12, Math.floor(SCALE * 0.52));
           var k;
           var c;
           for (k = 0; k < r5Centers.length; k++) {
@@ -2513,7 +2844,8 @@
               c.cy * SCALE + SCALE / 2,
               c.name || "",
               "R5",
-              fs
+              fs,
+              hiveTheme("r5").ink
             );
           }
           for (k = 0; k < r4Centers.length; k++) {
@@ -2523,7 +2855,8 @@
               c.cy * SCALE + SCALE / 2,
               c.name || "",
               "R4",
-              fs
+              fs,
+              hiveTheme("r4").ink
             );
           }
           for (k = 0; k < r3Centers.length; k++) {
@@ -2533,7 +2866,8 @@
               c.cy * SCALE + SCALE / 2,
               c.name || "",
               "R3",
-              fs
+              fs,
+              hiveTheme("r3").ink
             );
           }
           for (k = 0; k < r2Centers.length; k++) {
@@ -2543,7 +2877,8 @@
               c.cy * SCALE + SCALE / 2,
               c.name || "",
               "R2",
-              fs
+              fs,
+              hiveTheme("r2").ink
             );
           }
           for (k = 0; k < r1Centers.length; k++) {
@@ -2553,195 +2888,96 @@
               c.cy * SCALE + SCALE / 2,
               c.name || "",
               "R1",
-              fs
+              fs,
+              hiveTheme("r1").ink
             );
           }
           for (k = 0; k < aeCenters.length; k++) {
             c = aeCenters[k];
-            var pxa = c.cx * SCALE + SCALE / 2;
-            var pya = c.cy * SCALE + SCALE / 2;
-            var fsAeSub = Math.max(5, Math.floor(fs * 0.52));
-            var yAeMain = pya - Math.max(2, Math.ceil(fsAeSub * 0.65));
-            var yAeSub = pya + Math.max(2, Math.ceil(fs * 0.58));
-            ctx.lineWidth = Math.max(2, Math.ceil(fs / 7));
-            ctx.strokeStyle = textStroke;
-            ctx.strokeText("AE", pxa, yAeMain);
-            ctx.fillStyle = textFill;
-            ctx.fillText("AE", pxa, yAeMain);
-            ctx.font = "bold " + fsAeSub + 'px system-ui, "Segoe UI", sans-serif';
-            ctx.lineWidth = Math.max(1, Math.ceil(fsAeSub / 6));
-            ctx.strokeText("3×3", pxa, yAeSub);
-            ctx.fillStyle = textFill;
-            ctx.fillText("3×3", pxa, yAeSub);
-            ctx.font = "bold " + fs + 'px system-ui, "Segoe UI", sans-serif';
+            drawCenterText(
+              c.cx * SCALE + SCALE / 2,
+              c.cy * SCALE + SCALE / 2 + Math.max(1, SCALE * 0.04),
+              "AE",
+              "3×3",
+              fs,
+              hiveTheme("ae").ink
+            );
           }
           for (k = 0; k < furnaceCenters.length; k++) {
             c = furnaceCenters[k];
-            var pxf = c.cx * SCALE + SCALE / 2;
-            var pyf = c.cy * SCALE + SCALE / 2;
-            var fsFu = Math.max(9, Math.floor(SCALE * 0.4));
-            var fsFuSub = Math.max(6, Math.floor(fsFu * 0.58));
-            var yFuMain = pyf - Math.max(2, Math.ceil(fsFuSub * 0.65));
-            var yFuSub = pyf + Math.max(2, Math.ceil(fsFu * 0.58));
-            ctx.font = "bold " + fsFu + 'px system-ui, "Segoe UI", sans-serif';
-            ctx.lineWidth = Math.max(2, Math.ceil(fsFu / 7));
-            ctx.strokeStyle = textStroke;
-            ctx.strokeText("Furnace", pxf, yFuMain);
-            ctx.fillStyle = textFill;
-            ctx.fillText("Furnace", pxf, yFuMain);
-            ctx.font = "bold " + fsFuSub + 'px system-ui, "Segoe UI", sans-serif';
-            ctx.lineWidth = Math.max(1, Math.ceil(fsFuSub / 6));
-            ctx.strokeText("5×5", pxf, yFuSub);
-            ctx.fillStyle = textFill;
-            ctx.fillText("5×5", pxf, yFuSub);
+            drawCenterText(
+              c.cx * SCALE + SCALE / 2,
+              c.cy * SCALE + SCALE / 2 + Math.max(1, SCALE * 0.04),
+              "AF",
+              "5×5",
+              Math.max(12, Math.floor(SCALE * 0.42)),
+              hiveTheme("furnace").ink
+            );
           }
-          ctx.font = "bold " + fs + 'px system-ui, "Segoe UI", sans-serif';
           for (k = 0; k < allianceCenterCenters.length; k++) {
             c = allianceCenterCenters[k];
-            var pxac = c.cx * SCALE + SCALE / 2;
-            var pyac = c.cy * SCALE + SCALE / 2;
-            var fsAlc = Math.max(6, Math.floor(SCALE * 0.28));
-            var fsAlcSub = Math.max(5, Math.floor(SCALE * 0.2));
-            var yAcMain = pyac - Math.max(2, Math.ceil(fsAlcSub * 0.7));
-            var yAcSub = pyac + Math.max(2, Math.ceil(fsAlc * 0.58));
-            ctx.font = "bold " + fsAlc + 'px system-ui, "Segoe UI", sans-serif';
-            ctx.lineWidth = Math.max(1, Math.ceil(fsAlc / 6));
-            ctx.strokeStyle = textStroke;
-            ctx.strokeText("Alliance Center", pxac, yAcMain);
-            ctx.fillStyle = textFill;
-            ctx.fillText("Alliance Center", pxac, yAcMain);
-            ctx.font = "bold " + fsAlcSub + 'px system-ui, "Segoe UI", sans-serif';
-            ctx.lineWidth = Math.max(1, Math.ceil(fsAlcSub / 6));
-            ctx.strokeText("9×9", pxac, yAcSub);
-            ctx.fillStyle = textFill;
-            ctx.fillText("9×9", pxac, yAcSub);
-          }
-          ctx.font = "bold " + fs + 'px system-ui, "Segoe UI", sans-serif';
-          var b;
-          var pxCu;
-          var pyCu;
-          var fsCu;
-          var fsCuSub;
-          var yCuM;
-          var yCuS;
-          var nm;
-          var szStr;
-          for (k = 0; k < customBlocks.length; k++) {
-            b = customBlocks[k];
-            pxCu = (b.left + b.w / 2) * SCALE;
-            pyCu = (b.top + b.h / 2) * SCALE;
-            fsCu = Math.max(
-              5,
-              Math.floor(Math.min(b.w, b.h) * SCALE * 0.09)
+            drawCenterText(
+              c.cx * SCALE + SCALE / 2,
+              c.cy * SCALE + SCALE / 2 + Math.max(1, SCALE * 0.04),
+              "AC",
+              "9×9",
+              Math.max(12, Math.floor(SCALE * 0.36)),
+              hiveTheme("acenter").ink
             );
-            fsCu = Math.min(fsCu, Math.floor(SCALE * 0.34));
-            fsCuSub = Math.max(4, Math.floor(fsCu * 0.68));
-            yCuM = pyCu - Math.max(2, Math.ceil(fsCuSub * 0.65));
-            yCuS = pyCu + Math.max(2, Math.ceil(fsCu * 0.55));
-            nm = b.name.length > 22 ? b.name.slice(0, 21) + "…" : b.name;
-            szStr = b.w + "×" + b.h;
-            ctx.font = "bold " + fsCu + 'px system-ui, "Segoe UI", sans-serif';
-            ctx.lineWidth = Math.max(1, Math.ceil(fsCu / 6));
-            ctx.strokeStyle = textStroke;
-            ctx.strokeText(nm, pxCu, yCuM);
-            ctx.fillStyle = textFill;
-            ctx.fillText(nm, pxCu, yCuM);
-            ctx.font = "bold " + fsCuSub + 'px system-ui, "Segoe UI", sans-serif';
-            ctx.lineWidth = Math.max(1, Math.ceil(fsCuSub / 6));
-            ctx.strokeText(szStr, pxCu, yCuS);
-            ctx.fillStyle = textFill;
-            ctx.fillText(szStr, pxCu, yCuS);
           }
-          ctx.font = "bold " + fs + 'px system-ui, "Segoe UI", sans-serif';
+          for (k = 0; k < customBlocks.length; k++) {
+            c = customBlocks[k];
+            var fsCu = Math.max(
+              9,
+              Math.floor(Math.min(c.w, c.h) * SCALE * 0.12)
+            );
+            fsCu = Math.min(fsCu, Math.floor(SCALE * 0.4));
+            drawCenterText(
+              (c.left + c.w / 2) * SCALE,
+              (c.top + c.h / 2) * SCALE,
+              c.name || "Custom",
+              c.w + "×" + c.h,
+              fsCu,
+              hiveTheme("custom").ink
+            );
+          }
           if (!suppressDragOverlayForExport) drawDragPreviewOverlay();
           updateHiveTileCount();
         }
 
         function drawDragPreviewOverlay() {
           if (!drag || drag.phase !== "dragging" || !drag.hoverCell) return;
-          var fillMark = cssVar("--accent", "#64b4ff");
-          var fillR5 = "#c9952c";
-          var fillR4 = "#c93838";
-          var fillR3 = "#8b5fc9";
-          var fillR2 = "#4a8fd9";
-          var fillR1 = "#d9a04a";
-          var fillAE = "#2a9d7a";
-          var fillFurnace = "#0a0a0a";
-          var fillACenter = "#7d6b8c";
           var hx = drag.hoverCell.x;
           var hy = drag.hoverCell.y;
           ctx.save();
-          ctx.globalAlpha = 0.42;
           if (drag.kind === "mark") {
-            ctx.fillStyle = fillMark;
-            ctx.fillRect(hx * SCALE, hy * SCALE, SCALE, SCALE);
+            drawMarkTile(hx, hy, 0.55);
           } else if (drag.kind === "acenter") {
             var nca = Math.max(ACENTER_CMIN, Math.min(ACENTER_CMAX, hx - drag.grabDx));
             var ncyac = Math.max(ACENTER_CMIN, Math.min(ACENTER_CMAX, hy - drag.grabDy));
-            ctx.fillStyle = fillACenter;
-            var dxac;
-            var dyac;
-            for (dyac = -BLOCK_HALF_9; dyac <= BLOCK_HALF_9; dyac++) {
-              for (dxac = -BLOCK_HALF_9; dxac <= BLOCK_HALF_9; dxac++) {
-                ctx.fillRect((nca + dxac) * SCALE, (ncyac + dyac) * SCALE, SCALE, SCALE);
-              }
-            }
-            var pxac = nca * SCALE + SCALE / 2;
-            var pyac = ncyac * SCALE + SCALE / 2;
-            var textStrokeAc = cssVar("--panel-2", "#0d1520");
-            var textFillAc = cssVar("--text", "#e8eef5");
-            ctx.globalAlpha = 0.75;
-            var fsac = Math.max(6, Math.floor(SCALE * 0.28));
-            var fsacSub = Math.max(5, Math.floor(SCALE * 0.2));
-            var yAcM = pyac - Math.max(2, Math.ceil(fsacSub * 0.7));
-            var yAcS = pyac + Math.max(2, Math.ceil(fsac * 0.58));
-            ctx.textAlign = "center";
-            ctx.textBaseline = "middle";
-            ctx.font = "bold " + fsac + 'px system-ui, "Segoe UI", sans-serif';
-            ctx.lineWidth = Math.max(1, Math.ceil(fsac / 6));
-            ctx.strokeStyle = textStrokeAc;
-            ctx.strokeText("Alliance Center", pxac, yAcM);
-            ctx.fillStyle = textFillAc;
-            ctx.fillText("Alliance Center", pxac, yAcM);
-            ctx.font = "bold " + fsacSub + 'px system-ui, "Segoe UI", sans-serif';
-            ctx.lineWidth = Math.max(1, Math.ceil(fsacSub / 6));
-            ctx.strokeStyle = textStrokeAc;
-            ctx.strokeText("9×9", pxac, yAcS);
-            ctx.fillStyle = textFillAc;
-            ctx.fillText("9×9", pxac, yAcS);
+            drawFootprintPlate(nca, ncyac, BLOCK_HALF_9, "acenter", 0.55);
+            ctx.globalAlpha = 0.85;
+            drawCenterText(
+              nca * SCALE + SCALE / 2,
+              ncyac * SCALE + SCALE / 2 + Math.max(1, SCALE * 0.04),
+              "AC",
+              "9×9",
+              Math.max(12, Math.floor(SCALE * 0.36)),
+              hiveTheme("acenter").ink
+            );
           } else if (drag.kind === "furnace") {
             var ncf = Math.max(FURNACE_CMIN, Math.min(FURNACE_CMAX, hx - drag.grabDx));
             var ncyf = Math.max(FURNACE_CMIN, Math.min(FURNACE_CMAX, hy - drag.grabDy));
-            ctx.fillStyle = fillFurnace;
-            var dxf;
-            var dyf;
-            for (dyf = -BLOCK_HALF_5; dyf <= BLOCK_HALF_5; dyf++) {
-              for (dxf = -BLOCK_HALF_5; dxf <= BLOCK_HALF_5; dxf++) {
-                ctx.fillRect((ncf + dxf) * SCALE, (ncyf + dyf) * SCALE, SCALE, SCALE);
-              }
-            }
-            var pxf = ncf * SCALE + SCALE / 2;
-            var pyf = ncyf * SCALE + SCALE / 2;
-            var textStrokeF = cssVar("--panel-2", "#0d1520");
-            var textFillF = cssVar("--text", "#e8eef5");
-            ctx.globalAlpha = 0.75;
-            var fsf = Math.max(9, Math.floor(SCALE * 0.4));
-            var fsfSub = Math.max(6, Math.floor(fsf * 0.58));
-            var yFuM = pyf - Math.max(2, Math.ceil(fsfSub * 0.65));
-            var yFuS = pyf + Math.max(2, Math.ceil(fsf * 0.58));
-            ctx.textAlign = "center";
-            ctx.textBaseline = "middle";
-            ctx.font = "bold " + fsf + 'px system-ui, "Segoe UI", sans-serif';
-            ctx.lineWidth = Math.max(2, Math.ceil(fsf / 7));
-            ctx.strokeStyle = textStrokeF;
-            ctx.strokeText("Furnace", pxf, yFuM);
-            ctx.fillStyle = textFillF;
-            ctx.fillText("Furnace", pxf, yFuM);
-            ctx.font = "bold " + fsfSub + 'px system-ui, "Segoe UI", sans-serif';
-            ctx.lineWidth = Math.max(1, Math.ceil(fsfSub / 6));
-            ctx.strokeText("5×5", pxf, yFuS);
-            ctx.fillStyle = textFillF;
-            ctx.fillText("5×5", pxf, yFuS);
+            drawFootprintPlate(ncf, ncyf, BLOCK_HALF_5, "furnace", 0.55);
+            ctx.globalAlpha = 0.85;
+            drawCenterText(
+              ncf * SCALE + SCALE / 2,
+              ncyf * SCALE + SCALE / 2 + Math.max(1, SCALE * 0.04),
+              "AF",
+              "5×5",
+              Math.max(12, Math.floor(SCALE * 0.42)),
+              hiveTheme("furnace").ink
+            );
           } else if (drag.kind === "custom" && drag.origCustom) {
             var ocu = drag.origCustom;
             var nLc = hx - drag.grabDx;
@@ -2750,108 +2986,46 @@
             if (nTc < 0) nTc = 0;
             if (nLc + ocu.w > TILES) nLc = TILES - ocu.w;
             if (nTc + ocu.h > TILES) nTc = TILES - ocu.h;
-            ctx.fillStyle = "#5a6d82";
-            ctx.globalAlpha = 0.42;
-            var dxcu;
-            var dycu;
-            for (dycu = 0; dycu < ocu.h; dycu++) {
-              for (dxcu = 0; dxcu < ocu.w; dxcu++) {
-                ctx.fillRect((nLc + dxcu) * SCALE, (nTc + dycu) * SCALE, SCALE, SCALE);
-              }
-            }
-            var pxCu = (nLc + ocu.w / 2) * SCALE;
-            var pyCu = (nTc + ocu.h / 2) * SCALE;
-            var fsCu = Math.max(
-              5,
-              Math.floor(Math.min(ocu.w, ocu.h) * SCALE * 0.09)
+            drawCustomPlate(nLc, nTc, ocu.w, ocu.h, "custom", 0.55);
+            var fsCuDrag = Math.max(
+              9,
+              Math.floor(Math.min(ocu.w, ocu.h) * SCALE * 0.12)
             );
-            fsCu = Math.min(fsCu, Math.floor(SCALE * 0.34));
-            var fsCuSub = Math.max(4, Math.floor(fsCu * 0.68));
-            var yCuM = pyCu - Math.max(2, Math.ceil(fsCuSub * 0.65));
-            var yCuS = pyCu + Math.max(2, Math.ceil(fsCu * 0.55));
-            var nmv =
-              ocu.name.length > 22 ? ocu.name.slice(0, 21) + "…" : ocu.name;
-            var szStrv = ocu.w + "×" + ocu.h;
-            var textStrokeCu = cssVar("--panel-2", "#0d1520");
-            var textFillCu = cssVar("--text", "#e8eef5");
-            ctx.globalAlpha = 0.75;
-            ctx.textAlign = "center";
-            ctx.textBaseline = "middle";
-            ctx.font = "bold " + fsCu + 'px system-ui, "Segoe UI", sans-serif';
-            ctx.lineWidth = Math.max(1, Math.ceil(fsCu / 6));
-            ctx.strokeStyle = textStrokeCu;
-            ctx.strokeText(nmv, pxCu, yCuM);
-            ctx.fillStyle = textFillCu;
-            ctx.fillText(nmv, pxCu, yCuM);
-            ctx.font = "bold " + fsCuSub + 'px system-ui, "Segoe UI", sans-serif';
-            ctx.lineWidth = Math.max(1, Math.ceil(fsCuSub / 6));
-            ctx.strokeText(szStrv, pxCu, yCuS);
-            ctx.fillStyle = textFillCu;
-            ctx.fillText(szStrv, pxCu, yCuS);
+            fsCuDrag = Math.min(fsCuDrag, Math.floor(SCALE * 0.4));
+            ctx.globalAlpha = 0.85;
+            drawCenterText(
+              (nLc + ocu.w / 2) * SCALE,
+              (nTc + ocu.h / 2) * SCALE + Math.max(1, SCALE * 0.04),
+              ocu.name || "Custom",
+              ocu.w + "×" + ocu.h,
+              fsCuDrag,
+              hiveTheme("custom").ink
+            );
           } else {
             var ncx = Math.max(1, Math.min(TILES - 2, hx - drag.grabDx));
             var ncy = Math.max(1, Math.min(TILES - 2, hy - drag.grabDy));
-            var fillBlk = fillR5;
-            if (drag.kind === "r4") {
-              fillBlk = fillR4;
-            } else if (drag.kind === "r3") {
-              fillBlk = fillR3;
-            } else if (drag.kind === "r2") {
-              fillBlk = fillR2;
-            } else if (drag.kind === "r1") {
-              fillBlk = fillR1;
-            } else if (drag.kind === "ae") {
-              fillBlk = fillAE;
-            }
-            ctx.fillStyle = fillBlk;
-            var dx;
-            var dy;
-            for (dy = -1; dy <= 1; dy++) {
-              for (dx = -1; dx <= 1; dx++) {
-                ctx.fillRect((ncx + dx) * SCALE, (ncy + dy) * SCALE, SCALE, SCALE);
-              }
-            }
-            var px = ncx * SCALE + SCALE / 2;
-            var py = ncy * SCALE + SCALE / 2;
-            var textStroke = cssVar("--panel-2", "#0d1520");
-            var textFill = cssVar("--text", "#e8eef5");
-            ctx.globalAlpha = 0.75;
-            var fs = Math.max(10, Math.floor(SCALE * 0.68));
-            ctx.font = "bold " + fs + 'px system-ui, "Segoe UI", sans-serif';
-            ctx.textAlign = "center";
-            ctx.textBaseline = "middle";
-            ctx.lineWidth = Math.max(2, Math.ceil(fs / 7));
-            ctx.strokeStyle = textStroke;
+            var rankKind = "r5";
+            if (drag.kind === "r4") rankKind = "r4";
+            else if (drag.kind === "r3") rankKind = "r3";
+            else if (drag.kind === "r2") rankKind = "r2";
+            else if (drag.kind === "r1") rankKind = "r1";
+            else if (drag.kind === "ae") rankKind = "ae";
+            drawFootprintPlate(ncx, ncy, BLOCK_HALF_3, rankKind, 0.55);
             var lbl = "R5";
-            if (drag.kind === "r4") {
-              lbl = "R4";
-            } else if (drag.kind === "r3") {
-              lbl = "R3";
-            } else if (drag.kind === "r2") {
-              lbl = "R2";
-            } else if (drag.kind === "r1") {
-              lbl = "R1";
-            } else if (drag.kind === "ae") {
-              lbl = "AE";
-            }
-            if (drag.kind === "ae") {
-              var fsAeSub = Math.max(5, Math.floor(fs * 0.52));
-              var yAeM = py - Math.max(2, Math.ceil(fsAeSub * 0.65));
-              var yAeS = py + Math.max(2, Math.ceil(fs * 0.58));
-              ctx.strokeText(lbl, px, yAeM);
-              ctx.fillStyle = textFill;
-              ctx.fillText(lbl, px, yAeM);
-              ctx.font = "bold " + fsAeSub + 'px system-ui, "Segoe UI", sans-serif';
-              ctx.lineWidth = Math.max(1, Math.ceil(fsAeSub / 6));
-              ctx.strokeStyle = textStroke;
-              ctx.strokeText("3×3", px, yAeS);
-              ctx.fillStyle = textFill;
-              ctx.fillText("3×3", px, yAeS);
-            } else {
-              ctx.strokeText(lbl, px, py);
-              ctx.fillStyle = textFill;
-              ctx.fillText(lbl, px, py);
-            }
+            if (drag.kind === "r4") lbl = "R4";
+            else if (drag.kind === "r3") lbl = "R3";
+            else if (drag.kind === "r2") lbl = "R2";
+            else if (drag.kind === "r1") lbl = "R1";
+            else if (drag.kind === "ae") lbl = "AE";
+            ctx.globalAlpha = 0.85;
+            drawCenterText(
+              ncx * SCALE + SCALE / 2,
+              ncy * SCALE + SCALE / 2 + Math.max(1, SCALE * 0.04),
+              lbl,
+              drag.kind === "ae" ? "3×3" : "",
+              Math.max(12, Math.floor(SCALE * 0.55)),
+              hiveTheme(rankKind).ink
+            );
           }
           ctx.restore();
         }
@@ -4240,43 +4414,43 @@
         function setTool(tool) {
           activeTool = tool;
           if (toolMarkBtn) {
-            toolMarkBtn.classList.toggle("hive-tool-btn--active", tool === "mark");
+            toolMarkBtn.classList.toggle("hive-tool-chip--active", tool === "mark");
             toolMarkBtn.setAttribute("aria-pressed", tool === "mark" ? "true" : "false");
           }
           if (toolR5Btn) {
-            toolR5Btn.classList.toggle("hive-tool-btn--active", tool === "r5");
+            toolR5Btn.classList.toggle("hive-tool-chip--active", tool === "r5");
             toolR5Btn.setAttribute("aria-pressed", tool === "r5" ? "true" : "false");
           }
           if (toolR4Btn) {
-            toolR4Btn.classList.toggle("hive-tool-btn--active", tool === "r4");
+            toolR4Btn.classList.toggle("hive-tool-chip--active", tool === "r4");
             toolR4Btn.setAttribute("aria-pressed", tool === "r4" ? "true" : "false");
           }
           if (toolAEBtn) {
-            toolAEBtn.classList.toggle("hive-tool-btn--active", tool === "ae");
+            toolAEBtn.classList.toggle("hive-tool-chip--active", tool === "ae");
             toolAEBtn.setAttribute("aria-pressed", tool === "ae" ? "true" : "false");
           }
           if (toolR3Btn) {
-            toolR3Btn.classList.toggle("hive-tool-btn--active", tool === "r3");
+            toolR3Btn.classList.toggle("hive-tool-chip--active", tool === "r3");
             toolR3Btn.setAttribute("aria-pressed", tool === "r3" ? "true" : "false");
           }
           if (toolR2Btn) {
-            toolR2Btn.classList.toggle("hive-tool-btn--active", tool === "r2");
+            toolR2Btn.classList.toggle("hive-tool-chip--active", tool === "r2");
             toolR2Btn.setAttribute("aria-pressed", tool === "r2" ? "true" : "false");
           }
           if (toolR1Btn) {
-            toolR1Btn.classList.toggle("hive-tool-btn--active", tool === "r1");
+            toolR1Btn.classList.toggle("hive-tool-chip--active", tool === "r1");
             toolR1Btn.setAttribute("aria-pressed", tool === "r1" ? "true" : "false");
           }
           if (toolFurnaceBtn) {
-            toolFurnaceBtn.classList.toggle("hive-tool-btn--active", tool === "furnace");
+            toolFurnaceBtn.classList.toggle("hive-tool-chip--active", tool === "furnace");
             toolFurnaceBtn.setAttribute("aria-pressed", tool === "furnace" ? "true" : "false");
           }
           if (toolACenterBtn) {
-            toolACenterBtn.classList.toggle("hive-tool-btn--active", tool === "acenter");
+            toolACenterBtn.classList.toggle("hive-tool-chip--active", tool === "acenter");
             toolACenterBtn.setAttribute("aria-pressed", tool === "acenter" ? "true" : "false");
           }
           if (toolCustomBtn) {
-            toolCustomBtn.classList.toggle("hive-tool-btn--active", tool === "custom");
+            toolCustomBtn.classList.toggle("hive-tool-chip--active", tool === "custom");
             toolCustomBtn.setAttribute("aria-pressed", tool === "custom" ? "true" : "false");
           }
         }
@@ -4304,7 +4478,12 @@
             settings: {
               baseGap: 1,
               hubPreference: "auto",
-              generateCount: 40,
+              elitePlacement: "inside",
+              r5Count: 1,
+              r4Count: 10,
+              r3Count: 20,
+              r2Count: 30,
+              r1Count: 39,
               anchorWorldX: null,
               anchorWorldY: null,
               anchorGridCol: null,
@@ -4326,6 +4505,7 @@
             if (legacy != null && Number.isFinite(legacy)) return legacy | 0;
             return null;
           }
+          var ranks = normalizeRankCounts(src);
           return {
             baseGap: src.baseGap != null ? src.baseGap | 0 : 1,
             hubPreference:
@@ -4334,10 +4514,12 @@
               src.hubPreference === "acenter"
                 ? src.hubPreference
                 : "auto",
-            generateCount:
-              src.generateCount != null
-                ? Math.max(1, Math.min(150, src.generateCount | 0))
-                : 40,
+            elitePlacement: normalizeElitePlacement(src.elitePlacement),
+            r5Count: ranks.r5Count,
+            r4Count: ranks.r4Count,
+            r3Count: ranks.r3Count,
+            r2Count: ranks.r2Count,
+            r1Count: ranks.r1Count,
             anchorWorldX: pickNum(src.anchorWorldX, src.marshalWorldX),
             anchorWorldY: pickNum(src.anchorWorldY, src.marshalWorldY),
             anchorGridCol: pickNum(src.anchorGridCol, src.marshalGridCol),
@@ -4439,16 +4621,24 @@
             members: members.map(function (m) {
               return { id: m.id, name: m.name, rank: m.rank };
             }),
-            settings: {
-              baseGap: hiveSettings.baseGap,
-              hubPreference: hiveSettings.hubPreference || "auto",
-              generateCount: hiveSettings.generateCount || 40,
-              anchorWorldX: hiveSettings.anchorWorldX,
-              anchorWorldY: hiveSettings.anchorWorldY,
-              anchorGridCol: hiveSettings.anchorGridCol,
-              anchorGridRow: hiveSettings.anchorGridRow,
-              anchorType: hiveSettings.anchorType,
-            },
+            settings: (function () {
+              var ranks = normalizeRankCounts(hiveSettings);
+              return {
+                baseGap: hiveSettings.baseGap,
+                hubPreference: hiveSettings.hubPreference || "auto",
+                elitePlacement: normalizeElitePlacement(hiveSettings.elitePlacement),
+                r5Count: ranks.r5Count,
+                r4Count: ranks.r4Count,
+                r3Count: ranks.r3Count,
+                r2Count: ranks.r2Count,
+                r1Count: ranks.r1Count,
+                anchorWorldX: hiveSettings.anchorWorldX,
+                anchorWorldY: hiveSettings.anchorWorldY,
+                anchorGridCol: hiveSettings.anchorGridCol,
+                anchorGridRow: hiveSettings.anchorGridRow,
+                anchorType: hiveSettings.anchorType,
+              };
+            })(),
             activeTool: activeTool,
             customName: customNameInput ? customNameInput.value : "",
             customW: customWInput ? String(customWInput.value) : "3",
@@ -5229,10 +5419,16 @@
             members = Array.isArray(list) ? list.slice() : [];
           },
           getSettings: function () {
+            var ranks = normalizeRankCounts(hiveSettings);
             return {
               baseGap: hiveSettings.baseGap,
               hubPreference: hiveSettings.hubPreference || "auto",
-              generateCount: hiveSettings.generateCount || 40,
+              elitePlacement: normalizeElitePlacement(hiveSettings.elitePlacement),
+              r5Count: ranks.r5Count,
+              r4Count: ranks.r4Count,
+              r3Count: ranks.r3Count,
+              r2Count: ranks.r2Count,
+              r1Count: ranks.r1Count,
               anchorGridCol: hiveSettings.anchorGridCol,
               anchorGridRow: hiveSettings.anchorGridRow,
               anchorType: hiveSettings.anchorType,
@@ -5249,9 +5445,20 @@
             ) {
               hiveSettings.hubPreference = s.hubPreference;
             }
-            if (s.generateCount != null && Number.isFinite(s.generateCount)) {
-              hiveSettings.generateCount = Math.max(1, Math.min(150, s.generateCount | 0));
+            if (s.elitePlacement === "inside" || s.elitePlacement === "outside") {
+              hiveSettings.elitePlacement = s.elitePlacement;
             }
+            var ranks = normalizeRankCounts({
+              r4Count: s.r4Count != null ? s.r4Count : hiveSettings.r4Count,
+              r3Count: s.r3Count != null ? s.r3Count : hiveSettings.r3Count,
+              r2Count: s.r2Count != null ? s.r2Count : hiveSettings.r2Count,
+              r1Count: s.r1Count != null ? s.r1Count : hiveSettings.r1Count,
+            });
+            hiveSettings.r5Count = ranks.r5Count;
+            hiveSettings.r4Count = ranks.r4Count;
+            hiveSettings.r3Count = ranks.r3Count;
+            hiveSettings.r2Count = ranks.r2Count;
+            hiveSettings.r1Count = ranks.r1Count;
             if (s.anchorGridCol != null) hiveSettings.anchorGridCol = s.anchorGridCol | 0;
             else if (s.marshalGridCol != null) hiveSettings.anchorGridCol = s.marshalGridCol | 0;
             if (s.anchorGridRow != null) hiveSettings.anchorGridRow = s.anchorGridRow | 0;

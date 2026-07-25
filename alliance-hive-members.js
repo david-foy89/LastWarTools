@@ -426,7 +426,52 @@
   function bindSettings() {
     var gapEl = $("hiveBaseGap");
     var hubEl = $("hiveHubSelect");
-    var countEl = $("hiveGenerateCount");
+    var eliteEl = $("hiveElitePlacement");
+    var r4El = $("hiveGenR4");
+    var r3El = $("hiveGenR3");
+    var r2El = $("hiveGenR2");
+    var r1El = $("hiveGenR1");
+    var totalEl = $("hiveGenTotal");
+
+    function clampInt(el, min, max, fallback) {
+      if (!el) return fallback;
+      var n = parseInt(el.value, 10);
+      if (!Number.isFinite(n)) return fallback;
+      return Math.max(min, Math.min(max, n));
+    }
+
+    function normalizeCounts(r4, r3, r2, r1) {
+      r4 = Math.max(0, Math.min(10, r4 | 0));
+      r3 = Math.max(0, Math.min(99, r3 | 0));
+      r2 = Math.max(0, Math.min(99, r2 | 0));
+      r1 = Math.max(0, Math.min(99, r1 | 0));
+      var overflow = 1 + r4 + r3 + r2 + r1 - 100;
+      if (overflow > 0) {
+        var cut = Math.min(r1, overflow);
+        r1 -= cut;
+        overflow -= cut;
+      }
+      if (overflow > 0) {
+        var cut2 = Math.min(r2, overflow);
+        r2 -= cut2;
+        overflow -= cut2;
+      }
+      if (overflow > 0) {
+        var cut3 = Math.min(r3, overflow);
+        r3 -= cut3;
+        overflow -= cut3;
+      }
+      if (overflow > 0) r4 = Math.max(0, r4 - overflow);
+      return { r5Count: 1, r4Count: r4, r3Count: r3, r2Count: r2, r1Count: r1 };
+    }
+
+    function updateTotalLabel(ranks) {
+      if (!totalEl) return;
+      var total =
+        ranks.r5Count + ranks.r4Count + ranks.r3Count + ranks.r2Count + ranks.r1Count;
+      totalEl.textContent = "Total: " + total + " / 100";
+      totalEl.classList.toggle("hive-rank-counts__total--over", total > 100);
+    }
 
     function readSettingsFromUi() {
       if (!api) return;
@@ -438,15 +483,30 @@
       if (hubEl) {
         s.hubPreference = hubEl.value || "auto";
       }
-      if (countEl) {
-        var c = parseInt(countEl.value, 10);
-        s.generateCount = Number.isFinite(c) ? Math.max(1, Math.min(150, c)) : 40;
+      if (eliteEl) {
+        s.elitePlacement = eliteEl.value === "outside" ? "outside" : "inside";
       }
+      var ranks = normalizeCounts(
+        clampInt(r4El, 0, 10, 10),
+        clampInt(r3El, 0, 99, 20),
+        clampInt(r2El, 0, 99, 30),
+        clampInt(r1El, 0, 99, 39)
+      );
+      s.r5Count = ranks.r5Count;
+      s.r4Count = ranks.r4Count;
+      s.r3Count = ranks.r3Count;
+      s.r2Count = ranks.r2Count;
+      s.r1Count = ranks.r1Count;
+      if (r4El) r4El.value = String(s.r4Count);
+      if (r3El) r3El.value = String(s.r3Count);
+      if (r2El) r2El.value = String(s.r2Count);
+      if (r1El) r1El.value = String(s.r1Count);
+      updateTotalLabel(ranks);
       api.setSettings(s);
       api.persist();
     }
 
-    [gapEl, hubEl, countEl].forEach(function (el) {
+    [gapEl, hubEl, eliteEl, r4El, r3El, r2El, r1El].forEach(function (el) {
       if (!el) return;
       el.addEventListener("change", readSettingsFromUi);
       if (el.tagName === "INPUT") el.addEventListener("input", readSettingsFromUi);
@@ -486,10 +546,33 @@
     var s = api.getSettings();
     var gapEl = $("hiveBaseGap");
     var hubEl = $("hiveHubSelect");
-    var countEl = $("hiveGenerateCount");
+    var eliteEl = $("hiveElitePlacement");
+    var r5El = $("hiveGenR5");
+    var r4El = $("hiveGenR4");
+    var r3El = $("hiveGenR3");
+    var r2El = $("hiveGenR2");
+    var r1El = $("hiveGenR1");
+    var totalEl = $("hiveGenTotal");
     if (gapEl && s.baseGap != null) gapEl.value = String(s.baseGap);
     if (hubEl && s.hubPreference) hubEl.value = s.hubPreference;
-    if (countEl && s.generateCount != null) countEl.value = String(s.generateCount);
+    if (eliteEl) {
+      eliteEl.value = s.elitePlacement === "outside" ? "outside" : "inside";
+    }
+    if (r5El) r5El.value = "1";
+    if (r4El && s.r4Count != null) r4El.value = String(s.r4Count);
+    if (r3El && s.r3Count != null) r3El.value = String(s.r3Count);
+    if (r2El && s.r2Count != null) r2El.value = String(s.r2Count);
+    if (r1El && s.r1Count != null) r1El.value = String(s.r1Count);
+    if (totalEl) {
+      var total =
+        (s.r5Count | 0) +
+        (s.r4Count | 0) +
+        (s.r3Count | 0) +
+        (s.r2Count | 0) +
+        (s.r1Count | 0);
+      totalEl.textContent = "Total: " + total + " / 100";
+      totalEl.classList.toggle("hive-rank-counts__total--over", total > 100);
+    }
     if (api.listAvailableHubs) syncHubSelectOptions(api.listAvailableHubs());
   }
 
@@ -499,7 +582,49 @@
     btn.addEventListener("click", function () {
       var gapEl = $("hiveBaseGap");
       var hubEl = $("hiveHubSelect");
-      var countEl = $("hiveGenerateCount");
+      var eliteEl = $("hiveElitePlacement");
+      var r4El = $("hiveGenR4");
+      var r3El = $("hiveGenR3");
+      var r2El = $("hiveGenR2");
+      var r1El = $("hiveGenR1");
+      function clampInt(el, min, max, fallback) {
+        if (!el) return fallback;
+        var n = parseInt(el.value, 10);
+        if (!Number.isFinite(n)) return fallback;
+        return Math.max(min, Math.min(max, n));
+      }
+      function normalizeCounts(r4, r3, r2, r1) {
+        r4 = Math.max(0, Math.min(10, r4 | 0));
+        r3 = Math.max(0, Math.min(99, r3 | 0));
+        r2 = Math.max(0, Math.min(99, r2 | 0));
+        r1 = Math.max(0, Math.min(99, r1 | 0));
+        var overflow = 1 + r4 + r3 + r2 + r1 - 100;
+        if (overflow > 0) {
+          var cut = Math.min(r1, overflow);
+          r1 -= cut;
+          overflow -= cut;
+        }
+        if (overflow > 0) {
+          var cut2 = Math.min(r2, overflow);
+          r2 -= cut2;
+          overflow -= cut2;
+        }
+        if (overflow > 0) {
+          var cut3 = Math.min(r3, overflow);
+          r3 -= cut3;
+          overflow -= cut3;
+        }
+        if (overflow > 0) r4 = Math.max(0, r4 - overflow);
+        return { r5Count: 1, r4Count: r4, r3Count: r3, r2Count: r2, r1Count: r1 };
+      }
+      var ranks = normalizeCounts(
+        clampInt(r4El, 0, 10, 10),
+        clampInt(r3El, 0, 99, 20),
+        clampInt(r2El, 0, 99, 30),
+        clampInt(r1El, 0, 99, 39)
+      );
+      var elitePlacement =
+        eliteEl && eliteEl.value === "outside" ? "outside" : "inside";
       /* Always pull Generate settings from the live form (gap included). */
       if (api.getSettings && api.setSettings) {
         var s = api.getSettings();
@@ -508,23 +633,32 @@
           s.baseGap = Number.isFinite(g) ? Math.max(0, Math.min(10, g)) : 1;
         }
         if (hubEl) s.hubPreference = hubEl.value || "auto";
-        if (countEl) {
-          var c = parseInt(countEl.value, 10);
-          s.generateCount = Number.isFinite(c) ? Math.max(1, Math.min(150, c)) : 40;
-        }
+        s.elitePlacement = elitePlacement;
+        s.r5Count = ranks.r5Count;
+        s.r4Count = ranks.r4Count;
+        s.r3Count = ranks.r3Count;
+        s.r2Count = ranks.r2Count;
+        s.r1Count = ranks.r1Count;
         api.setSettings(s);
         if (api.persist) api.persist();
       }
-      var opts = {};
+      if (r4El) r4El.value = String(ranks.r4Count);
+      if (r3El) r3El.value = String(ranks.r3Count);
+      if (r2El) r2El.value = String(ranks.r2Count);
+      if (r1El) r1El.value = String(ranks.r1Count);
+      var opts = {
+        r5Count: ranks.r5Count,
+        r4Count: ranks.r4Count,
+        r3Count: ranks.r3Count,
+        r2Count: ranks.r2Count,
+        r1Count: ranks.r1Count,
+        elitePlacement: elitePlacement,
+      };
       if (gapEl) {
         var gapVal = parseInt(gapEl.value, 10);
         opts.baseGap = Number.isFinite(gapVal) ? Math.max(0, Math.min(10, gapVal)) : 1;
       }
       if (hubEl) opts.hubPreference = hubEl.value || "auto";
-      if (countEl) {
-        var countVal = parseInt(countEl.value, 10);
-        opts.count = Number.isFinite(countVal) ? countVal : 40;
-      }
       var result = api.generateAutoHive(opts);
       if (!result) return;
       if (result.message && result.placed === 0 && result.skipped === 0) {
