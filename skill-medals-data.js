@@ -1,7 +1,7 @@
 /**
  * Skill medal costs by hero tier (Last War: Survival).
  * UR max 40 (levels 31–40 need Exclusive Weapon). SSR/SR max 30.
- * SSR ≈ 90% of UR, SR ≈ 80% of UR (community tables / Cpt Hedge / lastwar-guide).
+ * SSR ≈ 90% of UR, SR ≈ 80% of UR
  */
 (function () {
   const urFromPrev = [

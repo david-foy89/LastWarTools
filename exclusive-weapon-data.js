@@ -1,7 +1,7 @@
 /**
  * Exclusive weapon shard costs (Last War: Survival).
  * Unlock: 50 named shards. Levels 2–30: named or universal shards.
- * Sources: community tables (Cpt Hedge / LastWarUtil / lastwar-guide).
+ * 
  */
 window.LW_EXCLUSIVE_WEAPON_DATA = {
   maxLevel: 30,
